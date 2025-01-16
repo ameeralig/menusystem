@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { Alert } from "@/components/ui/alert";
+import { AuthError } from "@supabase/supabase-js";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -13,6 +14,24 @@ const Login = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const getErrorMessage = (error: AuthError) => {
+    console.log("Error details:", error); // للتتبع
+
+    if (error.message.includes("Email logins are disabled")) {
+      return "تسجيل الدخول بالبريد الإلكتروني معطل حالياً. يرجى التواصل مع مسؤول النظام.";
+    }
+    
+    if (error.message.includes("Invalid login credentials")) {
+      return "البريد الإلكتروني أو كلمة المرور غير صحيحة";
+    }
+
+    if (error.message.includes("Email not confirmed")) {
+      return "لم يتم تأكيد البريد الإلكتروني بعد. يرجى التحقق من بريدك الإلكتروني والضغط على رابط التأكيد.";
+    }
+
+    return error.message;
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,15 +49,11 @@ const Login = () => {
       console.log("Login response:", { data, error: signInError }); // للتتبع
 
       if (signInError) {
-        if (signInError.message.includes("Invalid login credentials")) {
-          setError("البريد الإلكتروني أو كلمة المرور غير صحيحة");
-        } else {
-          setError(signInError.message);
-        }
+        setError(getErrorMessage(signInError));
         toast({
           variant: "destructive",
           title: "خطأ في تسجيل الدخول",
-          description: "يرجى التحقق من بياناتك والمحاولة مرة أخرى",
+          description: getErrorMessage(signInError),
         });
       } else if (data.user) {
         toast({
