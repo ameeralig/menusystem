@@ -5,10 +5,15 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  "https://YOUR_PROJECT_URL.supabase.co",
-  "YOUR_ANON_KEY"
-);
+// تأكد من أن متغيرات البيئة موجودة
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables');
+}
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const Login = () => {
   const [identifier, setIdentifier] = useState("");
