@@ -75,7 +75,7 @@ const Dashboard = () => {
       {/* Main Content */}
       <main className="container mx-auto p-6">
         <div className="grid gap-6">
-          <div className="rounded-lg border p-4">
+          <div className="rounded-lg border p-4 text-center">
             <h2 className="text-xl font-semibold mb-4">مرحباً بك في لوحة التحكم</h2>
             <p className="text-muted-foreground">
               يمكنك إدارة حسابك وتغيير الإعدادات من هنا
