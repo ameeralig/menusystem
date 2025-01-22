@@ -16,7 +16,7 @@ const Login = () => {
   const { toast } = useToast();
 
   const getErrorMessage = (error: AuthError) => {
-    console.log("Error details:", error); // للتتبع
+    console.log("Error details:", error);
 
     if (error.message.includes("Email logins are disabled")) {
       return "تسجيل الدخول بالبريد الإلكتروني معطل حالياً. يرجى التواصل مع مسؤول النظام.";
@@ -38,7 +38,7 @@ const Login = () => {
     setLoading(true);
     setError("");
 
-    console.log("Attempting login with email:", email); // للتتبع
+    console.log("Attempting login with email:", email);
 
     try {
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
@@ -46,7 +46,7 @@ const Login = () => {
         password: password,
       });
 
-      console.log("Login response:", { data, error: signInError }); // للتتبع
+      console.log("Login response:", { data, error: signInError });
 
       if (signInError) {
         setError(getErrorMessage(signInError));
@@ -63,7 +63,7 @@ const Login = () => {
         navigate("/");
       }
     } catch (err) {
-      console.error("Login error:", err); // للتتبع
+      console.error("Login error:", err);
       setError("حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى");
     }
 
@@ -75,15 +75,6 @@ const Login = () => {
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-gray-900">تسجيل الدخول</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            ليس لديك حساب؟{" "}
-            <button
-              onClick={() => navigate("/auth/signup")}
-              className="font-medium text-primary hover:text-primary/80"
-            >
-              إنشاء حساب جديد
-            </button>
-          </p>
         </div>
 
         {error && (
@@ -132,6 +123,16 @@ const Login = () => {
           >
             {loading ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
           </Button>
+
+          <p className="mt-4 text-sm text-gray-600 text-center">
+            ليس لديك حساب؟{" "}
+            <button
+              onClick={() => navigate("/auth/signup")}
+              className="font-medium text-primary hover:text-primary/80"
+            >
+              إنشاء حساب جديد
+            </button>
+          </p>
         </form>
       </div>
     </div>
