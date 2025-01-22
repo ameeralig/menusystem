@@ -47,7 +47,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background text-foreground">
       {/* Header with Settings Button */}
       <header className="p-4 flex justify-between items-center border-b">
-        <h1 className="text-2xl font-bold">لوحة التحكم</h1>
+        <h1 className="text-2xl font-bold absolute left-1/2 -translate-x-1/2">لوحة التحكم</h1>
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
