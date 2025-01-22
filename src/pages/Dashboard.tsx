@@ -46,9 +46,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header with Settings Button */}
-      <header className="p-4 flex justify-between items-center border-b">
-        <h1 className="text-2xl font-bold absolute left-1/2 -translate-x-1/2">لوحة التحكم</h1>
-        
+      <header className="p-4 flex justify-end items-center border-b">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon">
@@ -76,7 +74,7 @@ const Dashboard = () => {
       <main className="container mx-auto p-6">
         <div className="grid gap-6">
           <div className="rounded-lg border p-4 text-center">
-            <h2 className="text-xl font-semibold mb-4">مرحباً بك في لوحة التحكم</h2>
+            <h1 className="text-2xl font-bold mb-4">لوحة التحكم</h1>
             <p className="text-muted-foreground">
               يمكنك إدارة حسابك وتغيير الإعدادات من هنا
             </p>
