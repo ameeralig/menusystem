@@ -46,38 +46,37 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header with Settings Button */}
-      <header className="p-4 flex justify-between items-center border-b">
+      <header className="p-4 flex justify-center items-center border-b relative">
         <h1 className="text-2xl font-bold">مرحباً بك في لوحة التحكم</h1>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Settings className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={toggleTheme}>
-              {theme === "light" ? (
-                <Moon className="ml-2 h-4 w-4" />
-              ) : (
-                <Sun className="ml-2 h-4 w-4" />
-              )}
-              {theme === "light" ? "الوضع المظلم" : "الوضع المضيء"}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleLogout}>
-              <LogOut className="ml-2 h-4 w-4" />
-              تسجيل الخروج
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="absolute right-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Settings className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={toggleTheme}>
+                {theme === "light" ? (
+                  <Moon className="ml-2 h-4 w-4" />
+                ) : (
+                  <Sun className="ml-2 h-4 w-4" />
+                )}
+                {theme === "light" ? "الوضع المظلم" : "الوضع المضيء"}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="ml-2 h-4 w-4" />
+                تسجيل الخروج
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </header>
 
       {/* Main Content */}
       <main className="container mx-auto p-6">
         <div className="grid gap-6">
-          <div className="rounded-lg border p-4 text-center">
-            <p className="text-muted-foreground">
-              يمكنك إدارة حسابك وتغيير الإعدادات من هنا
-            </p>
+          <div className="rounded-lg border p-4">
           </div>
         </div>
       </main>
