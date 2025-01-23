@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { getErrorMessage } from "@/utils/errorHandling";
 
@@ -18,15 +19,11 @@ const Login = () => {
     setLoading(true);
     setError("");
 
-    console.log("Attempting login with email:", email);
-
     try {
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-
-      console.log("Login response:", { data, error: signInError });
 
       if (signInError) {
         setError(getErrorMessage(signInError));
@@ -51,28 +48,53 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">تسجيل الدخول</h1>
-        {error && <p className="text-red-500">{error}</p>}
-        <form onSubmit={handleSubmit} className="flex flex-col items-center">
-          <input
-            type="email"
-            placeholder="البريد الإلكتروني"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mb-4 p-2 border rounded"
-            required
-          />
-          <input
-            type="password"
-            placeholder="كلمة المرور"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mb-4 p-2 border rounded"
-            required
-          />
-          <Button type="submit" disabled={loading}>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-gray-900">تسجيل الدخول</h2>
+          <p className="mt-2 text-sm text-gray-600">
+            ليس لديك حساب؟{" "}
+            <button
+              onClick={() => navigate("/auth/signup")}
+              className="font-medium text-primary hover:text-primary/80"
+            >
+              إنشاء حساب جديد
+            </button>
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                البريد الإلكتروني
+              </label>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="mt-1 text-right"
+                dir="rtl"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                كلمة المرور
+              </label>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="mt-1 text-right"
+                dir="rtl"
+              />
+            </div>
+          </div>
+
+          <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
           </Button>
         </form>
