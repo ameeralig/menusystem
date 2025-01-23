@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Settings, LogOut, Moon, Sun } from "lucide-react";
+import { Settings, LogOut, Moon, Sun, Plus, Edit, Eye, Link } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -77,6 +77,32 @@ const Dashboard = () => {
       <main className="container mx-auto p-6">
         <div className="grid gap-6">
           <div className="rounded-lg border p-4">
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Button className="w-48">
+                <Plus />
+                إضافة منتج
+              </Button>
+              
+              <Button variant="secondary" className="w-48">
+                <Edit />
+                تعديل المنتجات
+              </Button>
+              
+              <Button variant="outline" className="w-48">
+                <Eye />
+                معاينة المنتجات
+              </Button>
+              
+              <Button variant="secondary" className="w-48">
+                <Settings />
+                تخصيص الصفحة
+              </Button>
+              
+              <Button variant="outline" className="w-48">
+                <Link />
+                نسخ الرابط
+              </Button>
+            </div>
           </div>
         </div>
       </main>
