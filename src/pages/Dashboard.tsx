@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Settings, LogOut, Moon, Sun, Plus, Edit, Eye, Link } from "lucide-react";
+import { Settings, LogOut, Moon, Sun, Plus, Edit, Eye, Link as LinkIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +15,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [user, setUser] = useState(supabase.auth.getUser());
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
@@ -38,6 +39,18 @@ const Dashboard = () => {
       toast({
         title: "حدث خطأ أثناء تسجيل الخروج",
         variant: "destructive",
+        duration: 3000,
+      });
+    }
+  };
+
+  const copyProductLink = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const link = `${window.location.origin}/products/${user.id}`;
+      await navigator.clipboard.writeText(link);
+      toast({
+        title: "تم نسخ الرابط بنجاح",
         duration: 3000,
       });
     }
@@ -86,7 +99,16 @@ const Dashboard = () => {
                 تعديل المنتجات
               </Button>
               
-              <Button variant="outline" className="w-48">
+              <Button 
+                variant="outline" 
+                className="w-48"
+                onClick={async () => {
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (user) {
+                    navigate(`/products/${user.id}`);
+                  }
+                }}
+              >
                 <Eye className="ml-2" />
                 معاينة المنتجات
               </Button>
@@ -96,8 +118,8 @@ const Dashboard = () => {
                 تخصيص الصفحة
               </Button>
               
-              <Button variant="outline" className="w-48">
-                <Link className="ml-2" />
+              <Button variant="outline" className="w-48" onClick={copyProductLink}>
+                <LinkIcon className="ml-2" />
                 نسخ الرابط
               </Button>
             </div>
