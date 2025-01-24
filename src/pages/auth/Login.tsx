@@ -48,22 +48,13 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-end bg-gray-50">
-      <div className="w-full max-w-md mx-auto p-8 mb-8 bg-white rounded-lg shadow-lg">
-        <div className="text-center">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
+        <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-gray-900">تسجيل الدخول</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            ليس لديك حساب؟{" "}
-            <button
-              onClick={() => navigate("/auth/signup")}
-              className="font-medium text-primary hover:text-primary/80"
-            >
-              إنشاء حساب جديد
-            </button>
-          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -98,6 +89,18 @@ const Login = () => {
             {loading ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
           </Button>
         </form>
+      </div>
+      
+      <div className="mt-6 text-center">
+        <p className="text-sm text-gray-600">
+          ليس لديك حساب؟{" "}
+          <button
+            onClick={() => navigate("/auth/signup")}
+            className="font-medium text-primary hover:text-primary/80"
+          >
+            إنشاء حساب جديد
+          </button>
+        </p>
       </div>
     </div>
   );
