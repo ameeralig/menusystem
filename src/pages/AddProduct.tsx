@@ -5,6 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const AddProduct = () => {
   const navigate = useNavigate();
@@ -15,6 +22,7 @@ const AddProduct = () => {
     description: "",
     price: "",
     image_url: "",
+    category: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,6 +41,7 @@ const AddProduct = () => {
         description: formData.description,
         price: parseFloat(formData.price),
         image_url: formData.image_url,
+        category: formData.category,
       });
 
       if (error) throw error;
@@ -80,6 +89,25 @@ const AddProduct = () => {
               placeholder="أدخل وصف المنتج"
               className="w-full"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">تصنيف المنتج</label>
+            <Select
+              value={formData.category}
+              onValueChange={(value) => setFormData({ ...formData, category: value })}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="اختر تصنيف المنتج" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="electronics">إلكترونيات</SelectItem>
+                <SelectItem value="clothing">ملابس</SelectItem>
+                <SelectItem value="books">كتب</SelectItem>
+                <SelectItem value="food">طعام</SelectItem>
+                <SelectItem value="other">أخرى</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
