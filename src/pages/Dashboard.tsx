@@ -45,7 +45,6 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Header with Settings Button */}
       <header className="p-4 flex justify-center items-center border-b relative">
         <h1 className="text-2xl font-bold">مرحباً بك في لوحة التحكم</h1>
         <div className="absolute right-4">
@@ -73,33 +72,32 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="container mx-auto p-6">
         <div className="grid gap-6">
           <div className="rounded-lg border p-4">
             <div className="flex flex-wrap gap-4 justify-center">
-              <Button className="w-48">
-                <Plus />
+              <Button className="w-48" onClick={() => navigate("/add-product")}>
+                <Plus className="ml-2" />
                 إضافة منتج
               </Button>
               
               <Button variant="secondary" className="w-48">
-                <Edit />
+                <Edit className="ml-2" />
                 تعديل المنتجات
               </Button>
               
               <Button variant="outline" className="w-48">
-                <Eye />
+                <Eye className="ml-2" />
                 معاينة المنتجات
               </Button>
               
               <Button variant="secondary" className="w-48">
-                <Settings />
+                <Settings className="ml-2" />
                 تخصيص الصفحة
               </Button>
               
               <Button variant="outline" className="w-48">
-                <Link />
+                <Link className="ml-2" />
                 نسخ الرابط
               </Button>
             </div>
