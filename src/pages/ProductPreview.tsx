@@ -10,6 +10,7 @@ interface Product {
   description: string | null;
   price: number;
   image_url: string | null;
+  category: string | null;
 }
 
 const ProductPreview = () => {
@@ -41,7 +42,9 @@ const ProductPreview = () => {
       }
     };
 
-    fetchProducts();
+    if (userId) {
+      fetchProducts();
+    }
   }, [userId, toast]);
 
   if (products.length === 0) {
@@ -72,6 +75,11 @@ const ProductPreview = () => {
               <h2 className="text-xl font-semibold mb-2">{product.name}</h2>
               {product.description && (
                 <p className="text-gray-600 mb-2">{product.description}</p>
+              )}
+              {product.category && (
+                <p className="text-sm text-gray-500 mb-2">
+                  التصنيف: {product.category}
+                </p>
               )}
               <p className="text-lg font-bold text-primary">
                 {product.price.toLocaleString()} دينار عراقي
