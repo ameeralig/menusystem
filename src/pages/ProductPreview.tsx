@@ -13,13 +13,17 @@ interface Product {
 }
 
 const ProductPreview = () => {
-  const { userId } = useParams();
+  const { userId } = useParams<{ userId: string }>();
   const [products, setProducts] = useState<Product[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        if (!userId) {
+          throw new Error("معرف المستخدم غير موجود");
+        }
+
         const { data, error } = await supabase
           .from("products")
           .select("*")
@@ -27,19 +31,27 @@ const ProductPreview = () => {
 
         if (error) throw error;
         setProducts(data || []);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching products:", error);
         toast({
           title: "حدث خطأ أثناء تحميل المنتجات",
+          description: error.message,
           variant: "destructive",
         });
       }
     };
 
-    if (userId) {
-      fetchProducts();
-    }
+    fetchProducts();
   }, [userId, toast]);
+
+  if (products.length === 0) {
+    return (
+      <div className="container mx-auto py-8 text-center">
+        <h1 className="text-3xl font-bold mb-8">معرض المنتجات</h1>
+        <p className="text-gray-600">لا توجد منتجات متاحة حالياً</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8">
