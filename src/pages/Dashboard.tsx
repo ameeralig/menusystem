@@ -94,7 +94,30 @@ const Dashboard = () => {
                 إضافة منتج
               </Button>
               
-              <Button variant="secondary" className="w-48">
+              <Button 
+                variant="secondary" 
+                className="w-48"
+                onClick={async () => {
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (user) {
+                    const { data: products } = await supabase
+                      .from("products")
+                      .select("id")
+                      .eq("user_id", user.id)
+                      .limit(1);
+                    
+                    if (products && products.length > 0) {
+                      navigate(`/edit-product/${products[0].id}`);
+                    } else {
+                      toast({
+                        title: "لا توجد منتجات",
+                        description: "قم بإضافة منتج أولاً",
+                        duration: 3000,
+                      });
+                    }
+                  }
+                }}
+              >
                 <Edit className="ml-2" />
                 تعديل المنتجات
               </Button>
