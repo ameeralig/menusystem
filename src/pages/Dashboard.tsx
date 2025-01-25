@@ -1,21 +1,20 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Settings, LogOut, Moon, Sun, Plus, Edit, Eye, Link as LinkIcon } from "lucide-react";
+import { Settings, LogOut, Moon, Sun, Plus, Edit, Eye, Link2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [user, setUser] = useState(supabase.auth.getUser());
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
@@ -50,7 +49,8 @@ const Dashboard = () => {
       const link = `${window.location.origin}/products/${user.id}`;
       await navigator.clipboard.writeText(link);
       toast({
-        title: "تم نسخ الرابط بنجاح",
+        title: "تم نسخ رابط صفحة المنتجات بنجاح",
+        description: "يمكنك الآن مشاركة هذا الرابط مع الآخرين",
         duration: 3000,
       });
     }
@@ -142,8 +142,8 @@ const Dashboard = () => {
               </Button>
               
               <Button variant="outline" className="w-48" onClick={copyProductLink}>
-                <LinkIcon className="ml-2" />
-                نسخ الرابط
+                <Link2 className="ml-2" />
+                نسخ رابط المنتجات
               </Button>
             </div>
           </div>
