@@ -44,13 +44,39 @@ const Dashboard = () => {
   };
 
   const copyProductLink = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const link = `${window.location.origin}/products/${user.id}`;
-      await navigator.clipboard.writeText(link);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const link = `${window.location.origin}/products/${user.id}`;
+        try {
+          await navigator.clipboard.writeText(link);
+          toast({
+            title: "تم نسخ رابط صفحة المنتجات بنجاح",
+            description: "يمكنك الآن مشاركة هذا الرابط مع الآخرين",
+            duration: 3000,
+          });
+        } catch (clipboardError) {
+          console.error("Clipboard error:", clipboardError);
+          // Fallback method using a temporary input element
+          const tempInput = document.createElement("input");
+          tempInput.value = link;
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          document.execCommand("copy");
+          document.body.removeChild(tempInput);
+          
+          toast({
+            title: "تم نسخ رابط صفحة المنتجات بنجاح",
+            description: "يمكنك الآن مشاركة هذا الرابط مع الآخرين",
+            duration: 3000,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Copy link error:", error);
       toast({
-        title: "تم نسخ رابط صفحة المنتجات بنجاح",
-        description: "يمكنك الآن مشاركة هذا الرابط مع الآخرين",
+        title: "حدث خطأ أثناء نسخ الرابط",
+        variant: "destructive",
         duration: 3000,
       });
     }
