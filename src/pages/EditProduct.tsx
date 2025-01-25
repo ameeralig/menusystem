@@ -85,6 +85,10 @@ const EditProduct = () => {
     }
   };
 
+  const handleEdit = (productId: string) => {
+    navigate(`/edit-product/${productId}`);
+  };
+
   if (loading) {
     return <div className="container mx-auto py-8 text-center">جاري التحميل...</div>;
   }
@@ -123,7 +127,7 @@ const EditProduct = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => navigate(`/edit-product/${product.id}`)}
+                      onClick={() => handleEdit(product.id)}
                     >
                       <Edit className="h-4 w-4 ml-2" />
                       تعديل
