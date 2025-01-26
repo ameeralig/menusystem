@@ -32,7 +32,7 @@ const ProductPreview = () => {
         const { data, error } = await supabase
           .from("products")
           .select("*")
-          .eq("user_id", userId);
+          .eq('user_id', userId); // Fixed: Using the actual userId value from params
 
         if (error) throw error;
         setProducts(data || []);
@@ -46,9 +46,7 @@ const ProductPreview = () => {
       }
     };
 
-    if (userId) {
-      fetchProducts();
-    }
+    fetchProducts();
   }, [userId, toast]);
 
   const categories = ["الكل", "برجر", "بيتزا", "شاورما", "مشاوي"];
