@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const AddProduct = () => {
   const navigate = useNavigate();
@@ -17,6 +18,8 @@ const AddProduct = () => {
     image_url: "",
     category: "",
   });
+
+  const categories = ["برجر", "بيتزا", "شاورما", "مشاوي", "أخرى"];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,10 +34,10 @@ const AddProduct = () => {
       const { error } = await supabase.from("products").insert({
         user_id: userData.user.id,
         name: formData.name,
-        description: formData.description,
+        description: formData.description || null,
         price: parseFloat(formData.price),
-        image_url: formData.image_url,
-        category: formData.category,
+        image_url: formData.image_url || null,
+        category: formData.category || null,
       });
 
       if (error) throw error;
@@ -79,19 +82,28 @@ const AddProduct = () => {
             <Textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="أدخل وصف المنتج"
+              placeholder="أدخل وصف المنتج (اختياري)"
               className="w-full"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">تصنيف المنتج</label>
-            <Input
+            <label className="block text-sm font-medium mb-2">تصنيف المنتج (اختياري)</label>
+            <Select
               value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              placeholder="أدخل تصنيف المنتج"
-              className="w-full"
-            />
+              onValueChange={(value) => setFormData({ ...formData, category: value })}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="اختر تصنيف المنتج" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
@@ -109,7 +121,7 @@ const AddProduct = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">رابط صورة المنتج</label>
+            <label className="block text-sm font-medium mb-2">رابط صورة المنتج (اختياري)</label>
             <Input
               type="url"
               value={formData.image_url}
