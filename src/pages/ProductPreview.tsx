@@ -31,12 +31,12 @@ const ProductPreview = () => {
           throw new Error("معرف المستخدم غير موجود");
         }
 
-        // Fetch store settings
+        // Fetch store settings using maybeSingle() instead of single()
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
           .select("store_name")
           .eq("user_id", userId)
-          .single();
+          .maybeSingle();
 
         if (storeError) throw storeError;
         setStoreName(storeSettings?.store_name || null);
