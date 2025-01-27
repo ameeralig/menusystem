@@ -23,20 +23,45 @@ const DashboardActions = () => {
 
       const productsPageUrl = `${window.location.origin}/products/${user.id}`;
       
+      // Create a temporary textarea element
+      const textarea = document.createElement('textarea');
+      textarea.value = productsPageUrl;
+      textarea.style.position = 'fixed'; // Prevent scrolling to bottom
+      document.body.appendChild(textarea);
+      
       try {
-        await navigator.clipboard.writeText(productsPageUrl);
+        textarea.select();
+        textarea.setSelectionRange(0, 99999); // For mobile devices
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        
         toast({
           title: "تم نسخ الرابط بنجاح",
           description: "يمكنك الآن مشاركة رابط صفحة المنتجات",
           duration: 3000,
         });
       } catch (err) {
-        console.error("Copy error:", err);
-        toast({
-          title: "تعذر النسخ التلقائي",
-          description: "الرجاء نسخ الرابط يدوياً: " + productsPageUrl,
-          duration: 5000,
-        });
+        // Fallback if execCommand fails
+        navigator.clipboard.writeText(productsPageUrl)
+          .then(() => {
+            toast({
+              title: "تم نسخ الرابط بنجاح",
+              description: "يمكنك الآن مشاركة رابط صفحة المنتجات",
+              duration: 3000,
+            });
+          })
+          .catch(() => {
+            toast({
+              title: "تعذر النسخ التلقائي",
+              description: "الرابط: " + productsPageUrl,
+              duration: 5000,
+            });
+          });
+      } finally {
+        // Ensure textarea is removed
+        if (document.body.contains(textarea)) {
+          document.body.removeChild(textarea);
+        }
       }
     } catch (error) {
       console.error("Copy link error:", error);
