@@ -47,19 +47,21 @@ const Dashboard = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const link = `${window.location.origin}/products/${user.id}`;
+        // Create the products page URL
+        const productsPageUrl = `${window.location.origin}/products/${user.id}`;
+        
         try {
-          await navigator.clipboard.writeText(link);
+          await navigator.clipboard.writeText(productsPageUrl);
           toast({
             title: "تم نسخ رابط صفحة المنتجات بنجاح",
-            description: "يمكنك الآن مشاركة هذا الرابط مع الآخرين",
+            description: "يمكنك الآن مشاركة هذا الرابط مع الآخرين لعرض جميع منتجاتك",
             duration: 3000,
           });
         } catch (clipboardError) {
           console.error("Clipboard error:", clipboardError);
-          // Fallback method using a temporary input element
+          // Fallback method for browsers that don't support clipboard API
           const tempInput = document.createElement("input");
-          tempInput.value = link;
+          tempInput.value = productsPageUrl;
           document.body.appendChild(tempInput);
           tempInput.select();
           document.execCommand("copy");
@@ -67,7 +69,7 @@ const Dashboard = () => {
           
           toast({
             title: "تم نسخ رابط صفحة المنتجات بنجاح",
-            description: "يمكنك الآن مشاركة هذا الرابط مع الآخرين",
+            description: "يمكنك الآن مشاركة هذا الرابط مع الآخرين لعرض جميع منتجاتك",
             duration: 3000,
           });
         }
