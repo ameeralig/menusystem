@@ -124,7 +124,11 @@ const DashboardActions = () => {
           معاينة المنتجات
         </Button>
         
-        <Button variant="secondary" className="w-48">
+        <Button 
+          variant="secondary" 
+          className="w-48"
+          onClick={() => navigate("/store-customization")}
+        >
           <Settings className="ml-2" />
           تخصيص الصفحة
         </Button>

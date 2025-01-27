@@ -21,33 +21,45 @@ const ProductPreview = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [storeName, setStoreName] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchStoreData = async () => {
       try {
         if (!userId) {
           throw new Error("معرف المستخدم غير موجود");
         }
 
-        const { data, error } = await supabase
+        // Fetch store settings
+        const { data: storeSettings, error: storeError } = await supabase
+          .from("store_settings")
+          .select("store_name")
+          .eq("user_id", userId)
+          .single();
+
+        if (storeError) throw storeError;
+        setStoreName(storeSettings?.store_name || null);
+
+        // Fetch products
+        const { data: productsData, error: productsError } = await supabase
           .from("products")
           .select("*")
           .eq('user_id', userId);
 
-        if (error) throw error;
-        setProducts(data || []);
+        if (productsError) throw productsError;
+        setProducts(productsData || []);
       } catch (error: any) {
-        console.error("Error fetching products:", error);
+        console.error("Error fetching data:", error);
         toast({
-          title: "حدث خطأ أثناء تحميل المنتجات",
+          title: "حدث خطأ أثناء تحميل البيانات",
           description: error.message,
           variant: "destructive",
         });
       }
     };
 
-    fetchProducts();
+    fetchStoreData();
   }, [userId, toast]);
 
   // Get unique categories from products
@@ -77,6 +89,10 @@ const ProductPreview = () => {
 
   return (
     <div className="container mx-auto py-6 px-4 max-w-6xl">
+      {storeName && (
+        <h1 className="text-3xl font-bold text-center mb-8">{storeName}</h1>
+      )}
+
       <div className="mb-6 max-w-md mx-auto">
         <div className="relative">
           <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
