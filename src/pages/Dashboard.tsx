@@ -46,38 +46,65 @@ const Dashboard = () => {
   const copyProductLink = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        // Create the products page URL
-        const productsPageUrl = `${window.location.origin}/products/${user.id}`;
-        
+      if (!user) {
+        toast({
+          title: "خطأ",
+          description: "يجب تسجيل الدخول أولاً",
+          variant: "destructive",
+          duration: 3000,
+        });
+        return;
+      }
+
+      const productsPageUrl = `${window.location.origin}/products/${user.id}`;
+      
+      // Use the newer Clipboard API with fallback
+      if (navigator.clipboard && window.isSecureContext) {
         try {
           await navigator.clipboard.writeText(productsPageUrl);
           toast({
-            title: "تم نسخ رابط صفحة المنتجات بنجاح",
-            description: "يمكنك الآن مشاركة هذا الرابط مع الآخرين لعرض جميع منتجاتك",
+            title: "تم نسخ الرابط بنجاح",
+            description: "يمكنك الآن مشاركة رابط صفحة المنتجات",
             duration: 3000,
           });
-        } catch (clipboardError) {
-          console.error("Clipboard error:", clipboardError);
-          // Fallback method for browsers that don't support clipboard API
-          const tempInput = document.createElement("input");
-          tempInput.value = productsPageUrl;
-          document.body.appendChild(tempInput);
-          tempInput.select();
-          document.execCommand("copy");
-          document.body.removeChild(tempInput);
-          
+        } catch (err) {
+          console.error("Clipboard API error:", err);
+          throw err; // Let the fallback handle it
+        }
+      } else {
+        // Fallback for older browsers or non-HTTPS
+        const textArea = document.createElement("textarea");
+        textArea.value = productsPageUrl;
+        textArea.style.position = "fixed"; // Avoid scrolling to bottom
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+          document.execCommand('copy');
           toast({
-            title: "تم نسخ رابط صفحة المنتجات بنجاح",
-            description: "يمكنك الآن مشاركة هذا الرابط مع الآخرين لعرض جميع منتجاتك",
+            title: "تم نسخ الرابط بنجاح",
+            description: "يمكنك الآن مشاركة رابط صفحة المنتجات",
             duration: 3000,
           });
+        } catch (err) {
+          console.error("Fallback copy error:", err);
+          toast({
+            title: "تعذر نسخ الرابط",
+            description: "الرجاء المحاولة مرة أخرى أو النسخ يدوياً",
+            variant: "destructive",
+            duration: 3000,
+          });
+        } finally {
+          document.body.removeChild(textArea);
         }
       }
     } catch (error) {
       console.error("Copy link error:", error);
       toast({
-        title: "حدث خطأ أثناء نسخ الرابط",
+        title: "تعذر نسخ الرابط",
+        description: "الرجاء المحاولة مرة أخرى",
         variant: "destructive",
         duration: 3000,
       });
