@@ -58,47 +58,41 @@ const Dashboard = () => {
 
       const productsPageUrl = `${window.location.origin}/products/${user.id}`;
       
-      // Use the newer Clipboard API with fallback
-      if (navigator.clipboard && window.isSecureContext) {
-        try {
-          await navigator.clipboard.writeText(productsPageUrl);
-          toast({
-            title: "تم نسخ الرابط بنجاح",
-            description: "يمكنك الآن مشاركة رابط صفحة المنتجات",
-            duration: 3000,
-          });
-        } catch (err) {
-          console.error("Clipboard API error:", err);
-          throw err; // Let the fallback handle it
-        }
-      } else {
-        // Fallback for older browsers or non-HTTPS
-        const textArea = document.createElement("textarea");
-        textArea.value = productsPageUrl;
-        textArea.style.position = "fixed"; // Avoid scrolling to bottom
-        textArea.style.opacity = "0";
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
+      // Create a temporary input element
+      const tempInput = document.createElement('input');
+      tempInput.style.position = 'absolute';
+      tempInput.style.left = '-9999px';
+      tempInput.value = productsPageUrl;
+      document.body.appendChild(tempInput);
 
-        try {
-          document.execCommand('copy');
+      try {
+        // Select the text and try to copy
+        tempInput.select();
+        tempInput.setSelectionRange(0, 99999); // For mobile devices
+        
+        // Try to copy using document.execCommand
+        const successful = document.execCommand('copy');
+        
+        if (successful) {
           toast({
             title: "تم نسخ الرابط بنجاح",
             description: "يمكنك الآن مشاركة رابط صفحة المنتجات",
             duration: 3000,
           });
-        } catch (err) {
-          console.error("Fallback copy error:", err);
-          toast({
-            title: "تعذر نسخ الرابط",
-            description: "الرجاء المحاولة مرة أخرى أو النسخ يدوياً",
-            variant: "destructive",
-            duration: 3000,
-          });
-        } finally {
-          document.body.removeChild(textArea);
+        } else {
+          throw new Error('نسخ غير ناجح');
         }
+      } catch (err) {
+        console.error("Copy error:", err);
+        // If copying fails, show the URL to the user so they can copy manually
+        toast({
+          title: "تعذر النسخ التلقائي",
+          description: "الرجاء نسخ الرابط يدوياً: " + productsPageUrl,
+          duration: 5000,
+        });
+      } finally {
+        // Clean up
+        document.body.removeChild(tempInput);
       }
     } catch (error) {
       console.error("Copy link error:", error);
