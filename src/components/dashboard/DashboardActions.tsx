@@ -1,5 +1,6 @@
 import { Plus, Edit, Eye, Link2, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { copyToClipboard } from "@/utils/clipboard";
@@ -8,6 +9,7 @@ import DashboardActionButton from "./DashboardActionButton";
 const DashboardActions = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isCopying, setIsCopying] = useState(false);
 
   const handleEditProducts = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -47,7 +49,9 @@ const DashboardActions = () => {
 
   const copyProductLink = async () => {
     try {
+      setIsCopying(true);
       const { data: { user } } = await supabase.auth.getUser();
+      
       if (!user) {
         toast({
           title: "خطأ",
@@ -59,30 +63,15 @@ const DashboardActions = () => {
       }
 
       const productsPageUrl = `${window.location.origin}/products/${user.id}`;
-      const success = await copyToClipboard(productsPageUrl);
+      await copyToClipboard(productsPageUrl);
       
-      if (success) {
-        toast({
-          title: "تم نسخ الرابط بنجاح",
-          description: "يمكنك الآن مشاركة رابط صفحة المنتجات",
-          duration: 3000,
-        });
-      } else {
-        toast({
-          title: "تعذر نسخ الرابط",
-          description: "الرابط: " + productsPageUrl,
-          variant: "destructive",
-          duration: 5000,
-        });
-      }
+      // Reset button state after 3 seconds
+      setTimeout(() => {
+        setIsCopying(false);
+      }, 3000);
     } catch (error) {
       console.error("Copy link error:", error);
-      toast({
-        title: "تعذر نسخ الرابط",
-        description: "الرجاء المحاولة مرة أخرى",
-        variant: "destructive",
-        duration: 3000,
-      });
+      setIsCopying(false);
     }
   };
 
@@ -118,9 +107,10 @@ const DashboardActions = () => {
         
         <DashboardActionButton
           icon={Link2}
-          label="نسخ رابط المنتجات"
+          label={isCopying ? "تم النسخ ✅" : "نسخ رابط المنتجات"}
           onClick={copyProductLink}
           variant="outline"
+          disabled={isCopying}
         />
       </div>
     </div>

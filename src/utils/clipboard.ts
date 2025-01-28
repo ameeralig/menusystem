@@ -1,26 +1,56 @@
 import { toast } from "@/hooks/use-toast";
 
-export const copyToClipboard = async (text: string) => {
+export const checkClipboardPermission = async (): Promise<boolean> => {
   try {
-    if (navigator.clipboard) {
-      await navigator.clipboard.writeText(text);
-      return true;
+    // Check if clipboard API is available
+    if (!navigator.clipboard) {
+      toast({
+        title: "تنبيه",
+        description: "المتصفح لا يسمح بالنسخ التلقائي، يرجى النسخ يدويًا.",
+        variant: "destructive",
+      });
+      return false;
     }
+
+    // For iOS devices, show specific message
+    if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+      toast({
+        title: "تنبيه",
+        description: "قد لا يعمل النسخ التلقائي على بعض أجهزة iOS. في حال الفشل، يرجى النسخ يدويًا.",
+        duration: 5000,
+      });
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Clipboard permission check error:", error);
+    return false;
+  }
+};
+
+export const copyToClipboard = async (text: string): Promise<boolean> => {
+  try {
+    if (!await checkClipboardPermission()) {
+      return false;
+    }
+
+    await navigator.clipboard.writeText(text);
     
-    // Fallback for older browsers
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed';
-    document.body.appendChild(textarea);
-    
-    textarea.select();
-    textarea.setSelectionRange(0, 99999);
-    document.execCommand('copy');
-    document.body.removeChild(textarea);
+    toast({
+      title: "تم النسخ بنجاح!",
+      description: "يمكنك الآن لصق النص في أي مكان",
+      duration: 3000,
+    });
     
     return true;
   } catch (error) {
     console.error("Copy error:", error);
+    toast({
+      title: "تعذر النسخ",
+      description: "يرجى النسخ يدويًا: " + text,
+      variant: "destructive",
+      duration: 5000,
+    });
     return false;
   }
 };
