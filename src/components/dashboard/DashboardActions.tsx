@@ -1,12 +1,49 @@
-import { Button } from "@/components/ui/button";
 import { Plus, Edit, Eye, Link2, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { copyToClipboard } from "@/utils/clipboard";
+import DashboardActionButton from "./DashboardActionButton";
 
 const DashboardActions = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const handleEditProducts = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: "خطأ",
+        description: "يجب تسجيل الدخول أولاً",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+
+    const { data: products } = await supabase
+      .from("products")
+      .select("id")
+      .eq("user_id", user.id)
+      .limit(1);
+    
+    if (products && products.length > 0) {
+      navigate(`/edit-product/${products[0].id}`);
+    } else {
+      toast({
+        title: "لا توجد منتجات",
+        description: "قم بإضافة منتج أولاً",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handlePreviewProducts = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      navigate(`/products/${user.id}`);
+    }
+  };
 
   const copyProductLink = async () => {
     try {
@@ -22,46 +59,21 @@ const DashboardActions = () => {
       }
 
       const productsPageUrl = `${window.location.origin}/products/${user.id}`;
+      const success = await copyToClipboard(productsPageUrl);
       
-      // Create a temporary textarea element
-      const textarea = document.createElement('textarea');
-      textarea.value = productsPageUrl;
-      textarea.style.position = 'fixed'; // Prevent scrolling to bottom
-      document.body.appendChild(textarea);
-      
-      try {
-        textarea.select();
-        textarea.setSelectionRange(0, 99999); // For mobile devices
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        
+      if (success) {
         toast({
           title: "تم نسخ الرابط بنجاح",
           description: "يمكنك الآن مشاركة رابط صفحة المنتجات",
           duration: 3000,
         });
-      } catch (err) {
-        // Fallback if execCommand fails
-        navigator.clipboard.writeText(productsPageUrl)
-          .then(() => {
-            toast({
-              title: "تم نسخ الرابط بنجاح",
-              description: "يمكنك الآن مشاركة رابط صفحة المنتجات",
-              duration: 3000,
-            });
-          })
-          .catch(() => {
-            toast({
-              title: "تعذر النسخ التلقائي",
-              description: "الرابط: " + productsPageUrl,
-              duration: 5000,
-            });
-          });
-      } finally {
-        // Ensure textarea is removed
-        if (document.body.contains(textarea)) {
-          document.body.removeChild(textarea);
-        }
+      } else {
+        toast({
+          title: "تعذر نسخ الرابط",
+          description: "الرابط: " + productsPageUrl,
+          variant: "destructive",
+          duration: 5000,
+        });
       }
     } catch (error) {
       console.error("Copy link error:", error);
@@ -77,66 +89,39 @@ const DashboardActions = () => {
   return (
     <div className="rounded-lg border p-4">
       <div className="flex flex-wrap gap-4 justify-center">
-        <Button className="w-48" onClick={() => navigate("/add-product")}>
-          <Plus className="ml-2" />
-          إضافة منتج
-        </Button>
+        <DashboardActionButton
+          icon={Plus}
+          label="إضافة منتج"
+          onClick={() => navigate("/add-product")}
+        />
         
-        <Button 
-          variant="secondary" 
-          className="w-48"
-          onClick={async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-              const { data: products } = await supabase
-                .from("products")
-                .select("id")
-                .eq("user_id", user.id)
-                .limit(1);
-              
-              if (products && products.length > 0) {
-                navigate(`/edit-product/${products[0].id}`);
-              } else {
-                toast({
-                  title: "لا توجد منتجات",
-                  description: "قم بإضافة منتج أولاً",
-                  duration: 3000,
-                });
-              }
-            }
-          }}
-        >
-          <Edit className="ml-2" />
-          تعديل المنتجات
-        </Button>
+        <DashboardActionButton
+          icon={Edit}
+          label="تعديل المنتجات"
+          onClick={handleEditProducts}
+          variant="secondary"
+        />
         
-        <Button 
-          variant="outline" 
-          className="w-48"
-          onClick={async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-              navigate(`/products/${user.id}`);
-            }
-          }}
-        >
-          <Eye className="ml-2" />
-          معاينة المنتجات
-        </Button>
+        <DashboardActionButton
+          icon={Eye}
+          label="معاينة المنتجات"
+          onClick={handlePreviewProducts}
+          variant="outline"
+        />
         
-        <Button 
-          variant="secondary" 
-          className="w-48"
+        <DashboardActionButton
+          icon={Settings}
+          label="تخصيص الصفحة"
           onClick={() => navigate("/store-customization")}
-        >
-          <Settings className="ml-2" />
-          تخصيص الصفحة
-        </Button>
+          variant="secondary"
+        />
         
-        <Button variant="outline" className="w-48" onClick={copyProductLink}>
-          <Link2 className="ml-2" />
-          نسخ رابط المنتجات
-        </Button>
+        <DashboardActionButton
+          icon={Link2}
+          label="نسخ رابط المنتجات"
+          onClick={copyProductLink}
+          variant="outline"
+        />
       </div>
     </div>
   );
