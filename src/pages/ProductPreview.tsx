@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
-import { Search, Tag } from "lucide-react";
+import { Search, Tag, Star, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Product {
@@ -14,10 +14,12 @@ interface Product {
   price: number;
   image_url: string | null;
   category: string | null;
+  is_new: boolean;
+  is_popular: boolean;
 }
 
 const ProductPreview = () => {
-  const { userId } = useParams<{ userId: string }>();
+  const { userId } = useParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -31,7 +33,7 @@ const ProductPreview = () => {
           throw new Error("معرف المستخدم غير موجود");
         }
 
-        // Fetch store settings using maybeSingle() instead of single()
+        // Fetch store settings
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
           .select("store_name")
@@ -45,7 +47,7 @@ const ProductPreview = () => {
         const { data: productsData, error: productsError } = await supabase
           .from("products")
           .select("*")
-          .eq('user_id', userId);
+          .eq("user_id", userId);
 
         if (productsError) throw productsError;
         setProducts(productsData || []);
@@ -179,24 +181,42 @@ const ProductPreview = () => {
                     </div>
                   )}
                   <CardContent className="p-3">
-                    <div className="flex justify-between items-start gap-2 mb-2">
-                      <h3 className="text-base font-bold text-right line-clamp-1 flex-1">
-                        {product.name}
-                      </h3>
-                      {product.category && (
-                        <span className={getCategoryBadgeClass(product.category)}>
-                          {product.category}
-                        </span>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex justify-between items-start gap-2">
+                        <h3 className="text-base font-bold text-right line-clamp-1 flex-1">
+                          {product.name}
+                        </h3>
+                        {product.category && (
+                          <span className={getCategoryBadgeClass(product.category)}>
+                            {product.category}
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        {product.is_new && (
+                          <span className="flex items-center gap-1 text-xs text-yellow-600">
+                            <Star className="h-3 w-3" />
+                            منتج جديد
+                          </span>
+                        )}
+                        {product.is_popular && (
+                          <span className="flex items-center gap-1 text-xs text-red-600">
+                            <TrendingUp className="h-3 w-3" />
+                            الأكثر طلباً
+                          </span>
+                        )}
+                      </div>
+
+                      {product.description && (
+                        <p className="text-gray-600 text-sm mb-2 text-right line-clamp-2">
+                          {product.description}
+                        </p>
                       )}
-                    </div>
-                    {product.description && (
-                      <p className="text-gray-600 text-sm mb-2 text-right line-clamp-2">
-                        {product.description}
+                      <p className="text-base font-bold text-green-600 text-right">
+                        {product.price.toLocaleString()} د.ع
                       </p>
-                    )}
-                    <p className="text-base font-bold text-green-600 text-right">
-                      {product.price.toLocaleString()} د.ع
-                    </p>
+                    </div>
                   </CardContent>
                 </Card>
               </motion.div>
