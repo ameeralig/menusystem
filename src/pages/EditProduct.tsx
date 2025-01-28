@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { Trash2, Edit } from "lucide-react";
+import { Trash2, Edit, Star, TrendingUp } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -22,6 +23,8 @@ interface Product {
   price: number;
   image_url: string | null;
   category: string | null;
+  is_new: boolean;
+  is_popular: boolean;
 }
 
 const EditProduct = () => {
@@ -35,6 +38,8 @@ const EditProduct = () => {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("");
+  const [isNew, setIsNew] = useState(false);
+  const [isPopular, setIsPopular] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -50,7 +55,6 @@ const EditProduct = () => {
         if (error) throw error;
         setProducts(data || []);
 
-        // إذا كان هناك معرف منتج محدد، قم بتحميل تفاصيله
         if (productId) {
           const selectedProduct = data?.find(p => p.id === productId);
           if (selectedProduct) {
@@ -59,6 +63,8 @@ const EditProduct = () => {
             setDescription(selectedProduct.description || "");
             setPrice(selectedProduct.price.toString());
             setCategory(selectedProduct.category || "");
+            setIsNew(selectedProduct.is_new || false);
+            setIsPopular(selectedProduct.is_popular || false);
           }
         }
       } catch (error: any) {
@@ -111,6 +117,8 @@ const EditProduct = () => {
       setDescription(productToEdit.description || "");
       setPrice(productToEdit.price.toString());
       setCategory(productToEdit.category || "");
+      setIsNew(productToEdit.is_new || false);
+      setIsPopular(productToEdit.is_popular || false);
     }
   };
 
@@ -125,7 +133,9 @@ const EditProduct = () => {
           name,
           description,
           price: parseFloat(price),
-          category
+          category,
+          is_new: isNew,
+          is_popular: isPopular
         })
         .eq("id", selectedProduct.id);
 
@@ -136,19 +146,19 @@ const EditProduct = () => {
         duration: 3000,
       });
 
-      // تحديث قائمة المنتجات
       setProducts(products.map(p => 
         p.id === selectedProduct.id 
-          ? { ...p, name, description, price: parseFloat(price), category }
+          ? { ...p, name, description, price: parseFloat(price), category, is_new: isNew, is_popular: isPopular }
           : p
       ));
 
-      // إعادة تعيين النموذج
       setSelectedProduct(null);
       setName("");
       setDescription("");
       setPrice("");
       setCategory("");
+      setIsNew(false);
+      setIsPopular(false);
 
     } catch (error: any) {
       console.error("Error updating product:", error);
@@ -207,6 +217,33 @@ const EditProduct = () => {
               value={category}
               onChange={(e) => setCategory(e.target.value)}
             />
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between space-x-4">
+              <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                <Switch
+                  id="is_new"
+                  checked={isNew}
+                  onCheckedChange={setIsNew}
+                />
+                <label htmlFor="is_new" className="flex items-center gap-2">
+                  <Star className="h-4 w-4 text-yellow-500" />
+                  منتج جديد
+                </label>
+              </div>
+              <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                <Switch
+                  id="is_popular"
+                  checked={isPopular}
+                  onCheckedChange={setIsPopular}
+                />
+                <label htmlFor="is_popular" className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-red-500" />
+                  الأكثر طلباً
+                </label>
+              </div>
+            </div>
           </div>
           
           <div className="flex gap-2">
