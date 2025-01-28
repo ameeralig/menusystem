@@ -7,8 +7,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Upload, ImagePlus, Link as LinkIcon } from "lucide-react";
+import { Upload, ImagePlus, Link as LinkIcon, Star, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
 
 const AddProduct = () => {
   const navigate = useNavigate();
@@ -23,6 +24,8 @@ const AddProduct = () => {
     price: "",
     image_url: "",
     category: "",
+    is_new: false,
+    is_popular: false,
   });
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,6 +79,8 @@ const AddProduct = () => {
         price: parseFloat(formData.price),
         image_url: finalImageUrl || null,
         category: formData.category || null,
+        is_new: formData.is_new,
+        is_popular: formData.is_popular,
       });
 
       if (error) throw error;
@@ -152,6 +157,33 @@ const AddProduct = () => {
                 placeholder="أدخل سعر المنتج"
                 className="w-full"
               />
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between space-x-4">
+                <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                  <Switch
+                    id="is_new"
+                    checked={formData.is_new}
+                    onCheckedChange={(checked) => setFormData({ ...formData, is_new: checked })}
+                  />
+                  <Label htmlFor="is_new" className="flex items-center gap-2">
+                    <Star className="h-4 w-4 text-yellow-500" />
+                    منتج جديد
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                  <Switch
+                    id="is_popular"
+                    checked={formData.is_popular}
+                    onCheckedChange={(checked) => setFormData({ ...formData, is_popular: checked })}
+                  />
+                  <Label htmlFor="is_popular" className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-red-500" />
+                    الأكثر طلباً
+                  </Label>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-4">
