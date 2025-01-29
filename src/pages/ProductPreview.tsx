@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { AnimatePresence } from "framer-motion";
 import { ProductCard } from "@/components/products/ProductCard";
 import { ProductFilters } from "@/components/products/ProductFilters";
@@ -18,7 +18,7 @@ interface Product {
 }
 
 const ProductPreview = () => {
-  const { userId } = useParams();
+  const { userId } = useParams<{ userId: string }>();
   const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -29,8 +29,9 @@ const ProductPreview = () => {
   useEffect(() => {
     const fetchStoreData = async () => {
       try {
-        if (!userId) {
-          throw new Error("معرف المستخدم غير موجود");
+        // Validate userId before making the query
+        if (!userId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
+          throw new Error("معرف المستخدم غير صالح");
         }
 
         const { data: storeSettings, error: storeError } = await supabase
