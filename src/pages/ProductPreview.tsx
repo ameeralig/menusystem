@@ -17,12 +17,28 @@ interface Product {
   is_popular: boolean;
 }
 
+const getThemeClasses = (colorTheme: string | null) => {
+  switch (colorTheme) {
+    case 'purple':
+      return 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-900/30';
+    case 'blue':
+      return 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/30';
+    case 'green':
+      return 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/30';
+    case 'pink':
+      return 'bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-900/30';
+    default:
+      return 'bg-gray-50 dark:bg-gray-900';
+  }
+};
+
 const ProductPreview = () => {
   const { userId } = useParams<{ userId: string }>();
   const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [storeName, setStoreName] = useState<string | null>(null);
+  const [colorTheme, setColorTheme] = useState<string | null>("default");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const { toast } = useToast();
 
@@ -36,12 +52,13 @@ const ProductPreview = () => {
 
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
-          .select("store_name")
+          .select("store_name, color_theme")
           .eq("user_id", userId)
           .maybeSingle();
 
         if (storeError) throw storeError;
         setStoreName(storeSettings?.store_name || null);
+        setColorTheme(storeSettings?.color_theme || "default");
 
         const { data: productsData, error: productsError } = await supabase
           .from("products")
@@ -71,11 +88,17 @@ const ProductPreview = () => {
     return matchesSearch && matchesCategory;
   });
 
+  const themeClasses = getThemeClasses(colorTheme);
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className={`min-h-screen ${themeClasses} transition-colors duration-300`}>
       <div className="container mx-auto py-6 px-4">
         {storeName && (
-          <h1 className="text-3xl font-bold text-center mb-8 text-gray-900 dark:text-white">
+          <h1 className={`text-3xl font-bold text-center mb-8 ${
+            colorTheme === 'default' 
+              ? 'text-gray-900 dark:text-white' 
+              : `text-${colorTheme}-900 dark:text-${colorTheme}-100`
+          }`}>
             {storeName}
           </h1>
         )}
