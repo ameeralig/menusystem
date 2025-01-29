@@ -71,18 +71,21 @@ export type Database = {
       }
       store_settings: {
         Row: {
+          color_theme: string | null
           created_at: string
           store_name: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          color_theme?: string | null
           created_at?: string
           store_name?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          color_theme?: string | null
           created_at?: string
           store_name?: string | null
           updated_at?: string

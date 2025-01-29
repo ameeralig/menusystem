@@ -4,36 +4,56 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Palette, Store, Save } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { motion } from "framer-motion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+const colorThemes = [
+  { id: "default", name: "الافتراضي", value: "default" },
+  { id: "purple", name: "بنفسجي", value: "purple" },
+  { id: "blue", name: "أزرق", value: "blue" },
+  { id: "green", name: "أخضر", value: "green" },
+  { id: "pink", name: "وردي", value: "pink" },
+];
 
 const StoreCustomization = () => {
   const [storeName, setStoreName] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [colorTheme, setColorTheme] = useState("default");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchStoreName = async () => {
+    const fetchStoreSettings = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
         const { data: storeSettings } = await supabase
           .from("store_settings")
-          .select("store_name")
+          .select("store_name, color_theme")
           .eq("user_id", user.id)
           .single();
 
         if (storeSettings) {
           setStoreName(storeSettings.store_name || "");
+          setColorTheme(storeSettings.color_theme || "default");
         }
       } catch (error) {
-        console.error("Error fetching store name:", error);
+        console.error("Error fetching store settings:", error);
       }
     };
 
-    fetchStoreName();
+    fetchStoreSettings();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -56,6 +76,7 @@ const StoreCustomization = () => {
           .from("store_settings")
           .update({ 
             store_name: storeName,
+            color_theme: colorTheme,
             updated_at: new Date().toISOString()
           })
           .eq("user_id", user.id);
@@ -64,7 +85,8 @@ const StoreCustomization = () => {
           .from("store_settings")
           .insert([{ 
             user_id: user.id, 
-            store_name: storeName
+            store_name: storeName,
+            color_theme: colorTheme
           }]);
       }
 
@@ -76,9 +98,9 @@ const StoreCustomization = () => {
         duration: 3000,
       });
 
-      navigate("/dashboard");
+      setIsEditing(false);
     } catch (error: any) {
-      console.error("Error saving store name:", error);
+      console.error("Error saving store settings:", error);
       toast({
         title: "حدث خطأ",
         description: error.message,
@@ -103,33 +125,100 @@ const StoreCustomization = () => {
           العودة للوحة التحكم
         </Button>
 
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold mb-6 text-right">تخصيص المتجر</h1>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-2xl mx-auto space-y-6"
+        >
+          <h1 className="text-3xl font-bold mb-8 text-right">تخصيص المتجر</h1>
           
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label htmlFor="storeName" className="block text-right">
-                اسم المتجر
-              </label>
-              <Input
-                id="storeName"
-                type="text"
-                value={storeName}
-                onChange={(e) => setStoreName(e.target.value)}
-                placeholder="أدخل اسم المتجر"
-                className="text-right"
-              />
-            </div>
+          <Card className="border-2 border-purple-100 dark:border-purple-900">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <Store className="h-5 w-5 text-purple-500" />
+                <span>اسم المتجر</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <Input
+                    type="text"
+                    value={storeName}
+                    onChange={(e) => setStoreName(e.target.value)}
+                    placeholder="أدخل اسم المتجر"
+                    className="text-right flex-1"
+                    disabled={!isEditing}
+                  />
+                  <Button
+                    type="button"
+                    variant={isEditing ? "destructive" : "outline"}
+                    onClick={() => setIsEditing(!isEditing)}
+                  >
+                    {isEditing ? "إلغاء" : "تعديل"}
+                  </Button>
+                </div>
 
-            <Button 
-              type="submit" 
-              className="w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? "جاري الحفظ..." : "حفظ التغييرات"}
-            </Button>
-          </form>
-        </div>
+                {isEditing && (
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-purple-600 hover:bg-purple-700"
+                    disabled={isLoading}
+                  >
+                    <Save className="ml-2 h-4 w-4" />
+                    {isLoading ? "جاري الحفظ..." : "حفظ التغييرات"}
+                  </Button>
+                )}
+              </form>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-purple-100 dark:border-purple-900">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <Palette className="h-5 w-5 text-purple-500" />
+                <span>مظهر المتجر</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="block text-right text-sm text-gray-600 dark:text-gray-400">
+                    اختر لون المتجر
+                  </label>
+                  <Select
+                    value={colorTheme}
+                    onValueChange={setColorTheme}
+                  >
+                    <SelectTrigger className="w-full text-right">
+                      <SelectValue placeholder="اختر لون المتجر" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {colorThemes.map((theme) => (
+                        <SelectItem
+                          key={theme.id}
+                          value={theme.value}
+                          className="text-right"
+                        >
+                          {theme.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button 
+                  type="submit" 
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  disabled={isLoading}
+                >
+                  <Save className="ml-2 h-4 w-4" />
+                  {isLoading ? "جاري الحفظ..." : "حفظ التغييرات"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </motion.div>
       </main>
     </div>
   );
