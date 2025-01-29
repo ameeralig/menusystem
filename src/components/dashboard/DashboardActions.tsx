@@ -75,8 +75,8 @@ const DashboardActions = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border p-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-[#E5DEFF] p-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <DashboardActionButton
           icon={Plus}
           label="إضافة منتج"

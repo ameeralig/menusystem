@@ -3,7 +3,7 @@ import DashboardActions from "@/components/dashboard/DashboardActions";
 
 const Dashboard = () => {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-gradient-to-br from-[#E5DEFF] to-white">
       <DashboardHeader />
       <main className="container mx-auto p-6">
         <div className="grid gap-6">

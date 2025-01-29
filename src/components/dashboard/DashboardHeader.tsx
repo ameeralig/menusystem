@@ -44,29 +44,44 @@ const DashboardHeader = () => {
   };
 
   return (
-    <header className="p-4 flex justify-center items-center border-b relative bg-white shadow-sm">
-      <h1 className="text-2xl font-bold">مرحباً بك في لوحة التحكم</h1>
-      <div className="absolute right-4">
+    <header className="p-6 flex justify-center items-center border-b relative bg-white/80 backdrop-blur-sm shadow-lg">
+      <h1 className="text-3xl font-bold bg-gradient-to-r from-[#9b87f5] to-[#7E69AB] bg-clip-text text-transparent">
+        مرحباً بك في لوحة التحكم
+      </h1>
+      <div className="absolute right-6">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="hover:bg-gray-100">
-              <Settings className="h-5 w-5" />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="hover:bg-[#E5DEFF] transition-colors duration-200"
+            >
+              <Settings className="h-5 w-5 text-[#6E59A5]" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={() => navigate("/profile")} className="gap-2">
-              <User className="h-4 w-4" />
+          <DropdownMenuContent align="end" className="w-56 bg-white/95 backdrop-blur-sm">
+            <DropdownMenuItem 
+              onClick={() => navigate("/profile")} 
+              className="gap-2 hover:bg-[#E5DEFF] cursor-pointer"
+            >
+              <User className="h-4 w-4 text-[#7E69AB]" />
               الملف الشخصي
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={toggleTheme} className="gap-2">
+            <DropdownMenuItem 
+              onClick={toggleTheme} 
+              className="gap-2 hover:bg-[#E5DEFF] cursor-pointer"
+            >
               {theme === "light" ? (
-                <Moon className="h-4 w-4" />
+                <Moon className="h-4 w-4 text-[#7E69AB]" />
               ) : (
-                <Sun className="h-4 w-4" />
+                <Sun className="h-4 w-4 text-[#7E69AB]" />
               )}
               {theme === "light" ? "الوضع المظلم" : "الوضع المضيء"}
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleLogout} className="gap-2 text-red-600 hover:text-red-600">
+            <DropdownMenuItem 
+              onClick={handleLogout} 
+              className="gap-2 text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer"
+            >
               <LogOut className="h-4 w-4" />
               تسجيل الخروج
             </DropdownMenuItem>
