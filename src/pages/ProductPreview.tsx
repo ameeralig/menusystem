@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Input } from "@/components/ui/input";
-import { Search, Tag, Star, TrendingUp } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
+import { ProductCard } from "@/components/products/ProductCard";
+import { ProductFilters } from "@/components/products/ProductFilters";
 
 interface Product {
   id: string;
@@ -24,6 +23,7 @@ const ProductPreview = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [storeName, setStoreName] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -33,7 +33,6 @@ const ProductPreview = () => {
           throw new Error("معرف المستخدم غير موجود");
         }
 
-        // Fetch store settings
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
           .select("store_name")
@@ -43,7 +42,6 @@ const ProductPreview = () => {
         if (storeError) throw storeError;
         setStoreName(storeSettings?.store_name || null);
 
-        // Fetch products
         const { data: productsData, error: productsError } = await supabase
           .from("products")
           .select("*")
@@ -64,7 +62,6 @@ const ProductPreview = () => {
     fetchStoreData();
   }, [userId, toast]);
 
-  // Get unique categories from products
   const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
 
   const filteredProducts = products.filter((product) => {
@@ -73,157 +70,49 @@ const ProductPreview = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const getCategoryBadgeClass = (category: string) => {
-    const baseClasses = "px-2 py-1 rounded-full text-xs font-medium";
-    switch (category?.toLowerCase()) {
-      case "برجر":
-        return `${baseClasses} bg-purple-100 text-purple-800`;
-      case "بيتزا":
-        return `${baseClasses} bg-pink-100 text-pink-800`;
-      case "شاورما":
-        return `${baseClasses} bg-blue-100 text-blue-800`;
-      case "مشاوي":
-        return `${baseClasses} bg-green-100 text-green-800`;
-      default:
-        return `${baseClasses} bg-gray-100 text-gray-800`;
-    }
-  };
-
   return (
-    <div className="container mx-auto py-6 px-4 max-w-6xl">
-      {storeName && (
-        <h1 className="text-3xl font-bold text-center mb-8">{storeName}</h1>
-      )}
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="container mx-auto py-6 px-4">
+        {storeName && (
+          <h1 className="text-3xl font-bold text-center mb-8 text-gray-900 dark:text-white">
+            {storeName}
+          </h1>
+        )}
 
-      <div className="mb-6 max-w-md mx-auto">
-        <div className="relative">
-          <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
-          <Input
-            type="text"
-            placeholder="ابحث عن طبق..."
-            className="w-full pl-4 pr-10 py-2 text-right"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+        <ProductFilters
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          categories={categories}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+        />
+
+        <div className="mt-6">
+          <AnimatePresence>
+            {filteredProducts.length === 0 ? (
+              <div className="text-center py-8 text-gray-600 dark:text-gray-400">
+                <p>لا توجد منتجات متاحة حالياً</p>
+              </div>
+            ) : (
+              <div className={`grid gap-4 ${
+                viewMode === "grid" 
+                  ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
+                  : "grid-cols-1"
+              }`}>
+                {filteredProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    layout={viewMode}
+                  />
+                ))}
+              </div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
-
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2 justify-center flex-wrap">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setSelectedCategory(null)}
-          className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
-            !selectedCategory
-              ? "bg-blue-500 text-white shadow-md"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-          }`}
-        >
-          <span className="flex items-center gap-1.5">
-            <Tag className="h-3.5 w-3.5" />
-            الكل
-          </span>
-        </motion.button>
-        {categories.map((category) => (
-          category && (
-            <motion.button
-              key={category}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
-                selectedCategory === category
-                  ? "bg-blue-500 text-white shadow-md"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              <span className="flex items-center gap-1.5">
-                <Tag className="h-3.5 w-3.5" />
-                {category}
-              </span>
-            </motion.button>
-          )
-        ))}
-      </div>
-
-      <AnimatePresence>
-        {filteredProducts.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="text-center py-8"
-          >
-            <p className="text-gray-600">لا توجد منتجات متاحة حالياً</p>
-          </motion.div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filteredProducts.map((product) => (
-              <motion.div
-                key={product.id}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                whileHover={{ y: -5 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Card className="overflow-hidden h-full hover:shadow-lg transition-shadow duration-300">
-                  {product.image_url && (
-                    <div className="aspect-[4/3] overflow-hidden">
-                      <motion.img
-                        src={product.image_url}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                        whileHover={{ scale: 1.05 }}
-                        transition={{ duration: 0.2 }}
-                      />
-                    </div>
-                  )}
-                  <CardContent className="p-3">
-                    <div className="flex flex-col gap-2">
-                      <div className="flex justify-between items-start gap-2">
-                        <h3 className="text-base font-bold text-right line-clamp-1 flex-1">
-                          {product.name}
-                        </h3>
-                        {product.category && (
-                          <span className={getCategoryBadgeClass(product.category)}>
-                            {product.category}
-                          </span>
-                        )}
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-2">
-                        {product.is_new && (
-                          <span className="flex items-center gap-1 text-xs text-yellow-600">
-                            <Star className="h-3 w-3" />
-                            منتج جديد
-                          </span>
-                        )}
-                        {product.is_popular && (
-                          <span className="flex items-center gap-1 text-xs text-red-600">
-                            <TrendingUp className="h-3 w-3" />
-                            الأكثر طلباً
-                          </span>
-                        )}
-                      </div>
-
-                      {product.description && (
-                        <p className="text-gray-600 text-sm mb-2 text-right line-clamp-2">
-                          {product.description}
-                        </p>
-                      )}
-                      <p className="text-base font-bold text-green-600 text-right">
-                        {product.price.toLocaleString()} د.ع
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
