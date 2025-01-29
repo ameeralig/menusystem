@@ -18,25 +18,40 @@ const Profile = () => {
     const fetchProfile = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user) {
+          toast({
+            title: "خطأ في تحميل الملف الشخصي",
+            description: "يجب تسجيل الدخول أولاً",
+            variant: "destructive",
+          });
+          navigate("/login");
+          return;
+        }
 
-        const { data: profile } = await supabase
+        const { data: profile, error } = await supabase
           .from("profiles")
           .select("full_name, phone_number")
           .eq("id", user.id)
-          .single();
+          .maybeSingle();
 
+        if (error) throw error;
+        
         if (profile) {
           setFullName(profile.full_name || "");
           setPhoneNumber(profile.phone_number || "");
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching profile:", error);
+        toast({
+          title: "خطأ في تحميل الملف الشخصي",
+          description: error.message,
+          variant: "destructive",
+        });
       }
     };
 
     fetchProfile();
-  }, []);
+  }, [navigate, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
