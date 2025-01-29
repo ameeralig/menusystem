@@ -65,7 +65,6 @@ const DashboardActions = () => {
       const productsPageUrl = `${window.location.origin}/products/${user.id}`;
       await copyToClipboard(productsPageUrl);
       
-      // Reset button state after 3 seconds
       setTimeout(() => {
         setIsCopying(false);
       }, 3000);
@@ -76,12 +75,13 @@ const DashboardActions = () => {
   };
 
   return (
-    <div className="rounded-lg border p-4">
-      <div className="flex flex-wrap gap-4 justify-center">
+    <div className="bg-white rounded-xl shadow-sm border p-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <DashboardActionButton
           icon={Plus}
           label="إضافة منتج"
           onClick={() => navigate("/add-product")}
+          variant="default"
         />
         
         <DashboardActionButton

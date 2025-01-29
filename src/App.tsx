@@ -11,6 +11,7 @@ import AddProduct from "./pages/AddProduct";
 import ProductPreview from "./pages/ProductPreview";
 import EditProduct from "./pages/EditProduct";
 import StoreCustomization from "./pages/StoreCustomization";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/products/:userId" element={<ProductPreview />} />
           <Route path="/edit-product/:productId" element={<EditProduct />} />
           <Route path="/store-customization" element={<StoreCustomization />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
