@@ -99,7 +99,10 @@ const ProductPreview = () => {
           .eq("user_id", userId)
           .maybeSingle();
 
-        if (storeError) throw storeError;
+        if (storeError) {
+          console.error("Error fetching store settings:", storeError);
+          throw storeError;
+        }
         
         setStoreName(storeSettings?.store_name || null);
         setColorTheme(storeSettings?.color_theme || "default");
@@ -110,7 +113,11 @@ const ProductPreview = () => {
           .select("*")
           .eq("user_id", userId);
 
-        if (productsError) throw productsError;
+        if (productsError) {
+          console.error("Error fetching products:", productsError);
+          throw productsError;
+        }
+
         setProducts(productsData || []);
 
       } catch (error: any) {
