@@ -92,6 +92,7 @@ const ProductPreview = () => {
           throw new Error("معرف المستخدم غير صالح");
         }
 
+        // First, fetch store settings
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
           .select("store_name, color_theme")
@@ -103,6 +104,7 @@ const ProductPreview = () => {
         setStoreName(storeSettings?.store_name || null);
         setColorTheme(storeSettings?.color_theme || "default");
 
+        // Then, fetch products
         const { data: productsData, error: productsError } = await supabase
           .from("products")
           .select("*")
@@ -110,6 +112,7 @@ const ProductPreview = () => {
 
         if (productsError) throw productsError;
         setProducts(productsData || []);
+
       } catch (error: any) {
         console.error("Error fetching data:", error);
         toast({
@@ -120,7 +123,9 @@ const ProductPreview = () => {
       }
     };
 
-    fetchStoreData();
+    if (userId) {
+      fetchStoreData();
+    }
   }, [userId, toast]);
 
   const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
