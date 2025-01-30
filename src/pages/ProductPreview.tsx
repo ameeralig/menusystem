@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AnimatePresence, motion } from "framer-motion";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Product {
   id: string;
@@ -83,13 +84,15 @@ const ProductPreview = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [storeName, setStoreName] = useState<string | null>(null);
   const [colorTheme, setColorTheme] = useState<string | null>("default");
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchStoreData = async () => {
       try {
         if (!userId) {
-          throw new Error("معرف المستخدم غير صالح");
+          setError("معرف المتجر غير صالح");
+          return;
         }
 
         // First, fetch store settings
@@ -101,7 +104,7 @@ const ProductPreview = () => {
 
         if (storeError) {
           console.error("Error fetching store settings:", storeError);
-          throw storeError;
+          throw new Error("حدث خطأ أثناء جلب إعدادات المتجر");
         }
         
         setStoreName(storeSettings?.store_name || null);
@@ -115,24 +118,24 @@ const ProductPreview = () => {
 
         if (productsError) {
           console.error("Error fetching products:", productsError);
-          throw productsError;
+          throw new Error("حدث خطأ أثناء جلب المنتجات");
         }
 
         setProducts(productsData || []);
+        setError(null);
 
       } catch (error: any) {
         console.error("Error fetching data:", error);
+        setError(error.message);
         toast({
-          title: "حدث خطأ أثناء تحميل البيانات",
+          title: "حدث خطأ",
           description: error.message,
           variant: "destructive",
         });
       }
     };
 
-    if (userId) {
-      fetchStoreData();
-    }
+    fetchStoreData();
   }, [userId, toast]);
 
   const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
@@ -165,6 +168,16 @@ const ProductPreview = () => {
     const categoryProduct = products.find(p => p.category === category && p.image_url);
     return categoryProduct?.image_url || '/placeholder.svg';
   };
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+        <Alert variant="destructive" className="max-w-lg mx-auto">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen ${getThemeClasses(colorTheme)} transition-colors duration-300`}>
