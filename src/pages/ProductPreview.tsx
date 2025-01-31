@@ -95,7 +95,7 @@ const ProductPreview = () => {
           return;
         }
 
-        // First, fetch store settings
+        // First, fetch store settings using .eq() for exact match
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
           .select("store_name, color_theme")
@@ -110,7 +110,7 @@ const ProductPreview = () => {
         setStoreName(storeSettings?.store_name || null);
         setColorTheme(storeSettings?.color_theme || "default");
 
-        // Then, fetch products
+        // Then, fetch products using .eq() for exact match
         const { data: productsData, error: productsError } = await supabase
           .from("products")
           .select("*")
