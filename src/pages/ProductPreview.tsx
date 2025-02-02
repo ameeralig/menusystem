@@ -95,7 +95,7 @@ const ProductPreview = () => {
           return;
         }
 
-        // Fetch store settings
+        // Fetch store settings with proper error handling
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
           .select("store_name, color_theme")
@@ -104,12 +104,14 @@ const ProductPreview = () => {
 
         if (storeError) {
           console.error("Error fetching store settings:", storeError);
-          throw new Error("حدث خطأ أثناء جلب إعدادات المتجر");
+          // Don't throw error, just use defaults
+          setStoreName(null);
+          setColorTheme("default");
+        } else {
+          // Use store settings if they exist, otherwise use defaults
+          setStoreName(storeSettings?.store_name || null);
+          setColorTheme(storeSettings?.color_theme || "default");
         }
-
-        // If no store settings found, use defaults but don't show an error
-        setStoreName(storeSettings?.store_name || null);
-        setColorTheme(storeSettings?.color_theme || "default");
 
         // Fetch products
         const { data: productsData, error: productsError } = await supabase
