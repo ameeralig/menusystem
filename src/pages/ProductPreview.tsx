@@ -107,6 +107,7 @@ const ProductPreview = () => {
           throw new Error("حدث خطأ أثناء جلب إعدادات المتجر");
         }
 
+        // If no store settings found, use defaults but don't show an error
         setStoreName(storeSettings?.store_name || null);
         setColorTheme(storeSettings?.color_theme || "default");
 
