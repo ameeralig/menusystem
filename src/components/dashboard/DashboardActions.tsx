@@ -1,4 +1,4 @@
-import { Plus, Edit, Eye, Link2, Settings } from "lucide-react";
+import { Plus, Edit, Eye, Link2, Settings, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -111,6 +111,13 @@ const DashboardActions = () => {
           onClick={copyProductLink}
           variant="outline"
           disabled={isCopying}
+        />
+
+        <DashboardActionButton
+          icon={MessageSquare}
+          label="الشكاوى والاقتراحات"
+          onClick={() => navigate("/feedback")}
+          variant="secondary"
         />
       </div>
     </div>

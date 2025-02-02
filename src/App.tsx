@@ -12,6 +12,7 @@ import ProductPreview from "./pages/ProductPreview";
 import EditProduct from "./pages/EditProduct";
 import StoreCustomization from "./pages/StoreCustomization";
 import Profile from "./pages/Profile";
+import Feedback from "./pages/Feedback";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/edit-product/:productId" element={<EditProduct />} />
           <Route path="/store-customization" element={<StoreCustomization />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/feedback" element={<Feedback />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
