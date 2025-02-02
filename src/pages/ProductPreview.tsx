@@ -95,7 +95,7 @@ const ProductPreview = () => {
           return;
         }
 
-        // First, fetch store settings using .eq() for exact match
+        // Fetch store settings
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
           .select("store_name, color_theme")
@@ -106,11 +106,11 @@ const ProductPreview = () => {
           console.error("Error fetching store settings:", storeError);
           throw new Error("حدث خطأ أثناء جلب إعدادات المتجر");
         }
-        
+
         setStoreName(storeSettings?.store_name || null);
         setColorTheme(storeSettings?.color_theme || "default");
 
-        // Then, fetch products using .eq() for exact match
+        // Fetch products
         const { data: productsData, error: productsError } = await supabase
           .from("products")
           .select("*")
