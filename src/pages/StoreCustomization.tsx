@@ -3,26 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ArrowLeft, Palette, Store, Save } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const colorThemes = [
-  { id: "default", name: "الافتراضي", value: "default" },
-  { id: "purple", name: "بنفسجي", value: "purple" },
-  { id: "blue", name: "أزرق", value: "blue" },
-  { id: "green", name: "أخضر", value: "green" },
-  { id: "pink", name: "وردي", value: "pink" },
-];
+import StoreNameEditor from "@/components/store/StoreNameEditor";
+import ColorThemeSelector from "@/components/store/ColorThemeSelector";
 
 const StoreCustomization = () => {
   const [storeName, setStoreName] = useState("");
@@ -132,92 +117,20 @@ const StoreCustomization = () => {
         >
           <h1 className="text-3xl font-bold mb-8 text-right">تخصيص المتجر</h1>
           
-          <Card className="border-2 border-purple-100 dark:border-purple-900">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <Store className="h-5 w-5 text-purple-500" />
-                <span>اسم المتجر</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <Input
-                    type="text"
-                    value={storeName}
-                    onChange={(e) => setStoreName(e.target.value)}
-                    placeholder="أدخل اسم المتجر"
-                    className="text-right flex-1"
-                    disabled={!isEditing}
-                  />
-                  <Button
-                    type="button"
-                    variant={isEditing ? "destructive" : "outline"}
-                    onClick={() => setIsEditing(!isEditing)}
-                  >
-                    {isEditing ? "إلغاء" : "تعديل"}
-                  </Button>
-                </div>
+          <StoreNameEditor 
+            storeName={storeName}
+            setStoreName={setStoreName}
+            isEditing={isEditing}
+            setIsEditing={setIsEditing}
+            handleSubmit={handleSubmit}
+            isLoading={isLoading}
+          />
 
-                {isEditing && (
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-purple-600 hover:bg-purple-700"
-                    disabled={isLoading}
-                  >
-                    <Save className="ml-2 h-4 w-4" />
-                    {isLoading ? "جاري الحفظ..." : "حفظ التغييرات"}
-                  </Button>
-                )}
-              </form>
-            </CardContent>
-          </Card>
-
-          <Card className="border-2 border-purple-100 dark:border-purple-900">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <Palette className="h-5 w-5 text-purple-500" />
-                <span>مظهر المتجر</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <label className="block text-right text-sm text-gray-600 dark:text-gray-400">
-                    اختر لون المتجر
-                  </label>
-                  <Select
-                    value={colorTheme}
-                    onValueChange={setColorTheme}
-                  >
-                    <SelectTrigger className="w-full text-right">
-                      <SelectValue placeholder="اختر لون المتجر" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {colorThemes.map((theme) => (
-                        <SelectItem
-                          key={theme.id}
-                          value={theme.value}
-                          className="text-right"
-                        >
-                          {theme.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <Button 
-                  type="submit" 
-                  className="w-full bg-purple-600 hover:bg-purple-700"
-                  disabled={isLoading}
-                >
-                  <Save className="ml-2 h-4 w-4" />
-                  {isLoading ? "جاري الحفظ..." : "حفظ التغييرات"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+          <ColorThemeSelector 
+            colorTheme={colorTheme}
+            setColorTheme={setColorTheme}
+            isLoading={isLoading}
+          />
         </motion.div>
       </main>
     </div>
