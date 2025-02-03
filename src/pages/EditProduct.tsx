@@ -1,31 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { Trash2, Edit, Star, TrendingUp } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-
-interface Product {
-  id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  image_url: string | null;
-  category: string | null;
-  is_new: boolean;
-  is_popular: boolean;
-}
+import { Product } from "@/types/product";
+import EditProductForm from "@/components/products/EditProductForm";
+import ProductsTable from "@/components/products/ProductsTable";
 
 const EditProduct = () => {
   const navigate = useNavigate();
@@ -179,127 +158,29 @@ const EditProduct = () => {
       <h1 className="text-2xl font-bold mb-6 text-center">تعديل المنتجات</h1>
       
       {selectedProduct ? (
-        <form onSubmit={handleUpdate} className="max-w-md mx-auto space-y-4 mb-8">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium mb-1">اسم المنتج</label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium mb-1">وصف المنتج</label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="price" className="block text-sm font-medium mb-1">السعر</label>
-            <Input
-              id="price"
-              type="number"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              required
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="category" className="block text-sm font-medium mb-1">التصنيف</label>
-            <Input
-              id="category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between space-x-4">
-              <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                <Switch
-                  id="is_new"
-                  checked={isNew}
-                  onCheckedChange={setIsNew}
-                />
-                <label htmlFor="is_new" className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-yellow-500" />
-                  منتج جديد
-                </label>
-              </div>
-              <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                <Switch
-                  id="is_popular"
-                  checked={isPopular}
-                  onCheckedChange={setIsPopular}
-                />
-                <label htmlFor="is_popular" className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-red-500" />
-                  الأكثر طلباً
-                </label>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex gap-2">
-            <Button type="submit" className="flex-1">حفظ التغييرات</Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setSelectedProduct(null)}
-              className="flex-1"
-            >
-              إلغاء
-            </Button>
-          </div>
-        </form>
+        <EditProductForm
+          product={selectedProduct}
+          onSubmit={handleUpdate}
+          onCancel={() => setSelectedProduct(null)}
+          name={name}
+          setName={setName}
+          description={description}
+          setDescription={setDescription}
+          price={price}
+          setPrice={setPrice}
+          category={category}
+          setCategory={setCategory}
+          isNew={isNew}
+          setIsNew={setIsNew}
+          isPopular={isPopular}
+          setIsPopular={setIsPopular}
+        />
       ) : (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>اسم المنتج</TableHead>
-                <TableHead>السعر</TableHead>
-                <TableHead>التصنيف</TableHead>
-                <TableHead>الإجراءات</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {products.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell>{product.name}</TableCell>
-                  <TableCell>{product.price} دينار عراقي</TableCell>
-                  <TableCell>{product.category || "—"}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(product.id)}
-                      >
-                        <Edit className="h-4 w-4 ml-2" />
-                        تعديل
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(product.id)}
-                      >
-                        <Trash2 className="h-4 w-4 ml-2" />
-                        حذف
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <ProductsTable
+          products={products}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
       )}
     </div>
   );
