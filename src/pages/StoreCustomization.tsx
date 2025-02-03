@@ -129,6 +129,7 @@ const StoreCustomization = () => {
           <ColorThemeSelector 
             colorTheme={colorTheme}
             setColorTheme={setColorTheme}
+            handleSubmit={handleSubmit}
             isLoading={isLoading}
           />
         </motion.div>
