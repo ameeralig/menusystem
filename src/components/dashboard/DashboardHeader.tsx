@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Settings, LogOut, Moon, Sun, User } from "lucide-react";
 import {
@@ -14,12 +14,24 @@ import { useNavigate } from "react-router-dom";
 const DashboardHeader = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    if (typeof window !== "undefined") {
+      return document.documentElement.classList.contains("dark") ? "dark" : "light";
+    }
+    return "light";
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === "dark") {
+      root.classList.add("dark");
+    } else {
+      root.classList.remove("dark");
+    }
+  }, [theme]);
 
   const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    document.documentElement.classList.toggle("dark");
+    setTheme(prevTheme => prevTheme === "light" ? "dark" : "light");
   };
 
   const handleLogout = async () => {
@@ -44,8 +56,8 @@ const DashboardHeader = () => {
   };
 
   return (
-    <header className="p-6 flex justify-center items-center border-b relative bg-white/80 backdrop-blur-sm shadow-lg">
-      <h1 className="text-3xl font-bold bg-gradient-to-r from-[#9b87f5] to-[#7E69AB] bg-clip-text text-transparent">
+    <header className="p-6 flex justify-center items-center border-b relative bg-background/80 backdrop-blur-sm shadow-lg">
+      <h1 className="text-3xl font-bold text-gradient">
         مرحباً بك في لوحة التحكم
       </h1>
       <div className="absolute right-6">
@@ -54,33 +66,33 @@ const DashboardHeader = () => {
             <Button 
               variant="ghost" 
               size="icon" 
-              className="hover:bg-[#E5DEFF] transition-colors duration-200"
+              className="hover:bg-accent transition-colors duration-200"
             >
-              <Settings className="h-5 w-5 text-[#6E59A5]" />
+              <Settings className="h-5 w-5 text-foreground" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 bg-white/95 backdrop-blur-sm">
+          <DropdownMenuContent align="end" className="w-56 bg-background/95 backdrop-blur-sm">
             <DropdownMenuItem 
               onClick={() => navigate("/profile")} 
-              className="gap-2 hover:bg-[#E5DEFF] cursor-pointer"
+              className="gap-2 hover:bg-accent cursor-pointer"
             >
-              <User className="h-4 w-4 text-[#7E69AB]" />
+              <User className="h-4 w-4" />
               الملف الشخصي
             </DropdownMenuItem>
             <DropdownMenuItem 
               onClick={toggleTheme} 
-              className="gap-2 hover:bg-[#E5DEFF] cursor-pointer"
+              className="gap-2 hover:bg-accent cursor-pointer"
             >
               {theme === "light" ? (
-                <Moon className="h-4 w-4 text-[#7E69AB]" />
+                <Moon className="h-4 w-4" />
               ) : (
-                <Sun className="h-4 w-4 text-[#7E69AB]" />
+                <Sun className="h-4 w-4" />
               )}
               {theme === "light" ? "الوضع المظلم" : "الوضع المضيء"}
             </DropdownMenuItem>
             <DropdownMenuItem 
               onClick={handleLogout} 
-              className="gap-2 text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer"
+              className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive cursor-pointer"
             >
               <LogOut className="h-4 w-4" />
               تسجيل الخروج
