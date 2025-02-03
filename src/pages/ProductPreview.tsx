@@ -3,9 +3,26 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { AnimatePresence, motion } from "framer-motion";
-import { Search } from "lucide-react";
+import { Search, MessageSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 interface Product {
   id: string;
@@ -77,6 +94,112 @@ const ProductCard = ({ product }: { product: Product }) => (
   </motion.div>
 );
 
+const FeedbackDialog = ({ userId }: { userId: string }) => {
+  const [visitorName, setVisitorName] = useState("");
+  const [feedbackType, setFeedbackType] = useState("");
+  const [description, setDescription] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = async () => {
+    if (!visitorName || !feedbackType || !description) {
+      toast({
+        title: "خطأ",
+        description: "الرجاء تعبئة جميع الحقول",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.from("feedback").insert({
+        store_owner_id: userId,
+        visitor_name: visitorName,
+        type: feedbackType,
+        description: description,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "تم الإرسال",
+        description: "شكراً لك على ملاحظاتك",
+      });
+      
+      setVisitorName("");
+      setFeedbackType("");
+      setDescription("");
+      setIsOpen(false);
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء إرسال الملاحظات",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <button className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mx-auto mt-8">
+          <MessageSquare className="w-4 h-4" />
+          إرسال ملاحظات
+        </button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle className="text-right">إرسال ملاحظات</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label className="text-right">الاسم</Label>
+            <Input
+              value={visitorName}
+              onChange={(e) => setVisitorName(e.target.value)}
+              className="text-right"
+              placeholder="أدخل اسمك"
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label className="text-right">نوع الملاحظات</Label>
+            <Select value={feedbackType} onValueChange={setFeedbackType}>
+              <SelectTrigger className="text-right">
+                <SelectValue placeholder="اختر نوع الملاحظات" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="complaint">شكوى</SelectItem>
+                <SelectItem value="suggestion">اقتراح</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-2">
+            <Label className="text-right">الوصف</Label>
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="text-right"
+              placeholder="اكتب ملاحظاتك هنا"
+            />
+          </div>
+        </div>
+        <Button
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className="w-full"
+        >
+          {isSubmitting ? "جاري الإرسال..." : "إرسال"}
+        </Button>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const ProductPreview = () => {
   const { userId } = useParams<{ userId: string }>();
   const [products, setProducts] = useState<Product[]>([]);
@@ -95,7 +218,6 @@ const ProductPreview = () => {
           return;
         }
 
-        // Fetch store settings with proper error handling
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
           .select("store_name, color_theme")
@@ -104,16 +226,13 @@ const ProductPreview = () => {
 
         if (storeError) {
           console.error("Error fetching store settings:", storeError);
-          // Don't throw error, just use defaults
           setStoreName(null);
           setColorTheme("default");
         } else {
-          // Use store settings if they exist, otherwise use defaults
           setStoreName(storeSettings?.store_name || null);
           setColorTheme(storeSettings?.color_theme || "default");
         }
 
-        // Fetch products
         const { data: productsData, error: productsError } = await supabase
           .from("products")
           .select("*")
@@ -242,6 +361,8 @@ const ProductPreview = () => {
             </p>
           </div>
         )}
+
+        {userId && <FeedbackDialog userId={userId} />}
       </div>
     </div>
   );
