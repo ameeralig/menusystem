@@ -201,7 +201,6 @@ const FeedbackDialog = ({ userId }: { userId: string }) => {
 };
 
 const ProductPreview = () => {
-  // Explicitly type the params object
   const { userId } = useParams<{ userId: string }>();
   const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
