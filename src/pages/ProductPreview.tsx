@@ -2,206 +2,16 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { AnimatePresence, motion } from "framer-motion";
-import { Search, MessageSquare } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-
-interface Product {
-  id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  image_url: string | null;
-  category: string | null;
-  is_new: boolean;
-  is_popular: boolean;
-}
-
-const CategoryCard = ({ 
-  category, 
-  image, 
-  onClick 
-}: { 
-  category: string; 
-  image: string; 
-  onClick: () => void;
-}) => (
-  <motion.div
-    whileHover={{ scale: 1.02 }}
-    className="relative overflow-hidden rounded-xl cursor-pointer shadow-md group"
-    onClick={onClick}
-  >
-    <div className="aspect-[16/9] overflow-hidden">
-      <img 
-        src={image} 
-        alt={category}
-        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-      />
-      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-        <h3 className="text-white text-2xl font-bold tracking-wide">
-          {category}
-        </h3>
-      </div>
-    </div>
-  </motion.div>
-);
-
-const ProductCard = ({ product }: { product: Product }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -20 }}
-    className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300"
-  >
-    {product.image_url && (
-      <div className="aspect-[4/3] overflow-hidden">
-        <img
-          src={product.image_url}
-          alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-        />
-      </div>
-    )}
-    <div className="p-4">
-      <div className="flex justify-between items-start mb-2">
-        <h3 className="text-lg font-semibold text-right">{product.name}</h3>
-        <span className="text-lg font-bold text-coral-500">{product.price.toLocaleString()} د.ع</span>
-      </div>
-      {product.description && (
-        <p className="text-gray-600 dark:text-gray-300 text-sm text-right">
-          {product.description}
-        </p>
-      )}
-    </div>
-  </motion.div>
-);
-
-const FeedbackDialog = ({ userId }: { userId: string }) => {
-  const [visitorName, setVisitorName] = useState("");
-  const [feedbackType, setFeedbackType] = useState("");
-  const [description, setDescription] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-  const { toast } = useToast();
-
-  const handleSubmit = async () => {
-    if (!visitorName || !feedbackType || !description) {
-      toast({
-        title: "خطأ",
-        description: "الرجاء تعبئة جميع الحقول",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const { error } = await supabase.from("feedback").insert({
-        store_owner_id: userId,
-        visitor_name: visitorName,
-        type: feedbackType,
-        description: description,
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "تم الإرسال",
-        description: "شكراً لك على ملاحظاتك",
-      });
-      
-      setVisitorName("");
-      setFeedbackType("");
-      setDescription("");
-      setIsOpen(false);
-    } catch (error) {
-      console.error("Error submitting feedback:", error);
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ أثناء إرسال الملاحظات",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <button className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mx-auto mt-8">
-          <MessageSquare className="w-4 h-4" />
-          إرسال ملاحظات
-        </button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle className="text-right">إرسال ملاحظات</DialogTitle>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label className="text-right">الاسم</Label>
-            <Input
-              value={visitorName}
-              onChange={(e) => setVisitorName(e.target.value)}
-              className="text-right"
-              placeholder="أدخل اسمك"
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label className="text-right">نوع الملاحظات</Label>
-            <Select value={feedbackType} onValueChange={setFeedbackType}>
-              <SelectTrigger className="text-right">
-                <SelectValue placeholder="اختر نوع الملاحظات" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="complaint">شكوى</SelectItem>
-                <SelectItem value="suggestion">اقتراح</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label className="text-right">الوصف</Label>
-            <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="text-right"
-              placeholder="اكتب ملاحظاتك هنا"
-            />
-          </div>
-        </div>
-        <Button
-          onClick={handleSubmit}
-          disabled={isSubmitting}
-          className="w-full"
-        >
-          {isSubmitting ? "جاري الإرسال..." : "إرسال"}
-        </Button>
-      </DialogContent>
-    </Dialog>
-  );
-};
+import { Product } from "@/types/product";
+import StoreHeader from "@/components/store/StoreHeader";
+import SearchBar from "@/components/store/SearchBar";
+import CategoryGrid from "@/components/store/CategoryGrid";
+import ProductGrid from "@/components/store/ProductGrid";
+import FeedbackDialog from "@/components/store/FeedbackDialog";
 
 const ProductPreview = () => {
-  const { userId } = useParams<{ userId: string }>();
+  const { userId } = useParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -306,40 +116,15 @@ const ProductPreview = () => {
   return (
     <div className={`min-h-screen ${getThemeClasses(colorTheme)} transition-colors duration-300`}>
       <div className="container mx-auto py-6 px-4 max-w-6xl">
-        {storeName && (
-          <h1 className={`text-3xl font-bold text-center mb-8 ${
-            colorTheme === 'default' 
-              ? 'text-gray-900 dark:text-white' 
-              : `text-${colorTheme}-900 dark:text-${colorTheme}-100`
-          }`}>
-            {storeName}
-          </h1>
-        )}
-
-        <div className="relative max-w-md mx-auto mb-8">
-          <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
-          <Input
-            type="text"
-            placeholder="ابحث عن طبق..."
-            className="w-full pl-4 pr-10 py-2 text-right"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+        <StoreHeader storeName={storeName} colorTheme={colorTheme} />
+        <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
         {!selectedCategory ? (
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
-            {categories.map((category) => (
-              category && (
-                <CategoryCard
-                  key={category}
-                  category={category}
-                  image={getCategoryImage(category)}
-                  onClick={() => setSelectedCategory(category)}
-                />
-              )
-            ))}
-          </div>
+          <CategoryGrid
+            categories={categories}
+            getCategoryImage={getCategoryImage}
+            onCategorySelect={setSelectedCategory}
+          />
         ) : (
           <>
             <button
@@ -348,11 +133,7 @@ const ProductPreview = () => {
             >
               <span>← رجوع إلى التصنيفات</span>
             </button>
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+            <ProductGrid products={filteredProducts} />
           </>
         )}
 
