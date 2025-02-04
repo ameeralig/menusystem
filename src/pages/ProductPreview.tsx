@@ -201,7 +201,7 @@ const FeedbackDialog = ({ userId }: { userId: string }) => {
 };
 
 const ProductPreview = () => {
-  const { userId } = useParams<{ userId: string }>();
+  const { userId } = useParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -218,6 +218,7 @@ const ProductPreview = () => {
           return;
         }
 
+        // Fetch store settings
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
           .select("store_name, color_theme")
@@ -233,6 +234,7 @@ const ProductPreview = () => {
           setColorTheme(storeSettings?.color_theme || "default");
         }
 
+        // Fetch products
         const { data: productsData, error: productsError } = await supabase
           .from("products")
           .select("*")
