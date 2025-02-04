@@ -103,6 +103,7 @@ export type Database = {
         Row: {
           color_theme: string | null
           created_at: string
+          slug: string | null
           store_name: string | null
           updated_at: string
           user_id: string
@@ -110,6 +111,7 @@ export type Database = {
         Insert: {
           color_theme?: string | null
           created_at?: string
+          slug?: string | null
           store_name?: string | null
           updated_at?: string
           user_id: string
@@ -117,6 +119,7 @@ export type Database = {
         Update: {
           color_theme?: string | null
           created_at?: string
+          slug?: string | null
           store_name?: string | null
           updated_at?: string
           user_id?: string

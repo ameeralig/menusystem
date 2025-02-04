@@ -8,9 +8,11 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { motion } from "framer-motion";
 import StoreNameEditor from "@/components/store/StoreNameEditor";
 import ColorThemeSelector from "@/components/store/ColorThemeSelector";
+import StoreSlugEditor from "@/components/store/StoreSlugEditor";
 
 const StoreCustomization = () => {
   const [storeName, setStoreName] = useState("");
+  const [storeSlug, setStoreSlug] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [colorTheme, setColorTheme] = useState("default");
   const [isLoading, setIsLoading] = useState(false);
@@ -25,13 +27,14 @@ const StoreCustomization = () => {
 
         const { data: storeSettings } = await supabase
           .from("store_settings")
-          .select("store_name, color_theme")
+          .select("store_name, color_theme, slug")
           .eq("user_id", user.id)
           .single();
 
         if (storeSettings) {
           setStoreName(storeSettings.store_name || "");
           setColorTheme(storeSettings.color_theme || "default");
+          setStoreSlug(storeSettings.slug || "");
         }
       } catch (error) {
         console.error("Error fetching store settings:", error);
@@ -62,6 +65,7 @@ const StoreCustomization = () => {
           .update({ 
             store_name: storeName,
             color_theme: colorTheme,
+            slug: storeSlug,
             updated_at: new Date().toISOString()
           })
           .eq("user_id", user.id);
@@ -71,11 +75,17 @@ const StoreCustomization = () => {
           .insert([{ 
             user_id: user.id, 
             store_name: storeName,
-            color_theme: colorTheme
+            color_theme: colorTheme,
+            slug: storeSlug
           }]);
       }
 
-      if (result.error) throw result.error;
+      if (result.error) {
+        if (result.error.code === '23505') {
+          throw new Error("هذا الرابط مستخدم بالفعل، الرجاء اختيار رابط آخر");
+        }
+        throw result.error;
+      }
 
       toast({
         title: "تم الحفظ بنجاح",
@@ -120,6 +130,15 @@ const StoreCustomization = () => {
           <StoreNameEditor 
             storeName={storeName}
             setStoreName={setStoreName}
+            isEditing={isEditing}
+            setIsEditing={setIsEditing}
+            handleSubmit={handleSubmit}
+            isLoading={isLoading}
+          />
+
+          <StoreSlugEditor
+            storeSlug={storeSlug}
+            setStoreSlug={setStoreSlug}
             isEditing={isEditing}
             setIsEditing={setIsEditing}
             handleSubmit={handleSubmit}
