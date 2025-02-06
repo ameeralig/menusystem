@@ -1,9 +1,10 @@
+
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import DashboardActions from "@/components/dashboard/DashboardActions";
 
 const Dashboard = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#E5DEFF] to-white">
+    <div className="min-h-screen bg-gradient-to-br from-background to-background/95 transition-colors duration-300">
       <DashboardHeader />
       <main className="container mx-auto p-6">
         <div className="grid gap-6">
