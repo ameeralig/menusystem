@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -12,12 +13,18 @@ import ColorThemeSelector from "@/components/store/ColorThemeSelector";
 import StoreSlugEditor from "@/components/store/StoreSlugEditor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+type SocialLinks = {
+  instagram: string;
+  facebook: string;
+  telegram: string;
+};
+
 const StoreCustomization = () => {
   const [storeName, setStoreName] = useState("");
   const [storeSlug, setStoreSlug] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [colorTheme, setColorTheme] = useState("default");
-  const [socialLinks, setSocialLinks] = useState({
+  const [socialLinks, setSocialLinks] = useState<SocialLinks>({
     instagram: "",
     facebook: "",
     telegram: "",
@@ -42,10 +49,10 @@ const StoreCustomization = () => {
           setStoreName(storeSettings.store_name || "");
           setColorTheme(storeSettings.color_theme || "default");
           setStoreSlug(storeSettings.slug || "");
-          setSocialLinks(storeSettings.social_links || {
-            instagram: "",
-            facebook: "",
-            telegram: "",
+          setSocialLinks({
+            instagram: (storeSettings.social_links as SocialLinks)?.instagram || "",
+            facebook: (storeSettings.social_links as SocialLinks)?.facebook || "",
+            telegram: (storeSettings.social_links as SocialLinks)?.telegram || "",
           });
         }
       } catch (error) {

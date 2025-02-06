@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,7 +54,7 @@ const ProductPreview = () => {
         } else {
           setStoreName(storeSettings?.store_name || null);
           setColorTheme(storeSettings?.color_theme || "default");
-          setSocialLinks(storeSettings?.social_links || {});
+          setSocialLinks(storeSettings?.social_links as SocialLinks || {});
         }
 
         // Fetch products
