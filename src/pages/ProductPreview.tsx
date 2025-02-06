@@ -12,8 +12,7 @@ import ProductGrid from "@/components/store/ProductGrid";
 import FeedbackDialog from "@/components/store/FeedbackDialog";
 
 const ProductPreview = () => {
-  const params = useParams();
-  const userId = params.userId;
+  const { userId } = useParams<{ userId: string }>();
   const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -29,9 +28,8 @@ const ProductPreview = () => {
         setIsLoading(true);
         setError(null);
 
-        if (!userId) {
-          setError("معرف المتجر غير صالح");
-          return;
+        if (!userId || typeof userId !== 'string') {
+          throw new Error("معرف المتجر غير صالح");
         }
 
         // Fetch store settings
