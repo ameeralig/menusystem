@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,18 +12,23 @@ import ProductGrid from "@/components/store/ProductGrid";
 import FeedbackDialog from "@/components/store/FeedbackDialog";
 
 const ProductPreview = () => {
-  const { userId } = useParams();
+  const params = useParams();
+  const userId = params.userId;
   const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [storeName, setStoreName] = useState<string | null>(null);
   const [colorTheme, setColorTheme] = useState<string | null>("default");
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchStoreData = async () => {
       try {
+        setIsLoading(true);
+        setError(null);
+
         if (!userId) {
           setError("معرف المتجر غير صالح");
           return;
@@ -56,7 +62,6 @@ const ProductPreview = () => {
         }
 
         setProducts(productsData || []);
-        setError(null);
 
       } catch (error: any) {
         console.error("Error fetching data:", error);
@@ -66,6 +71,8 @@ const ProductPreview = () => {
           description: error.message,
           variant: "destructive",
         });
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -109,6 +116,14 @@ const ProductPreview = () => {
         <Alert variant="destructive" className="max-w-lg mx-auto">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 flex items-center justify-center">
+        <div className="text-lg text-gray-600 dark:text-gray-400">جاري التحميل...</div>
       </div>
     );
   }
