@@ -1,11 +1,10 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Instagram, Facebook, Telegram } from "lucide-react";
+import { ArrowLeft, Instagram, Facebook, MessageSquare } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { motion } from "framer-motion";
 import StoreNameEditor from "@/components/store/StoreNameEditor";
@@ -214,7 +213,7 @@ const StoreCustomization = () => {
                       className="text-right"
                       dir="rtl"
                     />
-                    <Telegram className="w-5 h-5 text-blue-400" />
+                    <MessageSquare className="w-5 h-5 text-blue-400" />
                   </div>
                 </div>
                 

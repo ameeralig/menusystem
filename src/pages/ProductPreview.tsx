@@ -9,7 +9,7 @@ import SearchBar from "@/components/store/SearchBar";
 import CategoryGrid from "@/components/store/CategoryGrid";
 import ProductGrid from "@/components/store/ProductGrid";
 import FeedbackDialog from "@/components/store/FeedbackDialog";
-import { Instagram, Facebook, Telegram } from "lucide-react";
+import { Instagram, Facebook, MessageSquare } from "lucide-react";
 
 type SocialLinks = {
   instagram?: string;
@@ -138,7 +138,7 @@ const ProductPreview = () => {
       case 'telegram':
         return (
           <a href={url} target="_blank" rel="noopener noreferrer" className={linkClasses}>
-            <Telegram className={`${iconClasses} text-blue-400`} />
+            <MessageSquare className={`${iconClasses} text-blue-400`} />
           </a>
         );
       default:
