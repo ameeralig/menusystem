@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +9,13 @@ import SearchBar from "@/components/store/SearchBar";
 import CategoryGrid from "@/components/store/CategoryGrid";
 import ProductGrid from "@/components/store/ProductGrid";
 import FeedbackDialog from "@/components/store/FeedbackDialog";
+import { Instagram, Facebook, Telegram } from "lucide-react";
+
+type SocialLinks = {
+  instagram?: string;
+  facebook?: string;
+  telegram?: string;
+};
 
 const ProductPreview = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -18,6 +24,7 @@ const ProductPreview = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [storeName, setStoreName] = useState<string | null>(null);
   const [colorTheme, setColorTheme] = useState<string | null>("default");
+  const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -35,7 +42,7 @@ const ProductPreview = () => {
         // Fetch store settings
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
-          .select("store_name, color_theme")
+          .select("store_name, color_theme, social_links")
           .eq("user_id", userId)
           .maybeSingle();
 
@@ -46,6 +53,7 @@ const ProductPreview = () => {
         } else {
           setStoreName(storeSettings?.store_name || null);
           setColorTheme(storeSettings?.color_theme || "default");
+          setSocialLinks(storeSettings?.social_links || {});
         }
 
         // Fetch products
@@ -108,6 +116,36 @@ const ProductPreview = () => {
     return categoryProduct?.image_url || '/placeholder.svg';
   };
 
+  const getSocialIcon = (platform: string, url: string) => {
+    if (!url) return null;
+
+    const iconClasses = "w-5 h-5 transition-colors duration-300";
+    const linkClasses = "hover:opacity-75 transition-opacity";
+
+    switch (platform) {
+      case 'instagram':
+        return (
+          <a href={url} target="_blank" rel="noopener noreferrer" className={linkClasses}>
+            <Instagram className={`${iconClasses} text-pink-500`} />
+          </a>
+        );
+      case 'facebook':
+        return (
+          <a href={url} target="_blank" rel="noopener noreferrer" className={linkClasses}>
+            <Facebook className={`${iconClasses} text-blue-500`} />
+          </a>
+        );
+      case 'telegram':
+        return (
+          <a href={url} target="_blank" rel="noopener noreferrer" className={linkClasses}>
+            <Telegram className={`${iconClasses} text-blue-400`} />
+          </a>
+        );
+      default:
+        return null;
+    }
+  };
+
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
@@ -155,6 +193,15 @@ const ProductPreview = () => {
             <p className="text-gray-600 dark:text-gray-400">
               لا توجد منتجات في هذا التصنيف
             </p>
+          </div>
+        )}
+
+        {/* Social Media Icons */}
+        {Object.entries(socialLinks).length > 0 && (
+          <div className="fixed bottom-4 left-4 flex gap-4 bg-white/80 dark:bg-gray-800/80 p-3 rounded-full shadow-lg backdrop-blur-sm">
+            {Object.entries(socialLinks).map(([platform, url]) => (
+              url && getSocialIcon(platform, url)
+            ))}
           </div>
         )}
 
