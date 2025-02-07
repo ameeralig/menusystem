@@ -72,7 +72,45 @@ const Login = () => {
     setIsResetting(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail);
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+
+      if (error) {
+        toast({
+          title: "خطأ",
+          description: getErrorMessage(error),
+          variant: "destructive",
+        });
+      } else {
+        setShowOTPInput(true);
+        toast({
+          title: "تم إرسال رمز التحقق",
+          description: "يرجى إدخال الرمز المكون من 6 أرقام",
+        });
+      }
+    } catch (err) {
+      console.error("Reset password error:", err);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى",
+        variant: "destructive",
+      });
+    }
+
+    setIsResetting(false);
+  };
+
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsResetting(true);
+
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: resetEmail,
+        token: otp,
+        type: 'recovery'
+      });
 
       if (error) {
         toast({
@@ -82,16 +120,17 @@ const Login = () => {
         });
       } else {
         toast({
-          title: "تم إرسال رابط إعادة تعيين كلمة المرور",
-          description: "يرجى التحقق من بريدك الإلكتروني",
+          title: "تم التحقق بنجاح",
+          description: "يمكنك الآن تعيين كلمة سر جديدة",
         });
         setIsResetDialogOpen(false);
+        navigate("/auth/reset-password");
       }
     } catch (err) {
-      console.error("Reset password error:", err);
+      console.error("OTP verification error:", err);
       toast({
         title: "خطأ",
-        description: "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى",
+        description: "حدث خطأ في التحقق من الرمز",
         variant: "destructive",
       });
     }
@@ -153,30 +192,60 @@ const Login = () => {
               <AlertDialogHeader>
                 <AlertDialogTitle>إعادة تعيين كلمة السر</AlertDialogTitle>
                 <AlertDialogDescription>
-                  أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة تعيين كلمة المرور
+                  {!showOTPInput 
+                    ? "أدخل بريدك الإلكتروني وسنرسل لك رمز التحقق"
+                    : "أدخل رمز التحقق المكون من 6 أرقام"
+                  }
                 </AlertDialogDescription>
               </AlertDialogHeader>
-              <form onSubmit={handleResetPassword} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                    البريد الإلكتروني
-                  </label>
-                  <Input
-                    type="email"
-                    value={resetEmail}
-                    onChange={(e) => setResetEmail(e.target.value)}
-                    required
-                    className="mt-1 text-right"
-                    dir="rtl"
-                  />
-                </div>
-                <AlertDialogFooter className="gap-2">
-                  <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                  <Button type="submit" disabled={isResetting}>
-                    {isResetting ? "جاري إرسال الرابط..." : "إرسال رابط التعيين"}
-                  </Button>
-                </AlertDialogFooter>
-              </form>
+              {!showOTPInput ? (
+                <form onSubmit={handleResetPassword} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                      البريد الإلكتروني
+                    </label>
+                    <Input
+                      type="email"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      required
+                      className="mt-1 text-right"
+                      dir="rtl"
+                    />
+                  </div>
+                  <AlertDialogFooter className="gap-2">
+                    <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                    <Button type="submit" disabled={isResetting}>
+                      {isResetting ? "جاري إرسال الرمز..." : "إرسال رمز التحقق"}
+                    </Button>
+                  </AlertDialogFooter>
+                </form>
+              ) : (
+                <form onSubmit={handleVerifyOTP} className="space-y-4">
+                  <div className="flex flex-col items-center space-y-4">
+                    <InputOTP
+                      maxLength={6}
+                      value={otp}
+                      onChange={(value) => setOTP(value)}
+                      render={({ slots }) => (
+                        <InputOTPGroup>
+                          {Array.from({ length: 6 }).map((_, idx) => (
+                            <InputOTPSlot key={idx} index={idx} />
+                          ))}
+                        </InputOTPGroup>
+                      )}
+                    />
+                  </div>
+                  <AlertDialogFooter className="gap-2">
+                    <AlertDialogCancel onClick={() => setShowOTPInput(false)}>
+                      رجوع
+                    </AlertDialogCancel>
+                    <Button type="submit" disabled={isResetting || otp.length !== 6}>
+                      {isResetting ? "جاري التحقق..." : "تحقق من الرمز"}
+                    </Button>
+                  </AlertDialogFooter>
+                </form>
+              )}
             </AlertDialogContent>
           </AlertDialog>
 
