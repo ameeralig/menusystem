@@ -6,12 +6,15 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { getErrorMessage } from "@/utils/errorHandling";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -22,6 +25,7 @@ const Login = () => {
   const [error, setError] = useState("");
   const [resetEmail, setResetEmail] = useState("");
   const [isResetting, setIsResetting] = useState(false);
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,6 +80,7 @@ const Login = () => {
           title: "تم إرسال رابط إعادة تعيين كلمة السر",
           description: "يرجى التحقق من بريدك الإلكتروني",
         });
+        setIsResetDialogOpen(false);
       }
     } catch (err) {
       console.error("Reset password error:", err);
@@ -133,16 +138,19 @@ const Login = () => {
         </form>
 
         <div className="mt-6 flex items-center justify-between">
-          <Dialog>
-            <DialogTrigger asChild>
+          <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+            <AlertDialogTrigger asChild>
               <Button variant="link" className="text-sm text-primary hover:text-primary/80">
                 نسيت كلمة السر؟
               </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>إعادة تعيين كلمة السر</DialogTitle>
-              </DialogHeader>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>إعادة تعيين كلمة السر</AlertDialogTitle>
+                <AlertDialogDescription>
+                  أدخل بريدك الإلكتروني وسنرسل لك رابطاً لإعادة تعيين كلمة السر.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
               <form onSubmit={handleResetPassword} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -157,12 +165,15 @@ const Login = () => {
                     dir="rtl"
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isResetting}>
-                  {isResetting ? "جاري إرسال الرابط..." : "إرسال رابط إعادة التعيين"}
-                </Button>
+                <AlertDialogFooter className="gap-2">
+                  <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                  <Button type="submit" disabled={isResetting}>
+                    {isResetting ? "جاري إرسال الرابط..." : "إرسال رابط إعادة التعيين"}
+                  </Button>
+                </AlertDialogFooter>
               </form>
-            </DialogContent>
-          </Dialog>
+            </AlertDialogContent>
+          </AlertDialog>
 
           <button
             onClick={() => navigate("/auth/signup")}
