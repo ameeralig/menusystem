@@ -224,13 +224,13 @@ const Login = () => {
                 <form onSubmit={handleVerifyOTP} className="space-y-4">
                   <div className="flex flex-col items-center space-y-4">
                     <InputOTP
+                      maxLength={6}
                       value={otp}
                       onChange={(value) => setOTP(value)}
-                      maxLength={6}
                       render={({ slots }) => (
                         <InputOTPGroup>
-                          {slots.map((slot, idx) => (
-                            <InputOTPSlot key={idx} {...slot} index={idx} />
+                          {Array.from({ length: 6 }).map((_, idx) => (
+                            <InputOTPSlot key={idx} index={idx} />
                           ))}
                         </InputOTPGroup>
                       )}
