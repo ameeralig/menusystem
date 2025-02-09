@@ -31,12 +31,14 @@ serve(async (req) => {
       // Generate 6-digit OTP
       const otpCode = Math.floor(100000 + Math.random() * 900000).toString()
       
-      // Get user_id from email
+      // Get user from auth.users table
       const { data: userData, error: userError } = await supabaseClient
-        .from('auth.users')
+        .from('users')
         .select('id')
         .eq('email', email)
         .single()
+
+      console.log('User lookup result:', { userData, userError })
 
       if (userError || !userData) {
         return new Response(
@@ -63,15 +65,16 @@ serve(async (req) => {
       }
 
       // Send email with OTP
-      const { error: emailError } = await supabaseClient.auth.admin.generateLink({
-        type: 'recovery',
+      const { error: emailError } = await supabaseClient.auth.admin.sendEmail(
         email,
-        options: {
+        {
+          subject: 'Reset Your Password',
+          template: 'RESET_PASSWORD',
           data: {
             otp: otpCode,
           },
-        },
-      })
+        }
+      )
 
       if (emailError) {
         console.error('Error sending email:', emailError)
@@ -132,9 +135,23 @@ serve(async (req) => {
         )
       }
 
+      // Get user ID from email
+      const { data: userData, error: userError } = await supabaseClient
+        .from('users')
+        .select('id')
+        .eq('email', email)
+        .single()
+
+      if (userError || !userData) {
+        return new Response(
+          JSON.stringify({ error: 'User not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
       // Update password
       const { error: updateError } = await supabaseClient.auth.admin.updateUserById(
-        email,
+        userData.id,
         { password: newPassword }
       )
 
