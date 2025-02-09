@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
@@ -73,59 +72,53 @@ serve(async (req) => {
         )
       }
 
-      // Send email with OTP
-      const emailContent = `
-        <html dir="rtl">
-          <head>
-            <meta charset="UTF-8">
-            <style>
-              body {
-                font-family: Arial, sans-serif;
-                line-height: 1.6;
-                color: #333;
-                text-align: right;
-              }
-              .container {
-                max-width: 600px;
-                margin: 0 auto;
-                padding: 20px;
-              }
-              .otp-code {
-                font-size: 24px;
-                font-weight: bold;
-                color: #4F46E5;
-                margin: 20px 0;
-                text-align: center;
-                direction: ltr;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <h2>إعادة تعيين كلمة المرور</h2>
-              <p>مرحباً،</p>
-              <p>لقد تلقينا طلباً لإعادة تعيين كلمة المرور الخاصة بك.</p>
-              <p>رمز التحقق الخاص بك هو:</p>
-              <div class="otp-code">${otpCode}</div>
-              <p>هذا الرمز صالح لمدة 10 دقائق فقط.</p>
-              <p>إذا لم تقم بطلب إعادة تعيين كلمة المرور، يرجى تجاهل هذا البريد الإلكتروني.</p>
-              <p>مع أطيب التحيات،<br>فريق الدعم</p>
-            </div>
-          </body>
-        </html>
-      `
-
+      // Send email with OTP using raw email
       try {
         console.log('Attempting to send email...')
-        const { error: emailError } = await supabaseClient.auth.admin.sendEmail(
-          email,
-          {
-            subject: 'رمز التحقق لإعادة تعيين كلمة المرور',
-            template: 'custom',
-            type: 'custom',
-            html: emailContent,
-          }
-        )
+        const { error: emailError } = await supabaseClient.auth.admin.sendRawEmail({
+          emails: [email],
+          subject: 'رمز التحقق لإعادة تعيين كلمة المرور',
+          html: `
+            <html dir="rtl">
+              <head>
+                <meta charset="UTF-8">
+                <style>
+                  body {
+                    font-family: Arial, sans-serif;
+                    line-height: 1.6;
+                    color: #333;
+                    text-align: right;
+                  }
+                  .container {
+                    max-width: 600px;
+                    margin: 0 auto;
+                    padding: 20px;
+                  }
+                  .otp-code {
+                    font-size: 24px;
+                    font-weight: bold;
+                    color: #4F46E5;
+                    margin: 20px 0;
+                    text-align: center;
+                    direction: ltr;
+                  }
+                </style>
+              </head>
+              <body>
+                <div class="container">
+                  <h2>إعادة تعيين كلمة المرور</h2>
+                  <p>مرحباً،</p>
+                  <p>لقد تلقينا طلباً لإعادة تعيين كلمة المرور الخاصة بك.</p>
+                  <p>رمز التحقق الخاص بك هو:</p>
+                  <div class="otp-code">${otpCode}</div>
+                  <p>هذا الرمز صالح لمدة 10 دقائق فقط.</p>
+                  <p>إذا لم تقم بطلب إعادة تعيين كلمة المرور، يرجى تجاهل هذا البريد الإلكتروني.</p>
+                  <p>مع أطيب التحيات،<br>فريق الدعم</p>
+                </div>
+              </body>
+            </html>
+          `
+        })
 
         if (emailError) {
           console.error('Error sending email:', emailError)
