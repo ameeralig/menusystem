@@ -26,17 +26,19 @@ serve(async (req) => {
     )
 
     const { email, action, otp, newPassword }: RequestBody = await req.json()
+    console.log('Received request with action:', action, 'and email:', email)
 
     if (action === 'send') {
       // Generate 6-digit OTP
       const otpCode = Math.floor(100000 + Math.random() * 900000).toString()
+      console.log('Generated OTP:', otpCode)
       
       // Get user from auth system
       const { data: userData, error: userError } = await supabaseClient.auth.admin.getUserByEmail(email)
-
       console.log('User lookup result:', { userData, userError })
 
       if (userError || !userData.user) {
+        console.error('User not found:', userError)
         return new Response(
           JSON.stringify({ error: 'User not found' }),
           { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -60,27 +62,53 @@ serve(async (req) => {
         )
       }
 
-      try {
-        // تحسين تنسيق البريد الإلكتروني وإضافة المزيد من التفاصيل
-        const emailContent = `
-        <html>
-          <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <h2>إعادة تعيين كلمة المرور</h2>
-            <p>لقد تلقينا طلباً لإعادة تعيين كلمة المرور الخاصة بك.</p>
-            <p>رمز التحقق الخاص بك هو: <strong>${otpCode}</strong></p>
-            <p>هذا الرمز صالح لمدة 10 دقائق فقط.</p>
-            <p>إذا لم تقم بطلب إعادة تعيين كلمة المرور، يرجى تجاهل هذا البريد الإلكتروني.</p>
-            <p>مع أطيب التحيات،<br>فريق الدعم</p>
+      // Send email with OTP
+      const emailContent = `
+        <html dir="rtl">
+          <head>
+            <meta charset="UTF-8">
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                text-align: right;
+              }
+              .container {
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+              }
+              .otp-code {
+                font-size: 24px;
+                font-weight: bold;
+                color: #4F46E5;
+                margin: 20px 0;
+                text-align: center;
+                direction: ltr;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h2>إعادة تعيين كلمة المرور</h2>
+              <p>مرحباً،</p>
+              <p>لقد تلقينا طلباً لإعادة تعيين كلمة المرور الخاصة بك.</p>
+              <p>رمز التحقق الخاص بك هو:</p>
+              <div class="otp-code">${otpCode}</div>
+              <p>هذا الرمز صالح لمدة 10 دقائق فقط.</p>
+              <p>إذا لم تقم بطلب إعادة تعيين كلمة المرور، يرجى تجاهل هذا البريد الإلكتروني.</p>
+              <p>مع أطيب التحيات،<br>فريق الدعم</p>
+            </div>
           </body>
         </html>
-        `
+      `
 
-        console.log('Attempting to send email with content:', emailContent)
-
+      try {
+        console.log('Attempting to send email...')
         const { error: emailError } = await supabaseClient.auth.admin.sendRawEmail({
           email,
           subject: 'رمز التحقق لإعادة تعيين كلمة المرور',
-          body: emailContent,
           html: emailContent,
         })
 
@@ -92,6 +120,7 @@ serve(async (req) => {
           )
         }
 
+        console.log('Email sent successfully')
         return new Response(
           JSON.stringify({ message: 'OTP sent successfully' }),
           { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -113,6 +142,8 @@ serve(async (req) => {
         )
       }
 
+      console.log('Verifying OTP:', otp, 'for email:', email)
+
       // Verify OTP
       const { data: otpData, error: otpError } = await supabaseClient
         .from('password_reset_otps')
@@ -123,6 +154,8 @@ serve(async (req) => {
         .gt('expires_at', new Date().toISOString())
         .single()
 
+      console.log('OTP verification result:', { otpData, otpError })
+
       if (otpError || !otpData) {
         return new Response(
           JSON.stringify({ error: 'Invalid or expired OTP' }),
@@ -131,10 +164,14 @@ serve(async (req) => {
       }
 
       // Mark OTP as used
-      await supabaseClient
+      const { error: updateError } = await supabaseClient
         .from('password_reset_otps')
         .update({ is_used: true })
         .eq('id', otpData.id)
+
+      if (updateError) {
+        console.error('Error marking OTP as used:', updateError)
+      }
 
       return new Response(
         JSON.stringify({ message: 'OTP verified successfully' }),
@@ -150,10 +187,13 @@ serve(async (req) => {
         )
       }
 
+      console.log('Resetting password for email:', email)
+
       // Get user from auth system
       const { data: userData, error: userError } = await supabaseClient.auth.admin.getUserByEmail(email)
 
       if (userError || !userData.user) {
+        console.error('User not found:', userError)
         return new Response(
           JSON.stringify({ error: 'User not found' }),
           { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -174,6 +214,7 @@ serve(async (req) => {
         )
       }
 
+      console.log('Password updated successfully')
       return new Response(
         JSON.stringify({ message: 'Password updated successfully' }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -186,7 +227,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Unexpected error:', error)
     return new Response(
       JSON.stringify({ error: 'Internal server error', details: error }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
