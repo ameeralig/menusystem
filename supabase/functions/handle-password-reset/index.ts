@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { Resend } from "npm:resend@2.0.0"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,6 +13,8 @@ interface RequestBody {
   otp?: string;
   newPassword?: string;
 }
+
+const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -72,11 +75,11 @@ serve(async (req) => {
         )
       }
 
-      // Send email with OTP using raw email
       try {
-        console.log('Attempting to send email...')
-        const { error: emailError } = await supabaseClient.auth.admin.sendRawEmail({
-          emails: [email],
+        console.log('Attempting to send email with Resend...')
+        const emailResponse = await resend.emails.send({
+          from: 'onboarding@resend.dev',
+          to: email,
           subject: 'رمز التحقق لإعادة تعيين كلمة المرور',
           html: `
             <html dir="rtl">
@@ -118,23 +121,15 @@ serve(async (req) => {
               </body>
             </html>
           `
-        })
+        });
 
-        if (emailError) {
-          console.error('Error sending email:', emailError)
-          return new Response(
-            JSON.stringify({ error: 'Failed to send OTP email', details: emailError }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
-        }
-
-        console.log('Email sent successfully')
+        console.log('Email sent successfully with Resend:', emailResponse)
         return new Response(
           JSON.stringify({ message: 'OTP sent successfully' }),
           { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       } catch (emailError) {
-        console.error('Error in email sending:', emailError)
+        console.error('Error sending email with Resend:', emailError)
         return new Response(
           JSON.stringify({ error: 'Failed to send email', details: emailError }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
