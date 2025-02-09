@@ -60,30 +60,33 @@ serve(async (req) => {
         )
       }
 
-      // Send email with OTP
-      const { error: emailError } = await supabaseClient.auth.admin.sendEmail(
-        email,
-        {
+      try {
+        // Send email with OTP using raw email
+        const { error: emailError } = await supabaseClient.auth.admin.sendRawEmail({
+          email,
           subject: 'Reset Your Password',
-          template: 'RESET_PASSWORD',
-          data: {
-            otp: otpCode,
-          },
-        }
-      )
+          body: `Your password reset code is: ${otpCode}. This code will expire in 10 minutes.`
+        })
 
-      if (emailError) {
-        console.error('Error sending email:', emailError)
+        if (emailError) {
+          console.error('Error sending email:', emailError)
+          return new Response(
+            JSON.stringify({ error: 'Failed to send OTP email' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+
         return new Response(
-          JSON.stringify({ error: 'Failed to send OTP email' }),
+          JSON.stringify({ message: 'OTP sent successfully' }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      } catch (emailError) {
+        console.error('Error in email sending:', emailError)
+        return new Response(
+          JSON.stringify({ error: 'Failed to send email' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
-
-      return new Response(
-        JSON.stringify({ message: 'OTP sent successfully' }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
     }
 
     if (action === 'verify') {
@@ -148,6 +151,7 @@ serve(async (req) => {
       )
 
       if (updateError) {
+        console.error('Error updating password:', updateError)
         return new Response(
           JSON.stringify({ error: 'Failed to update password' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
