@@ -163,7 +163,7 @@ export const ResetPasswordForm = ({ onBack, onSuccess }: ResetPasswordFormProps)
               render={({ slots }) => (
                 <InputOTPGroup>
                   {slots.map((slot, idx) => (
-                    <InputOTPSlot key={idx} {...slot} />
+                    <InputOTPSlot key={idx} {...slot} index={idx} />
                   ))}
                 </InputOTPGroup>
               )}
