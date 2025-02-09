@@ -61,17 +61,33 @@ serve(async (req) => {
       }
 
       try {
-        // Send email with OTP using raw email
+        // تحسين تنسيق البريد الإلكتروني وإضافة المزيد من التفاصيل
+        const emailContent = `
+        <html>
+          <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <h2>إعادة تعيين كلمة المرور</h2>
+            <p>لقد تلقينا طلباً لإعادة تعيين كلمة المرور الخاصة بك.</p>
+            <p>رمز التحقق الخاص بك هو: <strong>${otpCode}</strong></p>
+            <p>هذا الرمز صالح لمدة 10 دقائق فقط.</p>
+            <p>إذا لم تقم بطلب إعادة تعيين كلمة المرور، يرجى تجاهل هذا البريد الإلكتروني.</p>
+            <p>مع أطيب التحيات،<br>فريق الدعم</p>
+          </body>
+        </html>
+        `
+
+        console.log('Attempting to send email with content:', emailContent)
+
         const { error: emailError } = await supabaseClient.auth.admin.sendRawEmail({
           email,
-          subject: 'Reset Your Password',
-          body: `Your password reset code is: ${otpCode}. This code will expire in 10 minutes.`
+          subject: 'رمز التحقق لإعادة تعيين كلمة المرور',
+          body: emailContent,
+          html: emailContent,
         })
 
         if (emailError) {
           console.error('Error sending email:', emailError)
           return new Response(
-            JSON.stringify({ error: 'Failed to send OTP email' }),
+            JSON.stringify({ error: 'Failed to send OTP email', details: emailError }),
             { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           )
         }
@@ -83,7 +99,7 @@ serve(async (req) => {
       } catch (emailError) {
         console.error('Error in email sending:', emailError)
         return new Response(
-          JSON.stringify({ error: 'Failed to send email' }),
+          JSON.stringify({ error: 'Failed to send email', details: emailError }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
@@ -153,7 +169,7 @@ serve(async (req) => {
       if (updateError) {
         console.error('Error updating password:', updateError)
         return new Response(
-          JSON.stringify({ error: 'Failed to update password' }),
+          JSON.stringify({ error: 'Failed to update password', details: updateError }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
@@ -172,7 +188,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error:', error)
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Internal server error', details: error }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
