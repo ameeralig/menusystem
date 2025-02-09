@@ -21,15 +21,17 @@ export const ResetPasswordForm = ({ onBack, onSuccess }: ResetPasswordFormProps)
   const [email, setEmail] = useState("");
   const [isResetting, setIsResetting] = useState(false);
   const [showOTPInput, setShowOTPInput] = useState(false);
+  const [showNewPasswordInput, setShowNewPasswordInput] = useState(false);
   const [otp, setOTP] = useState("");
+  const [newPassword, setNewPassword] = useState("");
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsResetting(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: null,
+      const { error } = await supabase.functions.invoke('handle-password-reset', {
+        body: { email, action: 'send' }
       });
 
       if (error) {
@@ -62,10 +64,8 @@ export const ResetPasswordForm = ({ onBack, onSuccess }: ResetPasswordFormProps)
     setIsResetting(true);
 
     try {
-      const { error } = await supabase.auth.verifyOtp({
-        email,
-        token: otp,
-        type: "recovery",
+      const { error } = await supabase.functions.invoke('handle-password-reset', {
+        body: { email, otp, action: 'verify' }
       });
 
       if (error) {
@@ -75,11 +75,11 @@ export const ResetPasswordForm = ({ onBack, onSuccess }: ResetPasswordFormProps)
           variant: "destructive",
         });
       } else {
+        setShowNewPasswordInput(true);
         toast({
           title: "تم التحقق بنجاح",
           description: "يمكنك الآن تعيين كلمة سر جديدة",
         });
-        onSuccess();
       }
     } catch (err) {
       console.error("OTP verification error:", err);
@@ -93,9 +93,43 @@ export const ResetPasswordForm = ({ onBack, onSuccess }: ResetPasswordFormProps)
     setIsResetting(false);
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsResetting(true);
+
+    try {
+      const { error } = await supabase.functions.invoke('handle-password-reset', {
+        body: { email, newPassword, action: 'reset' }
+      });
+
+      if (error) {
+        toast({
+          title: "خطأ",
+          description: getErrorMessage(error),
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "تم تغيير كلمة السر بنجاح",
+          description: "يمكنك الآن تسجيل الدخول بكلمة السر الجديدة",
+        });
+        onSuccess();
+      }
+    } catch (err) {
+      console.error("Password reset error:", err);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ في تغيير كلمة السر",
+        variant: "destructive",
+      });
+    }
+
+    setIsResetting(false);
+  };
+
   return (
     <div className="space-y-4">
-      {!showOTPInput ? (
+      {!showOTPInput && !showNewPasswordInput ? (
         <form onSubmit={handleSendOTP} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -119,7 +153,7 @@ export const ResetPasswordForm = ({ onBack, onSuccess }: ResetPasswordFormProps)
             </Button>
           </div>
         </form>
-      ) : (
+      ) : showOTPInput && !showNewPasswordInput ? (
         <form onSubmit={handleVerifyOTP} className="space-y-4">
           <div className="flex flex-col items-center space-y-4">
             <InputOTP
@@ -141,6 +175,31 @@ export const ResetPasswordForm = ({ onBack, onSuccess }: ResetPasswordFormProps)
             </Button>
             <Button type="submit" disabled={isResetting || otp.length !== 6}>
               {isResetting ? "جاري التحقق..." : "تحقق من الرمز"}
+            </Button>
+          </div>
+        </form>
+      ) : (
+        <form onSubmit={handleResetPassword} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+              كلمة المرور الجديدة
+            </label>
+            <Input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              required
+              className="mt-1 text-right"
+              dir="rtl"
+              minLength={6}
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowNewPasswordInput(false)}>
+              رجوع
+            </Button>
+            <Button type="submit" disabled={isResetting}>
+              {isResetting ? "جاري تغيير كلمة السر..." : "تغيير كلمة السر"}
             </Button>
           </div>
         </form>
