@@ -22,7 +22,13 @@ serve(async (req) => {
   try {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
     )
 
     const { email, action, otp, newPassword }: RequestBody = await req.json()
@@ -34,10 +40,13 @@ serve(async (req) => {
       console.log('Generated OTP:', otpCode)
       
       // Get user from auth system
-      const { data: userData, error: userError } = await supabaseClient.auth.admin.getUserByEmail(email)
-      console.log('User lookup result:', { userData, userError })
+      const { data: { users }, error: userError } = await supabaseClient.auth.admin.listUsers({
+        filter: `email.eq.${email}`
+      })
+      
+      console.log('User lookup result:', { users, userError })
 
-      if (userError || !userData.user) {
+      if (userError || !users || users.length === 0) {
         console.error('User not found:', userError)
         return new Response(
           JSON.stringify({ error: 'User not found' }),
@@ -45,11 +54,13 @@ serve(async (req) => {
         )
       }
 
+      const user = users[0]
+
       // Store OTP in database
       const { error: otpError } = await supabaseClient
         .from('password_reset_otps')
         .insert({
-          user_id: userData.user.id,
+          user_id: user.id,
           email,
           otp_code: otpCode,
         })
@@ -106,11 +117,15 @@ serve(async (req) => {
 
       try {
         console.log('Attempting to send email...')
-        const { error: emailError } = await supabaseClient.auth.admin.sendRawEmail({
+        const { error: emailError } = await supabaseClient.auth.admin.sendEmail(
           email,
-          subject: 'رمز التحقق لإعادة تعيين كلمة المرور',
-          html: emailContent,
-        })
+          {
+            subject: 'رمز التحقق لإعادة تعيين كلمة المرور',
+            template: 'custom',
+            type: 'custom',
+            html: emailContent,
+          }
+        )
 
         if (emailError) {
           console.error('Error sending email:', emailError)
@@ -190,9 +205,11 @@ serve(async (req) => {
       console.log('Resetting password for email:', email)
 
       // Get user from auth system
-      const { data: userData, error: userError } = await supabaseClient.auth.admin.getUserByEmail(email)
+      const { data: { users }, error: userError } = await supabaseClient.auth.admin.listUsers({
+        filter: `email.eq.${email}`
+      })
 
-      if (userError || !userData.user) {
+      if (userError || !users || users.length === 0) {
         console.error('User not found:', userError)
         return new Response(
           JSON.stringify({ error: 'User not found' }),
@@ -200,9 +217,11 @@ serve(async (req) => {
         )
       }
 
+      const user = users[0]
+
       // Update password
       const { error: updateError } = await supabaseClient.auth.admin.updateUserById(
-        userData.user.id,
+        user.id,
         { password: newPassword }
       )
 
