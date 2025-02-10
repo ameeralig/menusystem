@@ -1,15 +1,8 @@
 
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
-import { getErrorMessage } from "@/utils/errorHandling";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
+import { EmailResetForm } from "./EmailResetForm";
+import { OTPVerificationForm } from "./OTPVerificationForm";
+import { NewPasswordForm } from "./NewPasswordForm";
+import { usePasswordReset } from "@/hooks/use-password-reset";
 
 interface ResetPasswordFormProps {
   onBack: () => void;
@@ -17,193 +10,54 @@ interface ResetPasswordFormProps {
 }
 
 export const ResetPasswordForm = ({ onBack, onSuccess }: ResetPasswordFormProps) => {
-  const { toast } = useToast();
-  const [email, setEmail] = useState("");
-  const [isResetting, setIsResetting] = useState(false);
-  const [showOTPInput, setShowOTPInput] = useState(false);
-  const [showNewPasswordInput, setShowNewPasswordInput] = useState(false);
-  const [otp, setOTP] = useState("");
-  const [newPassword, setNewPassword] = useState("");
+  const {
+    email,
+    setEmail,
+    isResetting,
+    showOTPInput,
+    showNewPasswordInput,
+    otp,
+    setOTP,
+    newPassword,
+    setNewPassword,
+    handleSendOTP,
+    handleVerifyOTP,
+    handleResetPassword,
+    setShowOTPInput,
+    setShowNewPasswordInput
+  } = usePasswordReset({ onSuccess });
 
-  const handleSendOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsResetting(true);
+  if (showNewPasswordInput) {
+    return (
+      <NewPasswordForm
+        newPassword={newPassword}
+        onPasswordChange={setNewPassword}
+        onSubmit={handleResetPassword}
+        onBack={() => setShowNewPasswordInput(false)}
+        isResetting={isResetting}
+      />
+    );
+  }
 
-    try {
-      const { error } = await supabase.functions.invoke('handle-password-reset', {
-        body: { email, action: 'send' }
-      });
-
-      if (error) {
-        toast({
-          title: "خطأ",
-          description: getErrorMessage(error),
-          variant: "destructive",
-        });
-      } else {
-        setShowOTPInput(true);
-        toast({
-          title: "تم إرسال رمز التحقق",
-          description: "يرجى إدخال الرمز المكون من 6 أرقام المرسل إلى بريدك الإلكتروني",
-        });
-      }
-    } catch (err) {
-      console.error("Reset password error:", err);
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى",
-        variant: "destructive",
-      });
-    }
-
-    setIsResetting(false);
-  };
-
-  const handleVerifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsResetting(true);
-
-    try {
-      const { error } = await supabase.functions.invoke('handle-password-reset', {
-        body: { email, otp, action: 'verify' }
-      });
-
-      if (error) {
-        toast({
-          title: "خطأ",
-          description: getErrorMessage(error),
-          variant: "destructive",
-        });
-      } else {
-        setShowNewPasswordInput(true);
-        toast({
-          title: "تم التحقق بنجاح",
-          description: "يمكنك الآن تعيين كلمة سر جديدة",
-        });
-      }
-    } catch (err) {
-      console.error("OTP verification error:", err);
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ في التحقق من الرمز",
-        variant: "destructive",
-      });
-    }
-
-    setIsResetting(false);
-  };
-
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsResetting(true);
-
-    try {
-      const { error } = await supabase.functions.invoke('handle-password-reset', {
-        body: { email, newPassword, action: 'reset' }
-      });
-
-      if (error) {
-        toast({
-          title: "خطأ",
-          description: getErrorMessage(error),
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "تم تغيير كلمة السر بنجاح",
-          description: "يمكنك الآن تسجيل الدخول بكلمة السر الجديدة",
-        });
-        onSuccess();
-      }
-    } catch (err) {
-      console.error("Password reset error:", err);
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ في تغيير كلمة السر",
-        variant: "destructive",
-      });
-    }
-
-    setIsResetting(false);
-  };
+  if (showOTPInput) {
+    return (
+      <OTPVerificationForm
+        otp={otp}
+        onOTPChange={setOTP}
+        onSubmit={handleVerifyOTP}
+        onBack={() => setShowOTPInput(false)}
+        isResetting={isResetting}
+      />
+    );
+  }
 
   return (
-    <div className="space-y-4">
-      {!showOTPInput && !showNewPasswordInput ? (
-        <form onSubmit={handleSendOTP} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-              البريد الإلكتروني
-            </label>
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="mt-1 text-right"
-              dir="rtl"
-            />
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={onBack}>
-              إلغاء
-            </Button>
-            <Button type="submit" disabled={isResetting}>
-              {isResetting ? "جاري إرسال الرمز..." : "إرسال رمز التحقق"}
-            </Button>
-          </div>
-        </form>
-      ) : showOTPInput && !showNewPasswordInput ? (
-        <form onSubmit={handleVerifyOTP} className="space-y-4">
-          <div className="flex flex-col items-center space-y-4">
-            <InputOTP
-              maxLength={6}
-              value={otp}
-              onChange={(value) => setOTP(value)}
-              render={({ slots }) => (
-                <InputOTPGroup>
-                  {slots.map((slot, idx) => (
-                    <InputOTPSlot key={idx} {...slot} index={idx} />
-                  ))}
-                </InputOTPGroup>
-              )}
-            />
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setShowOTPInput(false)}>
-              رجوع
-            </Button>
-            <Button type="submit" disabled={isResetting || otp.length !== 6}>
-              {isResetting ? "جاري التحقق..." : "تحقق من الرمز"}
-            </Button>
-          </div>
-        </form>
-      ) : (
-        <form onSubmit={handleResetPassword} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-              كلمة المرور الجديدة
-            </label>
-            <Input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-              className="mt-1 text-right"
-              dir="rtl"
-              minLength={6}
-            />
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setShowNewPasswordInput(false)}>
-              رجوع
-            </Button>
-            <Button type="submit" disabled={isResetting}>
-              {isResetting ? "جاري تغيير كلمة السر..." : "تغيير كلمة السر"}
-            </Button>
-          </div>
-        </form>
-      )}
-    </div>
+    <EmailResetForm
+      email={email}
+      onEmailChange={setEmail}
+      onSubmit={handleSendOTP}
+      onBack={onBack}
+      isResetting={isResetting}
+    />
   );
 };
