@@ -1,21 +1,10 @@
 
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LoginForm } from "@/components/auth/LoginForm";
-import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-  AlertDialogDescription,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-background">
@@ -29,28 +18,13 @@ const Login = () => {
         <LoginForm />
 
         <div className="mt-6 flex items-center justify-between">
-          <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
-            <AlertDialogTrigger asChild>
-              <Button variant="link" className="text-sm text-primary hover:text-primary/80">
-                نسيت كلمة السر؟
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>إعادة تعيين كلمة السر</AlertDialogTitle>
-                <AlertDialogDescription>
-                  أدخل بريدك الإلكتروني وسنرسل لك رمز التحقق
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <ResetPasswordForm
-                onBack={() => setIsResetDialogOpen(false)}
-                onSuccess={() => {
-                  setIsResetDialogOpen(false);
-                  navigate("/auth/reset-password");
-                }}
-              />
-            </AlertDialogContent>
-          </AlertDialog>
+          <Button
+            variant="link"
+            className="text-sm text-primary hover:text-primary/80"
+            onClick={() => navigate("/auth/reset-password")}
+          >
+            نسيت كلمة السر؟
+          </Button>
 
           <button
             onClick={() => navigate("/auth/signup")}
@@ -65,3 +39,4 @@ const Login = () => {
 };
 
 export default Login;
+
