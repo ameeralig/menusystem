@@ -83,41 +83,97 @@ serve(async (req) => {
           to: email,
           subject: 'رمز التحقق لإعادة تعيين كلمة المرور',
           html: `
-            <html dir="rtl">
+            <!DOCTYPE html>
+            <html dir="rtl" lang="ar">
               <head>
                 <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <style>
                   body {
-                    font-family: Arial, sans-serif;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
                     line-height: 1.6;
                     color: #333;
-                    text-align: right;
+                    margin: 0;
+                    padding: 0;
+                    background-color: #f9fafb;
                   }
                   .container {
                     max-width: 600px;
                     margin: 0 auto;
-                    padding: 20px;
+                    padding: 40px 20px;
+                    background-color: #ffffff;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                   }
-                  .otp-code {
+                  .header {
+                    text-align: center;
+                    margin-bottom: 30px;
+                  }
+                  .title {
+                    color: #1f2937;
                     font-size: 24px;
                     font-weight: bold;
-                    color: #4F46E5;
+                    margin-bottom: 10px;
+                  }
+                  .subtitle {
+                    color: #6b7280;
+                    font-size: 16px;
+                    margin-bottom: 30px;
+                  }
+                  .otp-container {
+                    background-color: #f3f4f6;
+                    border-radius: 6px;
+                    padding: 20px;
                     margin: 20px 0;
                     text-align: center;
+                  }
+                  .otp-code {
+                    font-size: 32px;
+                    font-weight: bold;
+                    color: #4f46e5;
+                    letter-spacing: 4px;
+                    font-family: monospace;
                     direction: ltr;
+                    display: inline-block;
+                  }
+                  .footer {
+                    margin-top: 30px;
+                    text-align: center;
+                    color: #6b7280;
+                    font-size: 14px;
+                  }
+                  .warning {
+                    color: #dc2626;
+                    font-size: 14px;
+                    margin-top: 20px;
                   }
                 </style>
               </head>
               <body>
                 <div class="container">
-                  <h2>إعادة تعيين كلمة المرور</h2>
-                  <p>مرحباً،</p>
-                  <p>لقد تلقينا طلباً لإعادة تعيين كلمة المرور الخاصة بك.</p>
-                  <p>رمز التحقق الخاص بك هو:</p>
-                  <div class="otp-code">${otpCode}</div>
-                  <p>هذا الرمز صالح لمدة 10 دقائق فقط.</p>
-                  <p>إذا لم تقم بطلب إعادة تعيين كلمة المرور، يرجى تجاهل هذا البريد الإلكتروني.</p>
-                  <p>مع أطيب التحيات،<br>فريق الدعم</p>
+                  <div class="header">
+                    <h1 class="title">إعادة تعيين كلمة المرور</h1>
+                    <p class="subtitle">لقد تلقينا طلباً لإعادة تعيين كلمة المرور الخاصة بحسابك</p>
+                  </div>
+                  
+                  <div style="text-align: right;">
+                    <p>مرحباً،</p>
+                    <p>لإعادة تعيين كلمة المرور الخاصة بك، يرجى استخدام رمز التحقق التالي:</p>
+                  </div>
+
+                  <div class="otp-container">
+                    <div class="otp-code">${otpCode}</div>
+                    <p style="margin-top: 10px; color: #4b5563;">هذا الرمز صالح لمدة 10 دقائق فقط</p>
+                  </div>
+
+                  <div style="text-align: right;">
+                    <p>إذا لم تقم بطلب إعادة تعيين كلمة المرور، يمكنك تجاهل هذا البريد الإلكتروني.</p>
+                    <p class="warning">لا تشارك رمز التحقق هذا مع أي شخص.</p>
+                  </div>
+
+                  <div class="footer">
+                    <p>مع أطيب التحيات،<br>فريق الدعم</p>
+                  </div>
                 </div>
               </body>
             </html>
@@ -242,3 +298,4 @@ serve(async (req) => {
     )
   }
 })
+
