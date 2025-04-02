@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { BarChart3, Users, ShoppingBag, Activity, LayoutDashboard } from "lucide-react";
+import { BarChart3, LayoutDashboard } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import DashboardActions from "@/components/dashboard/DashboardActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,9 +12,6 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalViews: 0,
-    totalProducts: 0,
-    totalOrders: 0,
-    totalRevenue: 0,
   });
   const { toast } = useToast();
 
@@ -25,13 +21,10 @@ const Dashboard = () => {
         const { data: { user } } = await supabase.auth.getUser();
         
         if (user) {
-          // Here we would normally fetch real stats from the database
+          // Fetch actual views data
           // For now, we'll use placeholder data
           setStats({
             totalViews: 152,
-            totalProducts: 8,
-            totalOrders: 24,
-            totalRevenue: 450000,
           });
         }
       } catch (error) {
@@ -84,7 +77,7 @@ const Dashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-primary" />
+                  <BarChart3 className="h-5 w-5 text-primary" />
                   إحصائيات المتجر
                 </CardTitle>
               </CardHeader>
