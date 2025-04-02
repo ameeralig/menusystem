@@ -39,6 +39,30 @@ export type Database = {
         }
         Relationships: []
       }
+      page_views: {
+        Row: {
+          created_at: string
+          id: string
+          last_viewed_at: string
+          user_id: string
+          view_count: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_viewed_at?: string
+          user_id: string
+          view_count?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_viewed_at?: string
+          user_id?: string
+          view_count?: number
+        }
+        Relationships: []
+      }
       password_reset_otps: {
         Row: {
           attempts: number

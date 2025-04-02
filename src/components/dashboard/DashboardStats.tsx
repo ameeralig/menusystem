@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+// No changes needed to this file as it already displays the stats correctly
 import { Card, CardContent } from "@/components/ui/card";
 import { BarChart3 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";

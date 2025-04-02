@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { BarChart3, LayoutDashboard } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
@@ -21,10 +22,20 @@ const Dashboard = () => {
         const { data: { user } } = await supabase.auth.getUser();
         
         if (user) {
-          // Fetch actual views data
-          // For now, we'll use placeholder data
+          // Fetch actual views data from the page_views table
+          const { data: viewsData, error: viewsError } = await supabase
+            .from("page_views")
+            .select("view_count")
+            .eq("user_id", user.id)
+            .maybeSingle();
+          
+          if (viewsError) {
+            console.error("Error fetching view count:", viewsError);
+            throw new Error("فشل في تحميل إحصائيات المشاهدات");
+          }
+          
           setStats({
-            totalViews: 152,
+            totalViews: viewsData?.view_count || 0,
           });
         }
       } catch (error) {

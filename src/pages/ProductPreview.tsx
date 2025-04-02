@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +30,43 @@ const ProductPreview = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    const trackPageView = async () => {
+      if (!userId) return;
+      
+      try {
+        const { data: existingView, error: viewError } = await supabase
+          .from("page_views")
+          .select("*")
+          .eq("user_id", userId)
+          .maybeSingle();
+          
+        if (viewError) {
+          console.error("Error checking page views:", viewError);
+          return;
+        }
+        
+        if (existingView) {
+          await supabase
+            .from("page_views")
+            .update({ 
+              view_count: existingView.view_count + 1,
+              last_viewed_at: new Date().toISOString()
+            })
+            .eq("id", existingView.id);
+        } else {
+          await supabase
+            .from("page_views")
+            .insert({ user_id: userId });
+        }
+      } catch (error) {
+        console.error("Error tracking page view:", error);
+      }
+    };
+    
+    trackPageView();
+  }, [userId]);
+
+  useEffect(() => {
     const fetchStoreData = async () => {
       try {
         setIsLoading(true);
@@ -40,7 +76,6 @@ const ProductPreview = () => {
           throw new Error("معرف المتجر غير صالح");
         }
 
-        // Fetch store settings
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
           .select("store_name, color_theme, social_links")
@@ -57,7 +92,6 @@ const ProductPreview = () => {
           setSocialLinks(storeSettings?.social_links as SocialLinks || {});
         }
 
-        // Fetch products
         const { data: productsData, error: productsError } = await supabase
           .from("products")
           .select("*")
@@ -197,7 +231,6 @@ const ProductPreview = () => {
           </div>
         )}
 
-        {/* Social Media Icons */}
         {Object.entries(socialLinks).length > 0 && (
           <div className="fixed bottom-4 left-4 flex gap-4 bg-white/80 dark:bg-gray-800/80 p-3 rounded-full shadow-lg backdrop-blur-sm">
             {Object.entries(socialLinks).map(([platform, url]) => (
