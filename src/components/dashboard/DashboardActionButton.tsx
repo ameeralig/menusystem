@@ -9,6 +9,7 @@ interface DashboardActionButtonProps {
   variant?: "default" | "secondary" | "outline";
   disabled?: boolean;
   colorClass?: string;
+  size?: "sm" | "default" | "lg" | "icon";
 }
 
 const DashboardActionButton = ({
@@ -17,7 +18,8 @@ const DashboardActionButton = ({
   onClick,
   variant = "default",
   disabled = false,
-  colorClass = ""
+  colorClass = "",
+  size = "default"
 }: DashboardActionButtonProps) => {
   const getBaseStyle = () => {
     return "w-full flex items-center justify-start gap-3 h-16 text-lg font-medium px-4 py-2 rounded-xl transition-all duration-300 hover:translate-y-[-2px] active:translate-y-[1px] shadow-sm hover:shadow-md";
@@ -41,6 +43,7 @@ const DashboardActionButton = ({
       variant="ghost"
       onClick={onClick}
       disabled={disabled}
+      size={size}
       className={`${getBaseStyle()} ${getVariantStyle()}`}
     >
       <Icon className="h-6 w-6 shrink-0" />
