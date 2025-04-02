@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Settings, LogOut, Moon, Sun, User } from "lucide-react";
+import { Settings, LogOut, Moon, Sun, User, Bell, Search } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,6 +11,9 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 
 const DashboardHeader = () => {
   const navigate = useNavigate();
@@ -20,6 +24,8 @@ const DashboardHeader = () => {
     }
     return "light";
   });
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -29,6 +35,29 @@ const DashboardHeader = () => {
       root.classList.remove("dark");
     }
   }, [theme]);
+
+  useEffect(() => {
+    const getUserInfo = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserEmail(user.email);
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile && profile.username) {
+          setUserName(profile.username);
+        } else {
+          // Use email as fallback
+          setUserName(user.email?.split('@')[0] || 'مستخدم');
+        }
+      }
+    };
+
+    getUserInfo();
+  }, []);
 
   const toggleTheme = () => {
     setTheme(prevTheme => prevTheme === "light" ? "dark" : "light");
@@ -55,50 +84,110 @@ const DashboardHeader = () => {
     }
   };
 
+  const getAvatarInitials = (name: string | null) => {
+    if (!name) return "U";
+    return name.charAt(0).toUpperCase();
+  };
+
   return (
-    <header className="p-6 flex justify-center items-center border-b relative bg-background/80 backdrop-blur-sm shadow-lg">
-      <h1 className="text-3xl font-bold text-gradient">
-        مرحباً بك في لوحة التحكم
-      </h1>
-      <div className="absolute right-6">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+    <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border/50 shadow-sm">
+      <div className="container mx-auto px-4 py-3">
+        <div className="flex justify-between items-center">
+          <div className="flex gap-4 items-center">
             <Button 
               variant="ghost" 
               size="icon" 
-              className="hover:bg-accent transition-colors duration-200"
+              className="md:hidden" 
+              onClick={() => console.log("Menu toggle")}
             >
-              <Settings className="h-5 w-5 text-foreground" />
+              <Settings className="h-5 w-5" />
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 bg-background/95 backdrop-blur-sm">
-            <DropdownMenuItem 
-              onClick={() => navigate("/profile")} 
-              className="gap-2 hover:bg-accent cursor-pointer"
-            >
-              <User className="h-4 w-4" />
-              الملف الشخصي
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={toggleTheme} 
-              className="gap-2 hover:bg-accent cursor-pointer"
+            
+            <h2 className="font-bold text-xl bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent hidden md:block">
+              لوحة التحكم
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-1 md:gap-3">
+            <div className="hidden md:flex relative max-w-sm">
+              <Input
+                className="pr-9 rounded-full bg-muted/50 border-muted focus:border-primary"
+                placeholder="البحث..."
+              />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="rounded-full relative">
+                  <Bell className="h-5 w-5" />
+                  <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center bg-primary text-[10px]">
+                    3
+                  </Badge>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80">
+                <div className="p-4 text-center text-sm text-muted-foreground">
+                  لا توجد إشعارات جديدة
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-full"
+              onClick={toggleTheme}
             >
               {theme === "light" ? (
-                <Moon className="h-4 w-4" />
+                <Moon className="h-5 w-5" />
               ) : (
-                <Sun className="h-4 w-4" />
+                <Sun className="h-5 w-5" />
               )}
-              {theme === "light" ? "الوضع المظلم" : "الوضع المضيء"}
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={handleLogout} 
-              className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive cursor-pointer"
-            >
-              <LogOut className="h-4 w-4" />
-              تسجيل الخروج
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="rounded-full pl-3 gap-2 border-muted"
+                >
+                  <Avatar className="h-6 w-6">
+                    <AvatarImage src="" alt={userName || ""} />
+                    <AvatarFallback className="bg-primary/10 text-primary">
+                      {getAvatarInitials(userName)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium hidden md:inline-block max-w-[100px] truncate">
+                    {userName || "مستخدم"}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="flex flex-col gap-1 p-2 border-b border-border mb-1">
+                  <p className="text-sm font-medium">{userName || "مستخدم"}</p>
+                  {userEmail && (
+                    <p className="text-xs text-muted-foreground">{userEmail}</p>
+                  )}
+                </div>
+                <DropdownMenuItem 
+                  onClick={() => navigate("/profile")} 
+                  className="cursor-pointer"
+                >
+                  <User className="h-4 w-4 ml-2" />
+                  الملف الشخصي
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={handleLogout} 
+                  className="text-destructive focus:text-destructive cursor-pointer"
+                >
+                  <LogOut className="h-4 w-4 ml-2" />
+                  تسجيل الخروج
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
       </div>
     </header>
   );

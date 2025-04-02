@@ -8,6 +8,7 @@ interface DashboardActionButtonProps {
   onClick: () => void;
   variant?: "default" | "secondary" | "outline";
   disabled?: boolean;
+  colorClass?: string;
 }
 
 const DashboardActionButton = ({
@@ -15,27 +16,35 @@ const DashboardActionButton = ({
   label,
   onClick,
   variant = "default",
-  disabled = false
+  disabled = false,
+  colorClass = ""
 }: DashboardActionButtonProps) => {
+  const getBaseStyle = () => {
+    return "w-full flex items-center justify-start gap-3 h-16 text-lg font-medium px-4 py-2 rounded-xl transition-all duration-300 hover:translate-y-[-2px] active:translate-y-[1px] shadow-sm hover:shadow-md";
+  };
+
+  const getVariantStyle = () => {
+    switch (variant) {
+      case "default":
+        return colorClass || "bg-gradient-to-r from-primary/90 to-primary/70 text-primary-foreground hover:from-primary hover:to-primary/80 dark:glass-morphism";
+      case "secondary":
+        return colorClass || "bg-gradient-to-r from-secondary/90 to-secondary/70 text-secondary-foreground hover:from-secondary hover:to-secondary/80 dark:glass-morphism"; 
+      case "outline":
+        return "border-2 border-border hover:bg-accent/50 dark:border-border dark:hover:bg-accent/10";
+      default:
+        return "";
+    }
+  };
+
   return (
     <Button 
-      variant={variant} 
-      className={`
-        w-full h-20 text-lg font-medium 
-        transition-all duration-300 
-        hover:scale-[1.02] hover:shadow-lg 
-        active:scale-[0.98]
-        rounded-3xl
-        bg-gradient-to-r dark:glass-morphism
-        ${variant === 'default' ? 'from-[#9b87f5] to-[#7E69AB] hover:from-[#8b77e5] hover:to-[#6E59A5] text-white dark:from-background dark:to-background/90 dark:border-2 dark:border-[#9b87f5] dark:text-white' : 
-          variant === 'secondary' ? 'from-[#E5DEFF] to-[#D6BCFA] hover:from-[#D5CEFF] hover:to-[#C6ACFA] text-[#6E59A5] dark:from-background dark:to-background/90 dark:border-2 dark:border-[#9b87f5] dark:text-white' :
-          'border-2 border-[#9b87f5] text-[#6E59A5] dark:border-[#9b87f5] dark:text-white hover:bg-white/5'}
-      `}
+      variant="ghost"
       onClick={onClick}
       disabled={disabled}
+      className={`${getBaseStyle()} ${getVariantStyle()}`}
     >
-      <Icon className="mr-3 h-6 w-6" />
-      {label}
+      <Icon className="h-6 w-6 shrink-0" />
+      <span>{label}</span>
     </Button>
   );
 };

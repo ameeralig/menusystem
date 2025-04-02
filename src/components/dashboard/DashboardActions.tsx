@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { copyToClipboard } from "@/utils/clipboard";
 import DashboardActionButton from "./DashboardActionButton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const DashboardActions = () => {
   const navigate = useNavigate();
@@ -74,53 +75,71 @@ const DashboardActions = () => {
     }
   };
 
-  return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-[#E5DEFF] p-8">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <DashboardActionButton
-          icon={Plus}
-          label="إضافة منتج"
-          onClick={() => navigate("/add-product")}
-          variant="default"
-        />
-        
-        <DashboardActionButton
-          icon={Edit}
-          label="تعديل المنتجات"
-          onClick={handleEditProducts}
-          variant="secondary"
-        />
-        
-        <DashboardActionButton
-          icon={Eye}
-          label="معاينة المنتجات"
-          onClick={handlePreviewProducts}
-          variant="outline"
-        />
-        
-        <DashboardActionButton
-          icon={Settings}
-          label="تخصيص الصفحة"
-          onClick={() => navigate("/store-customization")}
-          variant="secondary"
-        />
-        
-        <DashboardActionButton
-          icon={Link2}
-          label={isCopying ? "تم النسخ ✅" : "نسخ رابط المنتجات"}
-          onClick={copyProductLink}
-          variant="outline"
-          disabled={isCopying}
-        />
+  const actionButtons = [
+    {
+      icon: Plus,
+      label: "إضافة منتج",
+      onClick: () => navigate("/add-product"),
+      variant: "default" as const,
+      colorClass: "bg-gradient-to-r from-indigo-600 to-indigo-500 text-white hover:from-indigo-700 hover:to-indigo-600 dark:glass-morphism",
+    },
+    {
+      icon: Edit,
+      label: "تعديل المنتجات",
+      onClick: handleEditProducts,
+      variant: "default" as const,
+      colorClass: "bg-gradient-to-r from-purple-600 to-purple-500 text-white hover:from-purple-700 hover:to-purple-600 dark:glass-morphism",
+    },
+    {
+      icon: Eye,
+      label: "معاينة المنتجات",
+      onClick: handlePreviewProducts,
+      variant: "secondary" as const,
+      colorClass: "bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600 dark:glass-morphism",
+    },
+    {
+      icon: Settings,
+      label: "تخصيص الصفحة",
+      onClick: () => navigate("/store-customization"),
+      variant: "secondary" as const,
+      colorClass: "bg-gradient-to-r from-amber-600 to-amber-500 text-white hover:from-amber-700 hover:to-amber-600 dark:glass-morphism",
+    },
+    {
+      icon: Link2,
+      label: isCopying ? "تم النسخ ✅" : "نسخ رابط المنتجات",
+      onClick: copyProductLink,
+      variant: "outline" as const,
+      disabled: isCopying,
+    },
+    {
+      icon: MessageSquare,
+      label: "الشكاوى والاقتراحات",
+      onClick: () => navigate("/feedback"),
+      variant: "outline" as const,
+    },
+  ];
 
-        <DashboardActionButton
-          icon={MessageSquare}
-          label="الشكاوى والاقتراحات"
-          onClick={() => navigate("/feedback")}
-          variant="secondary"
-        />
-      </div>
-    </div>
+  return (
+    <Card className="border border-border/60 bg-background/95 backdrop-blur-sm shadow-md">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xl font-bold">الإجراءات السريعة</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {actionButtons.map((button, index) => (
+            <DashboardActionButton
+              key={index}
+              icon={button.icon}
+              label={button.label}
+              onClick={button.onClick}
+              variant={button.variant}
+              disabled={button.disabled}
+              colorClass={button.colorClass}
+            />
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
