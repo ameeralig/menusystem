@@ -81,28 +81,24 @@ const DashboardActions = () => {
       label: "إضافة منتج",
       onClick: () => navigate("/add-product"),
       variant: "default" as const,
-      colorClass: "bg-gradient-to-r from-indigo-600 to-indigo-500 text-white hover:from-indigo-700 hover:to-indigo-600 dark:glass-morphism",
     },
     {
       icon: Edit,
       label: "تعديل المنتجات",
       onClick: handleEditProducts,
       variant: "default" as const,
-      colorClass: "bg-gradient-to-r from-purple-600 to-purple-500 text-white hover:from-purple-700 hover:to-purple-600 dark:glass-morphism",
     },
     {
       icon: Eye,
       label: "معاينة المنتجات",
       onClick: handlePreviewProducts,
       variant: "secondary" as const,
-      colorClass: "bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600 dark:glass-morphism",
     },
     {
       icon: Settings,
       label: "تخصيص الصفحة",
       onClick: () => navigate("/store-customization"),
       variant: "secondary" as const,
-      colorClass: "bg-gradient-to-r from-amber-600 to-amber-500 text-white hover:from-amber-700 hover:to-amber-600 dark:glass-morphism",
     },
     {
       icon: Link2,
@@ -134,7 +130,6 @@ const DashboardActions = () => {
               onClick={button.onClick}
               variant={button.variant}
               disabled={button.disabled}
-              colorClass={button.colorClass}
             />
           ))}
         </div>

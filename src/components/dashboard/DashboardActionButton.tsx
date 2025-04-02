@@ -26,13 +26,14 @@ const DashboardActionButton = ({
   };
 
   const getVariantStyle = () => {
+    // استخدام لون موحد لجميع الأزرار بغض النظر عن نوع الزر
     switch (variant) {
       case "default":
-        return colorClass || "bg-gradient-to-r from-primary/90 to-primary/70 text-primary-foreground hover:from-primary hover:to-primary/80 dark:glass-morphism";
+        return "bg-gradient-to-r from-purple-600 to-purple-500 text-white hover:from-purple-700 hover:to-purple-600 dark:glass-morphism";
       case "secondary":
-        return colorClass || "bg-gradient-to-r from-secondary/90 to-secondary/70 text-secondary-foreground hover:from-secondary hover:to-secondary/80 dark:glass-morphism"; 
+        return "bg-gradient-to-r from-purple-600 to-purple-500 text-white hover:from-purple-700 hover:to-purple-600 dark:glass-morphism";
       case "outline":
-        return "border-2 border-border hover:bg-accent/50 dark:border-border dark:hover:bg-accent/10";
+        return "border-2 border-purple-300 text-purple-600 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-900/20";
       default:
         return "";
     }
