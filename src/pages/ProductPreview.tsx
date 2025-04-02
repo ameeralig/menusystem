@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,29 +35,13 @@ const ProductPreview = () => {
       if (!userId) return;
       
       try {
-        const { data: existingView, error: viewError } = await supabase
-          .from("page_views")
-          .select("*")
-          .eq("user_id", userId)
-          .maybeSingle();
-          
-        if (viewError) {
-          console.error("Error checking page views:", viewError);
-          return;
-        }
+        // Use RPC call as a workaround for type issues
+        const { error } = await supabase.rpc('increment_page_view', { 
+          store_user_id: userId 
+        });
         
-        if (existingView) {
-          await supabase
-            .from("page_views")
-            .update({ 
-              view_count: existingView.view_count + 1,
-              last_viewed_at: new Date().toISOString()
-            })
-            .eq("id", existingView.id);
-        } else {
-          await supabase
-            .from("page_views")
-            .insert({ user_id: userId });
+        if (error) {
+          console.error("Error tracking page view:", error);
         }
       } catch (error) {
         console.error("Error tracking page view:", error);
