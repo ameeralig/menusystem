@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,7 +34,6 @@ const ProductPreview = () => {
       if (!userId) return;
       
       try {
-        // Use RPC call as a workaround for type issues
         const { error } = await supabase.rpc('increment_page_view', { 
           store_user_id: userId 
         });
