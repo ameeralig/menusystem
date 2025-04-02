@@ -43,12 +43,12 @@ const DashboardHeader = () => {
         setUserEmail(user.email);
         const { data: profile } = await supabase
           .from('profiles')
-          .select('username')
+          .select('full_name')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
         
-        if (profile && profile.username) {
-          setUserName(profile.username);
+        if (profile && profile.full_name) {
+          setUserName(profile.full_name);
         } else {
           // Use email as fallback
           setUserName(user.email?.split('@')[0] || 'مستخدم');
