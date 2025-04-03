@@ -1,3 +1,4 @@
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,11 +6,11 @@ import { Palette, Save } from "lucide-react";
 
 export const colorThemes = [
   { id: "default", name: "الافتراضي", value: "default" },
+  { id: "coral", name: "مرجاني", value: "coral" },
   { id: "purple", name: "بنفسجي", value: "purple" },
   { id: "blue", name: "أزرق", value: "blue" },
   { id: "green", name: "أخضر", value: "green" },
   { id: "pink", name: "وردي", value: "pink" },
-  { id: "coral", name: "مرجاني", value: "coral" },
   { id: "teal", name: "فيروزي", value: "teal" },
   { id: "amber", name: "كهرماني", value: "amber" },
   { id: "indigo", name: "نيلي", value: "indigo" },
@@ -25,10 +26,10 @@ interface ColorThemeSelectorProps {
 
 const ColorThemeSelector = ({ colorTheme, setColorTheme, isLoading, handleSubmit }: ColorThemeSelectorProps) => {
   return (
-    <Card className="border-2 border-purple-100 dark:border-purple-900">
+    <Card className="border-2 border-[#ffbcad] dark:border-[#ff9178]/40">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <Palette className="h-5 w-5 text-purple-500" />
+          <Palette className="h-5 w-5 text-[#ff9178]" />
           <span>مظهر المتجر</span>
         </CardTitle>
       </CardHeader>
@@ -63,10 +64,10 @@ const ColorThemeSelector = ({ colorTheme, setColorTheme, isLoading, handleSubmit
                 <div
                   key={theme.id}
                   className={`w-full h-8 rounded-md cursor-pointer border-2 ${
-                    colorTheme === theme.value ? 'border-purple-500' : 'border-transparent'
+                    colorTheme === theme.value ? 'border-[#ff9178]' : 'border-transparent'
                   }`}
                   style={{
-                    background: `var(--${theme.value}-500)`,
+                    background: theme.id === "coral" ? "#ff9178" : `var(--${theme.value}-500)`,
                   }}
                   onClick={() => setColorTheme(theme.value)}
                 />
@@ -76,7 +77,7 @@ const ColorThemeSelector = ({ colorTheme, setColorTheme, isLoading, handleSubmit
           
           <Button 
             type="submit" 
-            className="w-full bg-purple-600 hover:bg-purple-700"
+            className="w-full bg-[#ff9178] hover:bg-[#ff7d61] text-white"
             disabled={isLoading}
           >
             <Save className="ml-2 h-4 w-4" />

@@ -1,10 +1,11 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 30 100% 97%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -13,7 +14,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 14 100% 75%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -54,8 +55,8 @@
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
+    --primary: 14 100% 75%;
+    --primary-foreground: 0 0% 98%;
 
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
@@ -99,5 +100,13 @@
 
   .text-gradient {
     @apply bg-gradient-to-br from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent;
+  }
+  
+  .coral-button {
+    @apply bg-[#ff9178] hover:bg-[#ff7d61] text-white rounded-full px-6 py-3 font-medium transition-all;
+  }
+  
+  .coral-button-outline {
+    @apply bg-[#fff5f2] hover:bg-[#ffeee9] text-[#ff9178] rounded-full px-6 py-3 font-medium transition-all;
   }
 }

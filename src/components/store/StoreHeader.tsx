@@ -1,3 +1,4 @@
+
 import { useToast } from "@/hooks/use-toast";
 
 interface StoreHeaderProps {
@@ -8,6 +9,8 @@ interface StoreHeaderProps {
 const StoreHeader = ({ storeName, colorTheme }: StoreHeaderProps) => {
   const getThemeClasses = (theme: string | null) => {
     switch (theme) {
+      case 'coral':
+        return 'text-[#ff9178] dark:text-[#ffbcad]';
       case 'purple':
         return 'text-purple-900 dark:text-purple-100';
       case 'blue':

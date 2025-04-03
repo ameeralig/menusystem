@@ -8,7 +8,6 @@ interface DashboardActionButtonProps {
   onClick: () => void;
   variant?: "default" | "secondary" | "outline";
   disabled?: boolean;
-  colorClass?: string;
   size?: "sm" | "default" | "lg" | "icon";
 }
 
@@ -18,7 +17,6 @@ const DashboardActionButton = ({
   onClick,
   variant = "default",
   disabled = false,
-  colorClass = "",
   size = "default"
 }: DashboardActionButtonProps) => {
   const getBaseStyle = () => {
@@ -29,11 +27,11 @@ const DashboardActionButton = ({
     // استخدام لون موحد لجميع الأزرار بغض النظر عن نوع الزر
     switch (variant) {
       case "default":
-        return "bg-gradient-to-r from-purple-600 to-purple-500 text-white hover:from-purple-700 hover:to-purple-600 dark:glass-morphism";
+        return "bg-gradient-to-r from-[#ff9178] to-[#ff7d61] text-white hover:from-[#ff7d61] hover:to-[#ff6b4d] dark:glass-morphism";
       case "secondary":
-        return "bg-gradient-to-r from-purple-600 to-purple-500 text-white hover:from-purple-700 hover:to-purple-600 dark:glass-morphism";
+        return "bg-gradient-to-r from-[#ff9178] to-[#ff7d61] text-white hover:from-[#ff7d61] hover:to-[#ff6b4d] dark:glass-morphism";
       case "outline":
-        return "border-2 border-purple-300 text-purple-600 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-900/20";
+        return "border-2 border-[#ffbcad] text-[#ff9178] hover:bg-[#fff5f2] dark:border-[#ff9178]/40 dark:text-[#ff9178] dark:hover:bg-[#ff9178]/10";
       default:
         return "";
     }
