@@ -30,7 +30,7 @@ const Index = () => {
             </Button>
             <Button
               className="coral-button"
-              onClick={() => navigate("/add-product")}
+              onClick={() => navigate("/auth/signup")}
             >
               إنشاء متجر
             </Button>
@@ -76,7 +76,7 @@ const Index = () => {
               </Button>
 
               <Button
-                onClick={() => navigate("/add-product")}
+                onClick={() => navigate("/auth/signup")}
                 className="coral-button"
                 size="lg"
               >
