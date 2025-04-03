@@ -11,6 +11,7 @@ import ResetPassword from "./pages/auth/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import AddProduct from "./pages/AddProduct";
 import ProductPreview from "./pages/ProductPreview";
+import ProductsDemo from "./pages/ProductsDemo";
 import EditProduct from "./pages/EditProduct";
 import StoreCustomization from "./pages/StoreCustomization";
 import Profile from "./pages/Profile";
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/auth/reset-password" element={<ResetPassword />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/add-product" element={<AddProduct />} />
+          <Route path="/products" element={<ProductsDemo />} />
           <Route path="/products/:userId" element={<ProductPreview />} />
           <Route path="/edit-product/:productId" element={<EditProduct />} />
           <Route path="/store-customization" element={<StoreCustomization />} />
