@@ -15,7 +15,7 @@ const ProductsDemo = () => {
     <DemoContainer>
       <DemoProductsDisplay 
         products={sampleProducts} 
-        storeName="متجر نموذجي" 
+        storeName="مطعم نموذجي" 
         colorTheme="default" 
       />
       <DemoSocialIcons socialLinks={socialLinks} />
