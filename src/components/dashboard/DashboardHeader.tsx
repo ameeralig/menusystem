@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { LogOut, Moon, Sun, User, Bell, Search } from "lucide-react";
+import { LogOut, Moon, Sun, User, Bell } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +13,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 
 const DashboardHeader = () => {
   const navigate = useNavigate();
@@ -159,14 +158,6 @@ const DashboardHeader = () => {
           </div>
 
           <div className="flex items-center gap-1 md:gap-3">
-            <div className="hidden md:flex relative max-w-sm">
-              <Input
-                className="pr-9 rounded-full bg-muted/50 border-muted focus:border-primary"
-                placeholder="البحث..."
-              />
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            </div>
-
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon" className="rounded-full relative">

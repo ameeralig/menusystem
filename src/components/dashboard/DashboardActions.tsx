@@ -1,3 +1,4 @@
+
 import { Plus, Edit, Eye, Link2, Settings, MessageSquare, QrCode } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -111,44 +112,37 @@ const DashboardActions = () => {
       icon: Plus,
       label: "إضافة منتج",
       onClick: () => navigate("/add-product"),
-      variant: "default" as const,
     },
     {
       icon: Edit,
       label: "تعديل المنتجات",
       onClick: handleEditProducts,
-      variant: "default" as const,
     },
     {
       icon: Eye,
       label: "معاينة المنتجات",
       onClick: handlePreviewProducts,
-      variant: "secondary" as const,
     },
     {
       icon: Settings,
       label: "تخصيص الصفحة",
       onClick: () => navigate("/store-customization"),
-      variant: "secondary" as const,
     },
     {
       icon: Link2,
       label: isCopying ? "تم النسخ ✅" : "نسخ رابط المنتجات",
       onClick: copyProductLink,
-      variant: "outline" as const,
       disabled: isCopying,
     },
     {
       icon: QrCode,
       label: "إنشاء رمز QR",
       onClick: showQrCode,
-      variant: "outline" as const,
     },
     {
       icon: MessageSquare,
       label: "الشكاوى والاقتراحات",
       onClick: () => navigate("/feedback"),
-      variant: "outline" as const,
     },
   ];
 
@@ -165,7 +159,6 @@ const DashboardActions = () => {
               icon={button.icon}
               label={button.label}
               onClick={button.onClick}
-              variant={button.variant}
               disabled={button.disabled}
             />
           ))}
