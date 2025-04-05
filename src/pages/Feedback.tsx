@@ -1,7 +1,9 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 
 interface FeedbackItem {
   id: string;
@@ -37,6 +39,22 @@ const Feedback = () => {
         if (error) throw error;
         
         setFeedback(data || []);
+        
+        // Mark all pending feedback as reviewed
+        const pendingIds = data
+          ?.filter(item => item.status === 'pending')
+          .map(item => item.id) || [];
+          
+        if (pendingIds.length > 0) {
+          const { error: updateError } = await supabase
+            .from("feedback")
+            .update({ status: 'reviewed' })
+            .in('id', pendingIds);
+            
+          if (updateError) {
+            console.error("Error updating feedback status:", updateError);
+          }
+        }
       } catch (error) {
         console.error("Error fetching feedback:", error);
         toast({
@@ -79,6 +97,35 @@ const Feedback = () => {
         return "bg-green-100 text-green-800";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+  
+  const markAsResolved = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("feedback")
+        .update({ status: 'resolved' })
+        .eq('id', id);
+        
+      if (error) throw error;
+      
+      setFeedback(prev => 
+        prev.map(item => 
+          item.id === id ? {...item, status: 'resolved'} : item
+        )
+      );
+      
+      toast({
+        title: "تم بنجاح",
+        description: "تم تحديث حالة الشكوى/الاقتراح إلى 'تم الحل'",
+      });
+    } catch (error) {
+      console.error("Error updating feedback status:", error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء تحديث حالة الشكوى/الاقتراح",
+        variant: "destructive",
+      });
     }
   };
 
@@ -139,6 +186,19 @@ const Feedback = () => {
                     </span>
                   </div>
                   <p className="text-gray-700">{item.description}</p>
+                  
+                  {item.status !== 'resolved' && (
+                    <div className="mt-3 flex justify-end">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-green-600 border-green-600 hover:bg-green-50"
+                        onClick={() => markAsResolved(item.id)}
+                      >
+                        تحديد كمحلول
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

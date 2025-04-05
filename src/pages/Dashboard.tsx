@@ -22,20 +22,22 @@ const Dashboard = () => {
         const { data: { user } } = await supabase.auth.getUser();
         
         if (user) {
-          // Fetch actual views data from the page_views table
+          // Fix: Use sum of view_count to handle multiple rows
           const { data: viewsData, error: viewsError } = await supabase
             .from("page_views")
             .select("view_count")
-            .eq("user_id", user.id)
-            .maybeSingle();
+            .eq("user_id", user.id);
           
           if (viewsError) {
             console.error("Error fetching view count:", viewsError);
             throw new Error("فشل في تحميل إحصائيات المشاهدات");
           }
           
+          // Calculate total views by summing all view_count values
+          const totalViews = viewsData?.reduce((sum, item) => sum + (item.view_count || 0), 0) || 0;
+          
           setStats({
-            totalViews: viewsData?.view_count || 0,
+            totalViews: totalViews,
           });
         }
       } catch (error) {
