@@ -19,8 +19,6 @@ const Index = () => {
           </div>
           
           <div className="hidden md:flex items-center space-x-8">
-            <a href="#examples" className="text-gray-600 hover:text-gray-900">عرض الأمثلة</a>
-            <a href="#blog" className="text-gray-600 hover:text-gray-900">المدونة</a>
             <Button
               variant="ghost"
               className="text-gray-600 hover:text-gray-900"
@@ -103,7 +101,7 @@ const Index = () => {
       </div>
 
       {/* Features Section */}
-      <div className="container mx-auto px-6 py-16 md:py-24" id="examples">
+      <div className="container mx-auto px-6 py-16 md:py-24">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold text-gray-800">مميزات المتجر الرقمي</h2>
           <p className="text-gray-600 mt-4">كل ما تحتاجه لعرض منتجاتك بطريقة احترافية</p>
@@ -155,6 +153,55 @@ const Index = () => {
             <p className="text-gray-600">تحكم في جميع تفاصيل منتجاتك</p>
           </motion.div>
         </div>
+
+        {/* Additional Features */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="p-6 bg-white rounded-lg shadow-md text-center"
+          >
+            <div className="h-16 w-16 bg-[#fff0e8] rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-[#ff9178]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold mb-2">التخلص من القوائم الورقية</h3>
+            <p className="text-gray-600">استبدل القوائم الورقية برمز QR سهل المسح</p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.0 }}
+            className="p-6 bg-white rounded-lg shadow-md text-center"
+          >
+            <div className="h-16 w-16 bg-[#fff0e8] rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-[#ff9178]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold mb-2">سهولة التعديل</h3>
+            <p className="text-gray-600">حدّث منتجاتك وأسعارك في أي وقت بسهولة</p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.2 }}
+            className="p-6 bg-white rounded-lg shadow-md text-center"
+          >
+            <div className="h-16 w-16 bg-[#fff0e8] rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-[#ff9178]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold mb-2">تجربة مستخدم سلسة</h3>
+            <p className="text-gray-600">واجهة سهلة الاستخدام تعزز من تجربة العميل</p>
+          </motion.div>
+        </div>
       </div>
 
       {/* Footer */}
@@ -164,10 +211,10 @@ const Index = () => {
             <div className="mb-4 md:mb-0">
               <h2 className="text-xl font-bold text-gray-800">متجرك الرقمي</h2>
             </div>
-            <div className="flex space-x-6">
-              <a href="#" className="text-gray-600 hover:text-gray-900">سياسة الخصوصية</a>
-              <a href="#" className="text-gray-600 hover:text-gray-900">الشروط والأحكام</a>
-              <a href="#" className="text-gray-600 hover:text-gray-900">تواصل معنا</a>
+            <div className="flex flex-wrap justify-center gap-6">
+              <a href="/terms" className="text-gray-600 hover:text-gray-900">الشروط والأحكام</a>
+              <a href="/privacy" className="text-gray-600 hover:text-gray-900">سياسة الخصوصية</a>
+              <a href="/contact" className="text-gray-600 hover:text-gray-900">تواصل معنا</a>
             </div>
           </div>
           <div className="mt-8 text-center text-gray-500 text-sm">

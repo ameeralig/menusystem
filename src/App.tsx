@@ -16,6 +16,9 @@ import EditProduct from "./pages/EditProduct";
 import StoreCustomization from "./pages/StoreCustomization";
 import Profile from "./pages/Profile";
 import Feedback from "./pages/Feedback";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +41,9 @@ const App = () => (
           <Route path="/store-customization" element={<StoreCustomization />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/feedback" element={<Feedback />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/contact" element={<Contact />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
