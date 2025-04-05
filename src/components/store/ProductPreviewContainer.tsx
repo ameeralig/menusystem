@@ -24,7 +24,7 @@ const ProductPreviewContainer = ({ children, colorTheme }: ProductPreviewContain
 
   return (
     <div className={`min-h-screen ${getThemeClasses(colorTheme)} transition-colors duration-300`}>
-      <div className="container mx-auto py-6 px-4 max-w-6xl">
+      <div className="container mx-auto py-4 sm:py-6 px-3 sm:px-4 max-w-6xl">
         {children}
       </div>
     </div>

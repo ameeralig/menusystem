@@ -43,10 +43,10 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-[#fff0e8]">
-      <header className="container mx-auto px-6 py-6">
+      <header className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <h1 className="text-2xl font-bold text-gray-800 relative">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-800 relative">
               متجرك الرقمي
               <div className="absolute -bottom-1 left-0 w-full h-1 bg-[#ff9178]"></div>
             </h1>
@@ -55,18 +55,18 @@ const Contact = () => {
           <Button
             variant="outline"
             onClick={() => navigate("/")}
-            className="text-gray-600"
+            className="text-gray-600 text-sm sm:text-base"
           >
             العودة للرئيسية
           </Button>
         </div>
       </header>
 
-      <div className="container mx-auto px-6 py-12">
-        <h1 className="text-3xl font-bold text-center mb-8">تواصل معنا</h1>
+      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8">تواصل معنا</h1>
         
-        <div className="max-w-lg mx-auto bg-white p-8 rounded-lg shadow-md">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="max-w-lg mx-auto bg-white p-4 sm:p-8 rounded-lg shadow-md">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                 الاسم
@@ -108,7 +108,7 @@ const Contact = () => {
                 value={formData.message}
                 onChange={handleChange}
                 required
-                className="w-full min-h-[150px]"
+                className="w-full min-h-[120px] sm:min-h-[150px]"
                 placeholder="أدخل رسالتك هنا..."
               />
             </div>
@@ -120,9 +120,9 @@ const Contact = () => {
         </div>
       </div>
 
-      <footer className="bg-white py-8 mt-16">
-        <div className="container mx-auto px-6">
-          <div className="mt-8 text-center text-gray-500 text-sm">
+      <footer className="bg-white py-6 sm:py-8 mt-12 sm:mt-16">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="mt-6 sm:mt-8 text-center text-gray-500 text-sm">
             &copy; {new Date().getFullYear()} متجرك الرقمي. جميع الحقوق محفوظة.
           </div>
         </div>

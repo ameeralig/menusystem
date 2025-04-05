@@ -7,10 +7,10 @@ const Terms = () => {
   
   return (
     <div className="min-h-screen bg-[#fff0e8]">
-      <header className="container mx-auto px-6 py-6">
+      <header className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <h1 className="text-2xl font-bold text-gray-800 relative">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-800 relative">
               متجرك الرقمي
               <div className="absolute -bottom-1 left-0 w-full h-1 bg-[#ff9178]"></div>
             </h1>
@@ -19,57 +19,57 @@ const Terms = () => {
           <Button
             variant="outline"
             onClick={() => navigate("/")}
-            className="text-gray-600"
+            className="text-gray-600 text-sm sm:text-base"
           >
             العودة للرئيسية
           </Button>
         </div>
       </header>
 
-      <div className="container mx-auto px-6 py-12">
-        <h1 className="text-3xl font-bold text-center mb-8">الشروط والأحكام</h1>
+      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8">الشروط والأحكام</h1>
         
-        <div className="bg-white p-8 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">1. مقدمة</h2>
-          <p className="mb-6 text-gray-700">
+        <div className="bg-white p-4 sm:p-8 rounded-lg shadow-md">
+          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">1. مقدمة</h2>
+          <p className="mb-4 sm:mb-6 text-gray-700 text-sm sm:text-base">
             مرحبًا بك في منصة متجرك الرقمي. باستخدامك لخدماتنا، فإنك توافق على الالتزام بهذه الشروط والأحكام. يرجى قراءتها بعناية.
           </p>
 
-          <h2 className="text-xl font-semibold mb-4">2. استخدام الخدمة</h2>
-          <p className="mb-6 text-gray-700">
+          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">2. استخدام الخدمة</h2>
+          <p className="mb-4 sm:mb-6 text-gray-700 text-sm sm:text-base">
             تتيح لك منصتنا إنشاء وإدارة متجر رقمي خاص بك باستخدام تقنية رمز QR. يجب استخدام الخدمة وفقًا للقوانين المعمول بها وبطريقة لا تنتهك حقوق الآخرين.
           </p>
 
-          <h2 className="text-xl font-semibold mb-4">3. الحسابات</h2>
-          <p className="mb-6 text-gray-700">
+          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">3. الحسابات</h2>
+          <p className="mb-4 sm:mb-6 text-gray-700 text-sm sm:text-base">
             عند إنشاء حساب، يجب عليك تقديم معلومات دقيقة وكاملة. أنت مسؤول عن الحفاظ على سرية كلمة المرور الخاصة بك وعن جميع الأنشطة التي تحدث تحت حسابك.
           </p>
 
-          <h2 className="text-xl font-semibold mb-4">4. المحتوى</h2>
-          <p className="mb-6 text-gray-700">
+          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">4. المحتوى</h2>
+          <p className="mb-4 sm:mb-6 text-gray-700 text-sm sm:text-base">
             أنت تحتفظ بجميع حقوق الملكية للمحتوى الذي تقوم بتحميله إلى المنصة. ومع ذلك، فإنك تمنحنا ترخيصًا عالميًا لاستخدام هذا المحتوى فيما يتعلق بخدماتنا.
           </p>
 
-          <h2 className="text-xl font-semibold mb-4">5. الإلغاء والإنهاء</h2>
-          <p className="mb-6 text-gray-700">
+          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">5. الإلغاء والإنهاء</h2>
+          <p className="mb-4 sm:mb-6 text-gray-700 text-sm sm:text-base">
             يمكنك إلغاء اشتراكك في أي وقت. نحتفظ بالحق في إنهاء أو تعليق حسابك في حالة انتهاك هذه الشروط.
           </p>
 
-          <h2 className="text-xl font-semibold mb-4">6. التغييرات في الشروط</h2>
-          <p className="mb-6 text-gray-700">
+          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">6. التغييرات في الشروط</h2>
+          <p className="mb-4 sm:mb-6 text-gray-700 text-sm sm:text-base">
             قد نقوم بتحديث هذه الشروط من وقت لآخر. سنخطرك بأي تغييرات جوهرية عبر البريد الإلكتروني أو من خلال إشعار بارز على موقعنا.
           </p>
 
-          <h2 className="text-xl font-semibold mb-4">7. الاتصال بنا</h2>
-          <p className="text-gray-700">
+          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">7. الاتصال بنا</h2>
+          <p className="text-gray-700 text-sm sm:text-base">
             إذا كانت لديك أي أسئلة حول هذه الشروط، يرجى التواصل معنا عبر صفحة الاتصال.
           </p>
         </div>
       </div>
 
-      <footer className="bg-white py-8 mt-16">
-        <div className="container mx-auto px-6">
-          <div className="mt-8 text-center text-gray-500 text-sm">
+      <footer className="bg-white py-6 sm:py-8 mt-12 sm:mt-16">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="mt-6 sm:mt-8 text-center text-gray-500 text-sm">
             &copy; {new Date().getFullYear()} متجرك الرقمي. جميع الحقوق محفوظة.
           </div>
         </div>
