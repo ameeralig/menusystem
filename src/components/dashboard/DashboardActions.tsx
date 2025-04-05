@@ -1,4 +1,4 @@
-import { Plus, Edit, Eye, Link2, Settings, MessageSquare } from "lucide-react";
+import { Plus, Edit, Eye, Link2, Settings, MessageSquare, QrCode } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -6,11 +6,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { copyToClipboard } from "@/utils/clipboard";
 import DashboardActionButton from "./DashboardActionButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import QrCodeModal from "./QrCodeModal";
 
 const DashboardActions = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isCopying, setIsCopying] = useState(false);
+  const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [storeUrl, setStoreUrl] = useState("");
 
   const handleEditProducts = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -75,6 +78,34 @@ const DashboardActions = () => {
     }
   };
 
+  const showQrCode = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "خطأ",
+          description: "يجب تسجيل الدخول أولاً",
+          variant: "destructive",
+          duration: 3000,
+        });
+        return;
+      }
+
+      const productsPageUrl = `${window.location.origin}/products/${user.id}`;
+      setStoreUrl(productsPageUrl);
+      setQrModalOpen(true);
+    } catch (error) {
+      console.error("QR code generation error:", error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء إنشاء رمز QR",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
+  };
+
   const actionButtons = [
     {
       icon: Plus,
@@ -108,6 +139,12 @@ const DashboardActions = () => {
       disabled: isCopying,
     },
     {
+      icon: QrCode,
+      label: "إنشاء رمز QR",
+      onClick: showQrCode,
+      variant: "outline" as const,
+    },
+    {
       icon: MessageSquare,
       label: "الشكاوى والاقتراحات",
       onClick: () => navigate("/feedback"),
@@ -134,6 +171,11 @@ const DashboardActions = () => {
           ))}
         </div>
       </CardContent>
+      <QrCodeModal 
+        isOpen={qrModalOpen} 
+        onClose={() => setQrModalOpen(false)} 
+        storeUrl={storeUrl}
+      />
     </Card>
   );
 };
