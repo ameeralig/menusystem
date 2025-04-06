@@ -8,7 +8,7 @@ import EditProductForm from "@/components/products/EditProductForm";
 import ProductsTable from "@/components/products/ProductsTable";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import { GripVertical, ArrowUp, ArrowDown } from "lucide-react";
+import { GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const EditProduct = () => {
@@ -197,9 +197,12 @@ const EditProduct = () => {
 
   const saveProductOrder = async () => {
     try {
-      // Create an array of updates for each product's display_order
+      // Create an array of updates
       const updates = products.map(product => ({
         id: product.id,
+        name: product.name,
+        price: product.price,
+        user_id: product.user_id,
         display_order: product.display_order
       }));
       
@@ -226,7 +229,12 @@ const EditProduct = () => {
     }
   };
 
-  const ProductRow = ({ product, index }: { product: Product, index: number }) => {
+  interface ProductRowProps {
+    product: Product;
+    index: number;
+  }
+
+  const ProductRow = ({ product, index }: ProductRowProps) => {
     const [{ isDragging }, drag, dragPreview] = useDrag(() => ({
       type: 'product',
       item: { index },
