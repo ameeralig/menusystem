@@ -101,6 +101,7 @@ export type Database = {
           category: string | null
           created_at: string
           description: string | null
+          display_order: number | null
           id: string
           image_url: string | null
           is_new: boolean | null
@@ -113,6 +114,7 @@ export type Database = {
           category?: string | null
           created_at?: string
           description?: string | null
+          display_order?: number | null
           id?: string
           image_url?: string | null
           is_new?: boolean | null
@@ -125,6 +127,7 @@ export type Database = {
           category?: string | null
           created_at?: string
           description?: string | null
+          display_order?: number | null
           id?: string
           image_url?: string | null
           is_new?: boolean | null
@@ -158,8 +161,10 @@ export type Database = {
       }
       store_settings: {
         Row: {
+          banner_url: string | null
           color_theme: string | null
           created_at: string
+          logo_url: string | null
           slug: string | null
           social_links: Json | null
           store_name: string | null
@@ -167,8 +172,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          banner_url?: string | null
           color_theme?: string | null
           created_at?: string
+          logo_url?: string | null
           slug?: string | null
           social_links?: Json | null
           store_name?: string | null
@@ -176,8 +183,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          banner_url?: string | null
           color_theme?: string | null
           created_at?: string
+          logo_url?: string | null
           slug?: string | null
           social_links?: Json | null
           store_name?: string | null

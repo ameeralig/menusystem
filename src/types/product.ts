@@ -1,3 +1,4 @@
+
 export interface Product {
   id: string;
   name: string;
@@ -7,4 +8,5 @@ export interface Product {
   category: string | null;
   is_new: boolean;
   is_popular: boolean;
+  display_order?: number | null;
 }
