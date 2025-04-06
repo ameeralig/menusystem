@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -9,7 +10,7 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import ReactCrop, { type Crop } from 'react-image-crop';
+import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
 const StoreAppearance = () => {
@@ -58,6 +59,23 @@ const StoreAppearance = () => {
     fetchStoreSettings();
   }, []);
 
+  // تهيئة المحصول عند فتح صورة جديدة
+  function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number) {
+    return centerCrop(
+      makeAspectCrop(
+        {
+          unit: '%',
+          width: 90,
+        },
+        aspect,
+        mediaWidth,
+        mediaHeight
+      ),
+      mediaWidth,
+      mediaHeight
+    );
+  }
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'banner') => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
@@ -75,6 +93,14 @@ const StoreAppearance = () => {
           setCropType('banner');
         }
         setIsCropOpen(true);
+        
+        // ضبط المحصول بشكل افتراضي عند فتح الصورة
+        const img = new Image();
+        img.src = result;
+        img.onload = () => {
+          const aspect = type === 'logo' ? 1 : 16 / 9;
+          setCrop(centerAspectCrop(img.width, img.height, aspect));
+        };
       };
       
       reader.readAsDataURL(file);
@@ -90,21 +116,24 @@ const StoreAppearance = () => {
     const canvas = document.createElement('canvas');
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
-    canvas.width = crop.width ? (crop.width * scaleX) : 0;
-    canvas.height = crop.height ? (crop.height * scaleY) : 0;
+    const cropWidth = crop.width ? Math.round(crop.width * scaleX) : 0;
+    const cropHeight = crop.height ? Math.round(crop.height * scaleY) : 0;
+    
+    canvas.width = cropWidth;
+    canvas.height = cropHeight;
     const ctx = canvas.getContext('2d');
 
     if (ctx) {
       ctx.drawImage(
         image,
-        crop.x ? (crop.x * scaleX) : 0,
-        crop.y ? (crop.y * scaleY) : 0,
-        crop.width ? (crop.width * scaleX) : 0,
-        crop.height ? (crop.height * scaleY) : 0,
+        crop.x ? Math.round(crop.x * scaleX) : 0,
+        crop.y ? Math.round(crop.y * scaleY) : 0,
+        cropWidth,
+        cropHeight,
         0,
         0,
-        crop.width ? (crop.width * scaleX) : 0,
-        crop.height ? (crop.height * scaleY) : 0
+        cropWidth,
+        cropHeight
       );
     }
 
@@ -112,7 +141,7 @@ const StoreAppearance = () => {
       canvas.toBlob((blob) => {
         if (blob) resolve(blob);
         else resolve(new Blob([]));
-      }, 'image/jpeg');
+      }, 'image/jpeg', 0.95);
     });
   };
 
@@ -154,16 +183,25 @@ const StoreAppearance = () => {
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
       const filePath = `${path}/${fileName}`;
 
+      console.log("Uploading file:", filePath, file.type, file.size);
+
       const { error: uploadError } = await supabase.storage
         .from('store-assets')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        throw uploadError;
+      }
 
       const { data: urlData } = supabase.storage
         .from('store-assets')
         .getPublicUrl(filePath);
 
+      console.log("Uploaded successfully, URL:", urlData.publicUrl);
       return urlData.publicUrl;
     } catch (error) {
       console.error(`Error uploading ${path}:`, error);
@@ -428,6 +466,7 @@ const StoreAppearance = () => {
               <ReactCrop
                 crop={crop}
                 onChange={(newCrop) => setCrop(newCrop)}
+                aspect={cropType === 'logo' ? 1 : 16/9}
                 className="max-h-[400px] mx-auto"
               >
                 <img src={imageToCrop} onLoad={(e) => onImageLoaded(e.currentTarget)} />
