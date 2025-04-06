@@ -1,53 +1,110 @@
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { supabase } from './integrations/supabase/client';
+import { Auth } from '@supabase/auth-ui-react';
+import { ThemeSupa } from '@supabase/auth-ui-shared';
+import Dashboard from './pages/Dashboard';
+import AddProduct from './pages/AddProduct';
+import EditProduct from './pages/EditProduct';
+import ProductPreview from './pages/ProductPreview';
+import StoreCustomization from './pages/StoreCustomization';
+import Feedback from './pages/Feedback';
+import StoreAppearance from './pages/StoreAppearance';
+import './index.css';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import Login from "./pages/auth/Login";
-import Signup from "./pages/auth/Signup";
-import ResetPassword from "./pages/auth/ResetPassword";
-import Dashboard from "./pages/Dashboard";
-import AddProduct from "./pages/AddProduct";
-import ProductPreview from "./pages/ProductPreview";
-import ProductsDemo from "./pages/ProductsDemo";
-import EditProduct from "./pages/EditProduct";
-import StoreCustomization from "./pages/StoreCustomization";
-import Profile from "./pages/Profile";
-import Feedback from "./pages/Feedback";
-import Terms from "./pages/Terms";
-import Privacy from "./pages/Privacy";
-import Contact from "./pages/Contact";
+const App = () => {
+  const [session, setSession] = useState(null);
 
-const queryClient = new QueryClient();
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth/login" element={<Login />} />
-          <Route path="/auth/signup" element={<Signup />} />
-          <Route path="/auth/reset-password" element={<ResetPassword />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/add-product" element={<AddProduct />} />
-          <Route path="/products" element={<ProductsDemo />} />
-          <Route path="/products/:userId" element={<ProductPreview />} />
-          <Route path="/edit-product/:productId" element={<EditProduct />} />
-          <Route path="/store-customization" element={<StoreCustomization />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/feedback" element={<Feedback />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/contact" element={<Contact />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+  }, []);
+
+  return (
+    <Router>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            !session ? (
+              <div className="flex justify-center items-center h-screen bg-gray-100 dark:bg-gray-900">
+                <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md dark:bg-gray-800 dark:text-white">
+                  <h1 className="text-2xl font-bold text-center text-gray-800 dark:text-white mb-4">
+                    Welcome to Your Store Manager
+                  </h1>
+                  <Auth
+                    supabaseClient={supabase}
+                    appearance={{ theme: ThemeSupa }}
+                    providers={['google', 'github']}
+                    redirectTo={`${window.location.origin}/dashboard`}
+                  />
+                </div>
+              </div>
+            ) : (
+              <Navigate to="/dashboard" />
+            )
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            session ? (
+              <Dashboard />
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route
+          path="/add-product"
+          element={
+            session ? (
+              <AddProduct />
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route
+          path="/edit-product/:productId?"
+          element={
+            session ? (
+              <EditProduct />
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route path="/products/:userId" element={<ProductPreview />} />
+        <Route
+          path="/store-customization"
+          element={
+            session ? (
+              <StoreCustomization />
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route
+          path="/feedback"
+          element={
+            session ? (
+              <Feedback />
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route path="/store-appearance" element={<StoreAppearance />} />
+      </Routes>
+    </Router>
+  );
+};
 
 export default App;

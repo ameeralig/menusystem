@@ -12,9 +12,17 @@ interface StoreProductsDisplayProps {
   products: Product[];
   storeName: string | null;
   colorTheme: string | null;
+  logoUrl?: string | null;
+  bannerUrl?: string | null;
 }
 
-const StoreProductsDisplay = ({ products, storeName, colorTheme }: StoreProductsDisplayProps) => {
+const StoreProductsDisplay = ({ 
+  products, 
+  storeName, 
+  colorTheme,
+  logoUrl,
+  bannerUrl
+}: StoreProductsDisplayProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
@@ -35,8 +43,23 @@ const StoreProductsDisplay = ({ products, storeName, colorTheme }: StoreProducts
   };
 
   return (
-    <>
-      <StoreHeader storeName={storeName} colorTheme={colorTheme} />
+    <div className="space-y-4">
+      {bannerUrl && (
+        <div className="w-full h-32 sm:h-40 md:h-48 overflow-hidden rounded-lg mb-4">
+          <img 
+            src={bannerUrl} 
+            alt="Store Banner" 
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+      
+      <StoreHeader 
+        storeName={storeName} 
+        colorTheme={colorTheme}
+        logoUrl={logoUrl}
+      />
+      
       <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
       {!selectedCategory ? (
@@ -52,7 +75,7 @@ const StoreProductsDisplay = ({ products, storeName, colorTheme }: StoreProducts
           {filteredProducts.length === 0 && <EmptyCategoryMessage />}
         </>
       )}
-    </>
+    </div>
   );
 };
 
