@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -10,7 +9,7 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import ReactCrop, { Crop } from 'react-image-crop';
+import ReactCrop, { type Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
 const StoreAppearance = () => {
@@ -123,7 +122,6 @@ const StoreAppearance = () => {
         const croppedImageBlob = await getCroppedImg(imageRef.current, crop);
         const croppedImageUrl = URL.createObjectURL(croppedImageBlob);
         
-        // Create a file from the blob
         const fileName = `cropped-${Date.now()}.jpeg`;
         const croppedFile = new File([croppedImageBlob], fileName, { type: 'image/jpeg' });
 
@@ -183,19 +181,16 @@ const StoreAppearance = () => {
       let logoUrl = existingLogoUrl;
       let bannerUrl = existingBannerUrl;
 
-      // Upload logo if a new one was selected
       if (logoFile) {
         const uploadedLogoUrl = await uploadToStorage(logoFile, 'logos');
         if (uploadedLogoUrl) logoUrl = uploadedLogoUrl;
       }
 
-      // Upload banner if a new one was selected
       if (bannerFile) {
         const uploadedBannerUrl = await uploadToStorage(bannerFile, 'banners');
         if (uploadedBannerUrl) bannerUrl = uploadedBannerUrl;
       }
 
-      // Update store_settings with the new URLs
       const { data: existingSettings } = await supabase
         .from("store_settings")
         .select("user_id")
@@ -231,11 +226,9 @@ const StoreAppearance = () => {
         duration: 3000,
       });
 
-      // Update the local state to show the newly uploaded images
       setExistingLogoUrl(logoUrl);
       setExistingBannerUrl(bannerUrl);
       
-      // Clear the file inputs
       setLogoFile(null);
       setBannerFile(null);
       setLogoPreview(null);
@@ -433,12 +426,12 @@ const StoreAppearance = () => {
           <div className="py-6">
             {imageToCrop && (
               <ReactCrop
-                src={imageToCrop}
                 crop={crop}
                 onChange={(newCrop) => setCrop(newCrop)}
-                onImageLoaded={onImageLoaded}
                 className="max-h-[400px] mx-auto"
-              />
+              >
+                <img src={imageToCrop} onLoad={(e) => onImageLoaded(e.currentTarget)} />
+              </ReactCrop>
             )}
           </div>
           <div className="flex justify-end gap-2 mt-4">
