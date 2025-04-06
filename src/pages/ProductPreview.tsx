@@ -68,12 +68,12 @@ const ProductPreview = () => {
           console.error("Error fetching store settings:", storeError);
           setStoreName(null);
           setColorTheme("default");
-        } else if (storeSettings) {
-          setStoreName(storeSettings.store_name || null);
-          setColorTheme(storeSettings.color_theme || "default");
-          setSocialLinks(storeSettings.social_links as SocialLinks || {});
-          setLogoUrl(storeSettings.logo_url || null);
-          setBannerUrl(storeSettings.banner_url || null);
+        } else {
+          setStoreName(storeSettings?.store_name || null);
+          setColorTheme(storeSettings?.color_theme || "default");
+          setSocialLinks(storeSettings?.social_links as SocialLinks || {});
+          setLogoUrl(storeSettings?.logo_url || null);
+          setBannerUrl(storeSettings?.banner_url || null);
         }
 
         const { data: productsData, error: productsError } = await supabase

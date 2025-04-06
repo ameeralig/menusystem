@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Image, Upload, X, ArrowLeft, Save, RefreshCw } from "lucide-react";
+import { Image, Upload, Crop, X, ArrowLeft, Save, RefreshCw } from "lucide-react";
 import ReactCrop, { Crop as CropType, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
@@ -63,7 +63,7 @@ const StoreAppearance = () => {
           .from('store_settings')
           .select('logo_url, banner_url')
           .eq('user_id', user.id)
-          .maybeSingle();
+          .single();
           
         if (error && error.code !== 'PGRST116') {
           console.error("Error fetching store appearance:", error);
