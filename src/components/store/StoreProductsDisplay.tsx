@@ -12,9 +12,10 @@ interface StoreProductsDisplayProps {
   products: Product[];
   storeName: string | null;
   colorTheme: string | null;
+  logoUrl?: string | null;
 }
 
-const StoreProductsDisplay = ({ products, storeName, colorTheme }: StoreProductsDisplayProps) => {
+const StoreProductsDisplay = ({ products, storeName, colorTheme, logoUrl }: StoreProductsDisplayProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
@@ -36,7 +37,7 @@ const StoreProductsDisplay = ({ products, storeName, colorTheme }: StoreProducts
 
   return (
     <>
-      <StoreHeader storeName={storeName} colorTheme={colorTheme} />
+      <StoreHeader storeName={storeName} colorTheme={colorTheme} logoUrl={logoUrl} />
       <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
       {!selectedCategory ? (

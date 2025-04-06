@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,6 +18,7 @@ import Feedback from "./pages/Feedback";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Contact from "./pages/Contact";
+import StoreAppearance from "./pages/StoreAppearance";
 
 const queryClient = new QueryClient();
 
@@ -38,12 +38,11 @@ const App = () => (
           <Route path="/products" element={<ProductsDemo />} />
           <Route path="/products/:userId" element={<ProductPreview />} />
           <Route path="/edit-product/:productId" element={<EditProduct />} />
-          <Route path="/store-customization" element={<StoreCustomization />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/dashboard/finances" element={<div>Finances</div>} />
           <Route path="/feedback" element={<Feedback />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/contact" element={<Contact />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/store-customization" element={<StoreCustomization />} />
+          <Route path="/store-appearance" element={<StoreAppearance />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
