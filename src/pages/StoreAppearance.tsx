@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Image, Upload, Trash2 } from "lucide-react";
+import { ArrowLeft, Image as ImageIcon, Upload, Trash2 } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -95,11 +95,11 @@ const StoreAppearance = () => {
         setIsCropOpen(true);
         
         // ضبط المحصول بشكل افتراضي عند فتح الصورة
-        const img = new Image();
-        img.src = result;
-        img.onload = () => {
+        const imgElement = new globalThis.Image();
+        imgElement.src = result;
+        imgElement.onload = () => {
           const aspect = type === 'logo' ? 1 : 16 / 9;
-          setCrop(centerAspectCrop(img.width, img.height, aspect));
+          setCrop(centerAspectCrop(imgElement.width, imgElement.height, aspect));
         };
       };
       
@@ -371,7 +371,7 @@ const StoreAppearance = () => {
                   </div>
                 ) : (
                   <div className="text-center">
-                    <Image className="mx-auto h-12 w-12 text-gray-400" />
+                    <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
                     <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">لا يوجد شعار</h3>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">قم بتحميل شعار الخاص بمتجرك</p>
                   </div>
@@ -419,7 +419,7 @@ const StoreAppearance = () => {
                   </div>
                 ) : (
                   <div className="text-center">
-                    <Image className="mx-auto h-12 w-12 text-gray-400" />
+                    <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
                     <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">لا توجد صورة غلاف</h3>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">قم بتحميل صورة غلاف لمتجرك</p>
                   </div>
