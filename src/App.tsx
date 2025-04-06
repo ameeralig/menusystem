@@ -1,6 +1,6 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
@@ -19,34 +19,37 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Contact from "./pages/Contact";
 import StoreAppearance from "./pages/StoreAppearance";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth/login" element={<Login />} />
-          <Route path="/auth/signup" element={<Signup />} />
-          <Route path="/auth/reset-password" element={<ResetPassword />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/add-product" element={<AddProduct />} />
-          <Route path="/products" element={<ProductsDemo />} />
-          <Route path="/products/:userId" element={<ProductPreview />} />
-          <Route path="/edit-product/:productId" element={<EditProduct />} />
-          <Route path="/dashboard/finances" element={<div>Finances</div>} />
-          <Route path="/feedback" element={<Feedback />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/store-customization" element={<StoreCustomization />} />
-          <Route path="/store-appearance" element={<StoreAppearance />} />
-        </Routes>
+        <TooltipProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth/login" element={<Login />} />
+            <Route path="/auth/signup" element={<Signup />} />
+            <Route path="/auth/reset-password" element={<ResetPassword />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/add-product" element={<AddProduct />} />
+            <Route path="/products" element={<ProductsDemo />} />
+            <Route path="/products/:userId" element={<ProductPreview />} />
+            <Route path="/edit-product/:productId" element={<EditProduct />} />
+            <Route path="/dashboard/finances" element={<div>Finances</div>} />
+            <Route path="/feedback" element={<Feedback />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/store-customization" element={<StoreCustomization />} />
+            <Route path="/store-appearance" element={<StoreAppearance />} />
+          </Routes>
+          <Toaster />
+          <Sonner />
+        </TooltipProvider>
       </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </QueryClientProvider>
+  );
+};
 
 export default App;

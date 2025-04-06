@@ -9,4 +9,5 @@ export interface Product {
   is_new: boolean;
   is_popular: boolean;
   display_order?: number;
+  user_id: string;
 }
