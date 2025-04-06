@@ -18,13 +18,17 @@ const DashboardActionButton = ({
   disabled = false,
   size = "default"
 }: DashboardActionButtonProps) => {
+  const getBaseStyle = () => {
+    return "w-full flex items-center justify-start gap-3 h-16 text-lg font-medium px-4 py-2 rounded-xl transition-all duration-300 hover:translate-y-[-2px] active:translate-y-[1px] shadow-sm hover:shadow-md";
+  };
+
   return (
     <Button 
-      variant="default"
+      variant="ghost"
       onClick={onClick}
       disabled={disabled}
       size={size}
-      className="w-full flex items-center justify-start gap-3 h-16 text-lg font-medium px-4 py-2 rounded-xl transition-all duration-300 hover:translate-y-[-2px] active:translate-y-[1px] shadow-sm hover:shadow-md bg-primary/10 border-2 border-primary/20 text-primary hover:bg-primary/15"
+      className={`${getBaseStyle()} border-2 border-[#ffbcad] text-[#ff9178] hover:bg-[#fff5f2] dark:border-[#ff9178]/40 dark:text-[#ff9178] dark:hover:bg-[#ff9178]/10`}
     >
       <Icon className="h-6 w-6 shrink-0" />
       <span>{label}</span>

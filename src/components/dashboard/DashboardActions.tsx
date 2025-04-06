@@ -1,5 +1,5 @@
 
-import { Plus, Edit, Eye, Link2, Settings, MessageSquare, QrCode, Image } from "lucide-react";
+import { Plus, Edit, Eye, Link2, Settings, MessageSquare, QrCode } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -122,11 +122,6 @@ const DashboardActions = () => {
       icon: Eye,
       label: "معاينة المنتجات",
       onClick: handlePreviewProducts,
-    },
-    {
-      icon: Image,
-      label: "الطابع الشخصي للصفحة",
-      onClick: () => navigate("/store-appearance"),
     },
     {
       icon: Settings,

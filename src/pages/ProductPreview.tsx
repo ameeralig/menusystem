@@ -21,8 +21,6 @@ const ProductPreview = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [storeName, setStoreName] = useState<string | null>(null);
   const [colorTheme, setColorTheme] = useState<string | null>("default");
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,7 +58,7 @@ const ProductPreview = () => {
 
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
-          .select("store_name, color_theme, social_links, logo_url, banner_url")
+          .select("store_name, color_theme, social_links")
           .eq("user_id", userId)
           .maybeSingle();
 
@@ -72,15 +70,12 @@ const ProductPreview = () => {
           setStoreName(storeSettings?.store_name || null);
           setColorTheme(storeSettings?.color_theme || "default");
           setSocialLinks(storeSettings?.social_links as SocialLinks || {});
-          setLogoUrl(storeSettings?.logo_url || null);
-          setBannerUrl(storeSettings?.banner_url || null);
         }
 
         const { data: productsData, error: productsError } = await supabase
           .from("products")
           .select("*")
-          .eq("user_id", userId)
-          .order('display_order', { ascending: true, nullsFirst: false });
+          .eq("user_id", userId);
 
         if (productsError) {
           console.error("Error fetching products:", productsError);
@@ -128,9 +123,7 @@ const ProductPreview = () => {
       <StoreProductsDisplay 
         products={products} 
         storeName={storeName} 
-        colorTheme={colorTheme}
-        logoUrl={logoUrl}
-        bannerUrl={bannerUrl}
+        colorTheme={colorTheme} 
       />
       <SocialIcons socialLinks={socialLinks} />
       {userId && <FeedbackDialog userId={userId} />}
