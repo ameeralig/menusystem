@@ -79,37 +79,54 @@ const StoreAppearance = () => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'banner') => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
+      
+      // تحقق من نوع الملف
+      if (!file.type.includes('image/')) {
+        toast({
+          title: "خطأ",
+          description: "الرجاء اختيار ملف صورة صالح",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       const reader = new FileReader();
       
       reader.onload = (e) => {
-        const result = e.target?.result as string;
-        if (type === 'logo') {
-          setLogoFile(file);
-          setImageToCrop(result);
-          setCropType('logo');
-        } else {
-          setBannerFile(file);
-          setImageToCrop(result);
-          setCropType('banner');
+        if (e.target && typeof e.target.result === 'string') {
+          const result = e.target.result;
+          
+          if (type === 'logo') {
+            setLogoFile(file);
+            setImageToCrop(result);
+            setCropType('logo');
+          } else {
+            setBannerFile(file);
+            setImageToCrop(result);
+            setCropType('banner');
+          }
+          setIsCropOpen(true);
+          
+          // تأكد من تحميل الصورة قبل ضبط المحصول
+          const imgElement = new globalThis.Image();
+          imgElement.src = result;
+          imgElement.onload = () => {
+            const aspect = type === 'logo' ? 1 : 16 / 9;
+            setCrop(centerAspectCrop(imgElement.width, imgElement.height, aspect));
+          };
         }
-        setIsCropOpen(true);
-        
-        // ضبط المحصول بشكل افتراضي عند فتح الصورة
-        const imgElement = new globalThis.Image();
-        imgElement.src = result;
-        imgElement.onload = () => {
-          const aspect = type === 'logo' ? 1 : 16 / 9;
-          setCrop(centerAspectCrop(imgElement.width, imgElement.height, aspect));
-        };
+      };
+      
+      reader.onerror = () => {
+        toast({
+          title: "خطأ",
+          description: "حدث خطأ أثناء قراءة الملف",
+          variant: "destructive",
+        });
       };
       
       reader.readAsDataURL(file);
     }
-  };
-
-  const onImageLoaded = (img: HTMLImageElement) => {
-    imageRef.current = img;
-    return false;
   };
 
   const getCroppedImg = (image: HTMLImageElement, crop: Crop): Promise<Blob> => {
@@ -119,58 +136,72 @@ const StoreAppearance = () => {
     const cropWidth = crop.width ? Math.round(crop.width * scaleX) : 0;
     const cropHeight = crop.height ? Math.round(crop.height * scaleY) : 0;
     
+    if (cropWidth === 0 || cropHeight === 0) {
+      return Promise.reject(new Error('Invalid crop dimensions'));
+    }
+    
     canvas.width = cropWidth;
     canvas.height = cropHeight;
     const ctx = canvas.getContext('2d');
 
-    if (ctx) {
-      ctx.drawImage(
-        image,
-        crop.x ? Math.round(crop.x * scaleX) : 0,
-        crop.y ? Math.round(crop.y * scaleY) : 0,
-        cropWidth,
-        cropHeight,
-        0,
-        0,
-        cropWidth,
-        cropHeight
-      );
+    if (!ctx) {
+      return Promise.reject(new Error('Could not get canvas context'));
     }
 
-    return new Promise((resolve) => {
+    ctx.drawImage(
+      image,
+      crop.x ? Math.round(crop.x * scaleX) : 0,
+      crop.y ? Math.round(crop.y * scaleY) : 0,
+      cropWidth,
+      cropHeight,
+      0,
+      0,
+      cropWidth,
+      cropHeight
+    );
+
+    return new Promise((resolve, reject) => {
       canvas.toBlob((blob) => {
         if (blob) resolve(blob);
-        else resolve(new Blob([]));
+        else reject(new Error('Canvas to Blob conversion failed'));
       }, 'image/jpeg', 0.95);
     });
   };
 
   const completeCrop = async () => {
-    if (imageRef.current && crop.width && crop.height) {
-      try {
-        const croppedImageBlob = await getCroppedImg(imageRef.current, crop);
-        const croppedImageUrl = URL.createObjectURL(croppedImageBlob);
-        
-        const fileName = `cropped-${Date.now()}.jpeg`;
-        const croppedFile = new File([croppedImageBlob], fileName, { type: 'image/jpeg' });
+    if (!imageRef.current || !crop.width || !crop.height) {
+      toast({
+        title: "خطأ",
+        description: "يرجى تحديد منطقة القص أولاً",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      const croppedImageBlob = await getCroppedImg(imageRef.current, crop);
+      const croppedImageUrl = URL.createObjectURL(croppedImageBlob);
+      
+      const fileName = `cropped-${Date.now()}.jpeg`;
+      const croppedFile = new File([croppedImageBlob], fileName, { type: 'image/jpeg' });
 
-        if (cropType === 'logo') {
-          setLogoFile(croppedFile);
-          setLogoPreview(croppedImageUrl);
-        } else {
-          setBannerFile(croppedFile);
-          setBannerPreview(croppedImageUrl);
-        }
-
-        setIsCropOpen(false);
-      } catch (error) {
-        console.error('Error cropping image:', error);
-        toast({
-          title: "خطأ",
-          description: "حدث خطأ أثناء قص الصورة",
-          variant: "destructive",
-        });
+      if (cropType === 'logo') {
+        setLogoFile(croppedFile);
+        setLogoPreview(croppedImageUrl);
+      } else {
+        setBannerFile(croppedFile);
+        setBannerPreview(croppedImageUrl);
       }
+
+      setIsCropOpen(false);
+      setImageToCrop(null); // تنظيف الصورة بعد الانتهاء
+    } catch (error) {
+      console.error('Error cropping image:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء قص الصورة",
+        variant: "destructive",
+      });
     }
   };
 
@@ -185,7 +216,7 @@ const StoreAppearance = () => {
 
       console.log("Uploading file:", filePath, file.type, file.size);
 
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError, data } = await supabase.storage
         .from('store-assets')
         .upload(filePath, file, {
           cacheControl: '3600',
@@ -195,6 +226,10 @@ const StoreAppearance = () => {
       if (uploadError) {
         console.error("Upload error:", uploadError);
         throw uploadError;
+      }
+
+      if (!data) {
+        throw new Error("لم يتم الحصول على بيانات بعد التحميل");
       }
 
       const { data: urlData } = supabase.storage
@@ -276,7 +311,7 @@ const StoreAppearance = () => {
       console.error("Error saving store appearance:", error);
       toast({
         title: "حدث خطأ",
-        description: error.message,
+        description: error.message || "حدث خطأ أثناء حفظ التغييرات",
         variant: "destructive",
         duration: 3000,
       });
@@ -320,7 +355,7 @@ const StoreAppearance = () => {
       console.error(`Error removing ${type}:`, error);
       toast({
         title: "حدث خطأ",
-        description: error.message,
+        description: error.message || "حدث خطأ أثناء حذف الصورة",
         variant: "destructive",
         duration: 3000,
       });
@@ -469,7 +504,14 @@ const StoreAppearance = () => {
                 aspect={cropType === 'logo' ? 1 : 16/9}
                 className="max-h-[400px] mx-auto"
               >
-                <img src={imageToCrop} onLoad={(e) => onImageLoaded(e.currentTarget)} />
+                <img 
+                  src={imageToCrop} 
+                  alt="صورة للقص"
+                  onLoad={(e) => {
+                    imageRef.current = e.currentTarget;
+                    return false;
+                  }} 
+                />
               </ReactCrop>
             )}
           </div>
