@@ -4,10 +4,9 @@ import { ReactNode } from "react";
 interface ProductPreviewContainerProps {
   children: ReactNode;
   colorTheme: string | null;
-  bannerUrl?: string | null;
 }
 
-const ProductPreviewContainer = ({ children, colorTheme, bannerUrl }: ProductPreviewContainerProps) => {
+const ProductPreviewContainer = ({ children, colorTheme }: ProductPreviewContainerProps) => {
   const getThemeClasses = (theme: string | null) => {
     switch (theme) {
       case 'purple':
@@ -25,15 +24,6 @@ const ProductPreviewContainer = ({ children, colorTheme, bannerUrl }: ProductPre
 
   return (
     <div className={`min-h-screen ${getThemeClasses(colorTheme)} transition-colors duration-300`}>
-      {bannerUrl && (
-        <div className="w-full h-48 sm:h-64 relative">
-          <img 
-            src={bannerUrl} 
-            alt="صورة الغلاف" 
-            className="w-full h-full object-cover"
-          />
-        </div>
-      )}
       <div className="container mx-auto py-4 sm:py-6 px-3 sm:px-4 max-w-6xl">
         {children}
       </div>

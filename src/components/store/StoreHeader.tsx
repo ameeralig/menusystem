@@ -4,10 +4,9 @@ import { useToast } from "@/hooks/use-toast";
 interface StoreHeaderProps {
   storeName: string | null;
   colorTheme: string | null;
-  logoUrl?: string | null;
 }
 
-const StoreHeader = ({ storeName, colorTheme, logoUrl }: StoreHeaderProps) => {
+const StoreHeader = ({ storeName, colorTheme }: StoreHeaderProps) => {
   const getThemeClasses = (theme: string | null) => {
     switch (theme) {
       case 'coral':
@@ -26,20 +25,9 @@ const StoreHeader = ({ storeName, colorTheme, logoUrl }: StoreHeaderProps) => {
   };
 
   return storeName ? (
-    <div className="text-center mb-8">
-      {logoUrl && (
-        <div className="mb-4 flex justify-center">
-          <img 
-            src={logoUrl} 
-            alt={storeName} 
-            className="h-20 object-contain"
-          />
-        </div>
-      )}
-      <h1 className={`text-3xl font-bold ${getThemeClasses(colorTheme)}`}>
-        {storeName}
-      </h1>
-    </div>
+    <h1 className={`text-3xl font-bold text-center mb-8 ${getThemeClasses(colorTheme)}`}>
+      {storeName}
+    </h1>
   ) : null;
 };
 

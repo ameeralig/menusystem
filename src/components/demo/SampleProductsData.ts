@@ -11,8 +11,7 @@ export const sampleProducts: Product[] = [
     image_url: "/lovable-uploads/risotto.png",
     category: "الأطباق الرئيسية",
     is_new: true,
-    is_popular: true,
-    user_id: "demo-user-id"
+    is_popular: true
   },
   {
     id: "2",
@@ -22,8 +21,7 @@ export const sampleProducts: Product[] = [
     image_url: "/lovable-uploads/fried-chicken.png",
     category: "الأطباق الرئيسية",
     is_new: false,
-    is_popular: true,
-    user_id: "demo-user-id"
+    is_popular: true
   },
   {
     id: "3",
@@ -33,8 +31,7 @@ export const sampleProducts: Product[] = [
     image_url: "/lovable-uploads/burger.png",
     category: "الأطباق الرئيسية",
     is_new: true,
-    is_popular: false,
-    user_id: "demo-user-id"
+    is_popular: false
   },
   {
     id: "4",
@@ -44,8 +41,7 @@ export const sampleProducts: Product[] = [
     image_url: "/lovable-uploads/spicy-wings.png",
     category: "المقبلات الحارة",
     is_new: false,
-    is_popular: true,
-    user_id: "demo-user-id"
+    is_popular: true
   },
   {
     id: "8",
@@ -55,7 +51,7 @@ export const sampleProducts: Product[] = [
     image_url: "/lovable-uploads/buffalo-wings.png",
     category: "المقبلات الحارة",
     is_new: false,
-    is_popular: true,
-    user_id: "demo-user-id"
+    is_popular: true
   }
 ];
+
