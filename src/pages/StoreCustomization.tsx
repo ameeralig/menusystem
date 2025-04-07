@@ -5,18 +5,28 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Instagram, Facebook, MessageSquare } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { ArrowLeft, Instagram, Facebook, MessageSquare, MapPin, Phone, Wifi, Image } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { motion } from "framer-motion";
 import StoreNameEditor from "@/components/store/StoreNameEditor";
 import ColorThemeSelector from "@/components/store/ColorThemeSelector";
 import StoreSlugEditor from "@/components/store/StoreSlugEditor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 
 type SocialLinks = {
   instagram: string;
   facebook: string;
   telegram: string;
+};
+
+type ContactInfo = {
+  address: string;
+  phone: string;
+  wifi: string;
+  description: string;
+  cover_image: string;
 };
 
 const StoreCustomization = () => {
@@ -29,7 +39,16 @@ const StoreCustomization = () => {
     facebook: "",
     telegram: "",
   });
+  const [contactInfo, setContactInfo] = useState<ContactInfo>({
+    address: "",
+    phone: "",
+    wifi: "",
+    description: "",
+    cover_image: "",
+  });
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -41,7 +60,7 @@ const StoreCustomization = () => {
 
         const { data: storeSettings } = await supabase
           .from("store_settings")
-          .select("store_name, color_theme, slug, social_links")
+          .select("store_name, color_theme, slug, social_links, contact_info")
           .eq("user_id", user.id)
           .single();
 
@@ -54,6 +73,9 @@ const StoreCustomization = () => {
             facebook: (storeSettings.social_links as SocialLinks)?.facebook || "",
             telegram: (storeSettings.social_links as SocialLinks)?.telegram || "",
           });
+          if (storeSettings.contact_info) {
+            setContactInfo(storeSettings.contact_info as ContactInfo);
+          }
         }
       } catch (error) {
         console.error("Error fetching store settings:", error);
@@ -86,6 +108,7 @@ const StoreCustomization = () => {
             color_theme: colorTheme,
             slug: storeSlug,
             social_links: socialLinks,
+            contact_info: contactInfo,
             updated_at: new Date().toISOString()
           })
           .eq("user_id", user.id);
@@ -97,7 +120,8 @@ const StoreCustomization = () => {
             store_name: storeName,
             color_theme: colorTheme,
             slug: storeSlug,
-            social_links: socialLinks
+            social_links: socialLinks,
+            contact_info: contactInfo
           }]);
       }
 
@@ -133,6 +157,59 @@ const StoreCustomization = () => {
       ...prev,
       [platform]: e.target.value
     }));
+  };
+
+  const handleContactInfoChange = (field: keyof ContactInfo) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setContactInfo(prev => ({
+      ...prev,
+      [field]: e.target.value
+    }));
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("يجب تسجيل الدخول أولاً");
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-cover-${Date.now()}.${fileExt}`;
+      const filePath = `store_covers/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('public')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('public')
+        .getPublicUrl(filePath);
+
+      setContactInfo(prev => ({
+        ...prev,
+        cover_image: publicUrl
+      }));
+
+      toast({
+        title: "تم رفع الصورة بنجاح",
+        description: "تم رفع صورة الغلاف بنجاح",
+        duration: 3000,
+      });
+    } catch (error: any) {
+      console.error("Error uploading image:", error);
+      toast({
+        title: "حدث خطأ",
+        description: "فشل في رفع الصورة، حاول مرة أخرى",
+        variant: "destructive",
+        duration: 3000,
+      });
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   return (
@@ -179,6 +256,94 @@ const StoreCustomization = () => {
             handleSubmit={handleSubmit}
             isLoading={isLoading}
           />
+
+          <Card className="border-2 border-purple-100 dark:border-purple-900">
+            <CardHeader>
+              <CardTitle className="text-right">معلومات الاتصال</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="cover-image" className="text-right block">صورة الغلاف</Label>
+                    <div className="flex items-center gap-4">
+                      <Input
+                        id="cover-image"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="text-right"
+                        dir="rtl"
+                      />
+                      <Image className="w-5 h-5 text-gray-500" />
+                    </div>
+                    {contactInfo.cover_image && (
+                      <div className="mt-2">
+                        <img 
+                          src={contactInfo.cover_image} 
+                          alt="غلاف المتجر" 
+                          className="w-full h-40 object-cover rounded-md"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <Input
+                      placeholder="عنوان المتجر"
+                      value={contactInfo.address}
+                      onChange={handleContactInfoChange('address')}
+                      className="text-right"
+                      dir="rtl"
+                    />
+                    <MapPin className="w-5 h-5 text-red-500" />
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <Input
+                      placeholder="رقم الهاتف"
+                      value={contactInfo.phone}
+                      onChange={handleContactInfoChange('phone')}
+                      className="text-right"
+                      dir="rtl"
+                    />
+                    <Phone className="w-5 h-5 text-green-500" />
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <Input
+                      placeholder="كلمة مرور WiFi"
+                      value={contactInfo.wifi}
+                      onChange={handleContactInfoChange('wifi')}
+                      className="text-right"
+                      dir="rtl"
+                    />
+                    <Wifi className="w-5 h-5 text-blue-500" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description" className="text-right block">معلومات إضافية</Label>
+                    <Textarea
+                      id="description"
+                      placeholder="يمكنك إضافة معلومات إضافية هنا مثل ساعات العمل وغيرها"
+                      value={contactInfo.description}
+                      onChange={handleContactInfoChange('description')}
+                      className="text-right min-h-20"
+                      dir="rtl"
+                    />
+                  </div>
+                </div>
+                
+                <Button 
+                  type="submit" 
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  disabled={isLoading || uploadingImage}
+                >
+                  {isLoading ? "جاري الحفظ..." : "حفظ معلومات الاتصال"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
 
           <Card className="border-2 border-purple-100 dark:border-purple-900">
             <CardHeader>
