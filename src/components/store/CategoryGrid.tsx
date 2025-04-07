@@ -21,7 +21,7 @@ const CategoryCard = ({
     whileHover={{
       scale: 1.02
     }} 
-    className="relative overflow-hidden rounded-xl cursor-pointer shadow-md group" 
+    className="relative overflow-hidden rounded-2x1 cursor-pointer shadow-md group" 
     onClick={onClick}
   >
     <div className="h-[130px] overflow-hidden">
