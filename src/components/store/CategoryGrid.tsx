@@ -24,7 +24,7 @@ const CategoryCard = ({
     className="relative overflow-hidden rounded-xl cursor-pointer shadow-md group" 
     onClick={onClick}
   >
-    <div className="h-[120px] overflow-hidden">
+    <div className="h-[150px] overflow-hidden">
       <img 
         src={image} 
         alt={category} 
