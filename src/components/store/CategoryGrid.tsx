@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { Product } from "@/types/product";
 interface CategoryGridProps {
@@ -16,9 +17,9 @@ const CategoryCard = ({
 }) => <motion.div whileHover={{
   scale: 1.02
 }} className="relative overflow-hidden rounded-xl cursor-pointer shadow-md group" onClick={onClick}>
-    <div className="aspect-[16/9] overflow-hidden">
+    <div className="h-[50px] overflow-hidden">
       <img src={image} alt={category} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
-      <div className="absolute inset-0 bg-black/40 flex items-center justify-center my-[50px] rounded-none">
+      <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-none">
         <h3 className="text-white text-2xl font-bold tracking-wide">
           {category}
         </h3>
