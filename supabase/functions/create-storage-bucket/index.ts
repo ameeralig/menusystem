@@ -36,6 +36,17 @@ serve(async (req) => {
         throw error;
       }
 
+      // Create a policy that allows authenticated users to upload files
+      const { error: policyError } = await supabase.rpc('create_storage_policy', {
+        bucket_name: 'public',
+        policy_name: 'Allow authenticated uploads',
+        definition: `(role() = 'authenticated'::text)`
+      });
+
+      if (policyError) {
+        console.error("Error creating policy:", policyError);
+      }
+
       return new Response(
         JSON.stringify({ success: true, message: "Bucket created successfully", data }),
         {
