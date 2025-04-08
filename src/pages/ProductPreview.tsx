@@ -16,21 +16,12 @@ type SocialLinks = {
   telegram?: string;
 };
 
-type ContactInfo = {
-  address?: string;
-  phone?: string;
-  wifi?: string;
-  description?: string;
-  cover_image?: string;
-};
-
 const ProductPreview = () => {
   const { userId } = useParams<{ userId: string }>();
   const [products, setProducts] = useState<Product[]>([]);
   const [storeName, setStoreName] = useState<string | null>(null);
   const [colorTheme, setColorTheme] = useState<string | null>("default");
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
-  const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -65,29 +56,20 @@ const ProductPreview = () => {
           throw new Error("معرف المتجر غير صالح");
         }
 
-        // Check if the store_settings table has the data we need
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
-          .select("store_name, color_theme, social_links, contact_info")
+          .select("store_name, color_theme, social_links")
           .eq("user_id", userId)
           .maybeSingle();
 
         if (storeError) {
           console.error("Error fetching store settings:", storeError);
-          toast({
-            title: "حدث خطأ",
-            description: "تعذر الحصول على بيانات المتجر",
-            variant: "destructive",
-          });
-          // Set defaults even if there's an error
           setStoreName(null);
           setColorTheme("default");
-        } else if (storeSettings) {
-          // Only set the values if we actually got results
-          setStoreName(storeSettings.store_name || null);
-          setColorTheme(storeSettings.color_theme || "default");
-          setSocialLinks(storeSettings.social_links as SocialLinks || {});
-          setContactInfo(storeSettings.contact_info as ContactInfo || null);
+        } else {
+          setStoreName(storeSettings?.store_name || null);
+          setColorTheme(storeSettings?.color_theme || "default");
+          setSocialLinks(storeSettings?.social_links as SocialLinks || {});
         }
 
         const { data: productsData, error: productsError } = await supabase
@@ -142,7 +124,6 @@ const ProductPreview = () => {
         products={products} 
         storeName={storeName} 
         colorTheme={colorTheme} 
-        contactInfo={contactInfo}
       />
       <SocialIcons socialLinks={socialLinks} />
       {userId && <FeedbackDialog userId={userId} />}

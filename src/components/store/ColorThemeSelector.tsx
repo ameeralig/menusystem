@@ -1,88 +1,91 @@
 
-import { useState } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Pencil } from "lucide-react";
+import { Palette, Save } from "lucide-react";
+
+export const colorThemes = [
+  { id: "default", name: "الافتراضي", value: "default" },
+  { id: "coral", name: "مرجاني", value: "coral" },
+  { id: "purple", name: "بنفسجي", value: "purple" },
+  { id: "blue", name: "أزرق", value: "blue" },
+  { id: "green", name: "أخضر", value: "green" },
+  { id: "pink", name: "وردي", value: "pink" },
+  { id: "teal", name: "فيروزي", value: "teal" },
+  { id: "amber", name: "كهرماني", value: "amber" },
+  { id: "indigo", name: "نيلي", value: "indigo" },
+  { id: "rose", name: "وردي فاتح", value: "rose" }
+];
 
 interface ColorThemeSelectorProps {
   colorTheme: string;
-  setColorTheme: (theme: string) => void;
-  isLoading?: boolean;
-  handleSubmit?: (e: React.FormEvent) => Promise<void>;
+  setColorTheme: (value: string) => void;
+  isLoading: boolean;
+  handleSubmit: (e: React.FormEvent) => Promise<void>;
 }
 
-const themeOptions = [
-  { id: "default", name: "الافتراضي", bgClass: "bg-gray-100" },
-  { id: "green", name: "أخضر", bgClass: "bg-green-100" },
-  { id: "blue", name: "أزرق", bgClass: "bg-blue-100" },
-  { id: "purple", name: "بنفسجي", bgClass: "bg-purple-100" },
-  { id: "red", name: "أحمر", bgClass: "bg-red-100" },
-  { id: "yellow", name: "أصفر", bgClass: "bg-yellow-100" },
-];
-
-const ColorThemeSelector = ({ 
-  colorTheme,
-  setColorTheme,
-  isLoading,
-  handleSubmit 
-}: ColorThemeSelectorProps) => {
-  
-  const [isEditing, setIsEditing] = useState(false);
-
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
-
-  const handleThemeSelect = (themeId: string) => {
-    setColorTheme(themeId);
-  };
-
+const ColorThemeSelector = ({ colorTheme, setColorTheme, isLoading, handleSubmit }: ColorThemeSelectorProps) => {
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <span className="text-gray-700 dark:text-gray-300">اختر سمة المتجر</span>
-        {!isEditing && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={handleEdit}
-            className="h-8 w-8 p-0"
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
-
-      <div className="grid grid-cols-3 gap-2">
-        {themeOptions.map(theme => (
-          <div
-            key={theme.id}
-            onClick={() => isEditing && handleThemeSelect(theme.id)}
-            className={`
-              rounded-md p-2 text-center cursor-pointer border-2 transition-all
-              ${isEditing ? "hover:border-primary" : ""}
-              ${theme.bgClass} 
-              ${colorTheme === theme.id ? "border-primary shadow-sm" : "border-transparent"}
-              ${!isEditing && "opacity-80 cursor-not-allowed"}
-            `}
-          >
-            <span className="text-sm font-medium">{theme.name}</span>
+    <Card className="border-2 border-[#ffbcad] dark:border-[#ff9178]/40">
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <Palette className="h-5 w-5 text-[#ff9178]" />
+          <span>مظهر المتجر</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <label className="block text-right text-sm text-gray-600 dark:text-gray-400">
+              اختر لون المتجر
+            </label>
+            <Select
+              value={colorTheme}
+              onValueChange={setColorTheme}
+              disabled={isLoading}
+            >
+              <SelectTrigger className="w-full text-right">
+                <SelectValue placeholder="اختر لون المتجر" />
+              </SelectTrigger>
+              <SelectContent>
+                {colorThemes.map((theme) => (
+                  <SelectItem
+                    key={theme.id}
+                    value={theme.value}
+                    className="text-right"
+                  >
+                    {theme.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="grid grid-cols-5 gap-2 mt-4">
+              {colorThemes.map((theme) => (
+                <div
+                  key={theme.id}
+                  className={`w-full h-8 rounded-md cursor-pointer border-2 ${
+                    colorTheme === theme.value ? 'border-[#ff9178]' : 'border-transparent'
+                  }`}
+                  style={{
+                    background: theme.id === "coral" ? "#ff9178" : `var(--${theme.value}-500)`,
+                  }}
+                  onClick={() => setColorTheme(theme.value)}
+                />
+              ))}
+            </div>
           </div>
-        ))}
-      </div>
-
-      {isEditing && handleSubmit && (
-        <Button 
-          type="submit" 
-          className="w-full bg-purple-600 hover:bg-purple-700 mt-2"
-          disabled={isLoading}
-          onClick={(e) => {
-            handleSubmit(e).then(() => setIsEditing(false));
-          }}
-        >
-          {isLoading ? "جاري الحفظ..." : "حفظ التغييرات"}
-        </Button>
-      )}
-    </div>
+          
+          <Button 
+            type="submit" 
+            className="w-full bg-[#ff9178] hover:bg-[#ff7d61] text-white"
+            disabled={isLoading}
+          >
+            <Save className="ml-2 h-4 w-4" />
+            {isLoading ? "جاري الحفظ..." : "حفظ التغييرات"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 

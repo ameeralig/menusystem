@@ -1,115 +1,67 @@
 
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Instagram, Facebook, MessageSquare } from "lucide-react";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import { motion } from "framer-motion";
 import StoreNameEditor from "@/components/store/StoreNameEditor";
+import ColorThemeSelector from "@/components/store/ColorThemeSelector";
 import StoreSlugEditor from "@/components/store/StoreSlugEditor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Palette, Instagram, Phone } from "lucide-react";
-import ColorThemeSelector from "@/components/store/ColorThemeSelector";
-import StoreSocialLinksEditor from "@/components/store/StoreSocialLinksEditor";
-import StoreContactInfoEditor from "@/components/store/StoreContactInfoEditor";
-import StoreSettingsForm from "@/components/store/StoreSettingsForm";
-import { Json } from "@/integrations/supabase/types";
 
-// Define types for the JSON data to ensure proper type safety
 type SocialLinks = {
-  instagram?: string;
-  facebook?: string;
-  telegram?: string;
-};
-
-type ContactInfo = {
-  address?: string;
-  phone?: string;
-  wifi?: string;
-  description?: string;
-  cover_image?: string;
+  instagram: string;
+  facebook: string;
+  telegram: string;
 };
 
 const StoreCustomization = () => {
-  const { toast } = useToast();
   const [storeName, setStoreName] = useState("");
   const [storeSlug, setStoreSlug] = useState("");
-  const [colorTheme, setColorTheme] = useState("default");
-  const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  
-  // Social Links State
-  const [instagram, setInstagram] = useState("");
-  const [facebook, setFacebook] = useState("");
-  const [telegram, setTelegram] = useState("");
-  
-  // Contact Info State
-  const [address, setAddress] = useState("");
-  const [phone, setPhone] = useState("");
-  const [wifi, setWifi] = useState("");
-  const [description, setDescription] = useState("");
-  const [coverImage, setCoverImage] = useState("");
+  const [colorTheme, setColorTheme] = useState("default");
+  const [socialLinks, setSocialLinks] = useState<SocialLinks>({
+    instagram: "",
+    facebook: "",
+    telegram: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchStoreSettings = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          toast({
-            title: "يجب تسجيل الدخول أولاً",
-            variant: "destructive",
-          });
-          return;
-        }
+        if (!user) return;
 
-        const { data, error } = await supabase
+        const { data: storeSettings } = await supabase
           .from("store_settings")
-          .select("store_name, color_theme, slug, social_links, contact_info")
+          .select("store_name, color_theme, slug, social_links")
           .eq("user_id", user.id)
-          .maybeSingle();
+          .single();
 
-        if (error) {
-          console.error("Error fetching store settings:", error);
-          toast({
-            title: "خطأ في جلب البيانات",
-            description: error.message,
-            variant: "destructive",
+        if (storeSettings) {
+          setStoreName(storeSettings.store_name || "");
+          setColorTheme(storeSettings.color_theme || "default");
+          setStoreSlug(storeSettings.slug || "");
+          setSocialLinks({
+            instagram: (storeSettings.social_links as SocialLinks)?.instagram || "",
+            facebook: (storeSettings.social_links as SocialLinks)?.facebook || "",
+            telegram: (storeSettings.social_links as SocialLinks)?.telegram || "",
           });
-          return;
         }
-
-        if (data) {
-          setStoreName(data.store_name || "");
-          setColorTheme(data.color_theme || "default");
-          setStoreSlug(data.slug || "");
-          
-          // Set social links with proper type checking
-          if (data.social_links) {
-            const socialLinks = data.social_links as SocialLinks;
-            setInstagram(socialLinks.instagram || "");
-            setFacebook(socialLinks.facebook || "");
-            setTelegram(socialLinks.telegram || "");
-          }
-          
-          // Set contact info with proper type checking
-          if (data.contact_info) {
-            const contactInfo = data.contact_info as ContactInfo;
-            setAddress(contactInfo.address || "");
-            setPhone(contactInfo.phone || "");
-            setWifi(contactInfo.wifi || "");
-            setDescription(contactInfo.description || "");
-            setCoverImage(contactInfo.cover_image || "");
-          }
-        }
-      } catch (error: any) {
-        console.error("Error:", error);
-        toast({
-          title: "حدث خطأ",
-          description: error.message,
-          variant: "destructive",
-        });
+      } catch (error) {
+        console.error("Error fetching store settings:", error);
       }
     };
 
     fetchStoreSettings();
-  }, [toast]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,32 +71,11 @@ const StoreCustomization = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
 
-      // Prepare social links object
-      const socialLinks = {
-        instagram,
-        facebook,
-        telegram
-      };
-
-      // Prepare contact info object
-      const contactInfo = {
-        address,
-        phone,
-        wifi,
-        description,
-        cover_image: coverImage
-      };
-
-      const { data: existingSettings, error: checkError } = await supabase
+      const { data: existingSettings } = await supabase
         .from("store_settings")
         .select("user_id")
         .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (checkError) {
-        console.error("Error checking existing settings:", checkError);
-        throw new Error("حدث خطأ أثناء التحقق من البيانات الحالية");
-      }
+        .single();
 
       let result;
       if (existingSettings) {
@@ -155,7 +86,6 @@ const StoreCustomization = () => {
             color_theme: colorTheme,
             slug: storeSlug,
             social_links: socialLinks,
-            contact_info: contactInfo,
             updated_at: new Date().toISOString()
           })
           .eq("user_id", user.id);
@@ -167,8 +97,7 @@ const StoreCustomization = () => {
             store_name: storeName,
             color_theme: colorTheme,
             slug: storeSlug,
-            social_links: socialLinks,
-            contact_info: contactInfo
+            social_links: socialLinks
           }]);
       }
 
@@ -199,120 +128,114 @@ const StoreCustomization = () => {
     }
   };
 
+  const handleSocialLinkChange = (platform: keyof typeof socialLinks) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSocialLinks(prev => ({
+      ...prev,
+      [platform]: e.target.value
+    }));
+  };
+
   return (
-    <div className="container mx-auto py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-2">تخصيص المتجر</h1>
-        <p className="text-muted-foreground">قم بتخصيص مظهر متجرك وإضافة معلومات التواصل</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <DashboardHeader />
+      <main className="container mx-auto p-6">
+        <Button
+          variant="ghost"
+          onClick={() => navigate("/dashboard")}
+          className="mb-6"
+        >
+          <ArrowLeft className="ml-2" />
+          العودة للوحة التحكم
+        </Button>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-        {/* Store Name */}
-        <StoreNameEditor 
-          storeName={storeName}
-          setStoreName={setStoreName}
-          isEditing={isEditing}
-          setIsEditing={setIsEditing}
-          handleSubmit={handleSubmit}
-          isLoading={isLoading}
-        />
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-2xl mx-auto space-y-6"
+        >
+          <h1 className="text-3xl font-bold mb-8 text-right">تخصيص المتجر</h1>
+          
+          <StoreNameEditor 
+            storeName={storeName}
+            setStoreName={setStoreName}
+            isEditing={isEditing}
+            setIsEditing={setIsEditing}
+            handleSubmit={handleSubmit}
+            isLoading={isLoading}
+          />
 
-        {/* Store Slug */}
-        <StoreSlugEditor 
-          storeSlug={storeSlug}
-          setStoreSlug={setStoreSlug}
-          isEditing={isEditing}
-          setIsEditing={setIsEditing}
-          handleSubmit={handleSubmit}
-          isLoading={isLoading}
-        />
+          <StoreSlugEditor
+            storeSlug={storeSlug}
+            setStoreSlug={setStoreSlug}
+            isEditing={isEditing}
+            setIsEditing={setIsEditing}
+            handleSubmit={handleSubmit}
+            isLoading={isLoading}
+          />
 
-        {/* Theme Selection */}
-        <Card className="border-2 border-purple-100 dark:border-purple-900">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <Palette className="h-5 w-5 text-purple-500" />
-              <span>سمة المتجر</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <StoreSettingsForm 
-              isEditing={isEditing} 
-              setIsEditing={setIsEditing}
-              handleSubmit={handleSubmit}
-              isLoading={isLoading}
-            >
-              <ColorThemeSelector 
-                colorTheme={colorTheme} 
-                setColorTheme={setColorTheme} 
-                isLoading={isLoading}
-                handleSubmit={handleSubmit}
-              />
-            </StoreSettingsForm>
-          </CardContent>
-        </Card>
+          <ColorThemeSelector 
+            colorTheme={colorTheme}
+            setColorTheme={setColorTheme}
+            handleSubmit={handleSubmit}
+            isLoading={isLoading}
+          />
 
-        {/* Social Links */}
-        <Card className="border-2 border-purple-100 dark:border-purple-900">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <Instagram className="h-5 w-5 text-purple-500" />
-              <span>روابط التواصل الاجتماعي</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <StoreSettingsForm 
-              isEditing={isEditing} 
-              setIsEditing={setIsEditing}
-              handleSubmit={handleSubmit}
-              isLoading={isLoading}
-            >
-              <StoreSocialLinksEditor 
-                instagram={instagram}
-                setInstagram={setInstagram}
-                facebook={facebook}
-                setFacebook={setFacebook}
-                telegram={telegram}
-                setTelegram={setTelegram}
-                isEditing={isEditing}
-              />
-            </StoreSettingsForm>
-          </CardContent>
-        </Card>
+          <Card className="border-2 border-purple-100 dark:border-purple-900">
+            <CardHeader>
+              <CardTitle className="text-right">روابط التواصل الاجتماعي</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <Input
+                      type="url"
+                      placeholder="رابط الإنستقرام"
+                      value={socialLinks.instagram}
+                      onChange={handleSocialLinkChange('instagram')}
+                      className="text-right"
+                      dir="rtl"
+                    />
+                    <Instagram className="w-5 h-5 text-pink-500" />
+                  </div>
 
-        {/* Contact Info */}
-        <Card className="border-2 border-purple-100 dark:border-purple-900 md:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <Phone className="h-5 w-5 text-purple-500" />
-              <span>معلومات التواصل والموقع</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <StoreSettingsForm 
-              isEditing={isEditing} 
-              setIsEditing={setIsEditing}
-              handleSubmit={handleSubmit}
-              isLoading={isLoading}
-            >
-              <StoreContactInfoEditor 
-                address={address}
-                setAddress={setAddress}
-                phone={phone}
-                setPhone={setPhone}
-                wifi={wifi}
-                setWifi={setWifi}
-                description={description}
-                setDescription={setDescription}
-                coverImage={coverImage}
-                setCoverImage={setCoverImage}
-                isEditing={isEditing}
-                isLoading={isLoading}
-              />
-            </StoreSettingsForm>
-          </CardContent>
-        </Card>
-      </div>
+                  <div className="flex items-center gap-4">
+                    <Input
+                      type="url"
+                      placeholder="رابط الفيسبوك"
+                      value={socialLinks.facebook}
+                      onChange={handleSocialLinkChange('facebook')}
+                      className="text-right"
+                      dir="rtl"
+                    />
+                    <Facebook className="w-5 h-5 text-blue-500" />
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <Input
+                      type="url"
+                      placeholder="رابط التليجرام"
+                      value={socialLinks.telegram}
+                      onChange={handleSocialLinkChange('telegram')}
+                      className="text-right"
+                      dir="rtl"
+                    />
+                    <MessageSquare className="w-5 h-5 text-blue-400" />
+                  </div>
+                </div>
+                
+                <Button 
+                  type="submit" 
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "جاري الحفظ..." : "حفظ الروابط"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </main>
     </div>
   );
 };
