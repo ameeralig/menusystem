@@ -10,7 +10,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Palette, Upload, Instagram, Facebook, SendHorizonal, MapPin, Phone, Wifi, FileText } from "lucide-react";
 import ColorThemeSelector from "@/components/store/ColorThemeSelector";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import { Json } from "@/integrations/supabase/types";
+
+// Define types for the JSON data to ensure proper type safety
+type SocialLinks = {
+  instagram?: string;
+  facebook?: string;
+  telegram?: string;
+};
+
+type ContactInfo = {
+  address?: string;
+  phone?: string;
+  wifi?: string;
+  description?: string;
+  cover_image?: string;
+};
 
 const StoreCustomization = () => {
   const { toast } = useToast();
@@ -65,20 +81,22 @@ const StoreCustomization = () => {
           setColorTheme(data.color_theme || "default");
           setStoreSlug(data.slug || "");
           
-          // Set social links
+          // Set social links with proper type checking
           if (data.social_links) {
-            setInstagram(data.social_links.instagram || "");
-            setFacebook(data.social_links.facebook || "");
-            setTelegram(data.social_links.telegram || "");
+            const socialLinks = data.social_links as SocialLinks;
+            setInstagram(socialLinks.instagram || "");
+            setFacebook(socialLinks.facebook || "");
+            setTelegram(socialLinks.telegram || "");
           }
           
-          // Set contact info
+          // Set contact info with proper type checking
           if (data.contact_info) {
-            setAddress(data.contact_info.address || "");
-            setPhone(data.contact_info.phone || "");
-            setWifi(data.contact_info.wifi || "");
-            setDescription(data.contact_info.description || "");
-            setCoverImage(data.contact_info.cover_image || "");
+            const contactInfo = data.contact_info as ContactInfo;
+            setAddress(contactInfo.address || "");
+            setPhone(contactInfo.phone || "");
+            setWifi(contactInfo.wifi || "");
+            setDescription(contactInfo.description || "");
+            setCoverImage(contactInfo.cover_image || "");
           }
         }
       } catch (error: any) {
@@ -232,10 +250,10 @@ const StoreCustomization = () => {
 
   return (
     <div className="container mx-auto py-8">
-      <DashboardHeader 
-        heading="تخصيص المتجر" 
-        text="قم بتخصيص مظهر متجرك وإضافة معلومات التواصل" 
-      />
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold mb-2">تخصيص المتجر</h1>
+        <p className="text-muted-foreground">قم بتخصيص مظهر متجرك وإضافة معلومات التواصل</p>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
         {/* Store Name */}
@@ -269,9 +287,10 @@ const StoreCustomization = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <ColorThemeSelector 
-                selectedTheme={colorTheme} 
-                onChange={setColorTheme} 
-                disabled={!isEditing}
+                colorTheme={colorTheme} 
+                setColorTheme={setColorTheme} 
+                isLoading={isLoading}
+                handleSubmit={handleSubmit}
               />
 
               {isEditing && (
