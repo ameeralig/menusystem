@@ -69,6 +69,19 @@ const ColorThemeSelector = ({
           </div>
         ))}
       </div>
+
+      {isEditing && handleSubmit && (
+        <Button 
+          type="submit" 
+          className="w-full bg-purple-600 hover:bg-purple-700 mt-2"
+          disabled={isLoading}
+          onClick={(e) => {
+            handleSubmit(e).then(() => setIsEditing(false));
+          }}
+        >
+          {isLoading ? "جاري الحفظ..." : "حفظ التغييرات"}
+        </Button>
+      )}
     </div>
   );
 };
