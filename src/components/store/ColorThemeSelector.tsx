@@ -1,64 +1,72 @@
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-export const colorThemes = [
-  { id: "default", name: "الافتراضي", value: "default" },
-  { id: "coral", name: "مرجاني", value: "coral" },
-  { id: "purple", name: "بنفسجي", value: "purple" },
-  { id: "blue", name: "أزرق", value: "blue" },
-  { id: "green", name: "أخضر", value: "green" },
-  { id: "pink", name: "وردي", value: "pink" },
-  { id: "teal", name: "فيروزي", value: "teal" },
-  { id: "amber", name: "كهرماني", value: "amber" },
-  { id: "indigo", name: "نيلي", value: "indigo" },
-  { id: "rose", name: "وردي فاتح", value: "rose" }
-];
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
 
 interface ColorThemeSelectorProps {
   colorTheme: string;
-  setColorTheme: (value: string) => void;
-  isLoading: boolean;
-  handleSubmit: (e: React.FormEvent) => Promise<void>;
+  setColorTheme: (theme: string) => void;
+  isLoading?: boolean;
+  handleSubmit?: (e: React.FormEvent) => Promise<void>;
 }
 
-const ColorThemeSelector = ({ colorTheme, setColorTheme, isLoading }: ColorThemeSelectorProps) => {
+const themeOptions = [
+  { id: "default", name: "الافتراضي", bgClass: "bg-gray-100" },
+  { id: "green", name: "أخضر", bgClass: "bg-green-100" },
+  { id: "blue", name: "أزرق", bgClass: "bg-blue-100" },
+  { id: "purple", name: "بنفسجي", bgClass: "bg-purple-100" },
+  { id: "red", name: "أحمر", bgClass: "bg-red-100" },
+  { id: "yellow", name: "أصفر", bgClass: "bg-yellow-100" },
+];
+
+const ColorThemeSelector = ({ 
+  colorTheme,
+  setColorTheme,
+  isLoading,
+  handleSubmit 
+}: ColorThemeSelectorProps) => {
+  
+  const [isEditing, setIsEditing] = useState(false);
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleThemeSelect = (themeId: string) => {
+    setColorTheme(themeId);
+  };
+
   return (
-    <div className="space-y-2">
-      <label className="block text-right text-sm text-gray-600 dark:text-gray-400">
-        اختر لون المتجر
-      </label>
-      <Select
-        value={colorTheme}
-        onValueChange={setColorTheme}
-        disabled={isLoading}
-      >
-        <SelectTrigger className="w-full text-right">
-          <SelectValue placeholder="اختر لون المتجر" />
-        </SelectTrigger>
-        <SelectContent>
-          {colorThemes.map((theme) => (
-            <SelectItem
-              key={theme.id}
-              value={theme.value}
-              className="text-right"
-            >
-              {theme.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <div className="grid grid-cols-5 gap-2 mt-4">
-        {colorThemes.map((theme) => (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <span className="text-gray-700 dark:text-gray-300">اختر سمة المتجر</span>
+        {!isEditing && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleEdit}
+            className="h-8 w-8 p-0"
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        {themeOptions.map(theme => (
           <div
             key={theme.id}
-            className={`w-full h-8 rounded-md cursor-pointer border-2 ${
-              colorTheme === theme.value ? 'border-[#ff9178]' : 'border-transparent'
-            }`}
-            style={{
-              background: theme.id === "coral" ? "#ff9178" : `var(--${theme.value}-500)`,
-            }}
-            onClick={() => setColorTheme(theme.value)}
-          />
+            onClick={() => isEditing && handleThemeSelect(theme.id)}
+            className={`
+              rounded-md p-2 text-center cursor-pointer border-2 transition-all
+              ${isEditing ? "hover:border-primary" : ""}
+              ${theme.bgClass} 
+              ${colorTheme === theme.id ? "border-primary shadow-sm" : "border-transparent"}
+              ${!isEditing && "opacity-80 cursor-not-allowed"}
+            `}
+          >
+            <span className="text-sm font-medium">{theme.name}</span>
+          </div>
         ))}
       </div>
     </div>
