@@ -16,6 +16,13 @@ interface StoreContactInfoProps {
 const StoreContactInfo = ({ contactInfo }: StoreContactInfoProps) => {
   if (!contactInfo) return null;
 
+  // Check if we have any contact info to display
+  const hasContactInfo = contactInfo.address || contactInfo.phone || 
+                         contactInfo.wifi || contactInfo.description || 
+                         contactInfo.cover_image;
+  
+  if (!hasContactInfo) return null;
+
   return (
     <div className="w-full space-y-4 mb-6">
       {contactInfo.cover_image && (

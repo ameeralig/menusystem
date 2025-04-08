@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -58,23 +57,38 @@ const StoreCustomization = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        const { data: storeSettings } = await supabase
+        const { data: storeSettings, error } = await supabase
           .from("store_settings")
           .select("store_name, color_theme, slug, social_links, contact_info")
           .eq("user_id", user.id)
-          .single();
+          .maybeSingle();
+
+        if (error) {
+          console.error("Error fetching store settings:", error);
+          return;
+        }
 
         if (storeSettings) {
           setStoreName(storeSettings.store_name || "");
           setColorTheme(storeSettings.color_theme || "default");
           setStoreSlug(storeSettings.slug || "");
-          setSocialLinks({
-            instagram: (storeSettings.social_links as SocialLinks)?.instagram || "",
-            facebook: (storeSettings.social_links as SocialLinks)?.facebook || "",
-            telegram: (storeSettings.social_links as SocialLinks)?.telegram || "",
-          });
+          
+          if (storeSettings.social_links) {
+            setSocialLinks({
+              instagram: (storeSettings.social_links as SocialLinks)?.instagram || "",
+              facebook: (storeSettings.social_links as SocialLinks)?.facebook || "",
+              telegram: (storeSettings.social_links as SocialLinks)?.telegram || "",
+            });
+          }
+          
           if (storeSettings.contact_info) {
-            setContactInfo(storeSettings.contact_info as ContactInfo);
+            setContactInfo({
+              address: (storeSettings.contact_info as ContactInfo)?.address || "",
+              phone: (storeSettings.contact_info as ContactInfo)?.phone || "",
+              wifi: (storeSettings.contact_info as ContactInfo)?.wifi || "",
+              description: (storeSettings.contact_info as ContactInfo)?.description || "",
+              cover_image: (storeSettings.contact_info as ContactInfo)?.cover_image || "",
+            });
           }
         }
       } catch (error) {

@@ -65,6 +65,7 @@ const ProductPreview = () => {
           throw new Error("معرف المتجر غير صالح");
         }
 
+        // Check if the store_settings table has the data we need
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
           .select("store_name, color_theme, social_links, contact_info")
@@ -73,13 +74,20 @@ const ProductPreview = () => {
 
         if (storeError) {
           console.error("Error fetching store settings:", storeError);
+          toast({
+            title: "حدث خطأ",
+            description: "تعذر الحصول على بيانات المتجر",
+            variant: "destructive",
+          });
+          // Set defaults even if there's an error
           setStoreName(null);
           setColorTheme("default");
-        } else {
-          setStoreName(storeSettings?.store_name || null);
-          setColorTheme(storeSettings?.color_theme || "default");
-          setSocialLinks(storeSettings?.social_links as SocialLinks || {});
-          setContactInfo(storeSettings?.contact_info as ContactInfo || null);
+        } else if (storeSettings) {
+          // Only set the values if we actually got results
+          setStoreName(storeSettings.store_name || null);
+          setColorTheme(storeSettings.color_theme || "default");
+          setSocialLinks(storeSettings.social_links as SocialLinks || {});
+          setContactInfo(storeSettings.contact_info as ContactInfo || null);
         }
 
         const { data: productsData, error: productsError } = await supabase
