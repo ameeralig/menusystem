@@ -57,7 +57,7 @@ export const useStoreSettings = () => {
         setColorTheme(storeSettings.color_theme || "default");
         setStoreSlug(storeSettings.slug || "");
         
-        // Important: Make sure banner_url is properly set
+        // Important: Log and set banner_url properly
         console.log("Banner URL from database:", storeSettings.banner_url);
         setCoverImageUrl(storeSettings.banner_url);
         

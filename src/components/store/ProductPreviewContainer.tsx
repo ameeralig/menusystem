@@ -1,5 +1,5 @@
 
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 
 interface ProductPreviewContainerProps {
   children: ReactNode;
@@ -12,6 +12,8 @@ const ProductPreviewContainer = ({
   colorTheme,
   coverImageUrl
 }: ProductPreviewContainerProps) => {
+  const [imageError, setImageError] = useState(false);
+  
   const getThemeClasses = (theme: string | null) => {
     switch (theme) {
       case 'purple':
@@ -29,12 +31,16 @@ const ProductPreviewContainer = ({
 
   return (
     <div className="min-h-screen flex flex-col">
-      {coverImageUrl && (
+      {coverImageUrl && !imageError ? (
         <div className="relative w-full h-64 sm:h-80">
           <img 
             src={coverImageUrl} 
             alt="صورة الغلاف" 
             className="w-full h-full object-cover"
+            onError={() => {
+              console.error("Error loading image:", coverImageUrl);
+              setImageError(true);
+            }}
           />
           <div className="absolute inset-0 bg-black bg-opacity-50"></div>
           

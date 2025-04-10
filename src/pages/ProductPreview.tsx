@@ -74,6 +74,9 @@ const ProductPreview = () => {
           setStoreName(storeSettings?.store_name || null);
           setColorTheme(storeSettings?.color_theme || "default");
           setSocialLinks(storeSettings?.social_links as SocialLinks || {});
+          
+          // Log the banner URL to check if it's coming correctly from the database
+          console.log("Banner URL from database:", storeSettings?.banner_url);
           setCoverImageUrl(storeSettings?.banner_url || null);
         }
 
