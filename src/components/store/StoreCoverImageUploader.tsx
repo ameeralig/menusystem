@@ -71,14 +71,15 @@ const StoreCoverImageUploader = ({
       // Update state with the new URL
       setCoverImageUrl(data.publicUrl);
 
+      // Save the changes to database immediately
+      const formEvent = new Event('submit') as unknown as React.FormEvent;
+      await handleSubmit(formEvent);
+
       toast({
         title: "تم رفع الصورة",
-        description: "تم رفع صورة الغلاف بنجاح",
+        description: "تم رفع صورة الغلاف وحفظها بنجاح",
         duration: 3000,
       });
-      
-      // Save the changes
-      await handleSubmit(new Event('submit') as unknown as React.FormEvent);
       
     } catch (error: any) {
       console.error("Error uploading image:", error);
@@ -95,12 +96,29 @@ const StoreCoverImageUploader = ({
 
   const removeCoverImage = async () => {
     try {
-      // If there was a previous image, you could delete it from storage here
+      // Extract filename from the URL if there is one
+      if (coverImageUrl) {
+        const urlParts = coverImageUrl.split('/');
+        const fileName = urlParts[urlParts.length - 1];
+        const filePath = `store_covers/${fileName}`;
+        
+        // Try to delete the file from storage
+        const { error: deleteError } = await supabase.storage
+          .from('store_assets')
+          .remove([filePath]);
+          
+        if (deleteError) {
+          console.error("Error removing image from storage:", deleteError);
+          // Continue even if storage delete fails
+        }
+      }
 
+      // Set coverImageUrl to null
       setCoverImageUrl(null);
       
-      // Save the changes
-      await handleSubmit(new Event('submit') as unknown as React.FormEvent);
+      // Save the changes to database immediately
+      const formEvent = new Event('submit') as unknown as React.FormEvent;
+      await handleSubmit(formEvent);
       
       toast({
         title: "تم إزالة الصورة",

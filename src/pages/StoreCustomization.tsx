@@ -43,13 +43,19 @@ const StoreCustomization = () => {
 
         setUserId(user.id);
 
-        const { data: storeSettings } = await supabase
+        const { data: storeSettings, error } = await supabase
           .from("store_settings")
           .select("store_name, color_theme, slug, social_links, banner_url")
           .eq("user_id", user.id)
-          .single();
+          .maybeSingle();
+
+        if (error) {
+          console.error("Error fetching store settings:", error);
+          return;
+        }
 
         if (storeSettings) {
+          console.log("Fetched store settings:", storeSettings);
           setStoreName(storeSettings.store_name || "");
           setColorTheme(storeSettings.color_theme || "default");
           setStoreSlug(storeSettings.slug || "");
@@ -76,35 +82,41 @@ const StoreCustomization = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
 
-      const { data: existingSettings } = await supabase
+      console.log("Saving store settings with banner_url:", coverImageUrl);
+
+      const { data: existingSettings, error: checkError } = await supabase
         .from("store_settings")
         .select("user_id")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
+
+      if (checkError) {
+        console.error("Error checking existing settings:", checkError);
+      }
+
+      const storeData = { 
+        store_name: storeName,
+        color_theme: colorTheme,
+        slug: storeSlug,
+        social_links: socialLinks,
+        banner_url: coverImageUrl,
+        updated_at: new Date().toISOString()
+      };
+
+      console.log("Saving store settings:", storeData);
 
       let result;
       if (existingSettings) {
         result = await supabase
           .from("store_settings")
-          .update({ 
-            store_name: storeName,
-            color_theme: colorTheme,
-            slug: storeSlug,
-            social_links: socialLinks,
-            banner_url: coverImageUrl,
-            updated_at: new Date().toISOString()
-          })
+          .update(storeData)
           .eq("user_id", user.id);
       } else {
         result = await supabase
           .from("store_settings")
           .insert([{ 
-            user_id: user.id, 
-            store_name: storeName,
-            color_theme: colorTheme,
-            slug: storeSlug,
-            social_links: socialLinks,
-            banner_url: coverImageUrl
+            user_id: user.id,
+            ...storeData
           }]);
       }
 
@@ -114,6 +126,8 @@ const StoreCustomization = () => {
         }
         throw result.error;
       }
+
+      console.log("Store settings saved successfully:", result);
 
       toast({
         title: "تم الحفظ بنجاح",
