@@ -57,6 +57,8 @@ const ProductPreview = () => {
           throw new Error("معرف المتجر غير صالح");
         }
 
+        console.log("Fetching store data for user ID:", userId);
+
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
           .select("store_name, color_theme, social_links, banner_url")
@@ -68,6 +70,7 @@ const ProductPreview = () => {
           setStoreName(null);
           setColorTheme("default");
         } else {
+          console.log("Store settings data:", storeSettings);
           setStoreName(storeSettings?.store_name || null);
           setColorTheme(storeSettings?.color_theme || "default");
           setSocialLinks(storeSettings?.social_links as SocialLinks || {});

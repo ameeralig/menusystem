@@ -50,18 +50,23 @@ const StoreCoverImageUploader = ({
       const filePath = `store_covers/${fileName}`;
 
       // Upload the compressed file
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('store_assets')
         .upload(filePath, compressedFile);
 
       if (uploadError) {
+        console.error("Error uploading image:", uploadError);
         throw uploadError;
       }
+
+      console.log("Upload successful:", uploadData);
 
       // Get the public URL
       const { data } = supabase.storage
         .from('store_assets')
         .getPublicUrl(filePath);
+
+      console.log("Public URL generated:", data.publicUrl);
 
       // Update state with the new URL
       setCoverImageUrl(data.publicUrl);
@@ -90,6 +95,8 @@ const StoreCoverImageUploader = ({
 
   const removeCoverImage = async () => {
     try {
+      // If there was a previous image, you could delete it from storage here
+
       setCoverImageUrl(null);
       
       // Save the changes
