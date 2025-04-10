@@ -1,11 +1,12 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Image, Upload, X } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Image } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import imageCompression from "browser-image-compression";
+import { compressAndUploadImage, deleteImage } from "@/utils/imageUpload";
+import CoverImageDisplay from "./CoverImageDisplay";
+import CoverImagePlaceholder from "./CoverImagePlaceholder";
+import ImageUploadButton from "./ImageUploadButton";
 
 interface StoreCoverImageUploaderProps {
   coverImageUrl: string | null;
@@ -23,6 +24,7 @@ const StoreCoverImageUploader = ({
   isLoading,
 }: StoreCoverImageUploaderProps) => {
   const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,44 +34,16 @@ const StoreCoverImageUploader = ({
       }
 
       const file = event.target.files[0];
-      
-      // Compress image before uploading
       setUploading(true);
       
-      const options = {
-        maxSizeMB: 1, // Max file size of 1 MB
-        maxWidthOrHeight: 1024, // Resize to maximum width/height of 1024px
-        useWebWorker: true
-      };
+      const { url, error } = await compressAndUploadImage(file, userId);
       
-      const compressedFile = await imageCompression(file, options);
-      
-      // Create a unique file name
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}-cover-image-${Date.now()}.${fileExt}`;
-      const filePath = `store_covers/${fileName}`;
-
-      // Upload the compressed file
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('store_assets')
-        .upload(filePath, compressedFile);
-
-      if (uploadError) {
-        console.error("Error uploading image:", uploadError);
-        throw uploadError;
+      if (error) {
+        throw error;
       }
 
-      console.log("Upload successful:", uploadData);
-
-      // Get the public URL
-      const { data } = supabase.storage
-        .from('store_assets')
-        .getPublicUrl(filePath);
-
-      console.log("Public URL generated:", data.publicUrl);
-
       // Update state with the new URL
-      setCoverImageUrl(data.publicUrl);
+      setCoverImageUrl(url);
 
       // Save the changes to database immediately
       const formEvent = new Event('submit') as unknown as React.FormEvent;
@@ -91,24 +65,19 @@ const StoreCoverImageUploader = ({
       });
     } finally {
       setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
   const removeCoverImage = async () => {
     try {
-      // Extract filename from the URL if there is one
       if (coverImageUrl) {
-        const urlParts = coverImageUrl.split('/');
-        const fileName = urlParts[urlParts.length - 1];
-        const filePath = `store_covers/${fileName}`;
+        const { error } = await deleteImage(coverImageUrl);
         
-        // Try to delete the file from storage
-        const { error: deleteError } = await supabase.storage
-          .from('store_assets')
-          .remove([filePath]);
-          
-        if (deleteError) {
-          console.error("Error removing image from storage:", deleteError);
+        if (error) {
+          console.error("Error removing image:", error);
           // Continue even if storage delete fails
         }
       }
@@ -136,6 +105,10 @@ const StoreCoverImageUploader = ({
     }
   };
 
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <Card className="border-2 border-purple-100 dark:border-purple-900">
       <CardHeader>
@@ -147,51 +120,24 @@ const StoreCoverImageUploader = ({
       <CardContent>
         <div className="space-y-4">
           {coverImageUrl ? (
-            <div className="relative">
-              <img 
-                src={coverImageUrl} 
-                alt="صورة الغلاف" 
-                className="w-full h-48 object-cover rounded-md border border-gray-200"
-              />
-              <Button
-                variant="destructive"
-                size="icon"
-                className="absolute top-2 right-2 rounded-full opacity-90 hover:opacity-100"
-                onClick={removeCoverImage}
-                disabled={isLoading || uploading}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+            <CoverImageDisplay 
+              imageUrl={coverImageUrl} 
+              onRemove={removeCoverImage} 
+              isDisabled={isLoading || uploading}
+            />
           ) : (
-            <div className="border-2 border-dashed border-gray-300 rounded-md p-8 text-center">
-              <Image className="h-10 w-10 mx-auto text-gray-400" />
-              <p className="mt-2 text-sm text-gray-500">
-                قم بإضافة صورة غلاف للمتجر
-              </p>
-            </div>
+            <CoverImagePlaceholder />
           )}
           
           <div className="flex justify-center">
-            <Button
-              type="button"
-              variant={coverImageUrl ? "outline" : "default"}
-              className={coverImageUrl ? "" : "bg-purple-600 hover:bg-purple-700"}
-              disabled={isLoading || uploading}
-              onClick={() => document.getElementById('cover-image-upload')?.click()}
-            >
-              {uploading ? (
-                <span>جاري الرفع...</span>
-              ) : coverImageUrl ? (
-                <span>تغيير الصورة</span>
-              ) : (
-                <>
-                  <Upload className="h-4 w-4 ml-2" />
-                  <span>رفع صورة</span>
-                </>
-              )}
-            </Button>
+            <ImageUploadButton 
+              hasImage={!!coverImageUrl}
+              isDisabled={isLoading}
+              isUploading={uploading}
+              onClick={triggerFileInput}
+            />
             <input
+              ref={fileInputRef}
               id="cover-image-upload"
               type="file"
               accept="image/*"
