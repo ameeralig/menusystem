@@ -25,12 +25,25 @@ export const compressAndUploadImage = async (
     const compressedFile = await imageCompression(file, options);
     console.log("Image compressed successfully");
     
-    // Create a unique file name
-    const fileExt = file.name.split('.').pop();
+    // Create a unique file name with proper extension handling
+    let fileExt = file.name.split('.').pop()?.toLowerCase() || '';
+    if (!fileExt || fileExt.length > 5) {
+      // Fallback to using mime type for extension
+      const mimeToExt: Record<string, string> = {
+        'image/jpeg': 'jpg',
+        'image/jpg': 'jpg',
+        'image/png': 'png',
+        'image/gif': 'gif',
+        'image/webp': 'webp',
+        'image/svg+xml': 'svg'
+      };
+      fileExt = mimeToExt[file.type] || 'jpg';
+    }
+    
     const fileName = `${userId}-cover-image-${Date.now()}.${fileExt}`;
     const filePath = `${folder}/${fileName}`;
 
-    console.log(`Attempting to upload file to path: ${filePath}, type: ${file.type}`);
+    console.log(`Attempting to upload file to path: ${filePath}, type: ${file.type}, extension: ${fileExt}`);
 
     // Upload directly to public bucket with explicit content type
     const { data: uploadData, error: uploadError } = await supabase.storage

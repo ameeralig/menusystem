@@ -53,7 +53,8 @@ const StoreCoverImageUploader = ({
       // Important: Save the changes to database immediately
       console.log("Saving image URL to database...");
       try {
-        const formEvent = new Event('submit', { cancelable: true }) as unknown as React.FormEvent;
+        // Create a synthetic form event to trigger the save
+        const formEvent = new CustomEvent('submit', { cancelable: true }) as unknown as React.FormEvent;
         await handleSubmit(formEvent);
         
         toast({
@@ -106,7 +107,8 @@ const StoreCoverImageUploader = ({
       // Important: Save the changes to database immediately
       console.log("Updating database to remove image reference...");
       try {
-        const formEvent = new Event('submit', { cancelable: true }) as unknown as React.FormEvent;
+        // Create a synthetic form event to trigger the save
+        const formEvent = new CustomEvent('submit', { cancelable: true }) as unknown as React.FormEvent;
         await handleSubmit(formEvent);
         
         toast({

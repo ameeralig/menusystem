@@ -100,7 +100,7 @@ export const useStoreSettings = () => {
         color_theme: colorTheme,
         slug: storeSlug,
         social_links: socialLinks,
-        banner_url: coverImageUrl,
+        banner_url: coverImageUrl, // Make sure this is passing the correct value
         updated_at: new Date().toISOString()
       };
 
