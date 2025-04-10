@@ -75,7 +75,7 @@ const ProductPreviewContainer = ({
             </div>
           </div>
         </div>
-      )}
+      ) : null}
       <div className={`flex-1 ${getThemeClasses(colorTheme)} transition-colors duration-300`}>
         <div className="container mx-auto py-4 sm:py-6 px-3 sm:px-4 max-w-6xl">
           {children}
