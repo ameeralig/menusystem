@@ -4,14 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ArrowLeft, Instagram, Facebook, MessageSquare } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { motion } from "framer-motion";
 import StoreNameEditor from "@/components/store/StoreNameEditor";
 import ColorThemeSelector from "@/components/store/ColorThemeSelector";
 import StoreSlugEditor from "@/components/store/StoreSlugEditor";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import StoreCoverImageUploader from "@/components/store/StoreCoverImageUploader";
+import StoreSocialLinksEditor from "@/components/store/StoreSocialLinksEditor";
 
 type SocialLinks = {
   instagram: string;
@@ -24,12 +24,14 @@ const StoreCustomization = () => {
   const [storeSlug, setStoreSlug] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [colorTheme, setColorTheme] = useState("default");
+  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({
     instagram: "",
     facebook: "",
     telegram: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -39,9 +41,11 @@ const StoreCustomization = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
+        setUserId(user.id);
+
         const { data: storeSettings } = await supabase
           .from("store_settings")
-          .select("store_name, color_theme, slug, social_links")
+          .select("store_name, color_theme, slug, social_links, banner_url")
           .eq("user_id", user.id)
           .single();
 
@@ -49,6 +53,7 @@ const StoreCustomization = () => {
           setStoreName(storeSettings.store_name || "");
           setColorTheme(storeSettings.color_theme || "default");
           setStoreSlug(storeSettings.slug || "");
+          setCoverImageUrl(storeSettings.banner_url || null);
           setSocialLinks({
             instagram: (storeSettings.social_links as SocialLinks)?.instagram || "",
             facebook: (storeSettings.social_links as SocialLinks)?.facebook || "",
@@ -86,6 +91,7 @@ const StoreCustomization = () => {
             color_theme: colorTheme,
             slug: storeSlug,
             social_links: socialLinks,
+            banner_url: coverImageUrl,
             updated_at: new Date().toISOString()
           })
           .eq("user_id", user.id);
@@ -97,7 +103,8 @@ const StoreCustomization = () => {
             store_name: storeName,
             color_theme: colorTheme,
             slug: storeSlug,
-            social_links: socialLinks
+            social_links: socialLinks,
+            banner_url: coverImageUrl
           }]);
       }
 
@@ -173,6 +180,16 @@ const StoreCustomization = () => {
             isLoading={isLoading}
           />
 
+          {userId && (
+            <StoreCoverImageUploader
+              coverImageUrl={coverImageUrl}
+              setCoverImageUrl={setCoverImageUrl}
+              userId={userId}
+              handleSubmit={handleSubmit}
+              isLoading={isLoading}
+            />
+          )}
+
           <ColorThemeSelector 
             colorTheme={colorTheme}
             setColorTheme={setColorTheme}
@@ -180,60 +197,12 @@ const StoreCustomization = () => {
             isLoading={isLoading}
           />
 
-          <Card className="border-2 border-purple-100 dark:border-purple-900">
-            <CardHeader>
-              <CardTitle className="text-right">روابط التواصل الاجتماعي</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <Input
-                      type="url"
-                      placeholder="رابط الإنستقرام"
-                      value={socialLinks.instagram}
-                      onChange={handleSocialLinkChange('instagram')}
-                      className="text-right"
-                      dir="rtl"
-                    />
-                    <Instagram className="w-5 h-5 text-pink-500" />
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <Input
-                      type="url"
-                      placeholder="رابط الفيسبوك"
-                      value={socialLinks.facebook}
-                      onChange={handleSocialLinkChange('facebook')}
-                      className="text-right"
-                      dir="rtl"
-                    />
-                    <Facebook className="w-5 h-5 text-blue-500" />
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <Input
-                      type="url"
-                      placeholder="رابط التليجرام"
-                      value={socialLinks.telegram}
-                      onChange={handleSocialLinkChange('telegram')}
-                      className="text-right"
-                      dir="rtl"
-                    />
-                    <MessageSquare className="w-5 h-5 text-blue-400" />
-                  </div>
-                </div>
-                
-                <Button 
-                  type="submit" 
-                  className="w-full bg-purple-600 hover:bg-purple-700"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "جاري الحفظ..." : "حفظ الروابط"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+          <StoreSocialLinksEditor
+            socialLinks={socialLinks}
+            handleSocialLinkChange={handleSocialLinkChange}
+            handleSubmit={handleSubmit}
+            isLoading={isLoading}
+          />
         </motion.div>
       </main>
     </div>

@@ -21,6 +21,7 @@ const ProductPreview = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [storeName, setStoreName] = useState<string | null>(null);
   const [colorTheme, setColorTheme] = useState<string | null>("default");
+  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -58,7 +59,7 @@ const ProductPreview = () => {
 
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
-          .select("store_name, color_theme, social_links")
+          .select("store_name, color_theme, social_links, banner_url")
           .eq("user_id", userId)
           .maybeSingle();
 
@@ -70,6 +71,7 @@ const ProductPreview = () => {
           setStoreName(storeSettings?.store_name || null);
           setColorTheme(storeSettings?.color_theme || "default");
           setSocialLinks(storeSettings?.social_links as SocialLinks || {});
+          setCoverImageUrl(storeSettings?.banner_url || null);
         }
 
         const { data: productsData, error: productsError } = await supabase
@@ -119,7 +121,10 @@ const ProductPreview = () => {
   }
 
   return (
-    <ProductPreviewContainer colorTheme={colorTheme}>
+    <ProductPreviewContainer 
+      colorTheme={colorTheme}
+      coverImageUrl={coverImageUrl}
+    >
       <StoreProductsDisplay 
         products={products} 
         storeName={storeName} 

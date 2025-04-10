@@ -4,9 +4,14 @@ import { ReactNode } from "react";
 interface ProductPreviewContainerProps {
   children: ReactNode;
   colorTheme: string | null;
+  coverImageUrl?: string | null;
 }
 
-const ProductPreviewContainer = ({ children, colorTheme }: ProductPreviewContainerProps) => {
+const ProductPreviewContainer = ({ 
+  children, 
+  colorTheme,
+  coverImageUrl
+}: ProductPreviewContainerProps) => {
   const getThemeClasses = (theme: string | null) => {
     switch (theme) {
       case 'purple':
@@ -23,9 +28,21 @@ const ProductPreviewContainer = ({ children, colorTheme }: ProductPreviewContain
   };
 
   return (
-    <div className={`min-h-screen ${getThemeClasses(colorTheme)} transition-colors duration-300`}>
-      <div className="container mx-auto py-4 sm:py-6 px-3 sm:px-4 max-w-6xl">
-        {children}
+    <div className="min-h-screen flex flex-col">
+      {coverImageUrl && (
+        <div className="relative w-full h-48 sm:h-64">
+          <img 
+            src={coverImageUrl} 
+            alt="صورة الغلاف" 
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+        </div>
+      )}
+      <div className={`flex-1 ${getThemeClasses(colorTheme)} transition-colors duration-300`}>
+        <div className="container mx-auto py-4 sm:py-6 px-3 sm:px-4 max-w-6xl">
+          {children}
+        </div>
       </div>
     </div>
   );
