@@ -59,7 +59,7 @@ export const useStoreSettings = () => {
         
         // Important: Make sure banner_url is properly set
         console.log("Banner URL from database:", storeSettings.banner_url);
-        setCoverImageUrl(storeSettings.banner_url || null);
+        setCoverImageUrl(storeSettings.banner_url);
         
         setSocialLinks({
           instagram: (storeSettings.social_links as SocialLinks)?.instagram || "",

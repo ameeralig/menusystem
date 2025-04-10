@@ -13,6 +13,8 @@ export const compressAndUploadImage = async (
   folder: string = "store_covers"
 ): Promise<UploadImageResult> => {
   try {
+    console.log("Starting to process image, type:", file.type);
+    
     // Compress image before uploading
     const options = {
       maxSizeMB: 1, // Max file size of 1 MB
@@ -21,15 +23,16 @@ export const compressAndUploadImage = async (
     };
     
     const compressedFile = await imageCompression(file, options);
+    console.log("Image compressed successfully");
     
     // Create a unique file name
     const fileExt = file.name.split('.').pop();
     const fileName = `${userId}-cover-image-${Date.now()}.${fileExt}`;
     const filePath = `${folder}/${fileName}`;
 
-    console.log(`Attempting to upload file to path: ${filePath}`);
+    console.log(`Attempting to upload file to path: ${filePath}, type: ${file.type}`);
 
-    // Upload directly to public bucket
+    // Upload directly to public bucket with explicit content type
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('store_assets')
       .upload(filePath, compressedFile, {

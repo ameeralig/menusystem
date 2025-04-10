@@ -37,6 +37,8 @@ const StoreCoverImageUploader = ({
       setUploading(true);
       
       console.log("Starting image upload for user:", userId);
+      console.log("File type:", file.type, "File size:", file.size);
+      
       const { url, error } = await compressAndUploadImage(file, userId);
       
       if (error) {
@@ -45,7 +47,7 @@ const StoreCoverImageUploader = ({
 
       console.log("Image uploaded successfully, URL:", url);
       
-      // Update state with the new URL
+      // First update the state with the new URL
       setCoverImageUrl(url);
 
       // Important: Save the changes to database immediately
@@ -86,16 +88,16 @@ const StoreCoverImageUploader = ({
 
   const removeCoverImage = async () => {
     try {
+      if (!coverImageUrl) return;
+      
       setUploading(true);
       
-      if (coverImageUrl) {
-        console.log("Removing image:", coverImageUrl);
-        const { error } = await deleteImage(coverImageUrl);
-        
-        if (error) {
-          console.error("Error removing image:", error);
-          // Continue even if storage delete fails
-        }
+      console.log("Removing image:", coverImageUrl);
+      const { error } = await deleteImage(coverImageUrl);
+      
+      if (error) {
+        console.error("Error removing image:", error);
+        // Continue even if storage delete fails
       }
 
       // Set coverImageUrl to null
