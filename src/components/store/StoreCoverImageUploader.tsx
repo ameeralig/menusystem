@@ -36,16 +36,20 @@ const StoreCoverImageUploader = ({
       const file = event.target.files[0];
       setUploading(true);
       
+      console.log("Starting image upload for user:", userId);
       const { url, error } = await compressAndUploadImage(file, userId);
       
       if (error) {
         throw error;
       }
 
+      console.log("Image uploaded successfully, URL:", url);
+      
       // Update state with the new URL
       setCoverImageUrl(url);
 
-      // Save the changes to database immediately
+      // Important: Save the changes to database immediately
+      console.log("Saving image URL to database...");
       const formEvent = new Event('submit') as unknown as React.FormEvent;
       await handleSubmit(formEvent);
 
@@ -73,7 +77,10 @@ const StoreCoverImageUploader = ({
 
   const removeCoverImage = async () => {
     try {
+      setUploading(true);
+      
       if (coverImageUrl) {
+        console.log("Removing image:", coverImageUrl);
         const { error } = await deleteImage(coverImageUrl);
         
         if (error) {
@@ -85,7 +92,8 @@ const StoreCoverImageUploader = ({
       // Set coverImageUrl to null
       setCoverImageUrl(null);
       
-      // Save the changes to database immediately
+      // Important: Save the changes to database immediately
+      console.log("Updating database to remove image reference...");
       const formEvent = new Event('submit') as unknown as React.FormEvent;
       await handleSubmit(formEvent);
       
@@ -102,6 +110,8 @@ const StoreCoverImageUploader = ({
         variant: "destructive",
         duration: 3000,
       });
+    } finally {
+      setUploading(false);
     }
   };
 

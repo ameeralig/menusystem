@@ -27,10 +27,29 @@ export const compressAndUploadImage = async (
     const fileName = `${userId}-cover-image-${Date.now()}.${fileExt}`;
     const filePath = `${folder}/${fileName}`;
 
+    // First, check if bucket exists, create if it doesn't
+    const { data: buckets } = await supabase.storage.listBuckets();
+    const storeBucket = buckets?.find(bucket => bucket.name === 'store_assets');
+    
+    if (!storeBucket) {
+      console.log("Creating store_assets bucket");
+      const { error: bucketError } = await supabase.storage.createBucket('store_assets', {
+        public: true
+      });
+      
+      if (bucketError) {
+        console.error("Error creating bucket:", bucketError);
+        return { url: null, error: bucketError };
+      }
+    }
+
     // Upload the compressed file
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('store_assets')
-      .upload(filePath, compressedFile);
+      .upload(filePath, compressedFile, {
+        cacheControl: '3600',
+        upsert: true
+      });
 
     if (uploadError) {
       console.error("Error uploading image:", uploadError);
@@ -59,10 +78,19 @@ export const deleteImage = async (imageUrl: string): Promise<{ error: Error | nu
       return { error: null };
     }
     
-    // Extract filename from the URL if there is one
+    // Extract filename from the URL
     const urlParts = imageUrl.split('/');
     const fileName = urlParts[urlParts.length - 1];
-    const filePath = `store_covers/${fileName}`;
+    
+    // Extract the path including folder
+    const storagePathIndex = imageUrl.indexOf('store_assets/');
+    if (storagePathIndex === -1) {
+      console.error("Invalid image URL format:", imageUrl);
+      return { error: new Error("Invalid image URL format") };
+    }
+    
+    const filePath = imageUrl.substring(storagePathIndex + 'store_assets/'.length);
+    console.log("Deleting file at path:", filePath);
     
     // Try to delete the file from storage
     const { error: deleteError } = await supabase.storage

@@ -30,10 +30,15 @@ export const useStoreSettings = () => {
 
   const fetchStoreSettings = async () => {
     try {
+      console.log("Fetching store settings...");
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        console.log("No authenticated user found");
+        return;
+      }
 
       setUserId(user.id);
+      console.log("User ID set:", user.id);
 
       const { data: storeSettings, error } = await supabase
         .from("store_settings")
@@ -51,12 +56,18 @@ export const useStoreSettings = () => {
         setStoreName(storeSettings.store_name || "");
         setColorTheme(storeSettings.color_theme || "default");
         setStoreSlug(storeSettings.slug || "");
+        
+        // Important: Make sure banner_url is properly set
+        console.log("Banner URL from database:", storeSettings.banner_url);
         setCoverImageUrl(storeSettings.banner_url || null);
+        
         setSocialLinks({
           instagram: (storeSettings.social_links as SocialLinks)?.instagram || "",
           facebook: (storeSettings.social_links as SocialLinks)?.facebook || "",
           telegram: (storeSettings.social_links as SocialLinks)?.telegram || "",
         });
+      } else {
+        console.log("No store settings found for user");
       }
     } catch (error) {
       console.error("Error fetching store settings:", error);
@@ -68,10 +79,11 @@ export const useStoreSettings = () => {
     setIsLoading(true);
 
     try {
+      console.log("Submitting store settings...");
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
 
-      console.log("Saving store settings with banner_url:", coverImageUrl);
+      console.log("Current coverImageUrl:", coverImageUrl);
 
       const { data: existingSettings, error: checkError } = await supabase
         .from("store_settings")
@@ -92,15 +104,17 @@ export const useStoreSettings = () => {
         updated_at: new Date().toISOString()
       };
 
-      console.log("Saving store settings:", storeData);
+      console.log("Saving store settings with data:", storeData);
 
       let result;
       if (existingSettings) {
+        console.log("Updating existing store settings...");
         result = await supabase
           .from("store_settings")
           .update(storeData)
           .eq("user_id", user.id);
       } else {
+        console.log("Creating new store settings...");
         result = await supabase
           .from("store_settings")
           .insert([{ 
@@ -110,6 +124,7 @@ export const useStoreSettings = () => {
       }
 
       if (result.error) {
+        console.error("Error saving store settings:", result.error);
         if (result.error.code === '23505') {
           throw new Error("هذا الرابط مستخدم بالفعل، الرجاء اختيار رابط آخر");
         }
@@ -117,6 +132,9 @@ export const useStoreSettings = () => {
       }
 
       console.log("Store settings saved successfully:", result);
+      
+      // Refresh settings after successful save
+      await fetchStoreSettings();
 
       toast({
         title: "تم الحفظ بنجاح",
