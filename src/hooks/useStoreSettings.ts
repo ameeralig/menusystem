@@ -133,7 +133,7 @@ export const useStoreSettings = () => {
 
       console.log("Store settings saved successfully:", result);
       
-      // Refresh settings after successful save
+      // Refresh settings after successful save to ensure we have the latest data
       await fetchStoreSettings();
 
       toast({

@@ -50,15 +50,24 @@ const StoreCoverImageUploader = ({
 
       // Important: Save the changes to database immediately
       console.log("Saving image URL to database...");
-      const formEvent = new Event('submit') as unknown as React.FormEvent;
-      await handleSubmit(formEvent);
-
-      toast({
-        title: "تم رفع الصورة",
-        description: "تم رفع صورة الغلاف وحفظها بنجاح",
-        duration: 3000,
-      });
-      
+      try {
+        const formEvent = new Event('submit', { cancelable: true }) as unknown as React.FormEvent;
+        await handleSubmit(formEvent);
+        
+        toast({
+          title: "تم رفع الصورة",
+          description: "تم رفع صورة الغلاف وحفظها بنجاح",
+          duration: 3000,
+        });
+      } catch (submitError) {
+        console.error("Error saving to database:", submitError);
+        toast({
+          title: "تم رفع الصورة ولكن حدث خطأ في الحفظ",
+          description: "تم رفع الصورة ولكن لم يتم حفظها في قاعدة البيانات",
+          variant: "destructive",
+          duration: 3000,
+        });
+      }
     } catch (error: any) {
       console.error("Error uploading image:", error);
       toast({
@@ -94,14 +103,24 @@ const StoreCoverImageUploader = ({
       
       // Important: Save the changes to database immediately
       console.log("Updating database to remove image reference...");
-      const formEvent = new Event('submit') as unknown as React.FormEvent;
-      await handleSubmit(formEvent);
-      
-      toast({
-        title: "تم إزالة الصورة",
-        description: "تم إزالة صورة الغلاف بنجاح",
-        duration: 3000,
-      });
+      try {
+        const formEvent = new Event('submit', { cancelable: true }) as unknown as React.FormEvent;
+        await handleSubmit(formEvent);
+        
+        toast({
+          title: "تم إزالة الصورة",
+          description: "تم إزالة صورة الغلاف بنجاح",
+          duration: 3000,
+        });
+      } catch (submitError) {
+        console.error("Error saving to database after image removal:", submitError);
+        toast({
+          title: "خطأ في حفظ التغييرات",
+          description: "تم إزالة الصورة ولكن لم يتم حفظ التغييرات في قاعدة البيانات",
+          variant: "destructive",
+          duration: 3000,
+        });
+      }
     } catch (error: any) {
       console.error("Error removing image:", error);
       toast({

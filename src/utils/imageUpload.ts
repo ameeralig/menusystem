@@ -27,28 +27,15 @@ export const compressAndUploadImage = async (
     const fileName = `${userId}-cover-image-${Date.now()}.${fileExt}`;
     const filePath = `${folder}/${fileName}`;
 
-    // First, check if bucket exists, create if it doesn't
-    const { data: buckets } = await supabase.storage.listBuckets();
-    const storeBucket = buckets?.find(bucket => bucket.name === 'store_assets');
-    
-    if (!storeBucket) {
-      console.log("Creating store_assets bucket");
-      const { error: bucketError } = await supabase.storage.createBucket('store_assets', {
-        public: true
-      });
-      
-      if (bucketError) {
-        console.error("Error creating bucket:", bucketError);
-        return { url: null, error: bucketError };
-      }
-    }
+    console.log(`Attempting to upload file to path: ${filePath}`);
 
-    // Upload the compressed file
+    // Upload directly to public bucket
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('store_assets')
       .upload(filePath, compressedFile, {
         cacheControl: '3600',
-        upsert: true
+        upsert: true,
+        contentType: file.type // Explicitly set the content type
       });
 
     if (uploadError) {
@@ -77,10 +64,6 @@ export const deleteImage = async (imageUrl: string): Promise<{ error: Error | nu
     if (!imageUrl) {
       return { error: null };
     }
-    
-    // Extract filename from the URL
-    const urlParts = imageUrl.split('/');
-    const fileName = urlParts[urlParts.length - 1];
     
     // Extract the path including folder
     const storagePathIndex = imageUrl.indexOf('store_assets/');
