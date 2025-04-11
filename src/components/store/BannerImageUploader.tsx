@@ -3,9 +3,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Image, UploadCloud, Save, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { uploadImage, createUniqueFilePath } from "@/utils/storageHelpers";
 
 interface BannerImageUploaderProps {
   bannerUrl: string | null;
@@ -45,7 +46,7 @@ const BannerImageUploader = ({
     }
   };
 
-  const uploadImage = async () => {
+  const handleUploadImage = async () => {
     if (!imageFile) return null;
     
     setUploadLoading(true);
@@ -54,26 +55,19 @@ const BannerImageUploader = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
       
-      // Create a unique filename
-      const fileExt = imageFile.name.split('.').pop();
-      const fileName = `${user.id}-banner-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `banners/${fileName}`;
+      // Create a unique file path
+      const filePath = createUniqueFilePath(user.id, 'banners', imageFile);
       
-      // Upload the file to Supabase storage
-      const { error: uploadError } = await supabase.storage
-        .from('store-assets')
-        .upload(filePath, imageFile);
+      // Upload the file using our helper function
+      const uploadedUrl = await uploadImage(imageFile, 'store-assets', filePath);
       
-      if (uploadError) throw uploadError;
-      
-      // Get the public URL
-      const { data: publicUrlData } = supabase.storage
-        .from('store-assets')
-        .getPublicUrl(filePath);
+      if (!uploadedUrl) {
+        throw new Error("فشل في تحميل الصورة");
+      }
       
       // Update state with the new URL
-      setBannerUrl(publicUrlData.publicUrl);
-      setImageUrl(publicUrlData.publicUrl);
+      setBannerUrl(uploadedUrl);
+      setImageUrl(uploadedUrl);
       
       toast({
         title: "تم رفع الصورة بنجاح",
@@ -81,7 +75,7 @@ const BannerImageUploader = ({
         duration: 3000,
       });
       
-      return publicUrlData.publicUrl;
+      return uploadedUrl;
     } catch (error: any) {
       console.error("خطأ في رفع الصورة:", error);
       toast({
@@ -101,10 +95,9 @@ const BannerImageUploader = ({
     
     // If there's a file to upload, upload it first
     if (imageFile) {
-      const uploadedUrl = await uploadImage();
+      const uploadedUrl = await handleUploadImage();
       if (uploadedUrl) {
         // Set the URL and then save
-        setBannerUrl(uploadedUrl);
         await handleSubmit(e);
       }
     } else {
@@ -125,8 +118,8 @@ const BannerImageUploader = ({
     <Card className="border-2 border-purple-100 dark:border-purple-900">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <Image className="h-5 w-5 text-purple-500" />
           <span>صورة الغلاف</span>
+          <Image className="h-5 w-5 text-purple-500" />
         </CardTitle>
       </CardHeader>
       <CardContent>

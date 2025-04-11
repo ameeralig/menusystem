@@ -14,12 +14,19 @@ export const uploadImage = async (
   path: string
 ): Promise<string | null> => {
   try {
+    // تحقق من تسجيل الدخول
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("يجب تسجيل الدخول أولاً");
+
     // تحميل الملف
     const { error: uploadError } = await supabase.storage
       .from(bucket)
       .upload(path, file);
     
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error("Error uploading file:", uploadError);
+      throw uploadError;
+    }
     
     // الحصول على الرابط العام
     const { data: publicUrlData } = supabase.storage
@@ -54,4 +61,17 @@ export const deleteImage = async (
     console.error("خطأ في حذف الصورة:", error);
     return false;
   }
+};
+
+/**
+ * إنشاء مسار فريد للملف
+ * @param userId معرّف المستخدم
+ * @param folder المجلد
+ * @param file الملف
+ * @returns المسار الفريد للملف
+ */
+export const createUniqueFilePath = (userId: string, folder: string, file: File): string => {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${userId}-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+  return `${folder}/${fileName}`;
 };
