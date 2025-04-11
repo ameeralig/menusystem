@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { Product } from "@/types/product";
 
@@ -8,29 +7,27 @@ interface CategoryGridProps {
   onCategorySelect: (category: string) => void;
 }
 
-const CategoryCard = ({
-  category,
-  image,
-  onClick
-}: {
-  category: string;
-  image: string;
+const CategoryCard = ({ 
+  category, 
+  image, 
+  onClick 
+}: { 
+  category: string; 
+  image: string; 
   onClick: () => void;
 }) => (
-  <motion.div 
-    whileHover={{
-      scale: 1.02
-    }} 
-    className="relative overflow-hidden rounded-[30PX] cursor-pointer shadow-md group" 
+  <motion.div
+    whileHover={{ scale: 1.02 }}
+    className="relative overflow-hidden rounded-xl cursor-pointer shadow-md group"
     onClick={onClick}
   >
-    <div className="h-[140px] overflow-hidden">
+    <div className="aspect-[16/9] overflow-hidden">
       <img 
         src={image} 
-        alt={category} 
-        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" 
+        alt={category}
+        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
       />
-      <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-none">
+      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
         <h3 className="text-white text-2xl font-bold tracking-wide">
           {category}
         </h3>
@@ -39,23 +36,19 @@ const CategoryCard = ({
   </motion.div>
 );
 
-const CategoryGrid = ({
-  categories,
-  getCategoryImage,
-  onCategorySelect
-}: CategoryGridProps) => {
+const CategoryGrid = ({ categories, getCategoryImage, onCategorySelect }: CategoryGridProps) => {
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
-      {categories.map(category => 
+      {categories.map((category) => (
         category && (
-          <CategoryCard 
-            key={category} 
-            category={category} 
-            image={getCategoryImage(category)} 
-            onClick={() => onCategorySelect(category)} 
+          <CategoryCard
+            key={category}
+            category={category}
+            image={getCategoryImage(category)}
+            onClick={() => onCategorySelect(category)}
           />
         )
-      )}
+      ))}
     </div>
   );
 };
