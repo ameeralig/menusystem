@@ -1,5 +1,4 @@
 
-// No changes needed to this file as it already displays the stats correctly
 import { Card, CardContent } from "@/components/ui/card";
 import { BarChart3 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,15 +15,15 @@ const DashboardStats = ({ stats, loading }: DashboardStatsProps) => {
     title: "المشاهدات",
     value: stats.totalViews,
     icon: BarChart3,
-    color: "from-blue-600 to-indigo-600",
-    bgLight: "bg-blue-50",
-    bgDark: "dark:bg-blue-900/20",
-    iconColor: "text-blue-600 dark:text-blue-400",
+    color: "from-[#ff9178] to-[#ffbcad]", // Changed to match coral theme
+    bgLight: "bg-[#fff5f2]", // Changed to match coral theme
+    bgDark: "dark:bg-[#ff9178]/20", // Changed to match coral theme
+    iconColor: "text-[#ff9178] dark:text-[#ffbcad]", // Changed to match coral theme
   };
 
   return (
     <div className="flex justify-center">
-      <Card className="overflow-hidden border border-border/50 w-full max-w-md">
+      <Card className="overflow-hidden border border-[#ffbcad]/50 w-full max-w-md">
         <CardContent className="p-6">
           {loading ? (
             <div className="space-y-3">

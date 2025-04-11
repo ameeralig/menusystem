@@ -37,9 +37,12 @@ const SocialLinksEditor = ({
   };
 
   return (
-    <Card className="border-2 border-purple-100 dark:border-purple-900">
+    <Card className="border-2 border-[#ffbcad] dark:border-[#ff9178]/40">
       <CardHeader>
-        <CardTitle className="text-right">روابط التواصل الاجتماعي</CardTitle>
+        <CardTitle className="text-right flex items-center justify-between">
+          <MessageSquare className="h-5 w-5 text-[#ff9178]" />
+          <span>روابط التواصل الاجتماعي</span>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -53,7 +56,7 @@ const SocialLinksEditor = ({
                 className="text-right"
                 dir="rtl"
               />
-              <Instagram className="w-5 h-5 text-pink-500" />
+              <Instagram className="w-5 h-5 text-[#ff9178]" />
             </div>
 
             <div className="flex items-center gap-4">
@@ -65,7 +68,7 @@ const SocialLinksEditor = ({
                 className="text-right"
                 dir="rtl"
               />
-              <Facebook className="w-5 h-5 text-blue-500" />
+              <Facebook className="w-5 h-5 text-[#ff9178]" />
             </div>
 
             <div className="flex items-center gap-4">
@@ -77,13 +80,13 @@ const SocialLinksEditor = ({
                 className="text-right"
                 dir="rtl"
               />
-              <MessageSquare className="w-5 h-5 text-blue-400" />
+              <MessageSquare className="w-5 h-5 text-[#ff9178]" />
             </div>
           </div>
           
           <Button 
             type="submit" 
-            className="w-full bg-purple-600 hover:bg-purple-700"
+            className="w-full bg-[#ff9178] hover:bg-[#ff7d61] text-white"
             disabled={isLoading}
           >
             <Save className="ml-2 h-4 w-4" />

@@ -19,6 +19,14 @@ const StoreHeader = ({ storeName, colorTheme }: StoreHeaderProps) => {
         return 'text-green-900 dark:text-green-100';
       case 'pink':
         return 'text-pink-900 dark:text-pink-100';
+      case 'teal':
+        return 'text-teal-900 dark:text-teal-100';
+      case 'amber':
+        return 'text-amber-900 dark:text-amber-100';
+      case 'indigo':
+        return 'text-indigo-900 dark:text-indigo-100';
+      case 'rose':
+        return 'text-rose-900 dark:text-rose-100';
       default:
         return 'text-gray-900 dark:text-white';
     }

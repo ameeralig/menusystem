@@ -17,6 +17,8 @@ const ProductPreviewContainer = ({
   
   const getThemeClasses = (theme: string | null) => {
     switch (theme) {
+      case 'coral':
+        return 'bg-gradient-to-br from-[#fff5f2] to-[#ffede9] dark:from-[#ff9178]/10 dark:to-[#ff9178]/20';
       case 'purple':
         return 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-900/30';
       case 'blue':
@@ -25,8 +27,6 @@ const ProductPreviewContainer = ({
         return 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/30';
       case 'pink':
         return 'bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-900/30';
-      case 'coral':
-        return 'bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-900/30';
       case 'teal':
         return 'bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-900/30';
       case 'amber':
