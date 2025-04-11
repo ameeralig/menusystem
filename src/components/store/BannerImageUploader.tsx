@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Image, UploadCloud, Save, X } from "lucide-react";
+import { Image, UploadCloud, Save, X, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadImage, createUniqueFilePath } from "@/utils/storageHelpers";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface BannerImageUploaderProps {
   bannerUrl: string | null;
@@ -25,17 +26,20 @@ const BannerImageUploader = ({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploadLoading, setUploadLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(bannerUrl);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setImageUrl(e.target.value);
     setPreviewUrl(e.target.value);
+    setUploadError(null);
   };
 
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setImageFile(file);
+      setUploadError(null);
       
       // Create a preview
       const reader = new FileReader();
@@ -50,13 +54,21 @@ const BannerImageUploader = ({
     if (!imageFile) return null;
     
     setUploadLoading(true);
+    setUploadError(null);
+    
     try {
       // Get the currently authenticated user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
       
+      console.log("Uploading image for user:", user.id);
+      
       // Create a unique file path
       const filePath = createUniqueFilePath(user.id, 'banners', imageFile);
+      
+      console.log("Created file path:", filePath);
+      console.log("File size:", imageFile.size, "bytes");
+      console.log("File type:", imageFile.type);
       
       // Upload the file using our helper function
       const uploadedUrl = await uploadImage(imageFile, 'store-assets', filePath);
@@ -64,6 +76,8 @@ const BannerImageUploader = ({
       if (!uploadedUrl) {
         throw new Error("فشل في تحميل الصورة");
       }
+      
+      console.log("Upload successful, URL:", uploadedUrl);
       
       // Update state with the new URL
       setBannerUrl(uploadedUrl);
@@ -78,6 +92,7 @@ const BannerImageUploader = ({
       return uploadedUrl;
     } catch (error: any) {
       console.error("خطأ في رفع الصورة:", error);
+      setUploadError(error.message || "حدث خطأ أثناء رفع الصورة");
       toast({
         title: "خطأ في رفع الصورة",
         description: error.message,
@@ -92,6 +107,7 @@ const BannerImageUploader = ({
 
   const handleSaveWithUpload = async (e: React.FormEvent) => {
     e.preventDefault();
+    setUploadError(null);
     
     // If there's a file to upload, upload it first
     if (imageFile) {
@@ -112,6 +128,7 @@ const BannerImageUploader = ({
     setImageUrl("");
     setPreviewUrl(null);
     setBannerUrl(null);
+    setUploadError(null);
   };
 
   return (
@@ -124,6 +141,13 @@ const BannerImageUploader = ({
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSaveWithUpload} className="space-y-4">
+          {uploadError && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>{uploadError}</AlertDescription>
+            </Alert>
+          )}
+          
           {previewUrl && (
             <div className="relative">
               <img 
