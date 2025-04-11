@@ -4,9 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Image, UploadCloud, Save, X, AlertTriangle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { uploadImage, createUniqueFilePath } from "@/utils/storageHelpers";
+import { Image, Save, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface BannerImageUploaderProps {
@@ -23,112 +21,30 @@ const BannerImageUploader = ({
   isLoading
 }: BannerImageUploaderProps) => {
   const [imageUrl, setImageUrl] = useState<string>(bannerUrl || "");
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [uploadLoading, setUploadLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(bannerUrl);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setImageUrl(e.target.value);
     setPreviewUrl(e.target.value);
-    setUploadError(null);
+    setError(null);
   };
 
-  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setImageFile(file);
-      setUploadError(null);
-      
-      // Create a preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleUploadImage = async () => {
-    if (!imageFile) return null;
-    
-    setUploadLoading(true);
-    setUploadError(null);
-    
-    try {
-      // Get the currently authenticated user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("يجب تسجيل الدخول أولاً");
-      
-      console.log("Uploading image for user:", user.id);
-      
-      // Create a unique file path
-      const filePath = createUniqueFilePath(user.id, 'banners', imageFile);
-      
-      console.log("Created file path:", filePath);
-      console.log("File size:", imageFile.size, "bytes");
-      console.log("File type:", imageFile.type);
-      
-      // Upload the file using our helper function
-      const uploadedUrl = await uploadImage(imageFile, 'store-assets', filePath);
-      
-      if (!uploadedUrl) {
-        throw new Error("فشل في تحميل الصورة");
-      }
-      
-      console.log("Upload successful, URL:", uploadedUrl);
-      
-      // Update state with the new URL
-      setBannerUrl(uploadedUrl);
-      setImageUrl(uploadedUrl);
-      
-      toast({
-        title: "تم رفع الصورة بنجاح",
-        description: "يمكنك الآن حفظ التغييرات",
-        duration: 3000,
-      });
-      
-      return uploadedUrl;
-    } catch (error: any) {
-      console.error("خطأ في رفع الصورة:", error);
-      setUploadError(error.message || "حدث خطأ أثناء رفع الصورة");
-      toast({
-        title: "خطأ في رفع الصورة",
-        description: error.message,
-        variant: "destructive",
-        duration: 3000,
-      });
-      return null;
-    } finally {
-      setUploadLoading(false);
-    }
-  };
-
-  const handleSaveWithUpload = async (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUploadError(null);
+    setError(null);
     
-    // If there's a file to upload, upload it first
-    if (imageFile) {
-      const uploadedUrl = await handleUploadImage();
-      if (uploadedUrl) {
-        // Set the URL and then save
-        await handleSubmit(e);
-      }
-    } else {
-      // If only URL is provided, use that
-      setBannerUrl(imageUrl || null);
-      await handleSubmit(e);
-    }
+    // Set the URL directly
+    setBannerUrl(imageUrl || null);
+    await handleSubmit(e);
   };
 
   const clearImage = () => {
-    setImageFile(null);
     setImageUrl("");
     setPreviewUrl(null);
     setBannerUrl(null);
-    setUploadError(null);
+    setError(null);
   };
 
   return (
@@ -140,11 +56,10 @@ const BannerImageUploader = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSaveWithUpload} className="space-y-4">
-          {uploadError && (
+        <form onSubmit={handleSave} className="space-y-4">
+          {error && (
             <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>{uploadError}</AlertDescription>
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
           
@@ -179,36 +94,15 @@ const BannerImageUploader = ({
                 dir="rtl"
               />
             </div>
-            
-            <div className="text-center">
-              <span className="text-gray-500">أو</span>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium block mb-1 text-right">تحميل صورة</label>
-              <div className="border-2 border-dashed border-gray-300 rounded-md p-4 text-center">
-                <Input
-                  type="file"
-                  id="banner-upload"
-                  accept="image/*"
-                  onChange={handleImageFileChange}
-                  className="hidden"
-                />
-                <label htmlFor="banner-upload" className="cursor-pointer flex flex-col items-center justify-center">
-                  <UploadCloud className="h-8 w-8 text-gray-400 mb-2" />
-                  <span className="text-sm text-gray-500">اضغط لتحميل صورة من جهازك</span>
-                </label>
-              </div>
-            </div>
           </div>
           
           <Button 
             type="submit" 
             className="w-full bg-purple-600 hover:bg-purple-700"
-            disabled={isLoading || uploadLoading}
+            disabled={isLoading}
           >
             <Save className="ml-2 h-4 w-4" />
-            {isLoading || uploadLoading ? "جاري الحفظ..." : "حفظ صورة الغلاف"}
+            {isLoading ? "جاري الحفظ..." : "حفظ صورة الغلاف"}
           </Button>
         </form>
       </CardContent>
