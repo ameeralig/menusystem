@@ -4,15 +4,15 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ArrowLeft, Instagram, Facebook, MessageSquare } from "lucide-react";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import { ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import StoreNameEditor from "@/components/store/StoreNameEditor";
 import ColorThemeSelector from "@/components/store/ColorThemeSelector";
 import StoreSlugEditor from "@/components/store/StoreSlugEditor";
 import BannerImageUploader from "@/components/store/BannerImageUploader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import SocialLinksEditor from "@/components/store/SocialLinksEditor";
+import { Card } from "@/components/ui/card";
 
 type SocialLinks = {
   instagram: string;
@@ -23,7 +23,6 @@ type SocialLinks = {
 const StoreCustomization = () => {
   const [storeName, setStoreName] = useState("");
   const [storeSlug, setStoreSlug] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
   const [colorTheme, setColorTheme] = useState("default");
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({
@@ -36,38 +35,43 @@ const StoreCustomization = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchStoreSettings = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const { data: storeSettings } = await supabase
-          .from("store_settings")
-          .select("store_name, color_theme, slug, social_links, banner_url")
-          .eq("user_id", user.id)
-          .single();
-
-        if (storeSettings) {
-          setStoreName(storeSettings.store_name || "");
-          setColorTheme(storeSettings.color_theme || "default");
-          setStoreSlug(storeSettings.slug || "");
-          setBannerUrl(storeSettings.banner_url || null);
-          setSocialLinks({
-            instagram: (storeSettings.social_links as SocialLinks)?.instagram || "",
-            facebook: (storeSettings.social_links as SocialLinks)?.facebook || "",
-            telegram: (storeSettings.social_links as SocialLinks)?.telegram || "",
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching store settings:", error);
-      }
-    };
-
     fetchStoreSettings();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const fetchStoreSettings = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: storeSettings } = await supabase
+        .from("store_settings")
+        .select("store_name, color_theme, slug, social_links, banner_url")
+        .eq("user_id", user.id)
+        .single();
+
+      if (storeSettings) {
+        setStoreName(storeSettings.store_name || "");
+        setColorTheme(storeSettings.color_theme || "default");
+        setStoreSlug(storeSettings.slug || "");
+        setBannerUrl(storeSettings.banner_url || null);
+        setSocialLinks({
+          instagram: (storeSettings.social_links as SocialLinks)?.instagram || "",
+          facebook: (storeSettings.social_links as SocialLinks)?.facebook || "",
+          telegram: (storeSettings.social_links as SocialLinks)?.telegram || "",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching store settings:", error);
+    }
+  };
+
+  const saveStoreSettings = async (updatedData: Partial<{
+    store_name: string;
+    color_theme: string;
+    slug: string;
+    social_links: SocialLinks;
+    banner_url: string | null;
+  }>) => {
     setIsLoading(true);
 
     try {
@@ -80,29 +84,23 @@ const StoreCustomization = () => {
         .eq("user_id", user.id)
         .single();
 
+      const dataToUpdate = {
+        ...updatedData,
+        updated_at: new Date().toISOString()
+      };
+
       let result;
       if (existingSettings) {
         result = await supabase
           .from("store_settings")
-          .update({ 
-            store_name: storeName,
-            color_theme: colorTheme,
-            slug: storeSlug,
-            social_links: socialLinks,
-            banner_url: bannerUrl,
-            updated_at: new Date().toISOString()
-          })
+          .update(dataToUpdate)
           .eq("user_id", user.id);
       } else {
         result = await supabase
           .from("store_settings")
           .insert([{ 
-            user_id: user.id, 
-            store_name: storeName,
-            color_theme: colorTheme,
-            slug: storeSlug,
-            social_links: socialLinks,
-            banner_url: bannerUrl
+            user_id: user.id,
+            ...dataToUpdate
           }]);
       }
 
@@ -119,7 +117,13 @@ const StoreCustomization = () => {
         duration: 3000,
       });
 
-      setIsEditing(false);
+      // Update local state for any settings that were changed
+      if (updatedData.store_name !== undefined) setStoreName(updatedData.store_name);
+      if (updatedData.color_theme !== undefined) setColorTheme(updatedData.color_theme);
+      if (updatedData.slug !== undefined) setStoreSlug(updatedData.slug);
+      if (updatedData.social_links !== undefined) setSocialLinks(updatedData.social_links);
+      if (updatedData.banner_url !== undefined) setBannerUrl(updatedData.banner_url);
+
     } catch (error: any) {
       console.error("Error saving store settings:", error);
       toast({
@@ -133,17 +137,30 @@ const StoreCustomization = () => {
     }
   };
 
-  const handleSocialLinkChange = (platform: keyof typeof socialLinks) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSocialLinks(prev => ({
-      ...prev,
-      [platform]: e.target.value
-    }));
+  const handleNameSubmit = async () => {
+    await saveStoreSettings({ store_name: storeName });
+  };
+
+  const handleSlugSubmit = async () => {
+    await saveStoreSettings({ slug: storeSlug });
+  };
+
+  const handleColorThemeSubmit = async () => {
+    await saveStoreSettings({ color_theme: colorTheme });
+  };
+
+  const handleBannerSubmit = async () => {
+    await saveStoreSettings({ banner_url: bannerUrl });
+  };
+
+  const handleSocialLinksSubmit = async (links: SocialLinks) => {
+    await saveStoreSettings({ social_links: links });
   };
 
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader />
-      <main className="container mx-auto p-6">
+      <main className="container mx-auto p-4 sm:p-6">
         <Button
           variant="ghost"
           onClick={() => navigate("/dashboard")}
@@ -158,94 +175,60 @@ const StoreCustomization = () => {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-2xl mx-auto space-y-6"
         >
-          <h1 className="text-3xl font-bold mb-8 text-right">تخصيص المتجر</h1>
+          <h1 className="text-3xl font-bold mb-6 text-right">تخصيص المتجر</h1>
           
-          <StoreNameEditor 
-            storeName={storeName}
-            setStoreName={setStoreName}
-            isEditing={isEditing}
-            setIsEditing={setIsEditing}
-            handleSubmit={handleSubmit}
-            isLoading={isLoading}
-          />
-
-          <StoreSlugEditor
-            storeSlug={storeSlug}
-            setStoreSlug={setStoreSlug}
-            isEditing={isEditing}
-            setIsEditing={setIsEditing}
-            handleSubmit={handleSubmit}
-            isLoading={isLoading}
-          />
-
-          <BannerImageUploader 
-            bannerUrl={bannerUrl}
-            setBannerUrl={setBannerUrl}
-            handleSubmit={handleSubmit}
-            isLoading={isLoading}
-          />
-
-          <ColorThemeSelector 
-            colorTheme={colorTheme}
-            setColorTheme={setColorTheme}
-            handleSubmit={handleSubmit}
-            isLoading={isLoading}
-          />
-
-          <Card className="border-2 border-purple-100 dark:border-purple-900">
-            <CardHeader>
-              <CardTitle className="text-right">روابط التواصل الاجتماعي</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <Input
-                      type="url"
-                      placeholder="رابط الإنستقرام"
-                      value={socialLinks.instagram}
-                      onChange={handleSocialLinkChange('instagram')}
-                      className="text-right"
-                      dir="rtl"
-                    />
-                    <Instagram className="w-5 h-5 text-pink-500" />
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <Input
-                      type="url"
-                      placeholder="رابط الفيسبوك"
-                      value={socialLinks.facebook}
-                      onChange={handleSocialLinkChange('facebook')}
-                      className="text-right"
-                      dir="rtl"
-                    />
-                    <Facebook className="w-5 h-5 text-blue-500" />
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <Input
-                      type="url"
-                      placeholder="رابط التليجرام"
-                      value={socialLinks.telegram}
-                      onChange={handleSocialLinkChange('telegram')}
-                      className="text-right"
-                      dir="rtl"
-                    />
-                    <MessageSquare className="w-5 h-5 text-blue-400" />
-                  </div>
-                </div>
+          <div className="grid gap-6">
+            <Card className="p-6 shadow-md">
+              <h2 className="text-xl font-semibold mb-4 text-right">المعلومات الأساسية</h2>
+              <div className="space-y-6">
+                <StoreNameEditor 
+                  storeName={storeName}
+                  setStoreName={setStoreName}
+                  isEditing={false}
+                  setIsEditing={() => {}}
+                  handleSubmit={async () => { await handleNameSubmit(); }}
+                  isLoading={isLoading}
+                />
                 
-                <Button 
-                  type="submit" 
-                  className="w-full bg-purple-600 hover:bg-purple-700"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "جاري الحفظ..." : "حفظ الروابط"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+                <StoreSlugEditor
+                  storeSlug={storeSlug}
+                  setStoreSlug={setStoreSlug}
+                  isEditing={false}
+                  setIsEditing={() => {}}
+                  handleSubmit={async () => { await handleSlugSubmit(); }}
+                  isLoading={isLoading}
+                />
+              </div>
+            </Card>
+            
+            <Card className="p-6 shadow-md">
+              <h2 className="text-xl font-semibold mb-4 text-right">المظهر والتخصيص</h2>
+              <div className="space-y-6">
+                <BannerImageUploader 
+                  bannerUrl={bannerUrl}
+                  setBannerUrl={setBannerUrl}
+                  handleSubmit={async () => { await handleBannerSubmit(); }}
+                  isLoading={isLoading}
+                />
+                
+                <ColorThemeSelector 
+                  colorTheme={colorTheme}
+                  setColorTheme={setColorTheme}
+                  handleSubmit={async () => { await handleColorThemeSubmit(); }}
+                  isLoading={isLoading}
+                />
+              </div>
+            </Card>
+            
+            <Card className="p-6 shadow-md">
+              <h2 className="text-xl font-semibold mb-4 text-right">روابط التواصل</h2>
+              <SocialLinksEditor 
+                initialSocialLinks={socialLinks}
+                onSave={handleSocialLinksSubmit}
+                isLoading={isLoading}
+              />
+            </Card>
+          </div>
         </motion.div>
       </main>
     </div>

@@ -11,7 +11,7 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 interface BannerImageUploaderProps {
   bannerUrl: string | null;
   setBannerUrl: (url: string | null) => void;
-  handleSubmit: (e: React.FormEvent) => Promise<void>;
+  handleSubmit: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -37,7 +37,13 @@ const BannerImageUploader = ({
   const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const url = e.target.value;
     setImageUrl(url);
-    setPreviewUrl(url);
+    
+    if (url) {
+      setPreviewUrl(url);
+    } else {
+      setPreviewUrl(null);
+    }
+    
     setError(null);
   };
 
@@ -53,11 +59,11 @@ const BannerImageUploader = ({
         return;
       }
       
-      // Set the URL directly
+      // Set the URL to parent component
       setBannerUrl(imageUrl || null);
       
       // Submit the form immediately
-      await handleSubmit(e);
+      await handleSubmit();
       
       toast({
         title: "تم حفظ صورة الغلاف",
