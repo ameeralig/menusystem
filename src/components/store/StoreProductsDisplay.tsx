@@ -37,7 +37,12 @@ const StoreProductsDisplay = ({ products, storeName, colorTheme }: StoreProducts
   return (
     <>
       <StoreHeader storeName={storeName} colorTheme={colorTheme} />
-      <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+      <SearchBar 
+        searchQuery={searchQuery} 
+        setSearchQuery={setSearchQuery} 
+        products={products}
+        setSelectedCategory={setSelectedCategory}
+      />
 
       {!selectedCategory ? (
         <CategoryGrid
