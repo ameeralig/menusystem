@@ -93,11 +93,11 @@ const BannerImageUploader = ({
   };
 
   return (
-    <Card className="border-2 border-purple-100 dark:border-purple-900">
+    <Card className="border-2 border-[#ffbcad] dark:border-[#ff9178]/40">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
+          <Image className="h-5 w-5 text-[#ff9178]" />
           <span>صورة الغلاف</span>
-          <Image className="h-5 w-5 text-purple-500" />
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -149,7 +149,7 @@ const BannerImageUploader = ({
           
           <Button 
             type="submit" 
-            className="w-full bg-purple-600 hover:bg-purple-700"
+            className="w-full bg-[#ff9178] hover:bg-[#ff7d61] text-white"
             disabled={isLoading}
           >
             <Save className="ml-2 h-4 w-4" />
