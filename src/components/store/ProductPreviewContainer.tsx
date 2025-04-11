@@ -1,5 +1,6 @@
 
 import { ReactNode, useState } from "react";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 interface ProductPreviewContainerProps {
   children: ReactNode;
@@ -32,17 +33,19 @@ const ProductPreviewContainer = ({
   return (
     <div className="min-h-screen flex flex-col">
       {bannerUrl && !imageError ? (
-        <div className="relative w-full h-64 sm:h-80">
-          <img 
-            src={bannerUrl} 
-            alt="صورة الغلاف" 
-            className="w-full h-full object-cover"
-            onError={() => {
-              console.error("Error loading image:", bannerUrl);
-              setImageError(true);
-            }}
-          />
-          <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+        <div className="relative w-full overflow-hidden">
+          <AspectRatio ratio={16 / 5} className="w-full">
+            <img 
+              src={bannerUrl} 
+              alt="صورة الغلاف" 
+              className="w-full h-full object-cover"
+              onError={() => {
+                console.error("Error loading image:", bannerUrl);
+                setImageError(true);
+              }}
+            />
+            <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+          </AspectRatio>
         </div>
       ) : null}
       <div className={`flex-1 ${getThemeClasses(colorTheme)} transition-colors duration-300`}>
