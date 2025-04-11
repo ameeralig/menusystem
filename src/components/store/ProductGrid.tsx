@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { Product } from "@/types/product";
 
@@ -13,7 +14,7 @@ const ProductCard = ({ product }: { product: Product }) => (
     className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300"
   >
     {product.image_url && (
-      <div className="aspect-[4/3] overflow-hidden">
+      <div className="aspect-[16/9] overflow-hidden">
         <img
           src={product.image_url}
           alt={product.name}
