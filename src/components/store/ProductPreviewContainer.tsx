@@ -44,7 +44,7 @@ const ProductPreviewContainer = ({
     <div className="min-h-screen flex flex-col">
       {bannerUrl && !imageError ? (
         <div className="relative w-full overflow-hidden">
-          <AspectRatio ratio={16 / 9} className="w-full">
+          <AspectRatio ratio={16 / 5} className="w-full">
             <img 
               src={bannerUrl} 
               alt="صورة الغلاف" 
