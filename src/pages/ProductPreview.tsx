@@ -22,6 +22,7 @@ const ProductPreview = () => {
   const [storeName, setStoreName] = useState<string | null>(null);
   const [colorTheme, setColorTheme] = useState<string | null>("default");
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -58,7 +59,7 @@ const ProductPreview = () => {
 
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
-          .select("store_name, color_theme, social_links")
+          .select("store_name, color_theme, social_links, banner_url")
           .eq("user_id", userId)
           .maybeSingle();
 
@@ -67,9 +68,12 @@ const ProductPreview = () => {
           setStoreName(null);
           setColorTheme("default");
         } else {
+          console.info("Store settings data:", storeSettings);
           setStoreName(storeSettings?.store_name || null);
           setColorTheme(storeSettings?.color_theme || "default");
           setSocialLinks(storeSettings?.social_links as SocialLinks || {});
+          setBannerUrl(storeSettings?.banner_url || null);
+          console.info("Banner URL from database:", storeSettings?.banner_url);
         }
 
         const { data: productsData, error: productsError } = await supabase
@@ -119,7 +123,7 @@ const ProductPreview = () => {
   }
 
   return (
-    <ProductPreviewContainer colorTheme={colorTheme}>
+    <ProductPreviewContainer colorTheme={colorTheme} bannerUrl={bannerUrl}>
       <StoreProductsDisplay 
         products={products} 
         storeName={storeName} 
