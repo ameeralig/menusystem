@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 import StoreNameEditor from "@/components/store/StoreNameEditor";
 import ColorThemeSelector from "@/components/store/ColorThemeSelector";
 import StoreSlugEditor from "@/components/store/StoreSlugEditor";
+import BannerImageUploader from "@/components/store/BannerImageUploader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type SocialLinks = {
@@ -24,6 +25,7 @@ const StoreCustomization = () => {
   const [storeSlug, setStoreSlug] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [colorTheme, setColorTheme] = useState("default");
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({
     instagram: "",
     facebook: "",
@@ -41,7 +43,7 @@ const StoreCustomization = () => {
 
         const { data: storeSettings } = await supabase
           .from("store_settings")
-          .select("store_name, color_theme, slug, social_links")
+          .select("store_name, color_theme, slug, social_links, banner_url")
           .eq("user_id", user.id)
           .single();
 
@@ -49,6 +51,7 @@ const StoreCustomization = () => {
           setStoreName(storeSettings.store_name || "");
           setColorTheme(storeSettings.color_theme || "default");
           setStoreSlug(storeSettings.slug || "");
+          setBannerUrl(storeSettings.banner_url || null);
           setSocialLinks({
             instagram: (storeSettings.social_links as SocialLinks)?.instagram || "",
             facebook: (storeSettings.social_links as SocialLinks)?.facebook || "",
@@ -86,6 +89,7 @@ const StoreCustomization = () => {
             color_theme: colorTheme,
             slug: storeSlug,
             social_links: socialLinks,
+            banner_url: bannerUrl,
             updated_at: new Date().toISOString()
           })
           .eq("user_id", user.id);
@@ -97,7 +101,8 @@ const StoreCustomization = () => {
             store_name: storeName,
             color_theme: colorTheme,
             slug: storeSlug,
-            social_links: socialLinks
+            social_links: socialLinks,
+            banner_url: bannerUrl
           }]);
       }
 
@@ -169,6 +174,13 @@ const StoreCustomization = () => {
             setStoreSlug={setStoreSlug}
             isEditing={isEditing}
             setIsEditing={setIsEditing}
+            handleSubmit={handleSubmit}
+            isLoading={isLoading}
+          />
+
+          <BannerImageUploader 
+            bannerUrl={bannerUrl}
+            setBannerUrl={setBannerUrl}
             handleSubmit={handleSubmit}
             isLoading={isLoading}
           />
