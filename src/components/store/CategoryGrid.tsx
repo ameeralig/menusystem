@@ -18,7 +18,7 @@ const CategoryCard = ({
 }) => (
   <motion.div
     whileHover={{ scale: 1.02 }}
-    className="relative overflow-hidden rounded-[40px] cursor-pointer shadow-md group"
+    className="relative overflow-hidden rounded-[30px] cursor-pointer shadow-md group"
     onClick={onClick}
   >
     <div className="aspect-[16/9] overflow-hidden">
