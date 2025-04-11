@@ -163,7 +163,6 @@ export type Database = {
         Row: {
           banner_url: string | null
           color_theme: string | null
-          contact_info: Json | null
           created_at: string
           logo_url: string | null
           slug: string | null
@@ -175,7 +174,6 @@ export type Database = {
         Insert: {
           banner_url?: string | null
           color_theme?: string | null
-          contact_info?: Json | null
           created_at?: string
           logo_url?: string | null
           slug?: string | null
@@ -187,7 +185,6 @@ export type Database = {
         Update: {
           banner_url?: string | null
           color_theme?: string | null
-          contact_info?: Json | null
           created_at?: string
           logo_url?: string | null
           slug?: string | null
