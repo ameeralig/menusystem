@@ -29,11 +29,16 @@ const ProductPreviewContainer = ({
 
   const fetchFontSettings = async () => {
     try {
-      const { data: storeSettings } = await supabase
+      const { data: storeSettings, error } = await supabase
         .from("store_settings")
         .select("font_settings")
         .eq("user_id", userId)
         .single();
+
+      if (error) {
+        console.error("Error fetching font settings:", error);
+        return;
+      }
 
       if (storeSettings?.font_settings) {
         setFontSettings(storeSettings.font_settings as FontSettings);

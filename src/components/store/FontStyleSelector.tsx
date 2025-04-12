@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Typography, Save, Upload } from "lucide-react";
+import { Type, Save, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export interface FontSettings {
@@ -221,7 +221,7 @@ const FontStyleSelector = ({
     <Card className="border-2 border-[#ffbcad] dark:border-[#ff9178]/40">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <Typography className="h-5 w-5 text-[#ff9178]" />
+          <Type className="h-5 w-5 text-[#ff9178]" />
           <span>تخصيص الخطوط</span>
         </CardTitle>
       </CardHeader>

@@ -58,22 +58,31 @@ const StoreCustomization = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: storeSettings } = await supabase
+      const { data: storeSettings, error } = await supabase
         .from("store_settings")
-        .select("store_name, color_theme, slug, social_links, banner_url, font_settings")
+        .select("*")
         .eq("user_id", user.id)
         .single();
+
+      if (error) {
+        console.error("Error fetching store settings:", error);
+        return;
+      }
 
       if (storeSettings) {
         setStoreName(storeSettings.store_name || "");
         setColorTheme(storeSettings.color_theme || "default");
         setStoreSlug(storeSettings.slug || "");
         setBannerUrl(storeSettings.banner_url || null);
-        setSocialLinks({
-          instagram: (storeSettings.social_links as SocialLinks)?.instagram || "",
-          facebook: (storeSettings.social_links as SocialLinks)?.facebook || "",
-          telegram: (storeSettings.social_links as SocialLinks)?.telegram || "",
-        });
+        
+        // تحميل الروابط الاجتماعية
+        if (storeSettings.social_links) {
+          setSocialLinks({
+            instagram: (storeSettings.social_links as SocialLinks)?.instagram || "",
+            facebook: (storeSettings.social_links as SocialLinks)?.facebook || "",
+            telegram: (storeSettings.social_links as SocialLinks)?.telegram || "",
+          });
+        }
         
         // تحميل إعدادات الخطوط إن وجدت
         if (storeSettings.font_settings) {
