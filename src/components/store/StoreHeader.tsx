@@ -33,7 +33,7 @@ const StoreHeader = ({ storeName, colorTheme }: StoreHeaderProps) => {
   };
 
   return storeName ? (
-    <h1 className={`text-3xl font-bold text-center mb-8 ${getThemeClasses(colorTheme)} store-name-font`}>
+    <h1 className={`text-3xl font-bold text-center mb-8 ${getThemeClasses(colorTheme)}`}>
       {storeName}
     </h1>
   ) : null;
