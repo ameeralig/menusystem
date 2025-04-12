@@ -123,7 +123,7 @@ const ProductPreview = () => {
   }
 
   return (
-    <ProductPreviewContainer colorTheme={colorTheme} bannerUrl={bannerUrl}>
+    <ProductPreviewContainer colorTheme={colorTheme} bannerUrl={bannerUrl} userId={userId}>
       <StoreProductsDisplay 
         products={products} 
         storeName={storeName} 

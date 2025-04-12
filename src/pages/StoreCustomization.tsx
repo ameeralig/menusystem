@@ -12,6 +12,7 @@ import ColorThemeSelector from "@/components/store/ColorThemeSelector";
 import StoreSlugEditor from "@/components/store/StoreSlugEditor";
 import BannerImageUploader from "@/components/store/BannerImageUploader";
 import SocialLinksEditor from "@/components/store/SocialLinksEditor";
+import FontStyleSelector, { FontSettings } from "@/components/store/FontStyleSelector";
 import { Card } from "@/components/ui/card";
 
 type SocialLinks = {
@@ -30,6 +31,20 @@ const StoreCustomization = () => {
     facebook: "",
     telegram: "",
   });
+  const [fontSettings, setFontSettings] = useState<FontSettings>({
+    storeName: {
+      fontFamily: "sans-serif",
+      customFont: null,
+    },
+    categories: {
+      fontFamily: "sans-serif",
+      customFont: null,
+    },
+    general: {
+      fontFamily: "sans-serif",
+      customFont: null,
+    }
+  });
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -45,7 +60,7 @@ const StoreCustomization = () => {
 
       const { data: storeSettings } = await supabase
         .from("store_settings")
-        .select("store_name, color_theme, slug, social_links, banner_url")
+        .select("store_name, color_theme, slug, social_links, banner_url, font_settings")
         .eq("user_id", user.id)
         .single();
 
@@ -59,6 +74,11 @@ const StoreCustomization = () => {
           facebook: (storeSettings.social_links as SocialLinks)?.facebook || "",
           telegram: (storeSettings.social_links as SocialLinks)?.telegram || "",
         });
+        
+        // تحميل إعدادات الخطوط إن وجدت
+        if (storeSettings.font_settings) {
+          setFontSettings(storeSettings.font_settings as FontSettings);
+        }
       }
     } catch (error) {
       console.error("Error fetching store settings:", error);
@@ -71,6 +91,7 @@ const StoreCustomization = () => {
     slug: string;
     social_links: SocialLinks;
     banner_url: string | null;
+    font_settings: FontSettings;
   }>) => {
     setIsLoading(true);
 
@@ -123,6 +144,7 @@ const StoreCustomization = () => {
       if (updatedData.slug !== undefined) setStoreSlug(updatedData.slug);
       if (updatedData.social_links !== undefined) setSocialLinks(updatedData.social_links);
       if (updatedData.banner_url !== undefined) setBannerUrl(updatedData.banner_url);
+      if (updatedData.font_settings !== undefined) setFontSettings(updatedData.font_settings);
 
     } catch (error: any) {
       console.error("Error saving store settings:", error);
@@ -155,6 +177,10 @@ const StoreCustomization = () => {
 
   const handleSocialLinksSubmit = async (links: SocialLinks) => {
     await saveStoreSettings({ social_links: links });
+  };
+  
+  const handleFontSettingsSubmit = async (settings: FontSettings) => {
+    await saveStoreSettings({ font_settings: settings });
   };
 
   return (
@@ -215,6 +241,12 @@ const StoreCustomization = () => {
                   colorTheme={colorTheme}
                   setColorTheme={setColorTheme}
                   handleSubmit={async () => { await handleColorThemeSubmit(); }}
+                  isLoading={isLoading}
+                />
+                
+                <FontStyleSelector
+                  initialFontSettings={fontSettings}
+                  onSave={handleFontSettingsSubmit}
                   isLoading={isLoading}
                 />
               </div>

@@ -29,7 +29,7 @@ const CategoryCard = ({
         className="w-full aspect-[16/9] object-cover transition-transform duration-300 group-hover:scale-110"
       />
       <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-        <h3 className="text-white text-2xl font-bold tracking-wide">
+        <h3 className="text-white text-2xl font-bold tracking-wide category-font">
           {category}
         </h3>
       </div>

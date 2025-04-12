@@ -1,19 +1,47 @@
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { FontSettings } from "@/components/store/FontStyleSelector";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProductPreviewContainerProps {
   children: ReactNode;
   colorTheme: string | null;
   bannerUrl?: string | null;
+  userId?: string;
 }
 
 const ProductPreviewContainer = ({ 
   children, 
   colorTheme,
-  bannerUrl
+  bannerUrl,
+  userId
 }: ProductPreviewContainerProps) => {
   const [imageError, setImageError] = useState(false);
+  const [fontSettings, setFontSettings] = useState<FontSettings | null>(null);
+  
+  // جلب إعدادات الخطوط إذا كان هناك معرف مستخدم
+  useEffect(() => {
+    if (userId) {
+      fetchFontSettings();
+    }
+  }, [userId]);
+
+  const fetchFontSettings = async () => {
+    try {
+      const { data: storeSettings } = await supabase
+        .from("store_settings")
+        .select("font_settings")
+        .eq("user_id", userId)
+        .single();
+
+      if (storeSettings?.font_settings) {
+        setFontSettings(storeSettings.font_settings as FontSettings);
+      }
+    } catch (error) {
+      console.error("Error fetching font settings:", error);
+    }
+  };
   
   const getThemeClasses = (theme: string | null) => {
     switch (theme) {
@@ -40,11 +68,42 @@ const ProductPreviewContainer = ({
     }
   };
 
+  // تطبيق الخط العام على الحاوية
+  const generalFontStyle = fontSettings?.general?.fontFamily 
+    ? (fontSettings.general.fontFamily === "custom" && fontSettings.general.customFont 
+      ? { fontFamily: fontSettings.general.customFont } 
+      : { fontFamily: fontSettings.general.fontFamily })
+    : {};
+
+  // إضافة CSS لتطبيق الخطوط المخصصة
+  const fontCSSClasses = () => {
+    if (!fontSettings) return null;
+
+    return (
+      <style>
+        {`
+          .store-name-font {
+            font-family: ${fontSettings.storeName.fontFamily === "custom" && fontSettings.storeName.customFont 
+              ? fontSettings.storeName.customFont 
+              : fontSettings.storeName.fontFamily};
+          }
+          .category-font {
+            font-family: ${fontSettings.categories.fontFamily === "custom" && fontSettings.categories.customFont 
+              ? fontSettings.categories.customFont 
+              : fontSettings.categories.fontFamily};
+          }
+        `}
+      </style>
+    );
+  };
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col" style={generalFontStyle}>
+      {fontCSSClasses()}
+      
       {bannerUrl && !imageError ? (
         <div className="relative w-full overflow-hidden">
-          <AspectRatio ratio={16 / 5} className="w-full">
+          <AspectRatio ratio={16 / 9} className="w-full">
             <img 
               src={bannerUrl} 
               alt="صورة الغلاف" 
