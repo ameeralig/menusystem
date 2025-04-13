@@ -3,7 +3,7 @@ import { Search, SparklesIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   CommandDialog,
   CommandInput,
@@ -46,6 +46,42 @@ export const ProductFilters = ({
     }
   };
 
+  // دالة مساعدة لقياس التشابه بين سلسلتي نصوص
+  const calculateSimilarity = (str1: string, str2: string): number => {
+    const s1 = str1.toLowerCase().trim();
+    const s2 = str2.toLowerCase().trim();
+    
+    // إذا كانت إحدى السلاسل فارغة
+    if (s1.length === 0 || s2.length === 0) return 0;
+    
+    // مطابقة تامة
+    if (s1 === s2) return 1;
+    
+    // مطابقة جزئية (إذا كانت إحدى السلاسل تحتوي الأخرى)
+    if (s1.includes(s2) || s2.includes(s1)) {
+      const minLength = Math.min(s1.length, s2.length);
+      const maxLength = Math.max(s1.length, s2.length);
+      return minLength / maxLength;
+    }
+    
+    // حساب عدد الكلمات المشتركة
+    const words1 = s1.split(/\s+/);
+    const words2 = s2.split(/\s+/);
+    const commonWords = words1.filter(word => words2.includes(word)).length;
+    
+    if (commonWords > 0) {
+      return commonWords / Math.max(words1.length, words2.length);
+    }
+    
+    // البحث عن التشابه في الأحرف المتتالية (وهذا مفيد للغة الإنجليزية)
+    let commonChars = 0;
+    for (let i = 0; i < s1.length; i++) {
+      if (s2.includes(s1[i])) commonChars++;
+    }
+    
+    return commonChars / Math.max(s1.length, s2.length);
+  };
+
   const handleAiSearch = async (value: string) => {
     if (!value.trim()) return;
     
@@ -53,22 +89,40 @@ export const ProductFilters = ({
     setAiQuery(value);
     
     try {
-      // هنا نقوم بالبحث في المنتجات المتاحة بناءً على الاستعلام
-      const results = products.filter(product => 
-        product.name.toLowerCase().includes(value.toLowerCase()) || 
-        (product.description && product.description.toLowerCase().includes(value.toLowerCase()))
-      );
+      // التحقق من اللغة وتطبيق البحث الذكي
+      const searchQuery = value.toLowerCase().trim();
+      const isEnglishQuery = /[a-zA-Z]/.test(searchQuery);
       
-      // إذا كانت النتائج قليلة، نحاول الحصول على اقتراحات من الذكاء الاصطناعي
-      if (results.length < 3 && products.length > 0) {
-        // محاكاة استجابة الذكاء الاصطناعي (في الإصدار الحقيقي، سيتم استبدالها بالاتصال بـ API)
-        const suggestedProducts = products
-          .filter(p => !results.includes(p))
+      // نحسب درجة تشابه لكل منتج
+      const productsWithScores = products.map(product => {
+        const nameMatch = calculateSimilarity(product.name, searchQuery);
+        const descMatch = product.description ? 
+          calculateSimilarity(product.description, searchQuery) : 0;
+        
+        // نأخذ أعلى قيمة تشابه (إما الاسم أو الوصف)
+        const similarityScore = Math.max(nameMatch, descMatch);
+        
+        return {
+          ...product,
+          similarityScore
+        };
+      });
+      
+      // ترتيب النتائج حسب درجة التشابه (من الأعلى للأقل)
+      const sortedResults = [...productsWithScores]
+        .filter(product => product.similarityScore > 0.1) // فلترة النتائج ذات التشابه الضعيف جداً
+        .sort((a, b) => b.similarityScore - a.similarityScore);
+      
+      // إذا كانت النتائج قليلة، نضيف اقتراحات إضافية
+      if (sortedResults.length < 3 && products.length > 0) {
+        // اختيار منتجات عشوائية لم تظهر في النتائج
+        const additionalSuggestions = products
+          .filter(p => !sortedResults.some(r => r.id === p.id))
           .slice(0, 3);
           
-        setAiResults([...results, ...suggestedProducts]);
+        setAiResults([...sortedResults, ...additionalSuggestions]);
       } else {
-        setAiResults(results);
+        setAiResults(sortedResults);
       }
     } catch (error) {
       console.error("خطأ في البحث الذكي:", error);
@@ -76,6 +130,12 @@ export const ProductFilters = ({
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (aiSearchOpen && aiQuery) {
+      handleAiSearch(aiQuery);
+    }
+  }, [aiSearchOpen, aiQuery]);
 
   return (
     <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 py-4 shadow-sm">
@@ -187,6 +247,11 @@ export const ProductFilters = ({
                   {product.category && (
                     <span className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
                       {product.category}
+                    </span>
+                  )}
+                  {product.similarityScore > 0.3 && product.similarityScore < 1 && (
+                    <span className="text-xs text-blue-500 bg-blue-50 dark:bg-blue-900 dark:text-blue-200 px-2 py-1 rounded-full mr-1">
+                      تطابق مشابه
                     </span>
                   )}
                 </CommandItem>

@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useMemo } from "react";
 import { Product } from "@/types/product";
 import ProductGrid from "@/components/store/ProductGrid";
