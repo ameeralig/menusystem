@@ -33,7 +33,7 @@ const ProductPreviewContainer = ({
   colorTheme,
   bannerUrl,
   fontSettings,
-  containerHeight = "600px" // القيمة الافتراضية هي 600 بكسل
+  containerHeight = "100px" // القيمة الافتراضية هي 600 بكسل
 }: ProductPreviewContainerProps) => {
   const [imageError, setImageError] = useState(false);
   const [fontFaceLoaded, setFontFaceLoaded] = useState(false);
