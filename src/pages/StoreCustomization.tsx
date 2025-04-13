@@ -12,6 +12,7 @@ import ColorThemeSelector from "@/components/store/ColorThemeSelector";
 import StoreSlugEditor from "@/components/store/StoreSlugEditor";
 import BannerImageUploader from "@/components/store/BannerImageUploader";
 import SocialLinksEditor from "@/components/store/SocialLinksEditor";
+import FontStyleSelector from "@/components/store/FontStyleSelector";
 import { Card } from "@/components/ui/card";
 
 type SocialLinks = {
@@ -20,11 +21,48 @@ type SocialLinks = {
   telegram: string;
 };
 
+type FontSettings = {
+  storeName: {
+    family: string;
+    isCustom: boolean;
+    customFontUrl: string | null;
+  };
+  categoryText: {
+    family: string;
+    isCustom: boolean;
+    customFontUrl: string | null;
+  };
+  generalText: {
+    family: string;
+    isCustom: boolean;
+    customFontUrl: string | null;
+  };
+};
+
+const defaultFontSettings: FontSettings = {
+  storeName: {
+    family: "inherit",
+    isCustom: false,
+    customFontUrl: null,
+  },
+  categoryText: {
+    family: "inherit",
+    isCustom: false,
+    customFontUrl: null,
+  },
+  generalText: {
+    family: "inherit",
+    isCustom: false,
+    customFontUrl: null,
+  },
+};
+
 const StoreCustomization = () => {
   const [storeName, setStoreName] = useState("");
   const [storeSlug, setStoreSlug] = useState("");
   const [colorTheme, setColorTheme] = useState("default");
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
+  const [fontSettings, setFontSettings] = useState<FontSettings>(defaultFontSettings);
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({
     instagram: "",
     facebook: "",
@@ -45,7 +83,7 @@ const StoreCustomization = () => {
 
       const { data: storeSettings } = await supabase
         .from("store_settings")
-        .select("store_name, color_theme, slug, social_links, banner_url")
+        .select("store_name, color_theme, slug, social_links, banner_url, font_settings")
         .eq("user_id", user.id)
         .single();
 
@@ -59,6 +97,7 @@ const StoreCustomization = () => {
           facebook: (storeSettings.social_links as SocialLinks)?.facebook || "",
           telegram: (storeSettings.social_links as SocialLinks)?.telegram || "",
         });
+        setFontSettings(storeSettings.font_settings as FontSettings || defaultFontSettings);
       }
     } catch (error) {
       console.error("Error fetching store settings:", error);
@@ -71,6 +110,7 @@ const StoreCustomization = () => {
     slug: string;
     social_links: SocialLinks;
     banner_url: string | null;
+    font_settings: FontSettings;
   }>) => {
     setIsLoading(true);
 
@@ -123,6 +163,7 @@ const StoreCustomization = () => {
       if (updatedData.slug !== undefined) setStoreSlug(updatedData.slug);
       if (updatedData.social_links !== undefined) setSocialLinks(updatedData.social_links);
       if (updatedData.banner_url !== undefined) setBannerUrl(updatedData.banner_url);
+      if (updatedData.font_settings !== undefined) setFontSettings(updatedData.font_settings);
 
     } catch (error: any) {
       console.error("Error saving store settings:", error);
@@ -151,6 +192,10 @@ const StoreCustomization = () => {
 
   const handleBannerSubmit = async () => {
     await saveStoreSettings({ banner_url: bannerUrl });
+  };
+
+  const handleFontSettingsSubmit = async () => {
+    await saveStoreSettings({ font_settings: fontSettings });
   };
 
   const handleSocialLinksSubmit = async (links: SocialLinks) => {
@@ -215,6 +260,14 @@ const StoreCustomization = () => {
                   colorTheme={colorTheme}
                   setColorTheme={setColorTheme}
                   handleSubmit={async () => { await handleColorThemeSubmit(); }}
+                  isLoading={isLoading}
+                />
+                
+                <h3 className="text-lg font-medium mt-6 mb-2 text-right">تخصيص الخطوط</h3>
+                <FontStyleSelector
+                  fontSettings={fontSettings}
+                  setFontSettings={setFontSettings}
+                  handleSubmit={async () => { await handleFontSettingsSubmit(); }}
                   isLoading={isLoading}
                 />
               </div>

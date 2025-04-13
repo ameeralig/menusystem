@@ -1,12 +1,52 @@
 
 import { useToast } from "@/hooks/use-toast";
+import { CSSProperties, useEffect, useState } from "react";
+
+interface FontSettings {
+  storeName?: {
+    family: string;
+    isCustom: boolean;
+    customFontUrl: string | null;
+  };
+}
 
 interface StoreHeaderProps {
   storeName: string | null;
   colorTheme: string | null;
+  fontSettings?: FontSettings;
 }
 
-const StoreHeader = ({ storeName, colorTheme }: StoreHeaderProps) => {
+const StoreHeader = ({ storeName, colorTheme, fontSettings }: StoreHeaderProps) => {
+  const [fontFaceLoaded, setFontFaceLoaded] = useState(false);
+  const [fontId, setFontId] = useState<string>("");
+  
+  useEffect(() => {
+    if (fontSettings?.storeName?.isCustom && fontSettings?.storeName?.customFontUrl) {
+      // Generate a unique ID for the font
+      const uniqueId = `store-name-font-${Math.random().toString(36).substring(2, 9)}`;
+      setFontId(uniqueId);
+      
+      // Create a font face rule
+      const fontFace = new FontFace(uniqueId, `url(${fontSettings.storeName.customFontUrl})`);
+      
+      // Load the font and add it to the document
+      fontFace.load().then((loadedFontFace) => {
+        document.fonts.add(loadedFontFace);
+        setFontFaceLoaded(true);
+      }).catch(err => {
+        console.error("Error loading custom font:", err);
+      });
+      
+      return () => {
+        // Clean up by removing the style element when the component unmounts
+        const styleElement = document.getElementById(`style-${uniqueId}`);
+        if (styleElement) {
+          styleElement.remove();
+        }
+      };
+    }
+  }, [fontSettings?.storeName?.customFontUrl, fontSettings?.storeName?.isCustom]);
+  
   const getThemeClasses = (theme: string | null) => {
     switch (theme) {
       case 'coral':
@@ -32,8 +72,18 @@ const StoreHeader = ({ storeName, colorTheme }: StoreHeaderProps) => {
     }
   };
 
+  const getStoreNameStyle = (): CSSProperties => {
+    if (fontSettings?.storeName?.isCustom && fontId && fontFaceLoaded) {
+      return { fontFamily: `"${fontId}", sans-serif` };
+    }
+    return {};
+  };
+
   return storeName ? (
-    <h1 className={`text-3xl font-bold text-center mb-8 ${getThemeClasses(colorTheme)}`}>
+    <h1 
+      className={`text-3xl font-bold text-center mb-8 ${getThemeClasses(colorTheme)}`}
+      style={getStoreNameStyle()}
+    >
       {storeName}
     </h1>
   ) : null;

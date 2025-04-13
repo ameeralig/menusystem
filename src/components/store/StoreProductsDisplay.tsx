@@ -1,58 +1,156 @@
-
-import { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { Product } from "@/types/product";
-import StoreHeader from "@/components/store/StoreHeader";
-import SearchBar from "@/components/store/SearchBar";
-import CategoryGrid from "@/components/store/CategoryGrid";
 import ProductGrid from "@/components/store/ProductGrid";
-import BackButton from "@/components/store/BackButton";
+import CategoryGrid from "@/components/store/CategoryGrid";
+import SearchBar from "@/components/store/SearchBar";
 import EmptyCategoryMessage from "@/components/store/EmptyCategoryMessage";
+import BackButton from "@/components/store/BackButton";
+import StoreHeader from "@/components/store/StoreHeader";
+
+type FontSettings = {
+  storeName?: {
+    family: string;
+    isCustom: boolean;
+    customFontUrl: string | null;
+  };
+  categoryText?: {
+    family: string;
+    isCustom: boolean;
+    customFontUrl: string | null;
+  };
+  generalText?: {
+    family: string;
+    isCustom: boolean;
+    customFontUrl: string | null;
+  };
+};
 
 interface StoreProductsDisplayProps {
   products: Product[];
   storeName: string | null;
   colorTheme: string | null;
+  fontSettings?: FontSettings;
 }
 
-const StoreProductsDisplay = ({ products, storeName, colorTheme }: StoreProductsDisplayProps) => {
+const StoreProductsDisplay = ({ 
+  products, 
+  storeName, 
+  colorTheme,
+  fontSettings
+}: StoreProductsDisplayProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  
-  const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
-  
-  const filteredProducts = selectedCategory
-    ? products.filter(p => 
-        p.category === selectedCategory && 
-        p.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : products.filter(p => 
-        p.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+  const [showSearch, setShowSearch] = useState(false);
 
-  const getCategoryImage = (category: string) => {
-    const categoryProduct = products.find(p => p.category === category && p.image_url);
-    return categoryProduct?.image_url || '/placeholder.svg';
-  };
+  const categories = useMemo(() => {
+    const categorySet = new Set<string>();
+    products.forEach((product) => {
+      if (product.category) {
+        categorySet.add(product.category);
+      }
+    });
+    return Array.from(categorySet);
+  }, [products]);
+
+  const filteredProducts = useMemo(() => {
+    let filtered = products;
+
+    if (selectedCategory) {
+      filtered = filtered.filter(
+        (product) => product.category === selectedCategory
+      );
+    }
+
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (product) =>
+          product.name.toLowerCase().includes(query) ||
+          (product.description &&
+            product.description.toLowerCase().includes(query))
+      );
+    }
+
+    return [...filtered].sort((a, b) => {
+      if (a.display_order !== null && b.display_order !== null) {
+        return a.display_order - b.display_order;
+      }
+      if (a.display_order !== null) return -1;
+      if (b.display_order !== null) return 1;
+      return 0;
+    });
+  }, [products, selectedCategory, searchQuery]);
+
+  const handleSearch = useCallback((query: string) => {
+    setSearchQuery(query);
+  }, []);
+
+  const handleCategorySelect = useCallback((category: string) => {
+    setSelectedCategory(category);
+  }, []);
+
+  const getCategoryImage = useCallback(
+    (category: string) => {
+      const firstProductWithCategory = products.find(
+        (product) => product.category === category && product.image_url
+      );
+      return firstProductWithCategory?.image_url || "/placeholder.svg";
+    },
+    [products]
+  );
+
+  const handleBackClick = useCallback(() => {
+    setSelectedCategory(null);
+    setSearchQuery("");
+  }, []);
+
+  const toggleSearch = useCallback(() => {
+    setShowSearch(!showSearch);
+    if (showSearch) {
+      setSearchQuery("");
+    }
+  }, [showSearch]);
 
   return (
-    <>
-      <StoreHeader storeName={storeName} colorTheme={colorTheme} />
-      <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+    <div className="space-y-6">
+      <StoreHeader storeName={storeName} colorTheme={colorTheme} fontSettings={fontSettings} />
 
-      {!selectedCategory ? (
-        <CategoryGrid
-          categories={categories}
-          getCategoryImage={getCategoryImage}
-          onCategorySelect={setSelectedCategory}
+      {selectedCategory && (
+        <BackButton onClick={handleBackClick} colorTheme={colorTheme} />
+      )}
+
+      <SearchBar
+        query={searchQuery}
+        onQueryChange={handleSearch}
+        onToggleSearch={toggleSearch}
+        showSearch={showSearch}
+      />
+
+      {!selectedCategory && categories.length > 0 && !searchQuery && (
+        <CategoryGrid 
+          categories={categories} 
+          getCategoryImage={getCategoryImage} 
+          onCategorySelect={handleCategorySelect} 
+          fontSettings={fontSettings}
         />
-      ) : (
+      )}
+
+      {(selectedCategory || searchQuery || categories.length === 0) && (
         <>
-          <BackButton onClick={() => setSelectedCategory(null)} />
-          <ProductGrid products={filteredProducts} />
-          {filteredProducts.length === 0 && <EmptyCategoryMessage />}
+          {filteredProducts.length > 0 ? (
+            <ProductGrid
+              products={filteredProducts}
+              colorTheme={colorTheme}
+            />
+          ) : (
+            <EmptyCategoryMessage
+              searchQuery={searchQuery}
+              selectedCategory={selectedCategory}
+            />
+          )}
         </>
       )}
-    </>
+    </div>
   );
 };
 

@@ -16,6 +16,24 @@ type SocialLinks = {
   telegram?: string;
 };
 
+type FontSettings = {
+  storeName: {
+    family: string;
+    isCustom: boolean;
+    customFontUrl: string | null;
+  };
+  categoryText: {
+    family: string;
+    isCustom: boolean;
+    customFontUrl: string | null;
+  };
+  generalText: {
+    family: string;
+    isCustom: boolean;
+    customFontUrl: string | null;
+  };
+};
+
 const ProductPreview = () => {
   const { userId } = useParams<{ userId: string }>();
   const [products, setProducts] = useState<Product[]>([]);
@@ -23,6 +41,7 @@ const ProductPreview = () => {
   const [colorTheme, setColorTheme] = useState<string | null>("default");
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
+  const [fontSettings, setFontSettings] = useState<FontSettings | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -59,7 +78,7 @@ const ProductPreview = () => {
 
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
-          .select("store_name, color_theme, social_links, banner_url")
+          .select("store_name, color_theme, social_links, banner_url, font_settings")
           .eq("user_id", userId)
           .maybeSingle();
 
@@ -73,6 +92,7 @@ const ProductPreview = () => {
           setColorTheme(storeSettings?.color_theme || "default");
           setSocialLinks(storeSettings?.social_links as SocialLinks || {});
           setBannerUrl(storeSettings?.banner_url || null);
+          setFontSettings(storeSettings?.font_settings as FontSettings | undefined);
           console.info("Banner URL from database:", storeSettings?.banner_url);
         }
 
@@ -123,11 +143,16 @@ const ProductPreview = () => {
   }
 
   return (
-    <ProductPreviewContainer colorTheme={colorTheme} bannerUrl={bannerUrl}>
+    <ProductPreviewContainer 
+      colorTheme={colorTheme} 
+      bannerUrl={bannerUrl}
+      fontSettings={fontSettings}
+    >
       <StoreProductsDisplay 
         products={products} 
         storeName={storeName} 
-        colorTheme={colorTheme} 
+        colorTheme={colorTheme}
+        fontSettings={fontSettings}
       />
       <SocialIcons socialLinks={socialLinks} />
       {userId && <FeedbackDialog userId={userId} />}

@@ -1,19 +1,68 @@
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect, CSSProperties } from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+
+interface FontSettings {
+  generalText?: {
+    family: string;
+    isCustom: boolean;
+    customFontUrl: string | null;
+  };
+  storeName?: {
+    family: string;
+    isCustom: boolean;
+    customFontUrl: string | null;
+  };
+  categoryText?: {
+    family: string;
+    isCustom: boolean;
+    customFontUrl: string | null;
+  };
+}
 
 interface ProductPreviewContainerProps {
   children: ReactNode;
   colorTheme: string | null;
   bannerUrl?: string | null;
+  fontSettings?: FontSettings;
 }
 
 const ProductPreviewContainer = ({ 
   children, 
   colorTheme,
-  bannerUrl
+  bannerUrl,
+  fontSettings
 }: ProductPreviewContainerProps) => {
   const [imageError, setImageError] = useState(false);
+  const [fontFaceLoaded, setFontFaceLoaded] = useState(false);
+  const [fontId, setFontId] = useState<string>("");
+  
+  useEffect(() => {
+    if (fontSettings?.generalText?.isCustom && fontSettings?.generalText?.customFontUrl) {
+      // Generate a unique ID for the font
+      const uniqueId = `general-text-font-${Math.random().toString(36).substring(2, 9)}`;
+      setFontId(uniqueId);
+      
+      // Create a font face rule
+      const fontFace = new FontFace(uniqueId, `url(${fontSettings.generalText.customFontUrl})`);
+      
+      // Load the font and add it to the document
+      fontFace.load().then((loadedFontFace) => {
+        document.fonts.add(loadedFontFace);
+        setFontFaceLoaded(true);
+      }).catch(err => {
+        console.error("Error loading custom font:", err);
+      });
+      
+      return () => {
+        // Clean up by removing the style element when the component unmounts
+        const styleElement = document.getElementById(`style-${uniqueId}`);
+        if (styleElement) {
+          styleElement.remove();
+        }
+      };
+    }
+  }, [fontSettings?.generalText?.customFontUrl, fontSettings?.generalText?.isCustom]);
   
   const getThemeClasses = (theme: string | null) => {
     switch (theme) {
@@ -40,8 +89,15 @@ const ProductPreviewContainer = ({
     }
   };
 
+  const getContainerStyle = (): CSSProperties => {
+    if (fontSettings?.generalText?.isCustom && fontId && fontFaceLoaded) {
+      return { fontFamily: `"${fontId}", sans-serif` };
+    }
+    return {};
+  };
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col" style={getContainerStyle()}>
       {bannerUrl && !imageError ? (
         <div className="relative w-full overflow-hidden">
           <AspectRatio ratio={16 / 5} className="w-full">
