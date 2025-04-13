@@ -1,6 +1,11 @@
 
-import { MapPin, Phone, Wifi, Info, Clock } from "lucide-react";
+import { MapPin, Phone, Wifi, Info, Clock, ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { 
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger, 
+} from "@/components/ui/collapsible";
 
 type WorkDay = {
   day: string;
@@ -24,6 +29,7 @@ interface StoreInfoProps {
 
 const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
   const [isWifiCodeVisible, setIsWifiCodeVisible] = useState(false);
+  const [isBusinessHoursOpen, setIsBusinessHoursOpen] = useState(false);
 
   if (!contactInfo || Object.values(contactInfo).every(value => !value)) {
     return null;
@@ -130,13 +136,22 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
       )}
 
       {contactInfo.businessHours && (
-        <div>
-          <div className="flex items-center justify-end gap-2 text-gray-700 dark:text-gray-300 mb-1">
-            <p className="text-sm font-medium">ساعات العمل</p>
-            <Clock className={`w-4 h-4 ${themeIconClasses}`} />
-          </div>
-          {formatBusinessHours()}
-        </div>
+        <Collapsible
+          open={isBusinessHoursOpen}
+          onOpenChange={setIsBusinessHoursOpen}
+          className="border-b border-transparent"
+        >
+          <CollapsibleTrigger className="flex items-center justify-end gap-2 text-gray-700 dark:text-gray-300 w-full cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md p-1 transition-colors">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium">ساعات العمل</p>
+              <Clock className={`w-4 h-4 ${themeIconClasses}`} />
+            </div>
+            <ChevronDown className={`w-4 h-4 ${isBusinessHoursOpen ? "transform rotate-180" : ""} transition-transform duration-200`} />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-1">
+            {formatBusinessHours()}
+          </CollapsibleContent>
+        </Collapsible>
       )}
 
       {contactInfo.address && (
