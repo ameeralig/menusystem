@@ -119,7 +119,7 @@ const ProductPreviewContainer = ({
           <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-black/20 to-transparent"></div>
         )}
         <div className={`container mx-auto py-4 sm:py-6 px-0 max-w-6xl relative ${bannerUrl && !imageError ? 'mt-[-1.5rem] sm:mt-[-2rem]' : ''}`}>
-          <div className={`bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-xl border border-gray-100 dark:border-gray-700 ${bannerUrl && !imageError ? 'transform-gpu' : ''}`} 
+          <div className={`bg-white dark:bg-gray-800 rounded-[100px] overflow-hidden shadow-xl border border-gray-100 dark:border-gray-700 ${bannerUrl && !imageError ? 'transform-gpu' : ''}`} 
                style={{
                  boxShadow: bannerUrl && !imageError ? '0 -8px 20px -8px rgba(0,0,0,0.15), 0 8px 16px -8px rgba(0,0,0,0.1)' : 'none',
                }}>
