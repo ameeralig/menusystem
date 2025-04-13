@@ -25,7 +25,7 @@ interface ProductPreviewContainerProps {
   colorTheme: string | null;
   bannerUrl?: string | null;
   fontSettings?: FontSettings;
-  containerHeight?: string; // إضافة خاصية جديدة للتحكم بارتفاع الحاوية
+  containerHeight?: string;
 }
 
 const ProductPreviewContainer = ({ 
@@ -33,7 +33,7 @@ const ProductPreviewContainer = ({
   colorTheme,
   bannerUrl,
   fontSettings,
-  containerHeight = "100vh" // القيمة الافتراضية هي ارتفاع الشاشة الكامل
+  containerHeight = "auto" // تغيير القيمة الافتراضية إلى "auto" بدلاً من ارتفاع ثابت
 }: ProductPreviewContainerProps) => {
   const [imageError, setImageError] = useState(false);
   const [fontFaceLoaded, setFontFaceLoaded] = useState(false);
@@ -112,12 +112,13 @@ const ProductPreviewContainer = ({
           </AspectRatio>
         </div>
       ) : null}
-      <div className={`flex-1 ${getThemeClasses(colorTheme)} transition-colors duration-300 relative`} style={{ minHeight: containerHeight }}>
+      <div className={`flex-1 ${getThemeClasses(colorTheme)} transition-colors duration-300 relative`}>
         {bannerUrl && !imageError && (
           <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-black/20 to-transparent"></div>
         )}
         <div className="w-full relative">
-          <div className={`bg-white dark:bg-gray-800 rounded-tl-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-700 ${bannerUrl && !imageError ? 'mt-[-2rem]' : ''}`} style={{ minHeight: containerHeight }}>
+          {/* تغيير تنسيق هذا العنصر - تقليل الارتفاع وجعل التنسيق أفضل */}
+          <div className={`bg-white dark:bg-gray-800 rounded-tl-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-700 ${bannerUrl && !imageError ? 'mt-[-1.5rem]' : ''}`} style={{ minHeight: containerHeight, maxHeight: "calc(100vh - 80px)", overflowY: "auto" }}>
             <div className="p-4 sm:p-6">
               {children}
             </div>
