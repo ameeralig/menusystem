@@ -147,7 +147,7 @@ const ProductPreview = () => {
       colorTheme={colorTheme} 
       bannerUrl={bannerUrl}
       fontSettings={fontSettings}
-      containerHeight="auto" // تغيير إلى "auto" لجعل الارتفاع يتناسب مع المحتوى
+      containerHeight="100vh" // يمكنك تغيير هذه القيمة إلى أي ارتفاع تريده مثل "800px" أو "90vh" أو "calc(100vh - 50px)"
     >
       <StoreProductsDisplay 
         products={products} 
