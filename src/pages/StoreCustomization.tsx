@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +26,7 @@ type ContactInfo = {
   address: string;
   phone: string;
   wifi: string;
+  businessHours: string;
 };
 
 type FontSettings = {
@@ -70,6 +70,7 @@ const defaultContactInfo: ContactInfo = {
   address: "",
   phone: "",
   wifi: "",
+  businessHours: "",
 };
 
 const StoreCustomization = () => {
@@ -132,6 +133,7 @@ const StoreCustomization = () => {
             address: (storeSettings.contact_info as ContactInfo)?.address || "",
             phone: (storeSettings.contact_info as ContactInfo)?.phone || "",
             wifi: (storeSettings.contact_info as ContactInfo)?.wifi || "",
+            businessHours: (storeSettings.contact_info as ContactInfo)?.businessHours || "",
           });
         }
       }

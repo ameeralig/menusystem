@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Phone, Wifi, Info, Save } from "lucide-react";
+import { MapPin, Phone, Wifi, Info, Save, Clock } from "lucide-react";
 
 type ContactInfo = {
   description: string;
   address: string;
   phone: string;
   wifi: string;
+  businessHours: string;
 };
 
 interface ContactInfoEditorProps {
@@ -29,6 +30,7 @@ const ContactInfoEditor = ({
     address: initialContactInfo.address || "",
     phone: initialContactInfo.phone || "",
     wifi: initialContactInfo.wifi || "",
+    businessHours: initialContactInfo.businessHours || "",
   });
 
   const handleChange = (field: keyof ContactInfo, value: string) => {
@@ -56,6 +58,22 @@ const ContactInfoEditor = ({
             value={contactInfo.description}
             onChange={(e) => handleChange("description", e.target.value)}
             className="resize-none h-24 text-right"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <div className="flex items-center justify-end gap-2">
+            <label htmlFor="businessHours" className="text-sm font-medium">
+              ساعات العمل
+            </label>
+            <Clock className="w-4 h-4" />
+          </div>
+          <Input
+            id="businessHours"
+            placeholder="مثال: من السبت إلى الخميس 9:00 صباحاً - 9:00 مساءً"
+            value={contactInfo.businessHours}
+            onChange={(e) => handleChange("businessHours", e.target.value)}
+            className="text-right"
           />
         </div>
         

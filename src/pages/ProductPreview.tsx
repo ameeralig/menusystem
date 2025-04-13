@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +20,7 @@ type ContactInfo = {
   address?: string | null;
   phone?: string | null;
   wifi?: string | null;
+  businessHours?: string | null;
 };
 
 type FontSettings = {

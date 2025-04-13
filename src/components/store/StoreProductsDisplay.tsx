@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useMemo } from "react";
 import { Product } from "@/types/product";
 import ProductGrid from "@/components/store/ProductGrid";
@@ -32,6 +31,7 @@ type ContactInfo = {
   address?: string | null;
   phone?: string | null;
   wifi?: string | null;
+  businessHours?: string | null;
 };
 
 interface StoreProductsDisplayProps {

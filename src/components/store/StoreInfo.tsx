@@ -1,5 +1,5 @@
 
-import { MapPin, Phone, Wifi, Info } from "lucide-react";
+import { MapPin, Phone, Wifi, Info, Clock } from "lucide-react";
 import { useState } from "react";
 
 type ContactInfo = {
@@ -7,6 +7,7 @@ type ContactInfo = {
   address?: string | null;
   phone?: string | null;
   wifi?: string | null;
+  businessHours?: string | null;
 };
 
 interface StoreInfoProps {
@@ -64,6 +65,13 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
         <div className="flex items-center justify-end gap-2 text-gray-700 dark:text-gray-300">
           <p className="text-sm">{contactInfo.description}</p>
           <Info className={`w-4 h-4 ${themeIconClasses}`} />
+        </div>
+      )}
+
+      {contactInfo.businessHours && (
+        <div className="flex items-center justify-end gap-2 text-gray-700 dark:text-gray-300">
+          <p className="text-sm">{contactInfo.businessHours}</p>
+          <Clock className={`w-4 h-4 ${themeIconClasses}`} />
         </div>
       )}
 
