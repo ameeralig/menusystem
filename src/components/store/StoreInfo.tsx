@@ -80,7 +80,7 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
           className="flex items-center justify-end gap-2 text-gray-700 dark:text-gray-300 cursor-pointer hover:underline" 
           onClick={handleGoogleMapsClick}
         >
-          <p className="text-sm">{contactInfo.address}</p>
+          <p className="text-sm">انقر هنا لمعرفة موقع المتجر</p>
           <MapPin className={`w-4 h-4 ${themeIconClasses}`} />
         </div>
       )}
