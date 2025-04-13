@@ -1,4 +1,3 @@
-
 import { ReactNode, useState, useEffect, CSSProperties } from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 
@@ -39,14 +38,11 @@ const ProductPreviewContainer = ({
   
   useEffect(() => {
     if (fontSettings?.generalText?.isCustom && fontSettings?.generalText?.customFontUrl) {
-      // Generate a unique ID for the font
       const uniqueId = `general-text-font-${Math.random().toString(36).substring(2, 9)}`;
       setFontId(uniqueId);
       
-      // Create a font face rule
       const fontFace = new FontFace(uniqueId, `url(${fontSettings.generalText.customFontUrl})`);
       
-      // Load the font and add it to the document
       fontFace.load().then((loadedFontFace) => {
         document.fonts.add(loadedFontFace);
         setFontFaceLoaded(true);
@@ -55,7 +51,6 @@ const ProductPreviewContainer = ({
       });
       
       return () => {
-        // Clean up by removing the style element when the component unmounts
         const styleElement = document.getElementById(`style-${uniqueId}`);
         if (styleElement) {
           styleElement.remove();
@@ -118,11 +113,8 @@ const ProductPreviewContainer = ({
         {bannerUrl && !imageError && (
           <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-black/20 to-transparent"></div>
         )}
-        <div className={`container mx-auto py-4 sm:py-6 px-4 sm:px-8 max-w-6xl relative ${bannerUrl && !imageError ? 'mt-[-1.5rem] sm:mt-[-2rem]' : ''}`}>
-          <div className={`bg-white dark:bg-gray-800 rounded-t-[2.5rem] rounded-b-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-700 ${bannerUrl && !imageError ? 'transform-gpu' : ''}`} 
-               style={{
-                 boxShadow: bannerUrl && !imageError ? '0 -8px 20px -8px rgba(0,0,0,0.15), 0 8px 16px -8px rgba(0,0,0,0.1)' : 'none',
-               }}>
+        <div className="w-full py-4 sm:py-6 relative">
+          <div className={`bg-white dark:bg-gray-800 rounded-t-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-700`}>
             <div className="p-4 sm:p-6">
               {children}
             </div>
