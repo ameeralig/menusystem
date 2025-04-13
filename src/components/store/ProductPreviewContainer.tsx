@@ -33,7 +33,8 @@ const ProductPreviewContainer = ({
   colorTheme,
   bannerUrl,
   fontSettings,
-  containerHeight="600px"  // القيمة الافتراضية هي ارتفاع الشاشة الكامل
+  <ProductPreviewContainer containerHeight="600px" />
+  // القيمة الافتراضية هي ارتفاع الشاشة الكامل
 }: ProductPreviewContainerProps) => {
   const [imageError, setImageError] = useState(false);
   const [fontFaceLoaded, setFontFaceLoaded] = useState(false);
