@@ -1,5 +1,3 @@
-
-import { useToast } from "@/hooks/use-toast";
 import { CSSProperties, useEffect, useState } from "react";
 
 interface FontSettings {
@@ -22,14 +20,11 @@ const StoreHeader = ({ storeName, colorTheme, fontSettings }: StoreHeaderProps) 
   
   useEffect(() => {
     if (fontSettings?.storeName?.isCustom && fontSettings?.storeName?.customFontUrl) {
-      // Generate a unique ID for the font
       const uniqueId = `store-name-font-${Math.random().toString(36).substring(2, 9)}`;
       setFontId(uniqueId);
       
-      // Create a font face rule
       const fontFace = new FontFace(uniqueId, `url(${fontSettings.storeName.customFontUrl})`);
       
-      // Load the font and add it to the document
       fontFace.load().then((loadedFontFace) => {
         document.fonts.add(loadedFontFace);
         setFontFaceLoaded(true);
@@ -38,7 +33,6 @@ const StoreHeader = ({ storeName, colorTheme, fontSettings }: StoreHeaderProps) 
       });
       
       return () => {
-        // Clean up by removing the style element when the component unmounts
         const styleElement = document.getElementById(`style-${uniqueId}`);
         if (styleElement) {
           styleElement.remove();
@@ -81,7 +75,7 @@ const StoreHeader = ({ storeName, colorTheme, fontSettings }: StoreHeaderProps) 
 
   return storeName ? (
     <h1 
-      className={`text-3xl font-bold text-center mb-8 ${getThemeClasses(colorTheme)}`}
+      className={`text-3xl font-bold text-right mb-8 ${getThemeClasses(colorTheme)}`}
       style={getStoreNameStyle()}
     >
       {storeName}
