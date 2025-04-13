@@ -33,7 +33,7 @@ const ProductPreviewContainer = ({
   colorTheme,
   bannerUrl,
   fontSettings,
-  containerHeight = "600px" // القيمة الافتراضية هي 600 بكسل
+  containerHeight = "100vh" // القيمة الافتراضية هي ارتفاع الشاشة الكامل
 }: ProductPreviewContainerProps) => {
   const [imageError, setImageError] = useState(false);
   const [fontFaceLoaded, setFontFaceLoaded] = useState(false);
@@ -112,12 +112,12 @@ const ProductPreviewContainer = ({
           </AspectRatio>
         </div>
       ) : null}
-      <div className={`flex-1 ${getThemeClasses(colorTheme)} transition-colors duration-300 relative`} style={{ height: containerHeight }}>
+      <div className={`flex-1 ${getThemeClasses(colorTheme)} transition-colors duration-300 relative`} style={{ minHeight: containerHeight }}>
         {bannerUrl && !imageError && (
           <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-black/20 to-transparent"></div>
         )}
         <div className="w-full relative">
-          <div className={`bg-white dark:bg-gray-800 rounded-tl-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-700 ${bannerUrl && !imageError ? 'mt-[-2rem]' : ''}`} style={{ height: containerHeight }}>
+          <div className={`bg-white dark:bg-gray-800 rounded-t-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-700 ${bannerUrl && !imageError ? 'mt-[-2rem]' : ''}`} style={{ minHeight: containerHeight }}>
             <div className="p-4 sm:p-6">
               {children}
             </div>
