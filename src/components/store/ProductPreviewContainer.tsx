@@ -115,7 +115,7 @@ const ProductPreviewContainer = ({
           <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-black/20 to-transparent"></div>
         )}
         <div className="w-full relative">
-          <div className={`bg-white dark:bg-gray-800 rounded-t-[3.5rem] overflow-hidden border border-gray-100 dark:border-gray-700 min-h-screen ${bannerUrl && !imageError ? 'mt-[-2rem]' : ''}`}>
+          <div className={`bg-white dark:bg-gray-800 rounded-t-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-700 min-h-screen ${bannerUrl && !imageError ? 'mt-[-2rem]' : ''}`}>
             <div className="p-4 sm:p-6">
               {children}
             </div>
