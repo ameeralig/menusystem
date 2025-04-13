@@ -2,8 +2,7 @@
 import { useState, ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Radio } from "@/components/ui/radio-group";
-import { RadioGroup } from "@/components/ui/radio-group";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent } from "@/components/ui/card";
 import { Form, FormField, FormItem, FormControl, FormLabel } from "@/components/ui/form";
 import { Type } from "lucide-react";
@@ -134,11 +133,11 @@ const FontStyleSelector = ({
               className="flex flex-col space-y-2"
             >
               <div className="flex items-center space-x-2 space-x-reverse">
-                <Radio value="default" id="store-name-default" />
+                <RadioGroupItem value="default" id="store-name-default" />
                 <Label htmlFor="store-name-default">الخط الافتراضي</Label>
               </div>
               <div className="flex items-center space-x-2 space-x-reverse">
-                <Radio value="custom" id="store-name-custom" />
+                <RadioGroupItem value="custom" id="store-name-custom" />
                 <Label htmlFor="store-name-custom">خط مخصص</Label>
               </div>
             </RadioGroup>
@@ -175,11 +174,11 @@ const FontStyleSelector = ({
               className="flex flex-col space-y-2"
             >
               <div className="flex items-center space-x-2 space-x-reverse">
-                <Radio value="default" id="category-default" />
+                <RadioGroupItem value="default" id="category-default" />
                 <Label htmlFor="category-default">الخط الافتراضي</Label>
               </div>
               <div className="flex items-center space-x-2 space-x-reverse">
-                <Radio value="custom" id="category-custom" />
+                <RadioGroupItem value="custom" id="category-custom" />
                 <Label htmlFor="category-custom">خط مخصص</Label>
               </div>
             </RadioGroup>
@@ -216,11 +215,11 @@ const FontStyleSelector = ({
               className="flex flex-col space-y-2"
             >
               <div className="flex items-center space-x-2 space-x-reverse">
-                <Radio value="default" id="general-default" />
+                <RadioGroupItem value="default" id="general-default" />
                 <Label htmlFor="general-default">الخط الافتراضي</Label>
               </div>
               <div className="flex items-center space-x-2 space-x-reverse">
-                <Radio value="custom" id="general-custom" />
+                <RadioGroupItem value="custom" id="general-custom" />
                 <Label htmlFor="general-custom">خط مخصص</Label>
               </div>
             </RadioGroup>

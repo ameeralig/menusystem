@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useMemo } from "react";
 import { Product } from "@/types/product";
 import ProductGrid from "@/components/store/ProductGrid";
@@ -72,11 +73,12 @@ const StoreProductsDisplay = ({
     }
 
     return [...filtered].sort((a, b) => {
-      if (a.display_order !== null && b.display_order !== null) {
+      if (a.display_order !== undefined && a.display_order !== null && 
+          b.display_order !== undefined && b.display_order !== null) {
         return a.display_order - b.display_order;
       }
-      if (a.display_order !== null) return -1;
-      if (b.display_order !== null) return 1;
+      if (a.display_order !== undefined && a.display_order !== null) return -1;
+      if (b.display_order !== undefined && b.display_order !== null) return 1;
       return 0;
     });
   }, [products, selectedCategory, searchQuery]);
@@ -116,12 +118,12 @@ const StoreProductsDisplay = ({
       <StoreHeader storeName={storeName} colorTheme={colorTheme} fontSettings={fontSettings} />
 
       {selectedCategory && (
-        <BackButton onClick={handleBackClick} colorTheme={colorTheme} />
+        <BackButton onClick={handleBackClick} />
       )}
 
       <SearchBar
-        query={searchQuery}
-        onQueryChange={handleSearch}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
         onToggleSearch={toggleSearch}
         showSearch={showSearch}
       />

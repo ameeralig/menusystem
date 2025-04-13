@@ -81,23 +81,34 @@ const StoreCustomization = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: storeSettings } = await supabase
+      const { data: storeSettings, error } = await supabase
         .from("store_settings")
         .select("store_name, color_theme, slug, social_links, banner_url, font_settings")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error fetching store settings:", error);
+        return;
+      }
 
       if (storeSettings) {
         setStoreName(storeSettings.store_name || "");
         setColorTheme(storeSettings.color_theme || "default");
         setStoreSlug(storeSettings.slug || "");
         setBannerUrl(storeSettings.banner_url || null);
-        setSocialLinks({
-          instagram: (storeSettings.social_links as SocialLinks)?.instagram || "",
-          facebook: (storeSettings.social_links as SocialLinks)?.facebook || "",
-          telegram: (storeSettings.social_links as SocialLinks)?.telegram || "",
-        });
-        setFontSettings(storeSettings.font_settings as FontSettings || defaultFontSettings);
+        
+        if (storeSettings.social_links) {
+          setSocialLinks({
+            instagram: (storeSettings.social_links as SocialLinks)?.instagram || "",
+            facebook: (storeSettings.social_links as SocialLinks)?.facebook || "",
+            telegram: (storeSettings.social_links as SocialLinks)?.telegram || "",
+          });
+        }
+        
+        if (storeSettings.font_settings) {
+          setFontSettings(storeSettings.font_settings as FontSettings || defaultFontSettings);
+        }
       }
     } catch (error) {
       console.error("Error fetching store settings:", error);
@@ -118,11 +129,15 @@ const StoreCustomization = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
 
-      const { data: existingSettings } = await supabase
+      const { data: existingSettings, error: checkError } = await supabase
         .from("store_settings")
         .select("user_id")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
+
+      if (checkError) {
+        console.error("Error checking existing settings:", checkError);
+      }
 
       const dataToUpdate = {
         ...updatedData,

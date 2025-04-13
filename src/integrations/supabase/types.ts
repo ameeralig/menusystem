@@ -165,6 +165,7 @@ export type Database = {
           color_theme: string | null
           contact_info: Json | null
           created_at: string
+          font_settings: Json | null
           logo_url: string | null
           slug: string | null
           social_links: Json | null
@@ -177,6 +178,7 @@ export type Database = {
           color_theme?: string | null
           contact_info?: Json | null
           created_at?: string
+          font_settings?: Json | null
           logo_url?: string | null
           slug?: string | null
           social_links?: Json | null
@@ -189,6 +191,7 @@ export type Database = {
           color_theme?: string | null
           contact_info?: Json | null
           created_at?: string
+          font_settings?: Json | null
           logo_url?: string | null
           slug?: string | null
           social_links?: Json | null

@@ -4,6 +4,7 @@ import { Product } from "@/types/product";
 
 interface ProductGridProps {
   products: Product[];
+  colorTheme?: string | null;
 }
 
 const ProductCard = ({ product }: { product: Product }) => (
@@ -36,7 +37,7 @@ const ProductCard = ({ product }: { product: Product }) => (
   </motion.div>
 );
 
-const ProductGrid = ({ products }: ProductGridProps) => {
+const ProductGrid = ({ products, colorTheme }: ProductGridProps) => {
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
       {products.map((product) => (

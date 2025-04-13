@@ -1,10 +1,13 @@
+
 export interface Product {
   id: string;
   name: string;
-  description: string | null;
   price: number;
-  image_url: string | null;
-  category: string | null;
-  is_new: boolean;
-  is_popular: boolean;
+  description?: string | null;
+  image_url?: string | null;
+  category?: string | null;
+  user_id: string;
+  is_new?: boolean | null;
+  is_popular?: boolean | null;
+  display_order?: number | null;
 }

@@ -1,9 +1,10 @@
 
 interface BackButtonProps {
   onClick: () => void;
+  colorTheme?: string | null;
 }
 
-const BackButton = ({ onClick }: BackButtonProps) => {
+const BackButton = ({ onClick, colorTheme }: BackButtonProps) => {
   return (
     <button
       onClick={onClick}
