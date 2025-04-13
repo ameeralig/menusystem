@@ -138,6 +138,7 @@ const StoreProductsDisplay = ({
         setSearchQuery={setSearchQuery}
         onToggleSearch={toggleSearch}
         showSearch={showSearch}
+        products={products}
       />
 
       {!selectedCategory && categories.length > 0 && !searchQuery && (
