@@ -16,6 +16,13 @@ type SocialLinks = {
   telegram?: string;
 };
 
+type ContactInfo = {
+  description?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  wifi?: string | null;
+};
+
 type FontSettings = {
   storeName: {
     family: string;
@@ -40,6 +47,7 @@ const ProductPreview = () => {
   const [storeName, setStoreName] = useState<string | null>(null);
   const [colorTheme, setColorTheme] = useState<string | null>("default");
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
+  const [contactInfo, setContactInfo] = useState<ContactInfo>({});
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [fontSettings, setFontSettings] = useState<FontSettings | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
@@ -78,7 +86,7 @@ const ProductPreview = () => {
 
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
-          .select("store_name, color_theme, social_links, banner_url, font_settings")
+          .select("store_name, color_theme, social_links, banner_url, font_settings, contact_info")
           .eq("user_id", userId)
           .maybeSingle();
 
@@ -93,7 +101,9 @@ const ProductPreview = () => {
           setSocialLinks(storeSettings.social_links as SocialLinks || {});
           setBannerUrl(storeSettings.banner_url || null);
           setFontSettings(storeSettings.font_settings as FontSettings | undefined);
+          setContactInfo(storeSettings.contact_info as ContactInfo || {});
           console.info("Banner URL from database:", storeSettings.banner_url);
+          console.info("Contact info from database:", storeSettings.contact_info);
         }
 
         const { data: productsData, error: productsError } = await supabase
@@ -154,6 +164,7 @@ const ProductPreview = () => {
         storeName={storeName} 
         colorTheme={colorTheme}
         fontSettings={fontSettings}
+        contactInfo={contactInfo}
       />
       <SocialIcons socialLinks={socialLinks} />
       {userId && <FeedbackDialog userId={userId} />}

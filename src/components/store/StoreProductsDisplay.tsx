@@ -7,6 +7,7 @@ import SearchBar from "@/components/store/SearchBar";
 import EmptyCategoryMessage from "@/components/store/EmptyCategoryMessage";
 import BackButton from "@/components/store/BackButton";
 import StoreHeader from "@/components/store/StoreHeader";
+import StoreInfo from "@/components/store/StoreInfo";
 
 type FontSettings = {
   storeName?: {
@@ -26,18 +27,27 @@ type FontSettings = {
   };
 };
 
+type ContactInfo = {
+  description?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  wifi?: string | null;
+};
+
 interface StoreProductsDisplayProps {
   products: Product[];
   storeName: string | null;
   colorTheme: string | null;
   fontSettings?: FontSettings;
+  contactInfo?: ContactInfo;
 }
 
 const StoreProductsDisplay = ({ 
   products, 
   storeName, 
   colorTheme,
-  fontSettings
+  fontSettings,
+  contactInfo
 }: StoreProductsDisplayProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -116,6 +126,8 @@ const StoreProductsDisplay = ({
   return (
     <div className="space-y-6">
       <StoreHeader storeName={storeName} colorTheme={colorTheme} fontSettings={fontSettings} />
+      
+      <StoreInfo contactInfo={contactInfo} colorTheme={colorTheme} />
 
       {selectedCategory && (
         <BackButton onClick={handleBackClick} />

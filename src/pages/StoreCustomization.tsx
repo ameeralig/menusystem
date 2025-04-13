@@ -13,12 +13,20 @@ import StoreSlugEditor from "@/components/store/StoreSlugEditor";
 import BannerImageUploader from "@/components/store/BannerImageUploader";
 import SocialLinksEditor from "@/components/store/SocialLinksEditor";
 import FontStyleSelector from "@/components/store/FontStyleSelector";
+import ContactInfoEditor from "@/components/store/ContactInfoEditor";
 import { Card } from "@/components/ui/card";
 
 type SocialLinks = {
   instagram: string;
   facebook: string;
   telegram: string;
+};
+
+type ContactInfo = {
+  description: string;
+  address: string;
+  phone: string;
+  wifi: string;
 };
 
 type FontSettings = {
@@ -57,12 +65,20 @@ const defaultFontSettings: FontSettings = {
   },
 };
 
+const defaultContactInfo: ContactInfo = {
+  description: "",
+  address: "",
+  phone: "",
+  wifi: "",
+};
+
 const StoreCustomization = () => {
   const [storeName, setStoreName] = useState("");
   const [storeSlug, setStoreSlug] = useState("");
   const [colorTheme, setColorTheme] = useState("default");
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [fontSettings, setFontSettings] = useState<FontSettings>(defaultFontSettings);
+  const [contactInfo, setContactInfo] = useState<ContactInfo>(defaultContactInfo);
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({
     instagram: "",
     facebook: "",
@@ -83,7 +99,7 @@ const StoreCustomization = () => {
 
       const { data: storeSettings, error } = await supabase
         .from("store_settings")
-        .select("store_name, color_theme, slug, social_links, banner_url, font_settings")
+        .select("store_name, color_theme, slug, social_links, banner_url, font_settings, contact_info")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -109,6 +125,15 @@ const StoreCustomization = () => {
         if (storeSettings.font_settings) {
           setFontSettings(storeSettings.font_settings as FontSettings || defaultFontSettings);
         }
+        
+        if (storeSettings.contact_info) {
+          setContactInfo({
+            description: (storeSettings.contact_info as ContactInfo)?.description || "",
+            address: (storeSettings.contact_info as ContactInfo)?.address || "",
+            phone: (storeSettings.contact_info as ContactInfo)?.phone || "",
+            wifi: (storeSettings.contact_info as ContactInfo)?.wifi || "",
+          });
+        }
       }
     } catch (error) {
       console.error("Error fetching store settings:", error);
@@ -122,6 +147,7 @@ const StoreCustomization = () => {
     social_links: SocialLinks;
     banner_url: string | null;
     font_settings: FontSettings;
+    contact_info: ContactInfo;
   }>) => {
     setIsLoading(true);
 
@@ -179,6 +205,7 @@ const StoreCustomization = () => {
       if (updatedData.social_links !== undefined) setSocialLinks(updatedData.social_links);
       if (updatedData.banner_url !== undefined) setBannerUrl(updatedData.banner_url);
       if (updatedData.font_settings !== undefined) setFontSettings(updatedData.font_settings);
+      if (updatedData.contact_info !== undefined) setContactInfo(updatedData.contact_info);
 
     } catch (error: any) {
       console.error("Error saving store settings:", error);
@@ -215,6 +242,10 @@ const StoreCustomization = () => {
 
   const handleSocialLinksSubmit = async (links: SocialLinks) => {
     await saveStoreSettings({ social_links: links });
+  };
+
+  const handleContactInfoSubmit = async (info: ContactInfo) => {
+    await saveStoreSettings({ contact_info: info });
   };
 
   return (
@@ -259,6 +290,15 @@ const StoreCustomization = () => {
                   isLoading={isLoading}
                 />
               </div>
+            </Card>
+            
+            <Card className="p-6 shadow-md">
+              <h2 className="text-xl font-semibold mb-4 text-right">معلومات المتجر</h2>
+              <ContactInfoEditor 
+                initialContactInfo={contactInfo}
+                onSave={handleContactInfoSubmit}
+                isLoading={isLoading}
+              />
             </Card>
             
             <Card className="p-6 shadow-md">
