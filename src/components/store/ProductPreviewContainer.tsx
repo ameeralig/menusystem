@@ -114,9 +114,19 @@ const ProductPreviewContainer = ({
           </AspectRatio>
         </div>
       ) : null}
-      <div className={`flex-1 ${getThemeClasses(colorTheme)} transition-colors duration-300`}>
-        <div className="container mx-auto py-4 sm:py-6 px-3 sm:px-4 max-w-6xl">
-          {children}
+      <div className={`flex-1 ${getThemeClasses(colorTheme)} transition-colors duration-300 relative`}>
+        {bannerUrl && !imageError && (
+          <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-black/20 to-transparent"></div>
+        )}
+        <div className={`container mx-auto py-4 sm:py-6 px-3 sm:px-4 max-w-6xl relative ${bannerUrl && !imageError ? 'mt-[-1.5rem] sm:mt-[-2rem]' : ''}`}>
+          <div className={`bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-xl border border-gray-100 dark:border-gray-700 ${bannerUrl && !imageError ? 'transform-gpu' : ''}`} 
+               style={{
+                 boxShadow: bannerUrl && !imageError ? '0 -8px 20px -8px rgba(0,0,0,0.15), 0 8px 16px -8px rgba(0,0,0,0.1)' : 'none',
+               }}>
+            <div className="p-4 sm:p-6">
+              {children}
+            </div>
+          </div>
         </div>
       </div>
     </div>
