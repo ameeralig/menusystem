@@ -2,6 +2,13 @@
 import { MapPin, Phone, Wifi, Info, Clock } from "lucide-react";
 import { useState } from "react";
 
+type WorkDay = {
+  day: string;
+  isOpen: boolean;
+  openTime: string;
+  closeTime: string;
+};
+
 type ContactInfo = {
   description?: string | null;
   address?: string | null;
@@ -59,6 +66,60 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
     setIsWifiCodeVisible(!isWifiCodeVisible);
   };
 
+  const formatBusinessHours = () => {
+    if (!contactInfo.businessHours) return null;
+    
+    try {
+      const workDays = JSON.parse(contactInfo.businessHours) as WorkDay[];
+      if (!Array.isArray(workDays) || workDays.length === 0) return null;
+      
+      const weekDays = [
+        { id: "sunday", label: "الأحد" },
+        { id: "monday", label: "الإثنين" },
+        { id: "tuesday", label: "الثلاثاء" },
+        { id: "wednesday", label: "الأربعاء" },
+        { id: "thursday", label: "الخميس" },
+        { id: "friday", label: "الجمعة" },
+        { id: "saturday", label: "السبت" },
+      ];
+      
+      const openDays = workDays.filter(day => day.isOpen);
+      
+      if (openDays.length === 0) {
+        return (
+          <div className="text-right mb-2 p-2 bg-gray-100 dark:bg-gray-800 rounded-md">
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">المتجر مغلق حالياً</p>
+          </div>
+        );
+      }
+      
+      return (
+        <div className="text-right mb-2 p-2 bg-gray-100 dark:bg-gray-800 rounded-md">
+          <div className="grid gap-1">
+            {workDays.map((day) => {
+              const dayLabel = weekDays.find(d => d.id === day.day)?.label || day.day;
+              return (
+                <div key={day.day} className="flex justify-between items-center text-sm">
+                  <div className="flex items-center">
+                    {day.isOpen ? (
+                      <span className="text-green-600 dark:text-green-400">{day.openTime} - {day.closeTime}</span>
+                    ) : (
+                      <span className="text-red-500 dark:text-red-400">مغلق</span>
+                    )}
+                  </div>
+                  <span className="font-medium">{dayLabel}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    } catch (e) {
+      console.error("Error parsing business hours:", e);
+      return null;
+    }
+  };
+
   return (
     <div className="mt-2 mb-6 text-right space-y-3">
       {contactInfo.description && (
@@ -69,9 +130,12 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
       )}
 
       {contactInfo.businessHours && (
-        <div className="flex items-center justify-end gap-2 text-gray-700 dark:text-gray-300">
-          <p className="text-sm">{contactInfo.businessHours}</p>
-          <Clock className={`w-4 h-4 ${themeIconClasses}`} />
+        <div>
+          <div className="flex items-center justify-end gap-2 text-gray-700 dark:text-gray-300 mb-1">
+            <p className="text-sm font-medium">ساعات العمل</p>
+            <Clock className={`w-4 h-4 ${themeIconClasses}`} />
+          </div>
+          {formatBusinessHours()}
         </div>
       )}
 
