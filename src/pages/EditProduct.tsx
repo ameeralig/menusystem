@@ -1,9 +1,9 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Product } from "@/types/product";
+import { CategoryImage } from "@/types/categoryImage";
 import EditProductForm from "@/components/products/EditProductForm";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Loader2, AlertTriangle } from "lucide-react";
@@ -11,6 +11,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import LoadingState from "@/components/products/LoadingState";
 import ProductsList from "@/components/products/ProductsList";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CategoryImageManager } from "@/components/products/CategoryImageManager";
 
 const EditProduct = () => {
   const navigate = useNavigate();
@@ -24,8 +25,9 @@ const EditProduct = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
-  // حالات النموذج
+  const [categoryImages, setCategoryImages] = useState<CategoryImage[]>([]);
+  const [uniqueCategories, setUniqueCategories] = useState<string[]>([]);
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -48,13 +50,26 @@ const EditProduct = () => {
       if (error) throw error;
       setProducts(data || []);
 
-      // تحقق من وجود معرف المنتج
+      const categories = [...new Set(data?.map(p => p.category).filter(Boolean))];
+      setUniqueCategories(categories);
+
+      const { data: imagesData, error: imagesError } = await supabase
+        .from("category_images")
+        .select("*")
+        .eq("user_id", user.id);
+
+      if (!imagesError && imagesData) {
+        setCategoryImages(imagesData.map(img => ({
+          category: img.category,
+          imageUrl: img.image_url,
+        })));
+      }
+
       if (productId) {
         const product = data?.find(p => p.id === productId);
         if (product) {
           setSelectedProductData(product);
         } else {
-          // إذا لم يتم العثور على المنتج، انتقل إلى قائمة المنتجات
           navigate("/edit-product", { replace: true });
         }
       }
@@ -110,16 +125,13 @@ const EditProduct = () => {
         duration: 3000,
       });
 
-      // تحديث المنتجات في الحالة المحلية
       setProducts(products.map(p => 
         p.id === selectedProduct.id 
           ? { ...p, name, description, price: parseFloat(price), category, is_new: isNew, is_popular: isPopular }
           : p
       ));
 
-      // العودة إلى قائمة المنتجات
       handleCancel();
-
     } catch (error: any) {
       console.error("Error updating product:", error);
       toast({
@@ -143,10 +155,8 @@ const EditProduct = () => {
 
         if (error) throw error;
 
-        // تحديث قائمة المنتجات المحلية
         setProducts(products.filter(p => p.id !== productId));
         
-        // إذا كان المنتج المحذوف هو المنتج المحدد، فقم بإلغاء التحديد
         if (selectedProduct && selectedProduct.id === productId) {
           handleCancel();
         }
@@ -177,19 +187,50 @@ const EditProduct = () => {
     setIsNew(false);
     setIsPopular(false);
     
-    // إزالة معرف المنتج من المسار
     if (productId) {
       navigate("/edit-product", { replace: true });
     }
   };
 
   const handleSelectProduct = (productId: string) => {
-    // التنقل إلى صفحة تعديل المنتج المحدد
     navigate(`/edit-product/${productId}`);
     
     const product = products.find(p => p.id === productId);
     if (product) {
       setSelectedProductData(product);
+    }
+  };
+
+  const handleUpdateCategoryImages = async (images: CategoryImage[]) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("يجب تسجيل الدخول أولاً");
+
+      await supabase
+        .from("category_images")
+        .delete()
+        .eq("user_id", user.id);
+
+      if (images.length > 0) {
+        const { error } = await supabase
+          .from("category_images")
+          .insert(images.map(img => ({
+            user_id: user.id,
+            category: img.category,
+            image_url: img.imageUrl,
+          })));
+
+        if (error) throw error;
+      }
+
+      setCategoryImages(images);
+    } catch (error: any) {
+      console.error("Error updating category images:", error);
+      toast({
+        variant: "destructive",
+        title: "خطأ في تحديث صور التصنيفات",
+        description: error.message,
+      });
     }
   };
 
@@ -227,11 +268,20 @@ const EditProduct = () => {
         )}
 
         {!selectedProduct ? (
-          <ProductsList 
-            products={products}
-            onSelectProduct={handleSelectProduct}
-            onDeleteProduct={handleDelete}
-          />
+          <>
+            <ProductsList 
+              products={products}
+              onSelectProduct={handleSelectProduct}
+              onDeleteProduct={handleDelete}
+            />
+            {uniqueCategories.length > 0 && (
+              <CategoryImageManager
+                categories={uniqueCategories}
+                categoryImages={categoryImages}
+                onUpdateImages={handleUpdateCategoryImages}
+              />
+            )}
+          </>
         ) : (
           <EditProductForm
             product={selectedProduct}
