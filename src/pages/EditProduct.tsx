@@ -6,10 +6,11 @@ import { useToast } from "@/hooks/use-toast";
 import { Product } from "@/types/product";
 import EditProductForm from "@/components/products/EditProductForm";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2, AlertTriangle } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import LoadingState from "@/components/products/LoadingState";
 import ProductsList from "@/components/products/ProductsList";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const EditProduct = () => {
   const navigate = useNavigate();
@@ -19,8 +20,10 @@ const EditProduct = () => {
   
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [error, setError] = useState<string | null>(null);
   
   // حالات النموذج
   const [name, setName] = useState("");
@@ -32,6 +35,7 @@ const EditProduct = () => {
 
   const fetchProducts = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("لم يتم العثور على المستخدم");
@@ -49,10 +53,14 @@ const EditProduct = () => {
         const product = data?.find(p => p.id === productId);
         if (product) {
           setSelectedProductData(product);
+        } else {
+          // إذا لم يتم العثور على المنتج، انتقل إلى قائمة المنتجات
+          navigate("/edit-product", { replace: true });
         }
       }
     } catch (error: any) {
       console.error("Error fetching products:", error);
+      setError(error.message);
       toast({
         variant: "destructive",
         title: "خطأ في تحميل المنتجات",
@@ -124,6 +132,42 @@ const EditProduct = () => {
     }
   };
 
+  const handleDelete = async (productId: string) => {
+    if (window.confirm("هل أنت متأكد من حذف هذا المنتج؟")) {
+      setIsDeleting(true);
+      try {
+        const { error } = await supabase
+          .from("products")
+          .delete()
+          .eq("id", productId);
+
+        if (error) throw error;
+
+        // تحديث قائمة المنتجات المحلية
+        setProducts(products.filter(p => p.id !== productId));
+        
+        // إذا كان المنتج المحذوف هو المنتج المحدد، فقم بإلغاء التحديد
+        if (selectedProduct && selectedProduct.id === productId) {
+          handleCancel();
+        }
+
+        toast({
+          title: "تم حذف المنتج بنجاح",
+          duration: 3000,
+        });
+      } catch (error: any) {
+        console.error("Error deleting product:", error);
+        toast({
+          variant: "destructive",
+          title: "خطأ في حذف المنتج",
+          description: error.message,
+        });
+      } finally {
+        setIsDeleting(false);
+      }
+    }
+  };
+
   const handleCancel = () => {
     setSelectedProduct(null);
     setName("");
@@ -140,6 +184,9 @@ const EditProduct = () => {
   };
 
   const handleSelectProduct = (productId: string) => {
+    // التنقل إلى صفحة تعديل المنتج المحدد
+    navigate(`/edit-product/${productId}`);
+    
     const product = products.find(p => p.id === productId);
     if (product) {
       setSelectedProductData(product);
@@ -164,11 +211,26 @@ const EditProduct = () => {
         </Button>
       </div>
 
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
       <div className="grid gap-4 md:gap-6">
+        {isDeleting && (
+          <div className="flex justify-center items-center p-4">
+            <Loader2 className="h-6 w-6 animate-spin mr-2" />
+            <span>جاري حذف المنتج...</span>
+          </div>
+        )}
+
         {!selectedProduct ? (
           <ProductsList 
             products={products}
             onSelectProduct={handleSelectProduct}
+            onDeleteProduct={handleDelete}
           />
         ) : (
           <EditProductForm
