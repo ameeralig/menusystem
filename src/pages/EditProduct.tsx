@@ -49,6 +49,7 @@ const EditProduct = () => {
         if (error) throw error;
         setProducts(data || []);
 
+        // فقط قم بتحديد المنتج تلقائيًا إذا كان هناك معرّف في العنوان
         if (productId) {
           const selectedProduct = data?.find(p => p.id === productId);
           if (selectedProduct) {
@@ -107,7 +108,8 @@ const EditProduct = () => {
           : p
       ));
 
-      navigate("/dashboard");
+      // إرجاع المستخدم إلى حالة اختيار المنتج بعد التحديث
+      setSelectedProduct(null);
 
     } catch (error: any) {
       console.error("Error updating product:", error);
@@ -122,10 +124,12 @@ const EditProduct = () => {
   };
 
   const handleCancel = () => {
-    navigate("/dashboard");
+    // العودة إلى حالة اختيار المنتج بدلاً من العودة للوحة التحكم
+    setSelectedProduct(null);
   };
 
   const handleSelectProduct = (productId: string) => {
+    console.log("تم اختيار المنتج:", productId);
     const product = products.find(p => p.id === productId);
     if (product) {
       setSelectedProduct(product);
@@ -172,11 +176,23 @@ const EditProduct = () => {
               <CardDescription>انقر على زر "تعديل" بجانب المنتج الذي تريد تعديله</CardDescription>
             </CardHeader>
             <CardContent>
-              <ProductsTable 
-                products={products} 
-                onEdit={handleSelectProduct}
-                onDelete={() => {}} // لن نستخدم هذه الوظيفة هنا
-              />
+              {products.length === 0 ? (
+                <div className="text-center py-6">
+                  <p className="text-muted-foreground">لا توجد منتجات متاحة للتعديل</p>
+                  <Button 
+                    onClick={() => navigate("/add-product")} 
+                    className="mt-4"
+                  >
+                    إضافة منتج جديد
+                  </Button>
+                </div>
+              ) : (
+                <ProductsTable 
+                  products={products} 
+                  onEdit={handleSelectProduct}
+                  onDelete={() => {}} // لن نستخدم هذه الوظيفة هنا
+                />
+              )}
             </CardContent>
           </Card>
         )}
