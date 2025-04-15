@@ -1,6 +1,7 @@
+
 import { motion } from "framer-motion";
-import { Product } from "@/types/product";
 import { CSSProperties, useEffect, useState } from "react";
+import { CategoryImage } from "@/types/categoryImage";
 
 interface FontSettings {
   categoryText?: {

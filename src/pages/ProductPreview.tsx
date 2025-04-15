@@ -109,7 +109,7 @@ const ProductPreview = () => {
           console.info("Contact info from database:", storeSettings.contact_info);
         }
 
-        // جلب صور التصنيفات
+        // جلب صور التصنيفات - هذا الجزء مهم للزوار أيضاً
         const { data: categoryImagesData, error: categoryImagesError } = await supabase
           .from("category_images")
           .select("*")
@@ -118,8 +118,8 @@ const ProductPreview = () => {
         if (categoryImagesError) {
           console.error("Error fetching category images:", categoryImagesError);
         } else {
+          console.info("Category images data fetched for visitor:", categoryImagesData);
           setCategoryImages(categoryImagesData || []);
-          console.info("Category images data:", categoryImagesData);
         }
 
         const { data: productsData, error: productsError } = await supabase
