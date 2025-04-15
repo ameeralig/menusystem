@@ -15,11 +15,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const EditProduct = () => {
   const navigate = useNavigate();
   const { productId } = useParams();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -49,17 +51,20 @@ const EditProduct = () => {
         if (error) throw error;
         setProducts(data || []);
 
-        // فقط قم بتحديد المنتج تلقائيًا إذا كان هناك معرّف في العنوان
+        // فقط إذا كان هناك معرف محدد في الرابط، قم بتحديد المنتج
         if (productId) {
-          const selectedProduct = data?.find(p => p.id === productId);
-          if (selectedProduct) {
-            setSelectedProduct(selectedProduct);
-            setName(selectedProduct.name);
-            setDescription(selectedProduct.description || "");
-            setPrice(selectedProduct.price.toString());
-            setCategory(selectedProduct.category || "");
-            setIsNew(selectedProduct.is_new || false);
-            setIsPopular(selectedProduct.is_popular || false);
+          const product = data?.find(p => p.id === productId);
+          if (product) {
+            setSelectedProduct(product);
+            setName(product.name);
+            setDescription(product.description || "");
+            setPrice(product.price.toString());
+            setCategory(product.category || "");
+            setIsNew(product.is_new || false);
+            setIsPopular(product.is_popular || false);
+          } else {
+            // إذا لم يتم العثور على المنتج، نعود إلى قائمة المنتجات
+            navigate("/edit-product", { replace: true });
           }
         }
       } catch (error: any) {
@@ -75,7 +80,7 @@ const EditProduct = () => {
     };
 
     fetchProducts();
-  }, [productId, toast]);
+  }, [productId, toast, navigate]);
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,8 +113,8 @@ const EditProduct = () => {
           : p
       ));
 
-      // إرجاع المستخدم إلى حالة اختيار المنتج بعد التحديث
-      setSelectedProduct(null);
+      // بعد التحديث، العودة إلى قائمة المنتجات بدلاً من صفحة لوحة التحكم
+      navigate("/edit-product", { replace: true });
 
     } catch (error: any) {
       console.error("Error updating product:", error);
@@ -124,28 +129,20 @@ const EditProduct = () => {
   };
 
   const handleCancel = () => {
-    // العودة إلى حالة اختيار المنتج بدلاً من العودة للوحة التحكم
-    setSelectedProduct(null);
+    // العودة إلى قائمة المنتجات بدلاً من العودة للوحة التحكم
+    navigate("/edit-product", { replace: true });
   };
 
   const handleSelectProduct = (productId: string) => {
     console.log("تم اختيار المنتج:", productId);
-    const product = products.find(p => p.id === productId);
-    if (product) {
-      setSelectedProduct(product);
-      setName(product.name);
-      setDescription(product.description || "");
-      setPrice(product.price.toString());
-      setCategory(product.category || "");
-      setIsNew(product.is_new || false);
-      setIsPopular(product.is_popular || false);
-    }
+    // بدلاً من تحديث حالة فقط، قم بالانتقال إلى صفحة تعديل المنتج المحدد
+    navigate(`/edit-product/${productId}`);
   };
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="flex justify-center items-center min-h-[400px]">
+      <div className="container mx-auto py-4 px-3 md:py-8 md:px-6">
+        <div className="flex justify-center items-center min-h-[300px]">
           <div className="text-center space-y-4">
             <div className="animate-pulse bg-gray-200 h-6 w-48 rounded mx-auto"></div>
             <div className="animate-pulse bg-gray-200 h-4 w-32 rounded mx-auto"></div>
@@ -156,42 +153,46 @@ const EditProduct = () => {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="mb-6">
+    <div className="container mx-auto py-4 px-3 md:py-8 md:px-6">
+      <div className="mb-4 md:mb-6">
         <Button
           variant="ghost"
           onClick={() => navigate("/dashboard")}
-          className="flex items-center gap-2 mb-4"
+          className="flex items-center gap-2 mb-2 md:mb-4 px-2 md:px-4"
+          size={isMobile ? "sm" : "default"}
         >
-          <ArrowRight className="h-4 w-4" />
+          <ArrowRight className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
           العودة إلى لوحة التحكم
         </Button>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid gap-4 md:gap-6">
         {!selectedProduct && (
-          <Card>
-            <CardHeader>
-              <CardTitle>اختر المنتج الذي تريد تعديله</CardTitle>
-              <CardDescription>انقر على زر "تعديل" بجانب المنتج الذي تريد تعديله</CardDescription>
+          <Card className="w-full">
+            <CardHeader className="pb-3 md:pb-4">
+              <CardTitle className="text-lg md:text-2xl">اختر المنتج الذي تريد تعديله</CardTitle>
+              <CardDescription className="text-xs md:text-sm">انقر على زر "تعديل" بجانب المنتج الذي تريد تعديله</CardDescription>
             </CardHeader>
             <CardContent>
               {products.length === 0 ? (
-                <div className="text-center py-6">
-                  <p className="text-muted-foreground">لا توجد منتجات متاحة للتعديل</p>
+                <div className="text-center py-4 md:py-6">
+                  <p className="text-muted-foreground text-sm md:text-base">لا توجد منتجات متاحة للتعديل</p>
                   <Button 
                     onClick={() => navigate("/add-product")} 
-                    className="mt-4"
+                    className="mt-3 md:mt-4"
+                    size={isMobile ? "sm" : "default"}
                   >
                     إضافة منتج جديد
                   </Button>
                 </div>
               ) : (
-                <ProductsTable 
-                  products={products} 
-                  onEdit={handleSelectProduct}
-                  onDelete={() => {}} // لن نستخدم هذه الوظيفة هنا
-                />
+                <div className="overflow-x-auto -mx-2 px-2">
+                  <ProductsTable 
+                    products={products} 
+                    onEdit={handleSelectProduct}
+                    onDelete={() => {}} // لن نستخدم هذه الوظيفة هنا
+                  />
+                </div>
               )}
             </CardContent>
           </Card>
