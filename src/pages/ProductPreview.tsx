@@ -1,9 +1,11 @@
+
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Product } from "@/types/product";
+import { CategoryImage } from "@/types/categoryImage";
 import FeedbackDialog from "@/components/store/FeedbackDialog";
 import ProductPreviewContainer from "@/components/store/ProductPreviewContainer";
 import StoreProductsDisplay from "@/components/store/StoreProductsDisplay";
@@ -50,6 +52,7 @@ const ProductPreview = () => {
   const [contactInfo, setContactInfo] = useState<ContactInfo>({});
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [fontSettings, setFontSettings] = useState<FontSettings | undefined>(undefined);
+  const [categoryImages, setCategoryImages] = useState<CategoryImage[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -104,6 +107,19 @@ const ProductPreview = () => {
           setContactInfo(storeSettings.contact_info as ContactInfo || {});
           console.info("Banner URL from database:", storeSettings.banner_url);
           console.info("Contact info from database:", storeSettings.contact_info);
+        }
+
+        // جلب صور التصنيفات
+        const { data: categoryImagesData, error: categoryImagesError } = await supabase
+          .from("category_images")
+          .select("*")
+          .eq("user_id", userId);
+
+        if (categoryImagesError) {
+          console.error("Error fetching category images:", categoryImagesError);
+        } else {
+          setCategoryImages(categoryImagesData || []);
+          console.info("Category images data:", categoryImagesData);
         }
 
         const { data: productsData, error: productsError } = await supabase
@@ -165,6 +181,7 @@ const ProductPreview = () => {
         colorTheme={colorTheme}
         fontSettings={fontSettings}
         contactInfo={contactInfo}
+        categoryImages={categoryImages}
       />
       <SocialIcons socialLinks={socialLinks} />
       {userId && <FeedbackDialog userId={userId} />}

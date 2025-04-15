@@ -1,6 +1,7 @@
 
 import React, { useState, useCallback, useMemo } from "react";
 import { Product } from "@/types/product";
+import { CategoryImage } from "@/types/categoryImage";
 import ProductGrid from "@/components/store/ProductGrid";
 import CategoryGrid from "@/components/store/CategoryGrid";
 import SearchBar from "@/components/store/SearchBar";
@@ -41,6 +42,7 @@ interface StoreProductsDisplayProps {
   colorTheme: string | null;
   fontSettings?: FontSettings;
   contactInfo?: ContactInfo;
+  categoryImages?: CategoryImage[];
 }
 
 const StoreProductsDisplay = ({ 
@@ -48,7 +50,8 @@ const StoreProductsDisplay = ({
   storeName, 
   colorTheme,
   fontSettings,
-  contactInfo
+  contactInfo,
+  categoryImages = []
 }: StoreProductsDisplayProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -104,12 +107,25 @@ const StoreProductsDisplay = ({
 
   const getCategoryImage = useCallback(
     (category: string) => {
+      // أولاً نبحث في جدول صور التصنيفات
+      const categoryImage = categoryImages?.find(
+        img => img.category === category
+      );
+      
+      if (categoryImage?.image_url) {
+        console.log(`Found image for category ${category}:`, categoryImage.image_url);
+        return categoryImage.image_url;
+      }
+      
+      // إذا لم نجد صورة في جدول صور التصنيفات، نستخدم الطريقة القديمة
       const firstProductWithCategory = products.find(
         (product) => product.category === category && product.image_url
       );
+      
+      console.log(`Fallback image for category ${category}:`, firstProductWithCategory?.image_url || "/placeholder.svg");
       return firstProductWithCategory?.image_url || "/placeholder.svg";
     },
-    [products]
+    [products, categoryImages]
   );
 
   const handleBackClick = useCallback(() => {

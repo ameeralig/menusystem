@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { Product } from "@/types/product";
 import { CSSProperties, useEffect, useState } from "react";
@@ -63,14 +62,11 @@ const CategoryGrid = ({
   
   useEffect(() => {
     if (fontSettings?.categoryText?.isCustom && fontSettings?.categoryText?.customFontUrl) {
-      // Generate a unique ID for the font
       const uniqueId = `category-text-font-${Math.random().toString(36).substring(2, 9)}`;
       setFontId(uniqueId);
       
-      // Create a font face rule
       const fontFace = new FontFace(uniqueId, `url(${fontSettings.categoryText.customFontUrl})`);
       
-      // Load the font and add it to the document
       fontFace.load().then((loadedFontFace) => {
         document.fonts.add(loadedFontFace);
         setFontFaceLoaded(true);
@@ -79,7 +75,6 @@ const CategoryGrid = ({
       });
       
       return () => {
-        // Clean up by removing the style element when the component unmounts
         const styleElement = document.getElementById(`style-${uniqueId}`);
         if (styleElement) {
           styleElement.remove();

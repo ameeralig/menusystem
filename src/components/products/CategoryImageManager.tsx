@@ -68,6 +68,8 @@ export const CategoryImageManager = ({
         .from("category-images")
         .getPublicUrl(filePath);
 
+      console.log("Public URL of uploaded image:", publicUrl);
+
       // إضافة أو تحديث صورة التصنيف في قاعدة البيانات
       const { error: dbError } = await supabase
         .from("category_images")
