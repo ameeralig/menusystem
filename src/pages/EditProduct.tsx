@@ -2,12 +2,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Product } from "@/types/product";
 import EditProductForm from "@/components/products/EditProductForm";
 import ProductsTable from "@/components/products/ProductsTable";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const EditProduct = () => {
   const navigate = useNavigate();
@@ -118,6 +125,19 @@ const EditProduct = () => {
     navigate("/dashboard");
   };
 
+  const handleSelectProduct = (productId: string) => {
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      setSelectedProduct(product);
+      setName(product.name);
+      setDescription(product.description || "");
+      setPrice(product.price.toString());
+      setCategory(product.category || "");
+      setIsNew(product.is_new || false);
+      setIsPopular(product.is_popular || false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-8">
@@ -144,24 +164,44 @@ const EditProduct = () => {
         </Button>
       </div>
 
-      <EditProductForm
-        product={selectedProduct}
-        onSubmit={handleUpdate}
-        onCancel={handleCancel}
-        name={name}
-        setName={setName}
-        description={description}
-        setDescription={setDescription}
-        price={price}
-        setPrice={setPrice}
-        category={category}
-        setCategory={setCategory}
-        isNew={isNew}
-        setIsNew={setIsNew}
-        isPopular={isPopular}
-        setIsPopular={setIsPopular}
-        isLoading={isSaving}
-      />
+      <div className="grid gap-6">
+        {!selectedProduct && (
+          <Card>
+            <CardHeader>
+              <CardTitle>اختر المنتج الذي تريد تعديله</CardTitle>
+              <CardDescription>انقر على زر "تعديل" بجانب المنتج الذي تريد تعديله</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProductsTable 
+                products={products} 
+                onEdit={handleSelectProduct}
+                onDelete={() => {}} // لن نستخدم هذه الوظيفة هنا
+              />
+            </CardContent>
+          </Card>
+        )}
+
+        {selectedProduct && (
+          <EditProductForm
+            product={selectedProduct}
+            onSubmit={handleUpdate}
+            onCancel={handleCancel}
+            name={name}
+            setName={setName}
+            description={description}
+            setDescription={setDescription}
+            price={price}
+            setPrice={setPrice}
+            category={category}
+            setCategory={setCategory}
+            isNew={isNew}
+            setIsNew={setIsNew}
+            isPopular={isPopular}
+            setIsPopular={setIsPopular}
+            isLoading={isSaving}
+          />
+        )}
+      </div>
     </div>
   );
 };
