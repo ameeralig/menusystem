@@ -13,9 +13,10 @@ import { Product } from "@/types/product";
 interface ProductsListProps {
   products: Product[];
   onSelectProduct: (productId: string) => void;
+  onDeleteProduct?: (productId: string) => void;
 }
 
-const ProductsList = ({ products, onSelectProduct }: ProductsListProps) => {
+const ProductsList = ({ products, onSelectProduct, onDeleteProduct }: ProductsListProps) => {
   return (
     <Card className="w-full">
       <CardHeader className="pb-3 md:pb-4">
@@ -30,7 +31,7 @@ const ProductsList = ({ products, onSelectProduct }: ProductsListProps) => {
             <ProductsTable 
               products={products} 
               onEdit={onSelectProduct}
-              onDelete={() => {}} 
+              onDelete={onDeleteProduct || (() => {})} 
             />
           </div>
         )}

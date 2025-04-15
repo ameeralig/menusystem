@@ -17,12 +17,12 @@ const EditProduct = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   
-  // Form states
+  // حالات النموذج
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -30,62 +30,52 @@ const EditProduct = () => {
   const [isNew, setIsNew] = useState(false);
   const [isPopular, setIsPopular] = useState(false);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setIsLoading(true);
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error("لم يتم العثور على المستخدم");
+  const fetchProducts = async () => {
+    setIsLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("لم يتم العثور على المستخدم");
 
-        const { data, error } = await supabase
-          .from("products")
-          .select("*")
-          .eq("user_id", user.id);
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("user_id", user.id);
 
-        if (error) throw error;
-        setProducts(data || []);
+      if (error) throw error;
+      setProducts(data || []);
 
-        // تحقق من وجود معرف المنتج
-        if (productId) {
-          const product = data?.find(p => p.id === productId);
-          if (product) {
-            setSelectedProduct(product);
-            setName(product.name);
-            setDescription(product.description || "");
-            setPrice(product.price.toString());
-            setCategory(product.category || "");
-            setIsNew(product.is_new || false);
-            setIsPopular(product.is_popular || false);
-          } else {
-            // إذا لم يتم العثور على المنتج، نعود إلى قائمة المنتجات
-            navigate("/edit-product", { replace: true });
-          }
+      // تحقق من وجود معرف المنتج
+      if (productId) {
+        const product = data?.find(p => p.id === productId);
+        if (product) {
+          setSelectedProductData(product);
         }
-      } catch (error: any) {
-        console.error("Error fetching products:", error);
-        toast({
-          variant: "destructive",
-          title: "خطأ في تحميل المنتجات",
-          description: error.message,
-        });
-      } finally {
-        setIsLoading(false);
       }
-    };
-
-    fetchProducts();
-  }, [productId, toast, navigate]);
-
-  // إزالة المسار بعد تحميل المنتجات إذا كنا في مسار محدد لمنتج
-  useEffect(() => {
-    if (productId && !isLoading) {
-      // استخدام setTimeout للتأكد من أن التنقل يحدث بعد تحديث الحالة
-      const timer = setTimeout(() => {
-        navigate("/edit-product", { replace: true });
-      }, 100);
-      return () => clearTimeout(timer);
+    } catch (error: any) {
+      console.error("Error fetching products:", error);
+      toast({
+        variant: "destructive",
+        title: "خطأ في تحميل المنتجات",
+        description: error.message,
+      });
+    } finally {
+      setIsLoading(false);
     }
-  }, [productId, isLoading, navigate]);
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const setSelectedProductData = (product: Product) => {
+    setSelectedProduct(product);
+    setName(product.name);
+    setDescription(product.description || "");
+    setPrice(product.price.toString());
+    setCategory(product.category || "");
+    setIsNew(product.is_new || false);
+    setIsPopular(product.is_popular || false);
+  };
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,6 +102,7 @@ const EditProduct = () => {
         duration: 3000,
       });
 
+      // تحديث المنتجات في الحالة المحلية
       setProducts(products.map(p => 
         p.id === selectedProduct.id 
           ? { ...p, name, description, price: parseFloat(price), category, is_new: isNew, is_popular: isPopular }
@@ -141,18 +132,17 @@ const EditProduct = () => {
     setCategory("");
     setIsNew(false);
     setIsPopular(false);
+    
+    // إزالة معرف المنتج من المسار
+    if (productId) {
+      navigate("/edit-product", { replace: true });
+    }
   };
 
   const handleSelectProduct = (productId: string) => {
     const product = products.find(p => p.id === productId);
     if (product) {
-      setSelectedProduct(product);
-      setName(product.name);
-      setDescription(product.description || "");
-      setPrice(product.price.toString());
-      setCategory(product.category || "");
-      setIsNew(product.is_new || false);
-      setIsPopular(product.is_popular || false);
+      setSelectedProductData(product);
     }
   };
 
