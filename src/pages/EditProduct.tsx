@@ -1,21 +1,14 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Product } from "@/types/product";
 import EditProductForm from "@/components/products/EditProductForm";
-import ProductsTable from "@/components/products/ProductsTable";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
+import LoadingState from "@/components/products/LoadingState";
+import ProductsList from "@/components/products/ProductsList";
 
 const EditProduct = () => {
   const navigate = useNavigate();
@@ -129,27 +122,30 @@ const EditProduct = () => {
   };
 
   const handleCancel = () => {
-    // العودة إلى قائمة المنتجات بدلاً من العودة للوحة التحكم
-    navigate("/edit-product", { replace: true });
+    setSelectedProduct(null);
+    setName("");
+    setDescription("");
+    setPrice("");
+    setCategory("");
+    setIsNew(false);
+    setIsPopular(false);
   };
 
   const handleSelectProduct = (productId: string) => {
-    console.log("تم اختيار المنتج:", productId);
-    // بدلاً من تحديث حالة فقط، قم بالانتقال إلى صفحة تعديل المنتج المحدد
-    navigate(`/edit-product/${productId}`);
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      setSelectedProduct(product);
+      setName(product.name);
+      setDescription(product.description || "");
+      setPrice(product.price.toString());
+      setCategory(product.category || "");
+      setIsNew(product.is_new || false);
+      setIsPopular(product.is_popular || false);
+    }
   };
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto py-4 px-3 md:py-8 md:px-6">
-        <div className="flex justify-center items-center min-h-[300px]">
-          <div className="text-center space-y-4">
-            <div className="animate-pulse bg-gray-200 h-6 w-48 rounded mx-auto"></div>
-            <div className="animate-pulse bg-gray-200 h-4 w-32 rounded mx-auto"></div>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   return (
@@ -167,38 +163,12 @@ const EditProduct = () => {
       </div>
 
       <div className="grid gap-4 md:gap-6">
-        {!selectedProduct && (
-          <Card className="w-full">
-            <CardHeader className="pb-3 md:pb-4">
-              <CardTitle className="text-lg md:text-2xl">اختر المنتج الذي تريد تعديله</CardTitle>
-              <CardDescription className="text-xs md:text-sm">انقر على زر "تعديل" بجانب المنتج الذي تريد تعديله</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {products.length === 0 ? (
-                <div className="text-center py-4 md:py-6">
-                  <p className="text-muted-foreground text-sm md:text-base">لا توجد منتجات متاحة للتعديل</p>
-                  <Button 
-                    onClick={() => navigate("/add-product")} 
-                    className="mt-3 md:mt-4"
-                    size={isMobile ? "sm" : "default"}
-                  >
-                    إضافة منتج جديد
-                  </Button>
-                </div>
-              ) : (
-                <div className="overflow-x-auto -mx-2 px-2">
-                  <ProductsTable 
-                    products={products} 
-                    onEdit={handleSelectProduct}
-                    onDelete={() => {}} // لن نستخدم هذه الوظيفة هنا
-                  />
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {selectedProduct && (
+        {!selectedProduct ? (
+          <ProductsList 
+            products={products}
+            onSelectProduct={handleSelectProduct}
+          />
+        ) : (
           <EditProductForm
             product={selectedProduct}
             onSubmit={handleUpdate}
