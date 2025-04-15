@@ -12,6 +12,7 @@ import EmptyProducts from "./EmptyProducts";
 import { ProductCard } from "../products/ProductCard";
 import { Grid, ListFilter, Rows } from "lucide-react";
 import { useState } from "react";
+import ProductsTable from "./ProductsTable";
 
 interface ProductsListProps {
   products: Product[];
