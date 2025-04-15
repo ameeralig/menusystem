@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Product } from "@/types/product";
 import { CategoryImage } from "@/types/categoryImage";
@@ -42,31 +42,30 @@ const EditProduct = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("لم يتم العثور على المستخدم");
 
-      const { data, error } = await supabase
+      const { data: productsData, error: productsError } = await supabase
         .from("products")
         .select("*")
         .eq("user_id", user.id);
 
-      if (error) throw error;
-      setProducts(data || []);
+      if (productsError) throw productsError;
 
-      const categories = [...new Set(data?.map(p => p.category).filter(Boolean))];
-      setUniqueCategories(categories);
+      if (productsData) {
+        setProducts(productsData);
+        const categories = [...new Set(productsData?.map(p => p.category).filter(Boolean))];
+        setUniqueCategories(categories);
 
-      const { data: imagesData, error: imagesError } = await supabase
-        .from("category_images")
-        .select("*")
-        .eq("user_id", user.id);
+        const { data: imagesData, error: imagesError } = await supabase
+          .from("category_images")
+          .select("*")
+          .eq("user_id", user.id);
 
-      if (!imagesError && imagesData) {
-        setCategoryImages(imagesData.map(img => ({
-          category: img.category,
-          imageUrl: img.image_url,
-        })));
+        if (!imagesError && imagesData) {
+          setCategoryImages(imagesData);
+        }
       }
 
       if (productId) {
-        const product = data?.find(p => p.id === productId);
+        const product = productsData?.find(p => p.id === productId);
         if (product) {
           setSelectedProductData(product);
         } else {
@@ -214,10 +213,10 @@ const EditProduct = () => {
       if (images.length > 0) {
         const { error } = await supabase
           .from("category_images")
-          .insert(images.map(img => ({
+          .upsert(images.map(img => ({
             user_id: user.id,
             category: img.category,
-            image_url: img.imageUrl,
+            image_url: img.image_url,
           })));
 
         if (error) throw error;

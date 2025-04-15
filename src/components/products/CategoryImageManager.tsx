@@ -7,7 +7,8 @@ import { Image, X } from "lucide-react";
 import { CategoryImage } from "@/types/categoryImage";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
+import { deleteImage } from "@/utils/storageHelpers";
 
 interface CategoryImageManagerProps {
   categories: string[];
@@ -55,8 +56,20 @@ export const CategoryImageManager = ({
         .from("category-images")
         .getPublicUrl(filePath);
 
-      const updatedImages = categoryImages.filter(img => img.category !== category);
-      updatedImages.push({ category, imageUrl: publicUrl });
+      // إضافة أو تحديث صورة التصنيف في قاعدة البيانات
+      const { error: dbError } = await supabase
+        .from("category_images")
+        .upsert({
+          user_id: user.id,
+          category,
+          image_url: publicUrl,
+        });
+
+      if (dbError) throw dbError;
+
+      const updatedImages = [...categoryImages.filter(img => img.category !== category), 
+        { category, image_url: publicUrl }
+      ];
       onUpdateImages(updatedImages);
 
       toast({
@@ -74,13 +87,42 @@ export const CategoryImageManager = ({
     }
   };
 
-  const removeImage = (category: string) => {
-    const updatedImages = categoryImages.filter(img => img.category !== category);
-    onUpdateImages(updatedImages);
-    toast({
-      title: "تم حذف الصورة",
-      description: `تم حذف صورة تصنيف ${category}`,
-    });
+  const removeImage = async (category: string) => {
+    const imageToDelete = categoryImages.find(img => img.category === category);
+    if (!imageToDelete) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("يجب تسجيل الدخول أولاً");
+
+      // حذف السجل من قاعدة البيانات
+      const { error: dbError } = await supabase
+        .from("category_images")
+        .delete()
+        .match({ user_id: user.id, category });
+
+      if (dbError) throw dbError;
+
+      // حذف الملف من التخزين إذا كان موجوداً
+      const fileName = imageToDelete.image_url.split("/").pop();
+      if (fileName) {
+        await deleteImage("category-images", `category-images/${fileName}`);
+      }
+
+      const updatedImages = categoryImages.filter(img => img.category !== category);
+      onUpdateImages(updatedImages);
+
+      toast({
+        title: "تم حذف الصورة",
+        description: `تم حذف صورة تصنيف ${category}`,
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "خطأ في حذف الصورة",
+        description: error.message,
+      });
+    }
   };
 
   return (
@@ -110,7 +152,7 @@ export const CategoryImageManager = ({
                 {categoryImage ? (
                   <div className="relative aspect-video rounded-md overflow-hidden">
                     <img
-                      src={categoryImage.imageUrl}
+                      src={categoryImage.image_url}
                       alt={category}
                       className="w-full h-full object-cover"
                     />

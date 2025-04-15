@@ -1,5 +1,8 @@
 
 export interface CategoryImage {
+  id?: string;
+  user_id?: string;
   category: string;
-  imageUrl: string;
+  image_url: string;
+  created_at?: string;
 }
