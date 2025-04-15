@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -5,14 +6,20 @@ import { useToast } from "@/components/ui/use-toast";
 import { Product } from "@/types/product";
 import EditProductForm from "@/components/products/EditProductForm";
 import ProductsTable from "@/components/products/ProductsTable";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 
 const EditProduct = () => {
   const navigate = useNavigate();
   const { productId } = useParams();
   const { toast } = useToast();
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  
+  // Form states
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -22,6 +29,7 @@ const EditProduct = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
+      setIsLoading(true);
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error("لم يتم العثور على المستخدم");
@@ -49,62 +57,23 @@ const EditProduct = () => {
       } catch (error: any) {
         console.error("Error fetching products:", error);
         toast({
+          variant: "destructive",
           title: "خطأ في تحميل المنتجات",
           description: error.message,
-          variant: "destructive",
         });
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
     fetchProducts();
   }, [productId, toast]);
 
-  const handleDelete = async (productId: string) => {
-    if (!window.confirm("هل أنت متأكد من حذف هذا المنتج؟")) return;
-
-    try {
-      const { error } = await supabase
-        .from("products")
-        .delete()
-        .eq("id", productId);
-
-      if (error) throw error;
-
-      setProducts(products.filter(p => p.id !== productId));
-      
-      toast({
-        title: "تم حذف المنتج بنجاح",
-        duration: 3000,
-      });
-    } catch (error: any) {
-      console.error("Error deleting product:", error);
-      toast({
-        title: "خطأ في حذف المنتج",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleEdit = async (productId: string) => {
-    const productToEdit = products.find(p => p.id === productId);
-    if (productToEdit) {
-      setSelectedProduct(productToEdit);
-      setName(productToEdit.name);
-      setDescription(productToEdit.description || "");
-      setPrice(productToEdit.price.toString());
-      setCategory(productToEdit.category || "");
-      setIsNew(productToEdit.is_new || false);
-      setIsPopular(productToEdit.is_popular || false);
-    }
-  };
-
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProduct) return;
 
+    setIsSaving(true);
     try {
       const { error } = await supabase
         .from("products")
@@ -131,57 +100,68 @@ const EditProduct = () => {
           : p
       ));
 
-      setSelectedProduct(null);
-      setName("");
-      setDescription("");
-      setPrice("");
-      setCategory("");
-      setIsNew(false);
-      setIsPopular(false);
+      navigate("/dashboard");
 
     } catch (error: any) {
       console.error("Error updating product:", error);
       toast({
+        variant: "destructive",
         title: "خطأ في تحديث المنتج",
         description: error.message,
-        variant: "destructive",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  if (loading) {
-    return <div className="container mx-auto py-8 text-center">جاري التحميل...</div>;
+  const handleCancel = () => {
+    navigate("/dashboard");
+  };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="text-center space-y-4">
+            <div className="animate-pulse bg-gray-200 h-6 w-48 rounded mx-auto"></div>
+            <div className="animate-pulse bg-gray-200 h-4 w-32 rounded mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6 text-center">تعديل المنتجات</h1>
-      
-      {selectedProduct ? (
-        <EditProductForm
-          product={selectedProduct}
-          onSubmit={handleUpdate}
-          onCancel={() => setSelectedProduct(null)}
-          name={name}
-          setName={setName}
-          description={description}
-          setDescription={setDescription}
-          price={price}
-          setPrice={setPrice}
-          category={category}
-          setCategory={setCategory}
-          isNew={isNew}
-          setIsNew={setIsNew}
-          isPopular={isPopular}
-          setIsPopular={setIsPopular}
-        />
-      ) : (
-        <ProductsTable
-          products={products}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
-      )}
+      <div className="mb-6">
+        <Button
+          variant="ghost"
+          onClick={() => navigate("/dashboard")}
+          className="flex items-center gap-2 mb-4"
+        >
+          <ArrowRight className="h-4 w-4" />
+          العودة إلى لوحة التحكم
+        </Button>
+      </div>
+
+      <EditProductForm
+        product={selectedProduct}
+        onSubmit={handleUpdate}
+        onCancel={handleCancel}
+        name={name}
+        setName={setName}
+        description={description}
+        setDescription={setDescription}
+        price={price}
+        setPrice={setPrice}
+        category={category}
+        setCategory={setCategory}
+        isNew={isNew}
+        setIsNew={setIsNew}
+        isPopular={isPopular}
+        setIsPopular={setIsPopular}
+        isLoading={isSaving}
+      />
     </div>
   );
 };

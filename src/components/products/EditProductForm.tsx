@@ -1,10 +1,20 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Star, TrendingUp } from "lucide-react";
+import { Star, TrendingUp, Loader2 } from "lucide-react";
 import { Product } from "@/types/product";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 interface EditProductFormProps {
   product: Product | null;
@@ -22,6 +32,7 @@ interface EditProductFormProps {
   setIsNew: (value: boolean) => void;
   isPopular: boolean;
   setIsPopular: (value: boolean) => void;
+  isLoading?: boolean;
 }
 
 const EditProductForm = ({
@@ -40,86 +51,121 @@ const EditProductForm = ({
   setIsNew,
   isPopular,
   setIsPopular,
+  isLoading = false,
 }: EditProductFormProps) => {
   if (!product) return null;
 
   return (
-    <form onSubmit={onSubmit} className="max-w-md mx-auto space-y-4 mb-8">
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium mb-1">اسم المنتج</label>
-        <Input
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-      </div>
-      
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium mb-1">وصف المنتج</label>
-        <Textarea
-          id="description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-      </div>
-      
-      <div>
-        <label htmlFor="price" className="block text-sm font-medium mb-1">السعر</label>
-        <Input
-          id="price"
-          type="number"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          required
-        />
-      </div>
-      
-      <div>
-        <label htmlFor="category" className="block text-sm font-medium mb-1">التصنيف</label>
-        <Input
-          id="category"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-        />
-      </div>
+    <form onSubmit={onSubmit} className="max-w-2xl mx-auto space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>تعديل المنتج</CardTitle>
+          <CardDescription>قم بتحديث معلومات المنتج من هنا</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">اسم المنتج</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="أدخل اسم المنتج"
+                required
+                className="text-right"
+              />
+            </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center justify-between space-x-4">
-          <div className="flex items-center space-x-2 rtl:space-x-reverse">
-            <Switch
-              id="is_new"
-              checked={isNew}
-              onCheckedChange={setIsNew}
-            />
-            <label htmlFor="is_new" className="flex items-center gap-2">
-              <Star className="h-4 w-4 text-yellow-500" />
-              منتج جديد
-            </label>
+            <div className="space-y-2">
+              <Label htmlFor="description">وصف المنتج</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="أدخل وصف المنتج"
+                className="min-h-[100px] text-right"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="price">السعر</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="أدخل السعر"
+                  required
+                  className="text-right"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="category">التصنيف</Label>
+                <Input
+                  id="category"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  placeholder="أدخل التصنيف"
+                  className="text-right"
+                />
+              </div>
+            </div>
           </div>
-          <div className="flex items-center space-x-2 rtl:space-x-reverse">
-            <Switch
-              id="is_popular"
-              checked={isPopular}
-              onCheckedChange={setIsPopular}
-            />
-            <label htmlFor="is_popular" className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-red-500" />
-              الأكثر طلباً
-            </label>
+
+          <Separator className="my-4" />
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">خصائص المنتج</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex items-center justify-between space-x-4 rtl:space-x-reverse">
+                <Label htmlFor="is_new" className="flex items-center gap-2">
+                  <Star className="h-4 w-4 text-yellow-500" />
+                  منتج جديد
+                </Label>
+                <Switch
+                  id="is_new"
+                  checked={isNew}
+                  onCheckedChange={setIsNew}
+                />
+              </div>
+
+              <div className="flex items-center justify-between space-x-4 rtl:space-x-reverse">
+                <Label htmlFor="is_popular" className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-red-500" />
+                  الأكثر طلباً
+                </Label>
+                <Switch
+                  id="is_popular"
+                  checked={isPopular}
+                  onCheckedChange={setIsPopular}
+                />
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      
-      <div className="flex gap-2">
-        <Button type="submit" className="flex-1">حفظ التغييرات</Button>
+        </CardContent>
+      </Card>
+
+      <div className="flex gap-4 justify-end">
         <Button 
           type="button" 
           variant="outline" 
           onClick={onCancel}
-          className="flex-1"
+          disabled={isLoading}
         >
           إلغاء
+        </Button>
+        <Button 
+          type="submit"
+          disabled={isLoading}
+          className="min-w-[100px]"
+        >
+          {isLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            "حفظ التغييرات"
+          )}
         </Button>
       </div>
     </form>
