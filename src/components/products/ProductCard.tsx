@@ -1,12 +1,14 @@
+
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Product as ProductType } from "@/types/product";
 
 interface Product {
   id: string;
   name: string;
-  description: string | null;
+  description: string;
   price: number;
   image_url: string | null;
   category: string | null;

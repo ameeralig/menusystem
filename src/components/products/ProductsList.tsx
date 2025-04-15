@@ -73,7 +73,17 @@ const ProductsList = ({ products, onSelectProduct, onDeleteProduct }: ProductsLi
                     onClick={() => onSelectProduct(product.id)}
                     className="cursor-pointer transition-transform hover:scale-[1.02]"
                   >
-                    <ProductCard product={product} layout="grid" />
+                    <ProductCard 
+                      product={{
+                        ...product,
+                        description: product.description || "",
+                        image_url: product.image_url || null,
+                        category: product.category || null,
+                        is_new: product.is_new || false,
+                        is_popular: product.is_popular || false,
+                      }} 
+                      layout="grid" 
+                    />
                   </div>
                 ))}
               </div>
