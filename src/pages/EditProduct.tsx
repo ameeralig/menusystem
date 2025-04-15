@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,7 +45,7 @@ const EditProduct = () => {
         if (error) throw error;
         setProducts(data || []);
 
-        // فقط إذا كان هناك معرف محدد في الرابط، قم بتحديد المنتج
+        // تحقق من وجود معرف المنتج
         if (productId) {
           const product = data?.find(p => p.id === productId);
           if (product) {
@@ -74,6 +75,17 @@ const EditProduct = () => {
 
     fetchProducts();
   }, [productId, toast, navigate]);
+
+  // إزالة المسار بعد تحميل المنتجات إذا كنا في مسار محدد لمنتج
+  useEffect(() => {
+    if (productId && !isLoading) {
+      // استخدام setTimeout للتأكد من أن التنقل يحدث بعد تحديث الحالة
+      const timer = setTimeout(() => {
+        navigate("/edit-product", { replace: true });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [productId, isLoading, navigate]);
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,8 +118,8 @@ const EditProduct = () => {
           : p
       ));
 
-      // بعد التحديث، العودة إلى قائمة المنتجات بدلاً من صفحة لوحة التحكم
-      navigate("/edit-product", { replace: true });
+      // العودة إلى قائمة المنتجات
+      handleCancel();
 
     } catch (error: any) {
       console.error("Error updating product:", error);
