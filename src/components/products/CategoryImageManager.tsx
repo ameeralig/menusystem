@@ -24,6 +24,14 @@ export const CategoryImageManager = ({
   const { toast } = useToast();
   const [uploading, setUploading] = useState<string | null>(null);
 
+  // تنظيف اسم التصنيف ليكون صالحاً للاستخدام في مسارات الملفات
+  const sanitizeFileName = (fileName: string): string => {
+    // استبدال الأحرف الخاصة والمسافات بشرطة سفلية
+    return fileName
+      .replace(/\s+/g, '_')
+      .replace(/[^\w.-]/g, '_');
+  };
+
   const handleFileUpload = async (category: string, file: File) => {
     if (!file) return;
 
@@ -43,8 +51,12 @@ export const CategoryImageManager = ({
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
 
       const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}-${category}-${Date.now()}.${fileExt}`;
-      const filePath = `category-images/${fileName}`;
+      // استخدام الدالة الجديدة لتنظيف اسم التصنيف
+      const sanitizedCategory = sanitizeFileName(category);
+      const fileName = `${user.id}_${sanitizedCategory}_${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      console.log("File path for upload:", filePath);
 
       const { error: uploadError } = await supabase.storage
         .from("category-images")
@@ -77,6 +89,7 @@ export const CategoryImageManager = ({
         description: `تم تحديث صورة تصنيف ${category}`,
       });
     } catch (error: any) {
+      console.error("خطأ في رفع الصورة:", error);
       toast({
         variant: "destructive",
         title: "خطأ في رفع الصورة",
@@ -106,7 +119,7 @@ export const CategoryImageManager = ({
       // حذف الملف من التخزين إذا كان موجوداً
       const fileName = imageToDelete.image_url.split("/").pop();
       if (fileName) {
-        await deleteImage("category-images", `category-images/${fileName}`);
+        await deleteImage("category-images", fileName);
       }
 
       const updatedImages = categoryImages.filter(img => img.category !== category);
@@ -117,6 +130,7 @@ export const CategoryImageManager = ({
         description: `تم حذف صورة تصنيف ${category}`,
       });
     } catch (error: any) {
+      console.error("خطأ في حذف الصورة:", error);
       toast({
         variant: "destructive",
         title: "خطأ في حذف الصورة",
