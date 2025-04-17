@@ -100,6 +100,12 @@ const ProductPreview = () => {
         } else if (storeSettings) {
           console.info("Store settings data:", storeSettings);
           setStoreName(storeSettings.store_name || null);
+          
+          // تعيين عنوان الصفحة باستخدام اسم المتجر
+          if (storeSettings.store_name) {
+            document.title = storeSettings.store_name;
+          }
+          
           setColorTheme(storeSettings.color_theme || "default");
           setSocialLinks(storeSettings.social_links as SocialLinks || {});
           setBannerUrl(storeSettings.banner_url || null);

@@ -2,6 +2,7 @@
 import { Card } from "@/components/ui/card";
 import StoreNameEditor from "@/components/store/StoreNameEditor";
 import StoreSlugEditor from "@/components/store/StoreSlugEditor";
+import DomainEditor from "@/components/store/DomainEditor";
 import { Button } from "@/components/ui/button";
 import { QrCode } from "lucide-react";
 
@@ -10,10 +11,15 @@ interface BasicInfoCardProps {
   setStoreName: (value: string) => void;
   storeSlug: string;
   setStoreSlug: (value: string) => void;
+  customDomain: string;
+  setCustomDomain: (value: string) => void;
   isSlugEditing: boolean;
   setIsSlugEditing: (value: boolean) => void;
+  isDomainEditing: boolean;
+  setIsDomainEditing: (value: boolean) => void;
   handleNameSubmit: (e: React.FormEvent) => Promise<void>;
   handleSlugSubmit: (e: React.FormEvent) => Promise<void>;
+  handleDomainSubmit: (e: React.FormEvent) => Promise<void>;
   openQrModal: () => void;
   isLoading: boolean;
 }
@@ -23,10 +29,15 @@ const BasicInfoCard: React.FC<BasicInfoCardProps> = ({
   setStoreName,
   storeSlug,
   setStoreSlug,
+  customDomain,
+  setCustomDomain,
   isSlugEditing,
   setIsSlugEditing,
+  isDomainEditing,
+  setIsDomainEditing,
   handleNameSubmit,
   handleSlugSubmit,
+  handleDomainSubmit,
   openQrModal,
   isLoading
 }) => {
@@ -66,6 +77,17 @@ const BasicInfoCard: React.FC<BasicInfoCardProps> = ({
               </Button>
             </div>
           )}
+        </div>
+        
+        <div className="space-y-3">
+          <DomainEditor
+            customDomain={customDomain}
+            setCustomDomain={setCustomDomain}
+            isEditing={isDomainEditing}
+            setIsEditing={setIsDomainEditing}
+            handleSubmit={handleDomainSubmit}
+            isLoading={isLoading}
+          />
         </div>
       </div>
     </Card>

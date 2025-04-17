@@ -69,26 +69,42 @@ const StorePreview = () => {
       }
 
       try {
-        const { data, error } = await supabase
+        // البحث أولاً عن الدومين المخصص
+        let { data: domainData, error: domainError } = await supabase
           .from("store_settings")
           .select("user_id")
-          .eq("slug", storeSlug)
+          .eq("custom_domain", storeSlug)
           .maybeSingle();
 
-        if (error) {
-          console.error("خطأ في البحث عن معرف المستخدم:", error);
-          setError("لا يمكن العثور على المتجر");
-          setIsLoading(false);
-          return;
+        if (domainError) {
+          console.error("خطأ في البحث عن الدومين المخصص:", domainError);
         }
 
-        if (!data) {
-          setError("المتجر غير موجود");
-          setIsLoading(false);
-          return;
-        }
+        // إذا لم يتم العثور على الدومين المخصص، نبحث عن الرابط المخصص
+        if (!domainData) {
+          const { data, error } = await supabase
+            .from("store_settings")
+            .select("user_id")
+            .eq("slug", storeSlug)
+            .maybeSingle();
 
-        setUserId(data.user_id);
+          if (error) {
+            console.error("خطأ في البحث عن معرف المستخدم:", error);
+            setError("لا يمكن العثور على المتجر");
+            setIsLoading(false);
+            return;
+          }
+
+          if (!data) {
+            setError("المتجر غير موجود");
+            setIsLoading(false);
+            return;
+          }
+
+          setUserId(data.user_id);
+        } else {
+          setUserId(domainData.user_id);
+        }
       } catch (error: any) {
         console.error("خطأ في البحث عن معرف المستخدم:", error);
         setError(error.message);
@@ -141,6 +157,12 @@ const StorePreview = () => {
         } else if (storeSettings) {
           console.info("بيانات إعدادات المتجر:", storeSettings);
           setStoreName(storeSettings.store_name || null);
+          
+          // تعيين عنوان الصفحة باستخدام اسم المتجر
+          if (storeSettings.store_name) {
+            document.title = storeSettings.store_name;
+          }
+          
           setColorTheme(storeSettings.color_theme || "default");
           setSocialLinks(storeSettings.social_links as SocialLinks || {});
           setBannerUrl(storeSettings.banner_url || null);

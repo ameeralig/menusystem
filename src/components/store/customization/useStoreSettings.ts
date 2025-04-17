@@ -36,6 +36,7 @@ export const useStoreSettings = () => {
   const [storeSlug, setStoreSlug] = useState("");
   const [colorTheme, setColorTheme] = useState("default");
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
+  const [customDomain, setCustomDomain] = useState<string>("");
   const [fontSettings, setFontSettings] = useState<FontSettings>(defaultFontSettings);
   const [contactInfo, setContactInfo] = useState<ContactInfo>(defaultContactInfo);
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({
@@ -57,7 +58,7 @@ export const useStoreSettings = () => {
 
       const { data: storeSettings, error } = await supabase
         .from("store_settings")
-        .select("store_name, color_theme, slug, social_links, banner_url, font_settings, contact_info")
+        .select("store_name, color_theme, slug, social_links, banner_url, font_settings, contact_info, custom_domain")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -71,6 +72,7 @@ export const useStoreSettings = () => {
         setColorTheme(storeSettings.color_theme || "default");
         setStoreSlug(storeSettings.slug || "");
         setBannerUrl(storeSettings.banner_url || null);
+        setCustomDomain(storeSettings.custom_domain || "");
         
         if (storeSettings.social_links) {
           // استخدام الـ type assertion للتحويل الآمن من Json إلى SocialLinks
@@ -126,6 +128,7 @@ export const useStoreSettings = () => {
     store_name: string;
     color_theme: string;
     slug: string;
+    custom_domain: string;
     social_links: SocialLinks;
     banner_url: string | null;
     font_settings: FontSettings;
@@ -173,6 +176,7 @@ export const useStoreSettings = () => {
       if (updatedData.color_theme !== undefined) dataToUpdate.color_theme = updatedData.color_theme;
       if (updatedData.slug !== undefined) dataToUpdate.slug = updatedData.slug;
       if (updatedData.banner_url !== undefined) dataToUpdate.banner_url = updatedData.banner_url;
+      if (updatedData.custom_domain !== undefined) dataToUpdate.custom_domain = updatedData.custom_domain;
       
       // تحويل الأنواع المخصصة إلى Json
       if (updatedData.social_links !== undefined) {
@@ -216,6 +220,7 @@ export const useStoreSettings = () => {
       if (updatedData.store_name !== undefined) setStoreName(updatedData.store_name);
       if (updatedData.color_theme !== undefined) setColorTheme(updatedData.color_theme);
       if (updatedData.slug !== undefined) setStoreSlug(updatedData.slug);
+      if (updatedData.custom_domain !== undefined) setCustomDomain(updatedData.custom_domain);
       if (updatedData.social_links !== undefined) setSocialLinks(updatedData.social_links);
       if (updatedData.banner_url !== undefined) setBannerUrl(updatedData.banner_url);
       if (updatedData.font_settings !== undefined) setFontSettings(updatedData.font_settings);
@@ -243,6 +248,8 @@ export const useStoreSettings = () => {
     setColorTheme,
     bannerUrl,
     setBannerUrl,
+    customDomain,
+    setCustomDomain,
     fontSettings,
     setFontSettings,
     contactInfo,

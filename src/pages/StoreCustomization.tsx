@@ -24,6 +24,8 @@ const StoreCustomization = () => {
     setColorTheme,
     bannerUrl,
     setBannerUrl,
+    customDomain,
+    setCustomDomain,
     fontSettings,
     setFontSettings,
     contactInfo,
@@ -35,6 +37,7 @@ const StoreCustomization = () => {
   } = useStoreSettings();
 
   const [isSlugEditing, setIsSlugEditing] = useState(false);
+  const [isDomainEditing, setIsDomainEditing] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -56,6 +59,11 @@ const StoreCustomization = () => {
       return;
     }
     await saveStoreSettings({ slug: storeSlug });
+  };
+
+  const handleDomainSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await saveStoreSettings({ custom_domain: customDomain });
   };
 
   const handleColorThemeSubmit = async (e?: React.FormEvent) => {
@@ -82,11 +90,14 @@ const StoreCustomization = () => {
   };
 
   const getStoreUrl = () => {
+    if (customDomain) {
+      return `https://${customDomain}`;
+    }
     return storeSlug ? `menusystem.lovable.app/${storeSlug}` : '';
   };
 
   const openQrModal = () => {
-    if (!storeSlug) {
+    if (!storeSlug && !customDomain) {
       toast({
         title: "تنبيه",
         description: "الرجاء تعيين رابط للمتجر أولاً",
@@ -123,10 +134,15 @@ const StoreCustomization = () => {
               setStoreName={setStoreName}
               storeSlug={storeSlug}
               setStoreSlug={setStoreSlug}
+              customDomain={customDomain}
+              setCustomDomain={setCustomDomain}
               isSlugEditing={isSlugEditing}
               setIsSlugEditing={setIsSlugEditing}
+              isDomainEditing={isDomainEditing}
+              setIsDomainEditing={setIsDomainEditing}
               handleNameSubmit={handleNameSubmit}
               handleSlugSubmit={handleSlugSubmit}
+              handleDomainSubmit={handleDomainSubmit}
               openQrModal={openQrModal}
               isLoading={isLoading}
             />
