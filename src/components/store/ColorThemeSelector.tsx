@@ -21,7 +21,7 @@ interface ColorThemeSelectorProps {
   colorTheme: string;
   setColorTheme: (value: string) => void;
   isLoading: boolean;
-  handleSubmit: (e: React.FormEvent) => Promise<void>;
+  handleSubmit: (e?: React.FormEvent) => Promise<void>; // تعديل نوع المعامل هنا
 }
 
 const ColorThemeSelector = ({ colorTheme, setColorTheme, isLoading, handleSubmit }: ColorThemeSelectorProps) => {

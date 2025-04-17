@@ -12,7 +12,7 @@ import { useBannerUpload } from "./banner/useBannerUpload";
 interface BannerImageUploaderProps {
   bannerUrl: string | null;
   setBannerUrl: (url: string | null) => void;
-  handleSubmit: () => Promise<void>;
+  handleSubmit: (e?: React.FormEvent) => Promise<void>; // تعديل نوع المعامل هنا
   isLoading: boolean;
 }
 
@@ -57,7 +57,7 @@ const BannerImageUploader = ({
       }
       
       setBannerUrl(imageUrl || null);
-      await handleSubmit();
+      await handleSubmit(e);
       
     } catch (error: any) {
       console.error("Error saving banner image:", error);

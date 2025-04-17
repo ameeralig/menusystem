@@ -260,15 +260,18 @@ const StoreCustomization = () => {
   };
 
   // تعديل دوال المعالجة لتتناسب مع نوع البيانات المتوقع
-  const handleColorThemeSubmit = async () => {
+  const handleColorThemeSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     await saveStoreSettings({ color_theme: colorTheme });
   };
 
-  const handleBannerSubmit = async () => {
+  const handleBannerSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     await saveStoreSettings({ banner_url: bannerUrl });
   };
 
-  const handleFontSettingsSubmit = async () => {
+  const handleFontSettingsSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     await saveStoreSettings({ font_settings: fontSettings });
   };
 
