@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -41,6 +41,12 @@ const StoreCustomization = () => {
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // جلب الإعدادات عند تحميل الصفحة
+  useEffect(() => {
+    // هذا سيقوم بجلب البيانات مجددًا عند تحميل الصفحة
+    // useStoreSettings يقوم بالفعل بجلب البيانات في useEffect الخاص به
+  }, []);
 
   const handleNameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

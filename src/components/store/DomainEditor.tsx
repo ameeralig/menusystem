@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Globe, Save } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface DomainEditorProps {
   customDomain: string;
@@ -23,6 +23,11 @@ const DomainEditor = ({
   isLoading
 }: DomainEditorProps) => {
   const [localDomain, setLocalDomain] = useState(customDomain);
+
+  // تحديث القيمة المحلية عند تغيير القيمة الخارجية
+  useEffect(() => {
+    setLocalDomain(customDomain);
+  }, [customDomain]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

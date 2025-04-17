@@ -67,10 +67,10 @@ const ProductPreview = () => {
         });
         
         if (error) {
-          console.error("Error tracking page view:", error);
+          console.error("خطأ في تسجيل مشاهدة الصفحة:", error);
         }
       } catch (error) {
-        console.error("Error tracking page view:", error);
+        console.error("خطأ في تسجيل مشاهدة الصفحة:", error);
       }
     };
     
@@ -94,11 +94,11 @@ const ProductPreview = () => {
           .maybeSingle();
 
         if (storeError) {
-          console.error("Error fetching store settings:", storeError);
+          console.error("خطأ في جلب إعدادات المتجر:", storeError);
           setStoreName(null);
           setColorTheme("default");
         } else if (storeSettings) {
-          console.info("Store settings data:", storeSettings);
+          console.info("بيانات إعدادات المتجر:", storeSettings);
           setStoreName(storeSettings.store_name || null);
           
           // تعيين عنوان الصفحة باستخدام اسم المتجر
@@ -162,9 +162,9 @@ const ProductPreview = () => {
           .eq("user_id", userId);
 
         if (categoryImagesError) {
-          console.error("Error fetching category images:", categoryImagesError);
+          console.error("خطأ في جلب صور التصنيفات:", categoryImagesError);
         } else {
-          console.info("Category images data fetched for visitor:", categoryImagesData);
+          console.info("تم جلب بيانات صور التصنيفات للزائر:", categoryImagesData);
           setCategoryImages(categoryImagesData || []);
         }
 
@@ -174,14 +174,14 @@ const ProductPreview = () => {
           .eq("user_id", userId);
 
         if (productsError) {
-          console.error("Error fetching products:", productsError);
+          console.error("خطأ في جلب المنتجات:", productsError);
           throw new Error("حدث خطأ أثناء جلب المنتجات");
         }
 
         setProducts(productsData || []);
 
       } catch (error: any) {
-        console.error("Error fetching data:", error);
+        console.error("خطأ في جلب البيانات:", error);
         setError(error.message);
         toast({
           title: "حدث خطأ",

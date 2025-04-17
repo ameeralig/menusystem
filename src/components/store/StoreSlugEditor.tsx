@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Link2, Save } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface StoreSlugEditorProps {
   storeSlug: string;
@@ -23,6 +23,11 @@ const StoreSlugEditor = ({
   isLoading
 }: StoreSlugEditorProps) => {
   const [localStoreSlug, setLocalStoreSlug] = useState(storeSlug);
+
+  // تحديث القيمة المحلية عند تغيير القيمة الخارجية
+  useEffect(() => {
+    setLocalStoreSlug(storeSlug);
+  }, [storeSlug]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
