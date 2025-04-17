@@ -55,7 +55,7 @@ const StoreCustomization = () => {
     if (!storeSlug.trim()) {
       toast({
         title: "خطأ",
-        description: "الرجاء إدخال رابط صالح للمتجر",
+        description: "الرجاء إدخال نطاق فرعي صالح للمتجر",
         variant: "destructive",
         duration: 3000,
       });
@@ -75,7 +75,7 @@ const StoreCustomization = () => {
     if (!storeSlug) {
       toast({
         title: "تنبيه",
-        description: "الرجاء تعيين رابط للمتجر أولاً",
+        description: "الرجاء تعيين نطاق فرعي للمتجر أولاً",
         duration: 3000,
       });
       return;

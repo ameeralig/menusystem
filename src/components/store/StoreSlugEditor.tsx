@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Link2, Save } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface StoreSlugEditorProps {
   storeSlug: string;
@@ -23,6 +24,7 @@ const StoreSlugEditor = ({
   isLoading
 }: StoreSlugEditorProps) => {
   const [localStoreSlug, setLocalStoreSlug] = useState(storeSlug);
+  const { toast } = useToast();
 
   // تحديث القيمة المحلية عند تغيير القيمة الخارجية
   useEffect(() => {
@@ -31,7 +33,27 @@ const StoreSlugEditor = ({
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!localStoreSlug.trim()) return;
+    if (!localStoreSlug.trim()) {
+      toast({
+        title: "خطأ",
+        description: "يجب تعيين نطاق فرعي لمتجرك",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+    
+    // التحقق من أن النطاق الفرعي يحتوي على أحرف صالحة فقط
+    if (!/^[a-z0-9-]+$/.test(localStoreSlug)) {
+      toast({
+        title: "خطأ",
+        description: "النطاق الفرعي يجب أن يحتوي على أحرف إنجليزية صغيرة وأرقام وشرطات فقط",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+    
     setStoreSlug(localStoreSlug);
     await handleSubmit(e);
     setIsEditing(false);
@@ -42,7 +64,7 @@ const StoreSlugEditor = ({
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <Link2 className="h-5 w-5 text-[#ff9178]" />
-          <span>رابط المتجر</span>
+          <span>النطاق الفرعي المخصص للمتجر</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -59,7 +81,7 @@ const StoreSlugEditor = ({
                   .replace(/\s+/g, '-');
                 setLocalStoreSlug(value);
               }}
-              placeholder="ادخل رابط المتجر المميز"
+              placeholder="أدخل النطاق الفرعي لمتجرك (مثل: almadina)"
               className="text-right flex-1 dir-ltr"
               disabled={!isEditing}
             />
@@ -82,6 +104,11 @@ const StoreSlugEditor = ({
               <p className="text-sm text-gray-500 text-right">
                 سيكون رابط متجرك: <span className="font-bold dir-ltr inline-block">{localStoreSlug || 'your-store'}.qrmenuc.com</span>
               </p>
+              <div className="text-sm text-amber-600 mt-2 mb-2 bg-amber-50 p-2 rounded-md border border-amber-200">
+                <p className="text-right">
+                  ملاحظة مهمة: بمجرد حفظ النطاق الفرعي، سيصبح هو الطريقة الوحيدة للوصول إلى صفحة المنتجات الخاصة بك.
+                </p>
+              </div>
               <Button 
                 type="submit" 
                 className="w-full bg-[#ff9178] hover:bg-[#ff7d61] text-white"

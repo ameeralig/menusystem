@@ -84,40 +84,16 @@ const StorePreview = () => {
         }
 
         if (!data) {
-          console.log("لم يتم العثور على المتجر باستخدام slug، جاري البحث باستخدام custom_domain");
-          
-          // البحث في الدومين المخصص إن لم يتم العثور على slug
-          const { data: domainData, error: domainError } = await supabase
-            .from("store_settings")
-            .select("user_id, store_name")
-            .eq("custom_domain", storeSlug)
-            .maybeSingle();
+          console.log("لم يتم العثور على المتجر");
+          setError("المتجر غير موجود أو لم يتم تعيين نطاق فرعي بعد");
+          setIsLoading(false);
+          return;
+        }
 
-          if (domainError) {
-            console.error("خطأ في البحث عن الدومين المخصص:", domainError);
-            setError("حدث خطأ أثناء البحث عن المتجر");
-            setIsLoading(false);
-            return;
-          }
-
-          if (!domainData) {
-            console.error("المتجر غير موجود:", storeSlug);
-            setError("المتجر غير موجود");
-            setIsLoading(false);
-            return;
-          }
-
-          console.log("تم العثور على المتجر باستخدام custom_domain:", domainData);
-          setUserId(domainData.user_id);
-          if (domainData.store_name) {
-            document.title = domainData.store_name;
-          }
-        } else {
-          console.log("تم العثور على المتجر باستخدام slug:", data);
-          setUserId(data.user_id);
-          if (data.store_name) {
-            document.title = data.store_name;
-          }
+        console.log("تم العثور على المتجر باستخدام slug:", data);
+        setUserId(data.user_id);
+        if (data.store_name) {
+          document.title = data.store_name;
         }
       } catch (error: any) {
         console.error("خطأ في البحث عن معرف المستخدم:", error);
