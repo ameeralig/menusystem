@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -37,7 +36,6 @@ const StoreCustomization = () => {
   } = useStoreSettings();
 
   const [isSlugEditing, setIsSlugEditing] = useState(false);
-  const [isDomainEditing, setIsDomainEditing] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -65,34 +63,6 @@ const StoreCustomization = () => {
       return;
     }
     await saveStoreSettings({ slug: storeSlug });
-  };
-
-  const handleDomainSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await saveStoreSettings({ custom_domain: customDomain });
-  };
-
-  const handleColorThemeSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    await saveStoreSettings({ color_theme: colorTheme });
-  };
-
-  const handleBannerSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    await saveStoreSettings({ banner_url: bannerUrl });
-  };
-
-  const handleFontSettingsSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    await saveStoreSettings({ font_settings: fontSettings });
-  };
-
-  const handleSocialLinksSubmit = async (links: SocialLinks) => {
-    await saveStoreSettings({ social_links: links });
-  };
-
-  const handleContactInfoSubmit = async (info: ContactInfo) => {
-    await saveStoreSettings({ contact_info: info });
   };
 
   const getStoreUrl = () => {
@@ -140,22 +110,17 @@ const StoreCustomization = () => {
               setStoreName={setStoreName}
               storeSlug={storeSlug}
               setStoreSlug={setStoreSlug}
-              customDomain={customDomain}
-              setCustomDomain={setCustomDomain}
               isSlugEditing={isSlugEditing}
               setIsSlugEditing={setIsSlugEditing}
-              isDomainEditing={isDomainEditing}
-              setIsDomainEditing={setIsDomainEditing}
               handleNameSubmit={handleNameSubmit}
               handleSlugSubmit={handleSlugSubmit}
-              handleDomainSubmit={handleDomainSubmit}
               openQrModal={openQrModal}
               isLoading={isLoading}
             />
             
             <ContactInfoCard 
               contactInfo={contactInfo}
-              handleContactInfoSubmit={handleContactInfoSubmit}
+              handleContactInfoSubmit={async (info) => await saveStoreSettings({ contact_info: info })}
               isLoading={isLoading}
             />
             
@@ -166,15 +131,15 @@ const StoreCustomization = () => {
               setColorTheme={setColorTheme}
               fontSettings={fontSettings}
               setFontSettings={setFontSettings}
-              handleBannerSubmit={handleBannerSubmit}
-              handleColorThemeSubmit={handleColorThemeSubmit}
-              handleFontSettingsSubmit={handleFontSettingsSubmit}
+              handleBannerSubmit={async () => await saveStoreSettings({ banner_url: bannerUrl })}
+              handleColorThemeSubmit={async () => await saveStoreSettings({ color_theme: colorTheme })}
+              handleFontSettingsSubmit={async () => await saveStoreSettings({ font_settings: fontSettings })}
               isLoading={isLoading}
             />
             
             <SocialLinksCard 
               socialLinks={socialLinks}
-              handleSocialLinksSubmit={handleSocialLinksSubmit}
+              handleSocialLinksSubmit={async (links) => await saveStoreSettings({ social_links: links })}
               isLoading={isLoading}
             />
           </div>
