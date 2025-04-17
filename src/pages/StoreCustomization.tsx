@@ -1,9 +1,10 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Qrcode } from "lucide-react";
+import { ArrowLeft, QrCode } from "lucide-react";
 import { motion } from "framer-motion";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import StoreNameEditor from "@/components/store/StoreNameEditor";
@@ -345,7 +346,7 @@ const StoreCustomization = () => {
                         onClick={openQrModal}
                         className="flex items-center gap-2 text-sm"
                       >
-                        <Qrcode className="h-4 w-4" />
+                        <QrCode className="h-4 w-4" />
                         عرض رمز QR للمتجر
                       </Button>
                     </div>
