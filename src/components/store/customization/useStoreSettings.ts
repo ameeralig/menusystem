@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SocialLinks, ContactInfo, FontSettings } from "./types";
+import { Json } from "@/integrations/supabase/types";
 
 const defaultFontSettings: FontSettings = {
   storeName: {
@@ -72,24 +73,47 @@ export const useStoreSettings = () => {
         setBannerUrl(storeSettings.banner_url || null);
         
         if (storeSettings.social_links) {
+          // استخدام الـ type assertion للتحويل الآمن من Json إلى SocialLinks
+          const socialLinksData = storeSettings.social_links as Record<string, any>;
           setSocialLinks({
-            instagram: (storeSettings.social_links as SocialLinks)?.instagram || "",
-            facebook: (storeSettings.social_links as SocialLinks)?.facebook || "",
-            telegram: (storeSettings.social_links as SocialLinks)?.telegram || "",
+            instagram: socialLinksData?.instagram || "",
+            facebook: socialLinksData?.facebook || "",
+            telegram: socialLinksData?.telegram || "",
           });
         }
         
         if (storeSettings.font_settings) {
-          setFontSettings(storeSettings.font_settings as FontSettings || defaultFontSettings);
+          // استخدام الـ type assertion للتحويل الآمن من Json إلى FontSettings
+          const fontSettingsData = storeSettings.font_settings as Record<string, any>;
+          
+          setFontSettings({
+            storeName: {
+              family: fontSettingsData?.storeName?.family || "inherit",
+              isCustom: fontSettingsData?.storeName?.isCustom || false,
+              customFontUrl: fontSettingsData?.storeName?.customFontUrl || null,
+            },
+            categoryText: {
+              family: fontSettingsData?.categoryText?.family || "inherit",
+              isCustom: fontSettingsData?.categoryText?.isCustom || false,
+              customFontUrl: fontSettingsData?.categoryText?.customFontUrl || null,
+            },
+            generalText: {
+              family: fontSettingsData?.generalText?.family || "inherit",
+              isCustom: fontSettingsData?.generalText?.isCustom || false,
+              customFontUrl: fontSettingsData?.generalText?.customFontUrl || null,
+            }
+          });
         }
         
         if (storeSettings.contact_info) {
+          // استخدام الـ type assertion للتحويل الآمن من Json إلى ContactInfo
+          const contactInfoData = storeSettings.contact_info as Record<string, any>;
           setContactInfo({
-            description: (storeSettings.contact_info as ContactInfo)?.description || "",
-            address: (storeSettings.contact_info as ContactInfo)?.address || "",
-            phone: (storeSettings.contact_info as ContactInfo)?.phone || "",
-            wifi: (storeSettings.contact_info as ContactInfo)?.wifi || "",
-            businessHours: (storeSettings.contact_info as ContactInfo)?.businessHours || "",
+            description: contactInfoData?.description || "",
+            address: contactInfoData?.address || "",
+            phone: contactInfoData?.phone || "",
+            wifi: contactInfoData?.wifi || "",
+            businessHours: contactInfoData?.businessHours || "",
           });
         }
       }
@@ -140,10 +164,28 @@ export const useStoreSettings = () => {
         }
       }
 
-      const dataToUpdate = {
-        ...updatedData,
+      // تحويل الكائنات المخصصة إلى Json قبل الإرسال إلى Supabase
+      const dataToUpdate: Record<string, any> = {
         updated_at: new Date().toISOString()
       };
+      
+      if (updatedData.store_name !== undefined) dataToUpdate.store_name = updatedData.store_name;
+      if (updatedData.color_theme !== undefined) dataToUpdate.color_theme = updatedData.color_theme;
+      if (updatedData.slug !== undefined) dataToUpdate.slug = updatedData.slug;
+      if (updatedData.banner_url !== undefined) dataToUpdate.banner_url = updatedData.banner_url;
+      
+      // تحويل الأنواع المخصصة إلى Json
+      if (updatedData.social_links !== undefined) {
+        dataToUpdate.social_links = updatedData.social_links as unknown as Json;
+      }
+      
+      if (updatedData.font_settings !== undefined) {
+        dataToUpdate.font_settings = updatedData.font_settings as unknown as Json;
+      }
+      
+      if (updatedData.contact_info !== undefined) {
+        dataToUpdate.contact_info = updatedData.contact_info as unknown as Json;
+      }
 
       let result;
       if (existingSettings) {
