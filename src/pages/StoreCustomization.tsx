@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Qrcode } from "lucide-react";
 import { motion } from "framer-motion";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import StoreNameEditor from "@/components/store/StoreNameEditor";
@@ -14,6 +14,7 @@ import SocialLinksEditor from "@/components/store/SocialLinksEditor";
 import FontStyleSelector from "@/components/store/FontStyleSelector";
 import ContactInfoEditor from "@/components/store/ContactInfoEditor";
 import { Card } from "@/components/ui/card";
+import QrCodeModal from "@/components/dashboard/QrCodeModal";
 
 type SocialLinks = {
   instagram: string;
@@ -88,6 +89,9 @@ const StoreCustomization = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const [isSlugEditing, setIsSlugEditing] = useState(false);
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
   useEffect(() => {
     fetchStoreSettings();
@@ -167,6 +171,23 @@ const StoreCustomization = () => {
         console.error("Error checking existing settings:", checkError);
       }
 
+      if (updatedData.slug !== undefined && updatedData.slug.trim() !== '') {
+        const { data: existingSlug, error: slugError } = await supabase
+          .from("store_settings")
+          .select("user_id")
+          .eq("slug", updatedData.slug)
+          .neq("user_id", user.id)
+          .maybeSingle();
+
+        if (slugError) {
+          console.error("Error checking existing slug:", slugError);
+        }
+
+        if (existingSlug) {
+          throw new Error("هذا الرابط مستخدم بالفعل، الرجاء اختيار رابط آخر");
+        }
+      }
+
       const dataToUpdate = {
         ...updatedData,
         updated_at: new Date().toISOString()
@@ -188,9 +209,6 @@ const StoreCustomization = () => {
       }
 
       if (result.error) {
-        if (result.error.code === '23505') {
-          throw new Error("هذا الرابط مستخدم بالفعل، الرجاء اختيار رابط آخر");
-        }
         throw result.error;
       }
 
@@ -200,7 +218,6 @@ const StoreCustomization = () => {
         duration: 3000,
       });
 
-      // Update local state for any settings that were changed
       if (updatedData.store_name !== undefined) setStoreName(updatedData.store_name);
       if (updatedData.color_theme !== undefined) setColorTheme(updatedData.color_theme);
       if (updatedData.slug !== undefined) setStoreSlug(updatedData.slug);
@@ -222,11 +239,22 @@ const StoreCustomization = () => {
     }
   };
 
-  const handleNameSubmit = async () => {
+  const handleNameSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     await saveStoreSettings({ store_name: storeName });
   };
 
-  const handleSlugSubmit = async () => {
+  const handleSlugSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!storeSlug.trim()) {
+      toast({
+        title: "خطأ",
+        description: "الرجاء إدخال رابط صالح للمتجر",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
     await saveStoreSettings({ slug: storeSlug });
   };
 
@@ -248,6 +276,22 @@ const StoreCustomization = () => {
 
   const handleContactInfoSubmit = async (info: ContactInfo) => {
     await saveStoreSettings({ contact_info: info });
+  };
+
+  const getStoreUrl = () => {
+    return storeSlug ? `menusystem.lovable.app/${storeSlug}` : '';
+  };
+
+  const openQrModal = () => {
+    if (!storeSlug) {
+      toast({
+        title: "تنبيه",
+        description: "الرجاء تعيين رابط للمتجر أولاً",
+        duration: 3000,
+      });
+      return;
+    }
+    setIsQrModalOpen(true);
   };
 
   return (
@@ -279,18 +323,34 @@ const StoreCustomization = () => {
                   setStoreName={setStoreName}
                   isEditing={false}
                   setIsEditing={() => {}}
-                  handleSubmit={async () => { await handleNameSubmit(); }}
+                  handleSubmit={handleNameSubmit}
                   isLoading={isLoading}
                 />
                 
-                <StoreSlugEditor
-                  storeSlug={storeSlug}
-                  setStoreSlug={setStoreSlug}
-                  isEditing={false}
-                  setIsEditing={() => {}}
-                  handleSubmit={async () => { await handleSlugSubmit(); }}
-                  isLoading={isLoading}
-                />
+                <div className="space-y-3">
+                  <StoreSlugEditor
+                    storeSlug={storeSlug}
+                    setStoreSlug={setStoreSlug}
+                    isEditing={isSlugEditing}
+                    setIsEditing={setIsSlugEditing}
+                    handleSubmit={handleSlugSubmit}
+                    isLoading={isLoading}
+                  />
+                  
+                  {storeSlug && (
+                    <div className="mt-2 flex justify-end">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={openQrModal}
+                        className="flex items-center gap-2 text-sm"
+                      >
+                        <Qrcode className="h-4 w-4" />
+                        عرض رمز QR للمتجر
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
             </Card>
             
@@ -341,6 +401,12 @@ const StoreCustomization = () => {
           </div>
         </motion.div>
       </main>
+
+      <QrCodeModal 
+        isOpen={isQrModalOpen} 
+        onClose={() => setIsQrModalOpen(false)} 
+        storeUrl={getStoreUrl()}
+      />
     </div>
   );
 };

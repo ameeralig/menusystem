@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Link2, Save } from "lucide-react";
+import { useState } from "react";
 
 interface StoreSlugEditorProps {
   storeSlug: string;
@@ -21,6 +22,16 @@ const StoreSlugEditor = ({
   handleSubmit,
   isLoading
 }: StoreSlugEditorProps) => {
+  const [localStoreSlug, setLocalStoreSlug] = useState(storeSlug);
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!localStoreSlug.trim()) return;
+    setStoreSlug(localStoreSlug);
+    await handleSubmit(e);
+    setIsEditing(false);
+  };
+
   return (
     <Card className="border-2 border-[#ffbcad] dark:border-[#ff9178]/40">
       <CardHeader>
@@ -30,18 +41,18 @@ const StoreSlugEditor = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={onSubmit} className="space-y-4">
           <div className="flex items-center gap-4">
             <Input
               type="text"
-              value={storeSlug}
+              value={localStoreSlug}
               onChange={(e) => {
                 // تحويل النص إلى حروف صغيرة وإزالة المسافات والرموز الخاصة
                 const value = e.target.value
                   .toLowerCase()
                   .replace(/[^a-z0-9-]/g, '')
                   .replace(/\s+/g, '-');
-                setStoreSlug(value);
+                setLocalStoreSlug(value);
               }}
               placeholder="ادخل رابط المتجر المميز"
               className="text-right flex-1 dir-ltr"
@@ -50,7 +61,12 @@ const StoreSlugEditor = ({
             <Button
               type="button"
               variant={isEditing ? "destructive" : "outline"}
-              onClick={() => setIsEditing(!isEditing)}
+              onClick={() => {
+                if (isEditing) {
+                  setLocalStoreSlug(storeSlug); // إعادة ضبط القيمة المحلية عند الإلغاء
+                }
+                setIsEditing(!isEditing);
+              }}
             >
               {isEditing ? "إلغاء" : "تعديل"}
             </Button>
@@ -59,7 +75,7 @@ const StoreSlugEditor = ({
           {isEditing && (
             <>
               <p className="text-sm text-gray-500 text-right">
-                سيكون رابط متجرك: menusystem.lovable.app/{storeSlug || 'your-store'}
+                سيكون رابط متجرك: menusystem.lovable.app/{localStoreSlug || 'your-store'}
               </p>
               <Button 
                 type="submit" 
