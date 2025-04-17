@@ -259,6 +259,7 @@ const StoreCustomization = () => {
     await saveStoreSettings({ slug: storeSlug });
   };
 
+  // تعديل دوال المعالجة لتتناسب مع نوع البيانات المتوقع
   const handleColorThemeSubmit = async () => {
     await saveStoreSettings({ color_theme: colorTheme });
   };
@@ -370,14 +371,14 @@ const StoreCustomization = () => {
                 <BannerImageUploader 
                   bannerUrl={bannerUrl}
                   setBannerUrl={setBannerUrl}
-                  handleSubmit={async () => { await handleBannerSubmit(); }}
+                  handleSubmit={handleBannerSubmit}
                   isLoading={isLoading}
                 />
                 
                 <ColorThemeSelector 
                   colorTheme={colorTheme}
                   setColorTheme={setColorTheme}
-                  handleSubmit={async () => { await handleColorThemeSubmit(); }}
+                  handleSubmit={handleColorThemeSubmit}
                   isLoading={isLoading}
                 />
                 
@@ -385,7 +386,7 @@ const StoreCustomization = () => {
                 <FontStyleSelector
                   fontSettings={fontSettings}
                   setFontSettings={setFontSettings}
-                  handleSubmit={async () => { await handleFontSettingsSubmit(); }}
+                  handleSubmit={handleFontSettingsSubmit}
                   isLoading={isLoading}
                 />
               </div>
