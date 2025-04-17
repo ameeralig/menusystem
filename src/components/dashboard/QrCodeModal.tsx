@@ -15,7 +15,12 @@ const QrCodeModal = ({ isOpen, onClose, storeUrl }: QrCodeModalProps) => {
 
   useEffect(() => {
     if (storeUrl) {
-      setQrValue(storeUrl);
+      // تأكد من أن الرابط يحتوي على بروتوكول HTTP/HTTPS
+      if (!storeUrl.startsWith('http')) {
+        setQrValue(`https://${storeUrl}`);
+      } else {
+        setQrValue(storeUrl);
+      }
     }
   }, [storeUrl]);
 
@@ -63,6 +68,9 @@ const QrCodeModal = ({ isOpen, onClose, storeUrl }: QrCodeModalProps) => {
           </div>
           <p className="mt-4 text-center text-sm text-muted-foreground">
             يمكنك طباعة هذا الرمز أو مشاركته مع عملائك للوصول السريع إلى متجرك
+          </p>
+          <p className="mt-1 text-center text-xs text-muted-foreground font-mono break-all">
+            {qrValue}
           </p>
         </div>
         <DialogFooter className="flex justify-center gap-2 sm:justify-center">
