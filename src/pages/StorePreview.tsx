@@ -44,6 +44,7 @@ type FontSettings = {
 };
 
 const StorePreview = () => {
+  // استخدام storeSlug كمعرف للمتجر (subdomain)
   const { storeSlug } = useParams<{ storeSlug: string }>();
   const navigate = useNavigate();
   const [userId, setUserId] = useState<string | null>(null);
@@ -59,7 +60,7 @@ const StorePreview = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  // البحث عن معرف المستخدم بناءً على الرابط المخصص
+  // البحث عن معرف المستخدم بناءً على الرابط المخصص (subdomain)
   useEffect(() => {
     const fetchUserIdFromSlug = async () => {
       if (!storeSlug) {
@@ -69,41 +70,41 @@ const StorePreview = () => {
       }
 
       try {
-        // البحث أولاً عن الدومين المخصص
-        let { data: domainData, error: domainError } = await supabase
+        // البحث عن الـ slug المطابق
+        const { data, error } = await supabase
           .from("store_settings")
           .select("user_id")
-          .eq("custom_domain", storeSlug)
+          .eq("slug", storeSlug)
           .maybeSingle();
 
-        if (domainError) {
-          console.error("خطأ في البحث عن الدومين المخصص:", domainError);
+        if (error) {
+          console.error("خطأ في البحث عن معرف المستخدم:", error);
+          setError("لا يمكن العثور على المتجر");
+          setIsLoading(false);
+          return;
         }
 
-        // إذا لم يتم العثور على الدومين المخصص، نبحث عن الرابط المخصص
-        if (!domainData) {
-          const { data, error } = await supabase
+        if (!data) {
+          // البحث في الدومين المخصص إن لم يتم العثور على slug
+          const { data: domainData, error: domainError } = await supabase
             .from("store_settings")
             .select("user_id")
-            .eq("slug", storeSlug)
+            .eq("custom_domain", storeSlug)
             .maybeSingle();
 
-          if (error) {
-            console.error("خطأ في البحث عن معرف المستخدم:", error);
-            setError("لا يمكن العثور على المتجر");
-            setIsLoading(false);
-            return;
+          if (domainError) {
+            console.error("خطأ في البحث عن الدومين المخصص:", domainError);
           }
 
-          if (!data) {
+          if (!domainData) {
             setError("المتجر غير موجود");
             setIsLoading(false);
             return;
           }
 
-          setUserId(data.user_id);
-        } else {
           setUserId(domainData.user_id);
+        } else {
+          setUserId(data.user_id);
         }
       } catch (error: any) {
         console.error("خطأ في البحث عن معرف المستخدم:", error);
@@ -164,12 +165,52 @@ const StorePreview = () => {
           }
           
           setColorTheme(storeSettings.color_theme || "default");
-          setSocialLinks(storeSettings.social_links as SocialLinks || {});
+          
+          if (storeSettings.social_links) {
+            // تحويل آمن من Json إلى SocialLinks
+            const socialLinksJson = storeSettings.social_links as Record<string, any>;
+            setSocialLinks({
+              instagram: socialLinksJson?.instagram || "",
+              facebook: socialLinksJson?.facebook || "",
+              telegram: socialLinksJson?.telegram || "",
+            });
+          }
+          
           setBannerUrl(storeSettings.banner_url || null);
-          setFontSettings(storeSettings.font_settings as FontSettings | undefined);
-          setContactInfo(storeSettings.contact_info as ContactInfo || {});
-          console.info("رابط الصورة من قاعدة البيانات:", storeSettings.banner_url);
-          console.info("معلومات الاتصال من قاعدة البيانات:", storeSettings.contact_info);
+          
+          if (storeSettings.font_settings) {
+            // تحويل آمن من Json إلى FontSettings
+            const fontSettingsJson = storeSettings.font_settings as Record<string, any>;
+            setFontSettings({
+              storeName: {
+                family: fontSettingsJson?.storeName?.family || "inherit",
+                isCustom: fontSettingsJson?.storeName?.isCustom || false,
+                customFontUrl: fontSettingsJson?.storeName?.customFontUrl || null,
+              },
+              categoryText: {
+                family: fontSettingsJson?.categoryText?.family || "inherit",
+                isCustom: fontSettingsJson?.categoryText?.isCustom || false,
+                customFontUrl: fontSettingsJson?.categoryText?.customFontUrl || null,
+              },
+              generalText: {
+                family: fontSettingsJson?.generalText?.family || "inherit",
+                isCustom: fontSettingsJson?.generalText?.isCustom || false,
+                customFontUrl: fontSettingsJson?.generalText?.customFontUrl || null,
+              }
+            });
+          }
+          
+          if (storeSettings.contact_info) {
+            // تحويل آمن من Json إلى ContactInfo
+            const contactInfoJson = storeSettings.contact_info as Record<string, any>;
+            setContactInfo({
+              description: contactInfoJson?.description || "",
+              address: contactInfoJson?.address || "",
+              phone: contactInfoJson?.phone || "",
+              wifi: contactInfoJson?.wifi || "",
+              businessHours: contactInfoJson?.businessHours || "",
+            });
+          }
         }
 
         // جلب صور التصنيفات - هذا الجزء مهم للزوار أيضاً

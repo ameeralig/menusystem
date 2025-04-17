@@ -36,7 +36,7 @@ const DomainEditor = ({
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <Globe className="h-5 w-5 text-[#ff9178]" />
-          <span>الدومين المخصص</span>
+          <span>نطاق المتجر المخصص</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -46,9 +46,14 @@ const DomainEditor = ({
               type="text"
               value={localDomain}
               onChange={(e) => {
-                setLocalDomain(e.target.value.trim());
+                // تحويل النص إلى حروف صغيرة وإزالة المسافات والرموز الخاصة
+                const value = e.target.value
+                  .toLowerCase()
+                  .replace(/[^a-z0-9-]/g, '')
+                  .replace(/\s+/g, '-');
+                setLocalDomain(value);
               }}
-              placeholder="example.com"
+              placeholder="my-store"
               className="text-right flex-1 dir-ltr"
               disabled={!isEditing}
             />
@@ -69,7 +74,7 @@ const DomainEditor = ({
           {isEditing && (
             <>
               <p className="text-sm text-gray-500 text-right">
-                أدخل الدومين المخصص الخاص بك بدون http:// أو https://
+                أدخل نطاق المتجر المخصص الخاص بك. سيكون رابط متجرك: <span className="font-bold dir-ltr inline-block">{localDomain || 'your-store'}.qrmenuc.com</span>
               </p>
               <Button 
                 type="submit" 

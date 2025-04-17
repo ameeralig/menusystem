@@ -75,7 +75,7 @@ const StoreSlugEditor = ({
           {isEditing && (
             <>
               <p className="text-sm text-gray-500 text-right">
-                سيكون رابط متجرك: menusystem.lovable.app/{localStoreSlug || 'your-store'}
+                سيكون رابط متجرك: <span className="font-bold dir-ltr inline-block">{localStoreSlug || 'your-store'}.qrmenuc.com</span>
               </p>
               <Button 
                 type="submit" 

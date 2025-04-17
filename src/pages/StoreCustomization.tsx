@@ -90,14 +90,14 @@ const StoreCustomization = () => {
   };
 
   const getStoreUrl = () => {
-    if (customDomain) {
-      return `https://${customDomain}`;
+    if (storeSlug) {
+      return `${storeSlug}.qrmenuc.com`;
     }
-    return storeSlug ? `menusystem.lovable.app/${storeSlug}` : '';
+    return '';
   };
 
   const openQrModal = () => {
-    if (!storeSlug && !customDomain) {
+    if (!storeSlug) {
       toast({
         title: "تنبيه",
         description: "الرجاء تعيين رابط للمتجر أولاً",

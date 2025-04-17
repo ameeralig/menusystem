@@ -89,7 +89,7 @@ const ProductPreview = () => {
 
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
-          .select("store_name, color_theme, social_links, banner_url, font_settings, contact_info")
+          .select("store_name, color_theme, social_links, banner_url, font_settings, contact_info, slug")
           .eq("user_id", userId)
           .maybeSingle();
 
@@ -107,12 +107,52 @@ const ProductPreview = () => {
           }
           
           setColorTheme(storeSettings.color_theme || "default");
-          setSocialLinks(storeSettings.social_links as SocialLinks || {});
+          
+          if (storeSettings.social_links) {
+            // تحويل آمن من Json إلى SocialLinks
+            const socialLinksJson = storeSettings.social_links as Record<string, any>;
+            setSocialLinks({
+              instagram: socialLinksJson?.instagram || "",
+              facebook: socialLinksJson?.facebook || "",
+              telegram: socialLinksJson?.telegram || "",
+            });
+          }
+          
           setBannerUrl(storeSettings.banner_url || null);
-          setFontSettings(storeSettings.font_settings as FontSettings | undefined);
-          setContactInfo(storeSettings.contact_info as ContactInfo || {});
-          console.info("Banner URL from database:", storeSettings.banner_url);
-          console.info("Contact info from database:", storeSettings.contact_info);
+          
+          if (storeSettings.font_settings) {
+            // تحويل آمن من Json إلى FontSettings
+            const fontSettingsJson = storeSettings.font_settings as Record<string, any>;
+            setFontSettings({
+              storeName: {
+                family: fontSettingsJson?.storeName?.family || "inherit",
+                isCustom: fontSettingsJson?.storeName?.isCustom || false,
+                customFontUrl: fontSettingsJson?.storeName?.customFontUrl || null,
+              },
+              categoryText: {
+                family: fontSettingsJson?.categoryText?.family || "inherit",
+                isCustom: fontSettingsJson?.categoryText?.isCustom || false,
+                customFontUrl: fontSettingsJson?.categoryText?.customFontUrl || null,
+              },
+              generalText: {
+                family: fontSettingsJson?.generalText?.family || "inherit",
+                isCustom: fontSettingsJson?.generalText?.isCustom || false,
+                customFontUrl: fontSettingsJson?.generalText?.customFontUrl || null,
+              }
+            });
+          }
+          
+          if (storeSettings.contact_info) {
+            // تحويل آمن من Json إلى ContactInfo
+            const contactInfoJson = storeSettings.contact_info as Record<string, any>;
+            setContactInfo({
+              description: contactInfoJson?.description || "",
+              address: contactInfoJson?.address || "",
+              phone: contactInfoJson?.phone || "",
+              wifi: contactInfoJson?.wifi || "",
+              businessHours: contactInfoJson?.businessHours || "",
+            });
+          }
         }
 
         // جلب صور التصنيفات - هذا الجزء مهم للزوار أيضاً
