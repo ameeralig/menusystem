@@ -10,8 +10,6 @@ interface BasicInfoCardProps {
   setStoreName: (value: string) => void;
   storeSlug: string;
   setStoreSlug: (value: string) => void;
-  customDomain: string;
-  setCustomDomain: (value: string) => void;
   isSlugEditing: boolean;
   setIsSlugEditing: (value: boolean) => void;
   handleNameSubmit: (e: React.FormEvent) => Promise<void>;
@@ -75,4 +73,3 @@ const BasicInfoCard: React.FC<BasicInfoCardProps> = ({
 };
 
 export default BasicInfoCard;
-
