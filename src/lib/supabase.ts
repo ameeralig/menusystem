@@ -1,3 +1,4 @@
+
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = "https://zqlckixwpyrwdwrsuhsg.supabase.co";
@@ -14,3 +15,26 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true
   }
 });
+
+// وظيفة مساعدة للتحقق من النطاق الفرعي
+export const checkUserStoreSlug = async (userId: string): Promise<string | null> => {
+  if (!userId) return null;
+  
+  try {
+    const { data, error } = await supabase
+      .from("store_settings")
+      .select("slug")
+      .eq("user_id", userId)
+      .maybeSingle();
+      
+    if (error) {
+      console.error("خطأ في التحقق من النطاق الفرعي:", error);
+      return null;
+    }
+    
+    return data?.slug || null;
+  } catch (error) {
+    console.error("خطأ في التحقق من النطاق الفرعي:", error);
+    return null;
+  }
+};

@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -45,6 +45,7 @@ type FontSettings = {
 
 const ProductPreview = () => {
   const { userId } = useParams<{ userId: string }>();
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [storeName, setStoreName] = useState<string | null>(null);
   const [colorTheme, setColorTheme] = useState<string | null>("default");
@@ -55,7 +56,45 @@ const ProductPreview = () => {
   const [categoryImages, setCategoryImages] = useState<CategoryImage[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [storeSlug, setStoreSlug] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // التحقق من وجود slug وتوجيه المستخدم إلى استخدام النطاق الفرعي بدلاً من ذلك
+  useEffect(() => {
+    const checkForStoreSlug = async () => {
+      if (!userId) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from("store_settings")
+          .select("slug")
+          .eq("user_id", userId)
+          .maybeSingle();
+          
+        if (error) {
+          console.error("خطأ في التحقق من النطاق الفرعي:", error);
+          return;
+        }
+        
+        setStoreSlug(data?.slug || null);
+        
+        // إذا كان لديه نطاق فرعي، قم بتوجيهه إلى استخدام النطاق الفرعي
+        if (data?.slug) {
+          const subdomain = `${data.slug}.qrmenuc.com`;
+          // التحقق من أننا لسنا بالفعل على النطاق الفرعي
+          if (window.location.hostname !== subdomain) {
+            // التوجيه إلى النطاق الفرعي
+            const protocol = window.location.protocol;
+            window.location.href = `${protocol}//${subdomain}`;
+          }
+        }
+      } catch (error) {
+        console.error("خطأ في التحقق من النطاق الفرعي:", error);
+      }
+    };
+    
+    checkForStoreSlug();
+  }, [userId]);
 
   useEffect(() => {
     const trackPageView = async () => {
@@ -107,6 +146,7 @@ const ProductPreview = () => {
           }
           
           setColorTheme(storeSettings.color_theme || "default");
+          setStoreSlug(storeSettings.slug || null);
           
           if (storeSettings.social_links) {
             // تحويل آمن من Json إلى SocialLinks
@@ -210,6 +250,19 @@ const ProductPreview = () => {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 flex items-center justify-center">
         <div className="text-lg text-gray-600 dark:text-gray-400">جاري التحميل...</div>
+      </div>
+    );
+  }
+
+  // إذا لم يكن هناك نطاق فرعي معين، فعرض رسالة إعلامية
+  if (!storeSlug) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+        <Alert className="max-w-lg mx-auto">
+          <AlertDescription>
+            لم يتم تعيين نطاق فرعي لهذا المتجر بعد. يرجى من صاحب المتجر تعيين نطاق فرعي من إعدادات التخصيص.
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }

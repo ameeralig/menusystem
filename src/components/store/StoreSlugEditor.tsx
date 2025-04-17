@@ -54,6 +54,27 @@ const StoreSlugEditor = ({
       return;
     }
     
+    // التحقق من الطول المناسب
+    if (localStoreSlug.length < 3) {
+      toast({
+        title: "خطأ",
+        description: "النطاق الفرعي يجب أن يتكون من 3 أحرف على الأقل",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+    
+    if (localStoreSlug.length > 30) {
+      toast({
+        title: "خطأ",
+        description: "النطاق الفرعي يجب ألا يتجاوز 30 حرفًا",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+    
     setStoreSlug(localStoreSlug);
     await handleSubmit(e);
     setIsEditing(false);
@@ -109,6 +130,13 @@ const StoreSlugEditor = ({
                   ملاحظة مهمة: بمجرد حفظ النطاق الفرعي، سيصبح هو الطريقة الوحيدة للوصول إلى صفحة المنتجات الخاصة بك.
                 </p>
               </div>
+              <div className="text-sm text-gray-600 mt-2 mb-2 bg-gray-50 p-2 rounded-md border border-gray-200">
+                <ul className="text-right list-disc mr-6 space-y-1">
+                  <li>يجب أن يتكون من أحرف إنجليزية صغيرة وأرقام وشرطات فقط</li>
+                  <li>يجب أن يكون بين 3 و 30 حرفًا</li>
+                  <li>سيكون هذا الرابط هو العنوان الرسمي لمتجرك</li>
+                </ul>
+              </div>
               <Button 
                 type="submit" 
                 className="w-full bg-[#ff9178] hover:bg-[#ff7d61] text-white"
@@ -118,6 +146,17 @@ const StoreSlugEditor = ({
                 {isLoading ? "جاري الحفظ..." : "حفظ التغييرات"}
               </Button>
             </>
+          )}
+
+          {!isEditing && storeSlug && (
+            <div className="flex items-center justify-between p-2 bg-gray-50 rounded-md border border-gray-200 mt-4">
+              <p className="text-green-600 text-sm">
+                <span className="font-bold">✓</span> تم تعيين النطاق الفرعي
+              </p>
+              <p className="font-bold dir-ltr text-gray-600">
+                {storeSlug}.qrmenuc.com
+              </p>
+            </div>
           )}
         </form>
       </CardContent>

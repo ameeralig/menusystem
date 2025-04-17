@@ -1,7 +1,7 @@
 
 import { Plus, Edit, Eye, Link2, Settings, MessageSquare, QrCode } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { copyToClipboard } from "@/utils/clipboard";
@@ -15,6 +15,32 @@ const DashboardActions = () => {
   const [isCopying, setIsCopying] = useState(false);
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [storeUrl, setStoreUrl] = useState("");
+  const [storeSlug, setStoreSlug] = useState<string | null>(null);
+
+  // جلب النطاق الفرعي للمتجر عند تحميل المكون
+  useEffect(() => {
+    const fetchStoreSlug = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from("store_settings")
+        .select("slug")
+        .eq("user_id", user.id)
+        .maybeSingle();
+        
+      if (error) {
+        console.error("خطأ في جلب النطاق الفرعي:", error);
+        return;
+      }
+      
+      if (data && data.slug) {
+        setStoreSlug(data.slug);
+      }
+    };
+    
+    fetchStoreSlug();
+  }, []);
 
   const handleEditProducts = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -46,29 +72,43 @@ const DashboardActions = () => {
   };
 
   const handlePreviewProducts = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      navigate(`/products/${user.id}`);
+    // التحقق من وجود نطاق فرعي قبل السماح بمعاينة المنتجات
+    if (storeSlug) {
+      window.open(`https://${storeSlug}.qrmenuc.com`, '_blank');
+    } else {
+      toast({
+        title: "تعيين النطاق الفرعي",
+        description: "يجب تعيين نطاق فرعي للمتجر أولاً من إعدادات التخصيص",
+        duration: 3000,
+      });
+      navigate('/store-customization');
     }
   };
 
   const copyProductLink = async () => {
     try {
       setIsCopying(true);
-      const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) {
+      if (!storeSlug) {
         toast({
-          title: "خطأ",
-          description: "يجب تسجيل الدخول أولاً",
+          title: "تعيين النطاق الفرعي",
+          description: "يجب تعيين نطاق فرعي للمتجر أولاً من إعدادات التخصيص",
           variant: "destructive",
           duration: 3000,
         });
+        setIsCopying(false);
+        navigate('/store-customization');
         return;
       }
-
-      const productsPageUrl = `${window.location.origin}/products/${user.id}`;
-      await copyToClipboard(productsPageUrl);
+      
+      const storePageUrl = `https://${storeSlug}.qrmenuc.com`;
+      await copyToClipboard(storePageUrl);
+      
+      toast({
+        title: "تم النسخ",
+        description: `تم نسخ الرابط: ${storePageUrl}`,
+        duration: 3000,
+      });
       
       setTimeout(() => {
         setIsCopying(false);
@@ -81,20 +121,19 @@ const DashboardActions = () => {
 
   const showQrCode = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
+      if (!storeSlug) {
         toast({
-          title: "خطأ",
-          description: "يجب تسجيل الدخول أولاً",
+          title: "تعيين النطاق الفرعي",
+          description: "يجب تعيين نطاق فرعي للمتجر أولاً من إعدادات التخصيص",
           variant: "destructive",
           duration: 3000,
         });
+        navigate('/store-customization');
         return;
       }
-
-      const productsPageUrl = `${window.location.origin}/products/${user.id}`;
-      setStoreUrl(productsPageUrl);
+      
+      const storePageUrl = `https://${storeSlug}.qrmenuc.com`;
+      setStoreUrl(storePageUrl);
       setQrModalOpen(true);
     } catch (error) {
       console.error("QR code generation error:", error);
