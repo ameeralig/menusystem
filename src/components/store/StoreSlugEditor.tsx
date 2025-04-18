@@ -80,6 +80,10 @@ const StoreSlugEditor = ({
     setIsEditing(false);
   };
 
+  const getStoreUrl = () => {
+    return localStoreSlug ? `${window.location.protocol}//${localStoreSlug}.qrmenuc.com` : '';
+  };
+
   return (
     <Card className="border-2 border-[#ffbcad] dark:border-[#ff9178]/40">
       <CardHeader>
@@ -149,13 +153,23 @@ const StoreSlugEditor = ({
           )}
 
           {!isEditing && storeSlug && (
-            <div className="flex items-center justify-between p-2 bg-gray-50 rounded-md border border-gray-200 mt-4">
-              <p className="text-green-600 text-sm">
-                <span className="font-bold">✓</span> تم تعيين النطاق الفرعي
-              </p>
-              <p className="font-bold dir-ltr text-gray-600">
-                {storeSlug}.qrmenuc.com
-              </p>
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center justify-between p-2 bg-gray-50 rounded-md border border-gray-200">
+                <p className="text-green-600 text-sm">
+                  <span className="font-bold">✓</span> تم تعيين النطاق الفرعي
+                </p>
+                <p className="font-bold dir-ltr text-gray-600">
+                  {storeSlug}.qrmenuc.com
+                </p>
+              </div>
+              <a 
+                href={getStoreUrl()} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-center text-blue-500 hover:text-blue-700 text-sm underline"
+              >
+                افتح صفحة المتجر الخاص بك في نافذة جديدة
+              </a>
             </div>
           )}
         </form>

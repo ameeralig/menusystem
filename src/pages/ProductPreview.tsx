@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, checkUserStoreSlug } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Product } from "@/types/product";
@@ -65,27 +65,33 @@ const ProductPreview = () => {
       if (!userId) return;
       
       try {
-        const { data, error } = await supabase
-          .from("store_settings")
-          .select("slug")
-          .eq("user_id", userId)
-          .maybeSingle();
+        // استخدام الوظيفة المساعدة من supabase.ts
+        const slugValue = await checkUserStoreSlug(userId);
+        setStoreSlug(slugValue);
+        
+        // إذا كان لديه نطاق فرعي، قم بإعادة توجيهه إلى النطاق الفرعي
+        if (slugValue) {
+          const hostname = window.location.hostname;
           
-        if (error) {
-          console.error("خطأ في التحقق من النطاق الفرعي:", error);
-          return;
-        }
-        
-        setStoreSlug(data?.slug || null);
-        
-        // إذا كان لديه نطاق فرعي، قم بتوجيهه إلى استخدام النطاق الفرعي
-        if (data?.slug) {
-          const subdomain = `${data.slug}.qrmenuc.com`;
+          // لا نقوم بإعادة التوجيه في بيئة التطوير المحلية
+          if (hostname === 'localhost' || hostname.includes('127.0.0.1')) {
+            console.log('بيئة تطوير محلية، لا يتم إعادة التوجيه للنطاق الفرعي');
+            return;
+          }
+          
           // التحقق من أننا لسنا بالفعل على النطاق الفرعي
-          if (window.location.hostname !== subdomain) {
-            // التوجيه إلى النطاق الفرعي
+          const domainParts = hostname.split('.');
+          if (domainParts[0] !== slugValue) {
+            // إذا كان المستخدم على نطاق فرعي مختلف أو النطاق الرئيسي
+            const baseUrl = hostname.includes('qrmenuc.com') 
+              ? 'qrmenuc.com' 
+              : hostname.split('.').slice(1).join('.');
+              
             const protocol = window.location.protocol;
-            window.location.href = `${protocol}//${subdomain}`;
+            const newUrl = `${protocol}//${slugValue}.${baseUrl}`;
+            
+            console.log(`إعادة توجيه من ${window.location.href} إلى ${newUrl}`);
+            window.location.href = newUrl;
           }
         }
       } catch (error) {
@@ -254,7 +260,7 @@ const ProductPreview = () => {
     );
   }
 
-  // إذا لم يكن هناك نطاق فرعي معين، فعرض رسالة إعلامية
+  // إذا لم يكن هناك نطاق فرعي معين، فعرض رسالة إرشادية
   if (!storeSlug) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
@@ -267,24 +273,45 @@ const ProductPreview = () => {
     );
   }
 
+  const storefrontUrl = `${window.location.protocol}//${storeSlug}.qrmenuc.com`;
+
   return (
-    <ProductPreviewContainer 
-      colorTheme={colorTheme} 
-      bannerUrl={bannerUrl}
-      fontSettings={fontSettings}
-      containerHeight="auto"
-    >
-      <StoreProductsDisplay 
-        products={products} 
-        storeName={storeName} 
-        colorTheme={colorTheme}
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+      <Alert className="max-w-lg mx-auto mb-4">
+        <AlertDescription className="flex flex-col space-y-2">
+          <div>هذا المتجر متاح عبر النطاق الفرعي الخاص به:</div>
+          <a 
+            href={storefrontUrl} 
+            className="text-blue-500 hover:text-blue-700 font-medium"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {storeSlug}.qrmenuc.com
+          </a>
+          <p className="text-sm text-gray-500 mt-2">
+            يرجى استخدام الرابط أعلاه للوصول إلى المتجر.
+          </p>
+        </AlertDescription>
+      </Alert>
+
+      <ProductPreviewContainer 
+        colorTheme={colorTheme} 
+        bannerUrl={bannerUrl}
         fontSettings={fontSettings}
-        contactInfo={contactInfo}
-        categoryImages={categoryImages}
-      />
-      <SocialIcons socialLinks={socialLinks} />
-      {userId && <FeedbackDialog userId={userId} />}
-    </ProductPreviewContainer>
+        containerHeight="auto"
+      >
+        <StoreProductsDisplay 
+          products={products} 
+          storeName={storeName} 
+          colorTheme={colorTheme}
+          fontSettings={fontSettings}
+          contactInfo={contactInfo}
+          categoryImages={categoryImages}
+        />
+        <SocialIcons socialLinks={socialLinks} />
+        {userId && <FeedbackDialog userId={userId} />}
+      </ProductPreviewContainer>
+    </div>
   );
 };
 

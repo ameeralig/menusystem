@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, getCurrentSubdomain } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Product } from "@/types/product";
@@ -45,7 +45,7 @@ type FontSettings = {
 
 const StorePreview = () => {
   // استخدام storeSlug كمعرف للمتجر (subdomain)
-  const { storeSlug } = useParams<{ storeSlug: string }>();
+  const { storeSlug: urlStoreSlug } = useParams<{ storeSlug: string }>();
   const navigate = useNavigate();
   const [userId, setUserId] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -60,23 +60,27 @@ const StorePreview = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
+  // التحقق أولاً إذا كنا في نطاق فرعي
+  const subdomainFromHostname = getCurrentSubdomain();
+  const effectiveStoreSlug = subdomainFromHostname || urlStoreSlug;
+
   // البحث عن معرف المستخدم بناءً على الرابط المخصص (subdomain)
   useEffect(() => {
     const fetchUserIdFromSlug = async () => {
-      if (!storeSlug) {
+      if (!effectiveStoreSlug) {
         setError("رابط المتجر غير صالح");
         setIsLoading(false);
         return;
       }
 
       try {
-        console.log("البحث عن المتجر باستخدام:", storeSlug);
+        console.log("البحث عن المتجر باستخدام:", effectiveStoreSlug);
         
         // البحث عن الـ slug المطابق
         const { data, error } = await supabase
           .from("store_settings")
           .select("user_id, store_name")
-          .eq("slug", storeSlug)
+          .eq("slug", effectiveStoreSlug)
           .maybeSingle();
 
         if (error) {
@@ -103,7 +107,7 @@ const StorePreview = () => {
     };
 
     fetchUserIdFromSlug();
-  }, [storeSlug]);
+  }, [effectiveStoreSlug]);
 
   // تسجيل مشاهدة الصفحة
   useEffect(() => {

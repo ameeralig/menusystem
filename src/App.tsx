@@ -41,7 +41,7 @@ const App = () => (
           {/* توجيه المستخدم إلى صفحة المعاينة حسب النطاق الفرعي */}
           <Route path="/:storeSlug" element={<StorePreview />} />
           
-          {/* هذا المسار سيتم استخدامه فقط للمسؤولين */}
+          {/* هذا المسار سيتم استخدامه فقط للمسؤولين أو إذا لم يكن هناك نطاق فرعي بعد */}
           <Route path="/products/:userId" element={<ProductPreview />} />
           
           <Route path="/edit-product" element={<EditProduct />} />
