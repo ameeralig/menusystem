@@ -18,9 +18,13 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 // وظيفة مساعدة للتحقق من النطاق الفرعي
 export const checkUserStoreSlug = async (userId: string): Promise<string | null> => {
-  if (!userId) return null;
+  if (!userId) {
+    console.error("معرف المستخدم غير موجود في checkUserStoreSlug");
+    return null;
+  }
   
   try {
+    console.log("التحقق من النطاق الفرعي للمستخدم:", userId);
     const { data, error } = await supabase
       .from("store_settings")
       .select("slug")
@@ -28,14 +32,14 @@ export const checkUserStoreSlug = async (userId: string): Promise<string | null>
       .maybeSingle();
       
     if (error) {
-      console.error("خطأ في التحقق من النطاق الفرعي:", error);
+      console.error("خطأ في التحقق من النطاق الفرعي:", error.message, error.details);
       return null;
     }
     
     console.log("نتيجة التحقق من النطاق الفرعي:", data);
     return data?.slug || null;
-  } catch (error) {
-    console.error("خطأ في التحقق من النطاق الفرعي:", error);
+  } catch (error: any) {
+    console.error("استثناء في التحقق من النطاق الفرعي:", error.message);
     return null;
   }
 };
@@ -48,6 +52,15 @@ export const getCurrentSubdomain = (): string | null => {
   // تجاهل localhost في بيئة التطوير
   if (hostname === 'localhost' || hostname.includes('127.0.0.1') || hostname.includes('lovableproject.com')) {
     console.log("بيئة تطوير محلية، إرجاع null للنطاق الفرعي");
+    
+    // للاختبار: استخراج النطاق الفرعي من معلمة URL في بيئة التطوير
+    const urlParams = new URLSearchParams(window.location.search);
+    const testSubdomain = urlParams.get('subdomain');
+    if (testSubdomain) {
+      console.log("تم العثور على نطاق فرعي للاختبار في معلمات URL:", testSubdomain);
+      return testSubdomain;
+    }
+    
     return null;
   }
   
@@ -68,24 +81,33 @@ export const getCurrentSubdomain = (): string | null => {
 
 // وظيفة للتحقق من معرف المستخدم عن طريق النطاق الفرعي
 export const getUserIdFromSlug = async (slug: string): Promise<string | null> => {
-  if (!slug) return null;
+  if (!slug) {
+    console.error("لا يوجد نطاق فرعي محدد في getUserIdFromSlug");
+    return null;
+  }
   
   try {
+    console.log("البحث عن معرف المستخدم عبر النطاق الفرعي:", slug);
     const { data, error } = await supabase
       .from("store_settings")
-      .select("user_id")
+      .select("user_id, store_name")
       .eq("slug", slug)
       .maybeSingle();
       
     if (error) {
-      console.error("خطأ في البحث عن معرف المستخدم عبر النطاق الفرعي:", error);
+      console.error("خطأ في البحث عن معرف المستخدم عبر النطاق الفرعي:", error.message, error.details);
       return null;
     }
     
-    console.log("تم العثور على معرف المستخدم من النطاق الفرعي:", data);
+    console.log("نتيجة البحث عن المستخدم من النطاق الفرعي:", data);
+    
+    if (data && data.store_name) {
+      document.title = data.store_name;
+    }
+    
     return data?.user_id || null;
-  } catch (error) {
-    console.error("خطأ في البحث عن معرف المستخدم عبر النطاق الفرعي:", error);
+  } catch (error: any) {
+    console.error("استثناء في البحث عن معرف المستخدم عبر النطاق الفرعي:", error.message);
     return null;
   }
 };

@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { supabase, getCurrentSubdomain } from "@/lib/supabase";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { supabase, getCurrentSubdomain, getUserIdFromSlug } from "@/lib/supabase";
 import { useStoreData } from "@/hooks/useStoreData";
 import FeedbackDialog from "@/components/store/FeedbackDialog";
 import ProductPreviewContainer from "@/components/store/ProductPreviewContainer";
@@ -13,8 +13,10 @@ import ErrorState from "@/components/store/preview/ErrorState";
 const StorePreview = () => {
   const { storeSlug: urlStoreSlug } = useParams<{ storeSlug: string }>();
   const [userId, setUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const location = useLocation();
+  const navigate = useNavigate();
   
   // التحقق أولاً إذا كنا في نطاق فرعي
   const subdomainFromHostname = getCurrentSubdomain();
@@ -25,52 +27,46 @@ const StorePreview = () => {
   // البحث عن معرف المستخدم بناءً على الرابط المخصص (subdomain)
   useEffect(() => {
     const fetchUserIdFromSlug = async () => {
+      setLoading(true);
+      setError(null);
+      
       if (!effectiveStoreSlug) {
         console.log("لا يوجد نطاق فرعي محدد");
         setError("رابط المتجر غير صالح");
-        setIsInitialLoading(false);
+        setLoading(false);
         return;
       }
 
       try {
         console.log("البحث عن المتجر باستخدام النطاق:", effectiveStoreSlug);
         
-        const { data, error } = await supabase
-          .from("store_settings")
-          .select("user_id, store_name, slug")
-          .eq("slug", effectiveStoreSlug)
-          .maybeSingle();
-
-        if (error) {
-          console.error("خطأ في البحث عن معرف المستخدم بواسطة slug:", error);
-          setError("حدث خطأ أثناء البحث عن المتجر");
-          setIsInitialLoading(false);
-          return;
-        }
-
-        if (!data) {
+        const foundUserId = await getUserIdFromSlug(effectiveStoreSlug);
+        
+        if (!foundUserId) {
           console.log("لم يتم العثور على المتجر بالنطاق:", effectiveStoreSlug);
           setError(`المتجر "${effectiveStoreSlug}" غير موجود، الرجاء التأكد من الرابط الصحيح`);
-          setIsInitialLoading(false);
+          setLoading(false);
           return;
         }
 
-        console.log("تم العثور على المتجر باستخدام النطاق:", data);
-        setUserId(data.user_id);
-        
-        if (data.store_name) {
-          document.title = data.store_name;
-        }
-        
-        setIsInitialLoading(false);
+        console.log("تم العثور على المتجر باستخدام النطاق:", foundUserId);
+        setUserId(foundUserId);
+        setLoading(false);
       } catch (error: any) {
-        console.error("خطأ في البحث عن معرف المستخدم:", error);
-        setError("حدث خطأ أثناء البحث عن المتجر");
-        setIsInitialLoading(false);
+        console.error("خطأ في البحث عن معرف المستخدم:", error.message);
+        setError("حدث خطأ أثناء البحث عن المتجر. الرجاء المحاولة مرة أخرى لاحقاً.");
+        setLoading(false);
       }
     };
 
     fetchUserIdFromSlug();
+    
+    // تحديث عنوان المتصفح إلى اسم المتجر إذا كان متاحاً
+    if (storeData?.store_name) {
+      document.title = storeData.store_name;
+    } else {
+      document.title = effectiveStoreSlug || "معاينة المتجر";
+    }
   }, [effectiveStoreSlug]);
 
   // تسجيل مشاهدة الصفحة
@@ -85,20 +81,20 @@ const StorePreview = () => {
         });
         
         if (error) {
-          console.error("خطأ في تسجيل مشاهدة الصفحة:", error);
+          console.error("خطأ في تسجيل مشاهدة الصفحة:", error.message);
         } else {
           console.log("تم تسجيل مشاهدة الصفحة بنجاح");
         }
-      } catch (error) {
-        console.error("خطأ في تسجيل مشاهدة الصفحة:", error);
+      } catch (error: any) {
+        console.error("استثناء في تسجيل مشاهدة الصفحة:", error.message);
       }
     };
     
     trackPageView();
   }, [userId]);
 
-  if (isInitialLoading) {
-    return <LoadingState />;
+  if (loading || isLoading) {
+    return <LoadingState message="جاري تحميل المتجر..." />;
   }
 
   if (error) {
@@ -111,13 +107,9 @@ const StorePreview = () => {
     return <ErrorState error={dataError} />;
   }
 
-  if (isLoading) {
-    return <LoadingState />;
-  }
-
   if (!storeData) {
     console.log("لم يتم العثور على بيانات المتجر");
-    return <ErrorState error="لم يتم العثور على بيانات المتجر" />;
+    return <ErrorState error="لم يتم العثور على بيانات المتجر. الرجاء التأكد من النطاق الفرعي الصحيح." />;
   }
 
   console.log("عرض المتجر بنجاح:", storeData.store_name);
