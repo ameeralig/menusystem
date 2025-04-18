@@ -26,17 +26,18 @@ const StorePreview = () => {
   useEffect(() => {
     const fetchUserIdFromSlug = async () => {
       if (!effectiveStoreSlug) {
+        console.log("لا يوجد نطاق فرعي محدد");
         setError("رابط المتجر غير صالح");
         setIsInitialLoading(false);
         return;
       }
 
       try {
-        console.log("البحث عن المتجر باستخدام:", effectiveStoreSlug);
+        console.log("البحث عن المتجر باستخدام النطاق:", effectiveStoreSlug);
         
         const { data, error } = await supabase
           .from("store_settings")
-          .select("user_id, store_name")
+          .select("user_id, store_name, slug")
           .eq("slug", effectiveStoreSlug)
           .maybeSingle();
 
@@ -48,17 +49,19 @@ const StorePreview = () => {
         }
 
         if (!data) {
-          console.log("لم يتم العثور على المتجر");
+          console.log("لم يتم العثور على المتجر بالنطاق:", effectiveStoreSlug);
           setError(`المتجر "${effectiveStoreSlug}" غير موجود، الرجاء التأكد من الرابط الصحيح`);
           setIsInitialLoading(false);
           return;
         }
 
-        console.log("تم العثور على المتجر باستخدام slug:", data);
+        console.log("تم العثور على المتجر باستخدام النطاق:", data);
         setUserId(data.user_id);
+        
         if (data.store_name) {
           document.title = data.store_name;
         }
+        
         setIsInitialLoading(false);
       } catch (error: any) {
         console.error("خطأ في البحث عن معرف المستخدم:", error);
@@ -76,12 +79,15 @@ const StorePreview = () => {
       if (!userId) return;
       
       try {
+        console.log("تسجيل مشاهدة الصفحة للمستخدم:", userId);
         const { error } = await supabase.rpc('increment_page_view', { 
           store_user_id: userId 
         });
         
         if (error) {
           console.error("خطأ في تسجيل مشاهدة الصفحة:", error);
+        } else {
+          console.log("تم تسجيل مشاهدة الصفحة بنجاح");
         }
       } catch (error) {
         console.error("خطأ في تسجيل مشاهدة الصفحة:", error);
@@ -96,10 +102,12 @@ const StorePreview = () => {
   }
 
   if (error) {
+    console.log("عرض رسالة الخطأ:", error);
     return <ErrorState error={error} />;
   }
 
   if (dataError) {
+    console.log("خطأ في بيانات المتجر:", dataError);
     return <ErrorState error={dataError} />;
   }
 
@@ -108,9 +116,11 @@ const StorePreview = () => {
   }
 
   if (!storeData) {
+    console.log("لم يتم العثور على بيانات المتجر");
     return <ErrorState error="لم يتم العثور على بيانات المتجر" />;
   }
 
+  console.log("عرض المتجر بنجاح:", storeData.store_name);
   return (
     <ProductPreviewContainer 
       colorTheme={storeData.color_theme} 

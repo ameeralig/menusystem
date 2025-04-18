@@ -32,6 +32,7 @@ export const checkUserStoreSlug = async (userId: string): Promise<string | null>
       return null;
     }
     
+    console.log("نتيجة التحقق من النطاق الفرعي:", data);
     return data?.slug || null;
   } catch (error) {
     console.error("خطأ في التحقق من النطاق الفرعي:", error);
@@ -42,21 +43,26 @@ export const checkUserStoreSlug = async (userId: string): Promise<string | null>
 // وظيفة للتحقق من النطاق الفرعي الحالي
 export const getCurrentSubdomain = (): string | null => {
   const hostname = window.location.hostname;
+  console.log("اسم المضيف الحالي:", hostname);
   
   // تجاهل localhost في بيئة التطوير
-  if (hostname === 'localhost' || hostname.includes('127.0.0.1')) {
+  if (hostname === 'localhost' || hostname.includes('127.0.0.1') || hostname.includes('lovableproject.com')) {
+    console.log("بيئة تطوير محلية، إرجاع null للنطاق الفرعي");
     return null;
   }
   
   // التحقق إذا كان العنوان يحتوي على نطاق فرعي
   const parts = hostname.split('.');
+  console.log("أجزاء اسم المضيف:", parts);
   
   // نحتاج على الأقل 3 أجزاء للنطاق الفرعي (مثل subdomain.qrmenuc.com)
   if (parts.length >= 3) {
     // النطاق الفرعي هو الجزء الأول
+    console.log("تم العثور على النطاق الفرعي:", parts[0]);
     return parts[0];
   }
   
+  console.log("لم يتم العثور على نطاق فرعي");
   return null;
 };
 
@@ -76,6 +82,7 @@ export const getUserIdFromSlug = async (slug: string): Promise<string | null> =>
       return null;
     }
     
+    console.log("تم العثور على معرف المستخدم من النطاق الفرعي:", data);
     return data?.user_id || null;
   } catch (error) {
     console.error("خطأ في البحث عن معرف المستخدم عبر النطاق الفرعي:", error);

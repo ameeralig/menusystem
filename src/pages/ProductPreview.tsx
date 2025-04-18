@@ -14,22 +14,30 @@ import StoreRedirectMessage from "@/components/store/preview/StoreRedirectMessag
 const ProductPreview = () => {
   const { userId } = useParams<{ userId: string }>();
   const [storeSlug, setStoreSlug] = useState<string | null>(null);
+  const [isCheckingSlug, setIsCheckingSlug] = useState(true);
   const { products, storeData, categoryImages, error: dataError, isLoading } = useStoreData(userId);
 
   // التحقق من وجود slug وتوجيه المستخدم إلى استخدام النطاق الفرعي بدلاً من ذلك
   useEffect(() => {
     const checkForStoreSlug = async () => {
-      if (!userId) return;
+      if (!userId) {
+        setIsCheckingSlug(false);
+        return;
+      }
       
       try {
+        console.log("التحقق من النطاق الفرعي للمستخدم:", userId);
         const slugValue = await checkUserStoreSlug(userId);
+        console.log("النطاق الفرعي المسترجع:", slugValue);
         setStoreSlug(slugValue);
         
         if (slugValue) {
           const hostname = window.location.hostname;
+          console.log("اسم المضيف الحالي:", hostname);
           
-          if (hostname === 'localhost' || hostname.includes('127.0.0.1')) {
+          if (hostname === 'localhost' || hostname.includes('127.0.0.1') || hostname.includes('lovableproject.com')) {
             console.log('بيئة تطوير محلية، لا يتم إعادة التوجيه للنطاق الفرعي');
+            setIsCheckingSlug(false);
             return;
           }
           
@@ -46,13 +54,19 @@ const ProductPreview = () => {
             window.location.href = newUrl;
           }
         }
+        setIsCheckingSlug(false);
       } catch (error) {
         console.error("خطأ في التحقق من النطاق الفرعي:", error);
+        setIsCheckingSlug(false);
       }
     };
     
     checkForStoreSlug();
   }, [userId]);
+
+  if (isCheckingSlug) {
+    return <LoadingState />;
+  }
 
   if (dataError) {
     return <ErrorState error={dataError} />;
@@ -62,13 +76,13 @@ const ProductPreview = () => {
     return <LoadingState />;
   }
 
+  if (!storeData) {
+    return <ErrorState error="لم يتم العثور على بيانات المتجر" />;
+  }
+
   // إذا لم يكن هناك نطاق فرعي معين، فعرض رسالة إرشادية
   if (!storeSlug) {
     return <ErrorState error="لم يتم تعيين نطاق فرعي لهذا المتجر بعد. يرجى من صاحب المتجر تعيين نطاق فرعي من إعدادات التخصيص." />;
-  }
-
-  if (!storeData) {
-    return <ErrorState error="لم يتم العثور على بيانات المتجر" />;
   }
 
   return (
