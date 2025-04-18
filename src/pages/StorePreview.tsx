@@ -14,6 +14,7 @@ const StorePreview = () => {
   const { storeSlug: urlStoreSlug } = useParams<{ storeSlug: string }>();
   const [userId, setUserId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   
   // التحقق أولاً إذا كنا في نطاق فرعي
   const subdomainFromHostname = getCurrentSubdomain();
@@ -26,6 +27,7 @@ const StorePreview = () => {
     const fetchUserIdFromSlug = async () => {
       if (!effectiveStoreSlug) {
         setError("رابط المتجر غير صالح");
+        setIsInitialLoading(false);
         return;
       }
 
@@ -40,12 +42,15 @@ const StorePreview = () => {
 
         if (error) {
           console.error("خطأ في البحث عن معرف المستخدم بواسطة slug:", error);
-          throw error;
+          setError("حدث خطأ أثناء البحث عن المتجر");
+          setIsInitialLoading(false);
+          return;
         }
 
         if (!data) {
           console.log("لم يتم العثور على المتجر");
-          setError("المتجر غير موجود أو لم يتم تعيين نطاق فرعي بعد");
+          setError(`المتجر "${effectiveStoreSlug}" غير موجود، الرجاء التأكد من الرابط الصحيح`);
+          setIsInitialLoading(false);
           return;
         }
 
@@ -54,9 +59,11 @@ const StorePreview = () => {
         if (data.store_name) {
           document.title = data.store_name;
         }
+        setIsInitialLoading(false);
       } catch (error: any) {
         console.error("خطأ في البحث عن معرف المستخدم:", error);
-        setError(error.message);
+        setError("حدث خطأ أثناء البحث عن المتجر");
+        setIsInitialLoading(false);
       }
     };
 
@@ -84,8 +91,16 @@ const StorePreview = () => {
     trackPageView();
   }, [userId]);
 
-  if (error || dataError) {
-    return <ErrorState error={error || dataError || "حدث خطأ غير معروف"} />;
+  if (isInitialLoading) {
+    return <LoadingState />;
+  }
+
+  if (error) {
+    return <ErrorState error={error} />;
+  }
+
+  if (dataError) {
+    return <ErrorState error={dataError} />;
   }
 
   if (isLoading) {
