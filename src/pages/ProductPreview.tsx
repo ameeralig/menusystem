@@ -3,12 +3,11 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Product } from "@/types/product";
-import FeedbackDialog from "@/components/store/FeedbackDialog";
 import ProductPreviewContainer from "@/components/store/ProductPreviewContainer";
 import StoreProductsDisplay from "@/components/store/StoreProductsDisplay";
 import SocialIcons from "@/components/store/SocialIcons";
+import FeedbackDialog from "@/components/store/FeedbackDialog";
 
 type SocialLinks = {
   instagram?: string;
@@ -53,19 +52,24 @@ const ProductPreview = () => {
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
   const [contactInfo, setContactInfo] = useState<ContactInfo>({});
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
-  const [fontSettings, setFontSettings] = useState<FontSettings | undefined>(undefined);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [fontSettings, setFontSettings] = useState<FontSettings>();
   const [storeOwnerId, setStoreOwnerId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // تحقق من وجود اللغة وإذا لم تكن موجودة، قم بالتوجيه إلى /ar
+    if (!lang && slug) {
+      navigate(`/ar/p/${slug}`);
+      return;
+    }
+
     const fetchStoreData = async () => {
       try {
         setIsLoading(true);
-        setError(null);
 
         if (!slug) {
-          throw new Error("معرف المتجر غير صالح");
+          navigate('/404');
+          return;
         }
 
         const { data: storeSettings, error: storeError } = await supabase
@@ -76,10 +80,11 @@ const ProductPreview = () => {
 
         if (storeError) {
           console.error("Error fetching store settings:", storeError);
-          throw new Error("حدث خطأ أثناء جلب إعدادات المتجر");
+          navigate('/404');
+          return;
         }
 
-        if (!storeSettings) {
+        if (!storeSettings || !storeSettings.store_name) {
           navigate('/404');
           return;
         }
@@ -95,24 +100,12 @@ const ProductPreview = () => {
           console.error("Error tracking page view:", error);
         }
 
-        setStoreName(storeSettings.store_name || "");
+        setStoreName(storeSettings.store_name);
         setColorTheme(storeSettings.color_theme || "default");
-        setBannerUrl(storeSettings.banner_url || null);
-        
-        // معالجة الروابط الاجتماعية بشكل صحيح
-        if (storeSettings.social_links) {
-          setSocialLinks(storeSettings.social_links as SocialLinks || {});
-        }
-        
-        // معالجة إعدادات الخط بشكل صحيح
-        if (storeSettings.font_settings) {
-          setFontSettings(storeSettings.font_settings as FontSettings);
-        }
-        
-        // معالجة معلومات الاتصال بشكل صحيح
-        if (storeSettings.contact_info) {
-          setContactInfo(storeSettings.contact_info as ContactInfo || {});
-        }
+        setBannerUrl(storeSettings.banner_url);
+        setSocialLinks(storeSettings.social_links as SocialLinks || {});
+        setFontSettings(storeSettings.font_settings as FontSettings);
+        setContactInfo(storeSettings.contact_info as ContactInfo || {});
 
         const { data: productsData, error: productsError } = await supabase
           .from("products")
@@ -128,29 +121,19 @@ const ProductPreview = () => {
 
       } catch (error: any) {
         console.error("Error fetching data:", error);
-        setError(error.message);
         toast({
           title: "حدث خطأ",
           description: error.message,
           variant: "destructive",
         });
+        navigate('/404');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchStoreData();
-  }, [slug, toast, navigate]);
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
-        <Alert variant="destructive" className="max-w-lg mx-auto">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
+  }, [slug, toast, navigate, lang]);
 
   if (isLoading) {
     return (

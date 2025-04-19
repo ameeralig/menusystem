@@ -9,12 +9,10 @@ export function useDebounce<T>(value: T, delay: number = 500): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
   useEffect(() => {
-    // تعيين مؤقت لتأخير تحديث القيمة
     const timer = setTimeout(() => {
       setDebouncedValue(value);
     }, delay);
 
-    // تنظيف المؤقت عند تغيير القيمة
     return () => {
       clearTimeout(timer);
     };
