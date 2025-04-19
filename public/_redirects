@@ -1,3 +1,6 @@
 
-# توجيه جميع المسارات للمسار الرئيسي (تطبيق React)
-/*    /index.html   200
+# توجيه جميع المسارات إلى index.html للتطبيق أحادي الصفحة
+/* /index.html 200
+
+# توجيه خاص لنطاق login subdomain
+https://login.qrmenuc.com/* /auth/login 200
