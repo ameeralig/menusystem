@@ -4,3 +4,5 @@
 
 # توجيه خاص لنطاق login subdomain
 https://login.qrmenuc.com/* /auth/login 200
+http://login.qrmenuc.com/* /auth/login 200
+

@@ -201,7 +201,7 @@ const Index = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
             </div>
-            <h3 className="text-lg sm:text-xl font-semibold mb-2">تجربة مستخدم سلسة</h3>
+            <h3 className="text-lg sm:text-xl font-semibold mb-2">تجربة مستخد�� سلسة</h3>
             <p className="text-gray-600 text-sm sm:text-base">واجهة سهلة الاستخدام تعزز من تجربة العميل</p>
           </motion.div>
         </div>

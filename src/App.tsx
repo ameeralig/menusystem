@@ -46,13 +46,14 @@ const App = () => {
             {/* إذا كان النطاق الفرعي هو login، قم بتوجيه المستخدم مباشرة إلى صفحة تسجيل الدخول */}
             {isLoginSubdomain ? (
               <>
+                <Route path="/" element={<Login />} />
                 <Route path="*" element={<Login />} />
               </>
             ) : (
               <>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth/login" element={<Login />} />
-                <Route path="/login" element={<Login />} />
+                <Route path="/login" element={<Navigate to="/auth/login" />} />
                 <Route path="/auth/signup" element={<Signup />} />
                 <Route path="/auth/reset-password" element={<ResetPassword />} />
                 <Route path="/dashboard" element={<Dashboard />} />

@@ -14,6 +14,7 @@ const Login = () => {
     setIsSubdomain(hostname === 'login.qrmenuc.com');
     
     console.log("صفحة تسجيل الدخول - النطاق الحالي:", hostname);
+    console.log("النطاق هو login.qrmenuc.com:", hostname === 'login.qrmenuc.com');
   }, []);
 
   return (
