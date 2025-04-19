@@ -32,6 +32,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth/login" element={<Login />} />
+          <Route path="login" element={<Login />} /> {/* إضافة توجيه جديد */}
           <Route path="/auth/signup" element={<Signup />} />
           <Route path="/auth/reset-password" element={<ResetPassword />} />
           <Route path="/dashboard" element={<Dashboard />} />
@@ -41,7 +42,6 @@ const App = () => (
           {/* توجيه المستخدم إلى صفحة المعاينة حسب النطاق الفرعي */}
           <Route path="/:storeSlug" element={<StorePreview />} />
           
-          {/* هذا المسار سيتم استخدامه فقط للمسؤولين أو إذا لم يكن هناك نطاق فرعي بعد */}
           <Route path="/products/:userId" element={<ProductPreview />} />
           
           <Route path="/edit-product" element={<EditProduct />} />

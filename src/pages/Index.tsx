@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -24,7 +23,7 @@ const Index = () => {
             <Button
               variant="ghost"
               className="text-gray-600 hover:text-gray-900 text-sm sm:text-base"
-              onClick={() => navigate("/auth/login")}
+              onClick={() => window.location.href = 'https://login.qrmenuc.com'}
             >
               تسجيل الدخول
             </Button>
@@ -85,7 +84,7 @@ const Index = () => {
             <div className="relative aspect-[3/4] max-w-xs sm:max-w-sm md:max-w-md mx-auto">
               <img 
                 src="/lovable-uploads/e78cce88-ead6-4a09-ba47-8f8b59485cbb.png" 
-                alt="تطبيق متجر QR نموذج" 
+                alt="تطب��ق متجر QR نموذج" 
                 className="w-full h-full object-contain"
               />
             </div>
