@@ -24,6 +24,25 @@ const StorePreview = () => {
 
   const { products, storeData, categoryImages, error: dataError, isLoading } = useStoreData(userId);
 
+  // التحقق من حالة تسجيل الدخول
+  useEffect(() => {
+    const checkAuthState = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          console.log("لم يتم تسجيل الدخول، جاري التوجيه إلى صفحة تسجيل الدخول");
+          navigate("/auth/login");
+          return;
+        }
+      } catch (error) {
+        console.error("خطأ في التحقق من حالة تسجيل الدخول:", error);
+        navigate("/auth/login");
+      }
+    };
+    
+    checkAuthState();
+  }, [navigate]);
+
   // البحث عن معرف المستخدم بناءً على الرابط المخصص (subdomain)
   useEffect(() => {
     const fetchUserIdFromSlug = async () => {
@@ -94,7 +113,7 @@ const StorePreview = () => {
   }, [userId]);
 
   if (loading || isLoading) {
-    return <LoadingState message="جاري تحميل المتجر..." />;
+    return <LoadingState message="جاري التحقق من المتجر..." />;
   }
 
   if (error) {
@@ -112,7 +131,6 @@ const StorePreview = () => {
     return <ErrorState error="لم يتم العثور على بيانات المتجر. الرجاء التأكد من النطاق الفرعي الصحيح." />;
   }
 
-  console.log("عرض المتجر بنجاح:", storeData.store_name);
   return (
     <ProductPreviewContainer 
       colorTheme={storeData.color_theme} 
