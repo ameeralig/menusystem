@@ -26,14 +26,19 @@ const queryClient = new QueryClient();
 
 const App = () => {
   const [isLoginSubdomain, setIsLoginSubdomain] = useState(false);
+  const [isStoreSubdomain, setIsStoreSubdomain] = useState(false);
 
   useEffect(() => {
-    // التحقق مما إذا كان النطاق الحالي هو login.qrmenuc.com
     const hostname = window.location.hostname;
-    setIsLoginSubdomain(hostname === 'login.qrmenuc.com');
+    const isLogin = hostname === 'login.qrmenuc.com';
+    const isStore = hostname.endsWith('.qrmenuc.com') && !isLogin;
+    
+    setIsLoginSubdomain(isLogin);
+    setIsStoreSubdomain(isStore);
     
     console.log("النطاق الحالي:", hostname);
-    console.log("هل هو نطاق تسجيل الدخول:", hostname === 'login.qrmenuc.com');
+    console.log("هل هو نطاق تسجيل الدخول:", isLogin);
+    console.log("هل هو نطاق متجر:", isStore);
   }, []);
 
   return (
@@ -43,11 +48,15 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* إذا كان النطاق الفرعي هو login، قم بتوجيه المستخدم مباشرة إلى صفحة تسجيل الدخول */}
             {isLoginSubdomain ? (
               <>
                 <Route path="/" element={<Login />} />
                 <Route path="*" element={<Login />} />
+              </>
+            ) : isStoreSubdomain ? (
+              <>
+                <Route path="/" element={<StorePreview />} />
+                <Route path="*" element={<StorePreview />} />
               </>
             ) : (
               <>
