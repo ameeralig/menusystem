@@ -52,7 +52,7 @@ const ProductPreview = () => {
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
   const [contactInfo, setContactInfo] = useState<ContactInfo>({});
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
-  const [fontSettings, setFontSettings] = useState<FontSettings>();
+  const [fontSettings, setFontSettings] = useState<FontSettings | undefined>();
   const [storeOwnerId, setStoreOwnerId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -68,14 +68,17 @@ const ProductPreview = () => {
         setIsLoading(true);
 
         if (!slug) {
+          console.error("No slug provided");
           navigate('/404');
           return;
         }
 
+        console.log("Fetching store with slug:", slug);
+
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
           .select("user_id, store_name, color_theme, social_links, banner_url, font_settings, contact_info")
-          .eq("slug", slug)
+          .eq("slug", slug.trim())
           .maybeSingle();
 
         if (storeError) {
@@ -85,6 +88,7 @@ const ProductPreview = () => {
         }
 
         if (!storeSettings || !storeSettings.store_name) {
+          console.error("Store settings not found for slug:", slug);
           navigate('/404');
           return;
         }
@@ -103,9 +107,19 @@ const ProductPreview = () => {
         setStoreName(storeSettings.store_name);
         setColorTheme(storeSettings.color_theme || "default");
         setBannerUrl(storeSettings.banner_url);
-        setSocialLinks(storeSettings.social_links as SocialLinks || {});
-        setFontSettings(storeSettings.font_settings as FontSettings);
-        setContactInfo(storeSettings.contact_info as ContactInfo || {});
+        
+        // تحديث البيانات مع التحقق من الأنواع
+        if (storeSettings.social_links) {
+          setSocialLinks(storeSettings.social_links as SocialLinks);
+        }
+        
+        if (storeSettings.font_settings) {
+          setFontSettings(storeSettings.font_settings as FontSettings);
+        }
+        
+        if (storeSettings.contact_info) {
+          setContactInfo(storeSettings.contact_info as ContactInfo);
+        }
 
         const { data: productsData, error: productsError } = await supabase
           .from("products")
