@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -42,7 +42,10 @@ type FontSettings = {
 };
 
 const ProductPreview = () => {
-  const { userId } = useParams<{ userId: string }>();
+  const { slug, lang } = useParams<{ slug: string; lang: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
   const [products, setProducts] = useState<Product[]>([]);
   const [storeName, setStoreName] = useState<string | null>(null);
   const [colorTheme, setColorTheme] = useState<string | null>("default");
@@ -52,27 +55,6 @@ const ProductPreview = () => {
   const [fontSettings, setFontSettings] = useState<FontSettings | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    const trackPageView = async () => {
-      if (!userId) return;
-      
-      try {
-        const { error } = await supabase.rpc('increment_page_view', { 
-          store_user_id: userId 
-        });
-        
-        if (error) {
-          console.error("Error tracking page view:", error);
-        }
-      } catch (error) {
-        console.error("Error tracking page view:", error);
-      }
-    };
-    
-    trackPageView();
-  }, [userId]);
 
   useEffect(() => {
     const fetchStoreData = async () => {
@@ -80,31 +62,42 @@ const ProductPreview = () => {
         setIsLoading(true);
         setError(null);
 
-        if (!userId || typeof userId !== 'string') {
+        if (!slug) {
           throw new Error("معرف المتجر غير صالح");
         }
 
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
-          .select("store_name, color_theme, social_links, banner_url, font_settings, contact_info")
-          .eq("user_id", userId)
+          .select("user_id, store_name, color_theme, social_links, banner_url, font_settings, contact_info")
+          .eq("slug", slug)
           .maybeSingle();
 
         if (storeError) {
           console.error("Error fetching store settings:", storeError);
-          setStoreName(null);
-          setColorTheme("default");
-        } else if (storeSettings) {
-          console.info("Store settings data:", storeSettings);
-          setStoreName(storeSettings.store_name || null);
-          setColorTheme(storeSettings.color_theme || "default");
-          setSocialLinks(storeSettings.social_links as SocialLinks || {});
-          setBannerUrl(storeSettings.banner_url || null);
-          setFontSettings(storeSettings.font_settings as FontSettings | undefined);
-          setContactInfo(storeSettings.contact_info as ContactInfo || {});
-          console.info("Banner URL from database:", storeSettings.banner_url);
-          console.info("Contact info from database:", storeSettings.contact_info);
+          throw new Error("حدث خطأ أثناء جلب إعدادات المتجر");
         }
+
+        if (!storeSettings) {
+          navigate('/404');
+          return;
+        }
+
+        const userId = storeSettings.user_id;
+
+        try {
+          await supabase.rpc('increment_page_view', { 
+            store_user_id: userId 
+          });
+        } catch (error) {
+          console.error("Error tracking page view:", error);
+        }
+
+        setStoreName(storeSettings.store_name);
+        setColorTheme(storeSettings.color_theme);
+        setSocialLinks(storeSettings.social_links || {});
+        setBannerUrl(storeSettings.banner_url);
+        setFontSettings(storeSettings.font_settings);
+        setContactInfo(storeSettings.contact_info || {});
 
         const { data: productsData, error: productsError } = await supabase
           .from("products")
@@ -132,7 +125,7 @@ const ProductPreview = () => {
     };
 
     fetchStoreData();
-  }, [userId, toast]);
+  }, [slug, toast, navigate]);
 
   if (error) {
     return (

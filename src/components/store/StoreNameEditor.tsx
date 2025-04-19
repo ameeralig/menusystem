@@ -2,26 +2,43 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Store, Save } from "lucide-react";
+import { Store, Save, Link2 } from "lucide-react";
+import { useState } from "react";
 
 interface StoreNameEditorProps {
   storeName: string;
   setStoreName: (value: string) => void;
+  storeSlug: string;
+  setStoreSlug: (value: string) => void;
   isEditing: boolean;
   setIsEditing: (value: boolean) => void;
   handleSubmit: () => Promise<void>;
   isLoading: boolean;
+  slugError?: string;
 }
 
 const StoreNameEditor = ({
   storeName,
   setStoreName,
+  storeSlug,
+  setStoreSlug,
   isLoading,
-  handleSubmit
+  handleSubmit,
+  slugError
 }: StoreNameEditorProps) => {
+  const [showSlugPreview, setShowSlugPreview] = useState(false);
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await handleSubmit();
+  };
+
+  const handleSlugChange = (value: string) => {
+    // تحويل النص إلى حروف صغيرة وإزالة الأحرف غير المسموح بها
+    const sanitized = value.toLowerCase()
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/--+/g, '-'); // تحويل الشرطات المتعددة إلى شرطة واحدة
+    setStoreSlug(sanitized);
   };
 
   return (
@@ -45,6 +62,32 @@ const StoreNameEditor = ({
               placeholder="أدخل اسم المتجر"
               className="text-right"
             />
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-right text-sm text-gray-600 dark:text-gray-400">
+              رابط المتجر المخصص
+            </label>
+            <div className="relative">
+              <Input
+                type="text"
+                value={storeSlug}
+                onChange={(e) => handleSlugChange(e.target.value)}
+                placeholder="ادخل رابط المتجر المميز"
+                className="text-left pl-10"
+                onFocus={() => setShowSlugPreview(true)}
+                onBlur={() => setShowSlugPreview(false)}
+              />
+              <Link2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            </div>
+            {slugError && (
+              <p className="text-sm text-red-500 text-right">{slugError}</p>
+            )}
+            {showSlugPreview && (
+              <p className="text-sm text-gray-500 text-left">
+                /ar/p/{storeSlug || 'your-store'}
+              </p>
+            )}
           </div>
 
           <Button 
