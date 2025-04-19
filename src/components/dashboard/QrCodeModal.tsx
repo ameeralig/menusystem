@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import QRCode from "react-qr-code";
 
@@ -15,12 +15,7 @@ const QrCodeModal = ({ isOpen, onClose, storeUrl }: QrCodeModalProps) => {
 
   useEffect(() => {
     if (storeUrl) {
-      // تأكد من أن الرابط يحتوي على بروتوكول HTTP/HTTPS
-      if (!storeUrl.startsWith('http')) {
-        setQrValue(`https://${storeUrl}`);
-      } else {
-        setQrValue(storeUrl);
-      }
+      setQrValue(storeUrl);
     }
   }, [storeUrl]);
 
@@ -54,9 +49,6 @@ const QrCodeModal = ({ isOpen, onClose, storeUrl }: QrCodeModalProps) => {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-center">رمز QR لمتجرك</DialogTitle>
-          <DialogDescription className="text-center">
-            امسح هذا الرمز للوصول إلى متجرك
-          </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col items-center justify-center p-4">
           <div className="bg-white p-4 rounded-lg">
@@ -71,9 +63,6 @@ const QrCodeModal = ({ isOpen, onClose, storeUrl }: QrCodeModalProps) => {
           </div>
           <p className="mt-4 text-center text-sm text-muted-foreground">
             يمكنك طباعة هذا الرمز أو مشاركته مع عملائك للوصول السريع إلى متجرك
-          </p>
-          <p className="mt-1 text-center text-xs text-muted-foreground font-mono break-all">
-            {qrValue}
           </p>
         </div>
         <DialogFooter className="flex justify-center gap-2 sm:justify-center">

@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -6,17 +7,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const Index = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-
-  // وظيفة توجيه المستخدم لصفحة تسجيل الدخول
-  const handleLoginClick = () => {
-    // للاختبار المحلي، استخدم المسار المحلي
-    if (window.location.hostname === 'localhost' || window.location.hostname.includes('lovableproject.com')) {
-      navigate("/auth/login");
-    } else {
-      // للإنتاج، استخدم النطاق الفرعي
-      window.location.href = 'https://login.qrmenuc.com';
-    }
-  };
 
   return (
     <div className="min-h-screen bg-[#fff0e8]">
@@ -34,7 +24,7 @@ const Index = () => {
             <Button
               variant="ghost"
               className="text-gray-600 hover:text-gray-900 text-sm sm:text-base"
-              onClick={handleLoginClick}
+              onClick={() => navigate("/auth/login")}
             >
               تسجيل الدخول
             </Button>
@@ -95,7 +85,7 @@ const Index = () => {
             <div className="relative aspect-[3/4] max-w-xs sm:max-w-sm md:max-w-md mx-auto">
               <img 
                 src="/lovable-uploads/e78cce88-ead6-4a09-ba47-8f8b59485cbb.png" 
-                alt="تطب���� متجر QR نموذج" 
+                alt="تطبيق متجر QR نموذج" 
                 className="w-full h-full object-contain"
               />
             </div>
@@ -201,7 +191,7 @@ const Index = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
             </div>
-            <h3 className="text-lg sm:text-xl font-semibold mb-2">تجربة مستخد�� سلسة</h3>
+            <h3 className="text-lg sm:text-xl font-semibold mb-2">تجربة مستخدم سلسة</h3>
             <p className="text-gray-600 text-sm sm:text-base">واجهة سهلة الاستخدام تعزز من تجربة العميل</p>
           </motion.div>
         </div>

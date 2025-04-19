@@ -1,12 +1,1 @@
-
-# توجيه جميع المسارات إلى index.html للتطبيق أحادي الصفحة
 /* /index.html 200
-
-# توجيه خاص لنطاق login subdomain
-https://login.qrmenuc.com/* /auth/login 200
-http://login.qrmenuc.com/* /auth/login 200
-
-# توجيه النطاقات الفرعية للمتاجر
-https://*.qrmenuc.com/* /index.html 200
-http://*.qrmenuc.com/* /index.html 200
-

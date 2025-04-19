@@ -30,7 +30,7 @@ type FontSettings = {
 interface FontStyleSelectorProps {
   fontSettings: FontSettings;
   setFontSettings: (settings: FontSettings) => void;
-  handleSubmit: (e?: React.FormEvent) => Promise<void>; // تعديل نوع المعامل هنا
+  handleSubmit: () => Promise<void>;
   isLoading: boolean;
 }
 

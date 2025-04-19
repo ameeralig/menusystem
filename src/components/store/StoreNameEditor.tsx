@@ -9,7 +9,7 @@ interface StoreNameEditorProps {
   setStoreName: (value: string) => void;
   isEditing: boolean;
   setIsEditing: (value: boolean) => void;
-  handleSubmit: (e: React.FormEvent) => Promise<void>;
+  handleSubmit: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -21,7 +21,7 @@ const StoreNameEditor = ({
 }: StoreNameEditorProps) => {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await handleSubmit(e);
+    await handleSubmit();
   };
 
   return (

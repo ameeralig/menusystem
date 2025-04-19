@@ -189,7 +189,6 @@ export type Database = {
           color_theme: string | null
           contact_info: Json | null
           created_at: string
-          custom_domain: string | null
           font_settings: Json | null
           logo_url: string | null
           slug: string | null
@@ -203,7 +202,6 @@ export type Database = {
           color_theme?: string | null
           contact_info?: Json | null
           created_at?: string
-          custom_domain?: string | null
           font_settings?: Json | null
           logo_url?: string | null
           slug?: string | null
@@ -217,7 +215,6 @@ export type Database = {
           color_theme?: string | null
           contact_info?: Json | null
           created_at?: string
-          custom_domain?: string | null
           font_settings?: Json | null
           logo_url?: string | null
           slug?: string | null

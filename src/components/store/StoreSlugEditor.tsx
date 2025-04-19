@@ -3,8 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Link2, Save } from "lucide-react";
-import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
 
 interface StoreSlugEditorProps {
   storeSlug: string;
@@ -23,102 +21,36 @@ const StoreSlugEditor = ({
   handleSubmit,
   isLoading
 }: StoreSlugEditorProps) => {
-  const [localStoreSlug, setLocalStoreSlug] = useState(storeSlug);
-  const { toast } = useToast();
-
-  // تحديث القيمة المحلية عند تغيير القيمة الخارجية
-  useEffect(() => {
-    setLocalStoreSlug(storeSlug);
-  }, [storeSlug]);
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!localStoreSlug.trim()) {
-      toast({
-        title: "خطأ",
-        description: "يجب تعيين نطاق فرعي لمتجرك",
-        variant: "destructive",
-        duration: 3000,
-      });
-      return;
-    }
-    
-    // التحقق من أن النطاق الفرعي يحتوي على أحرف صالحة فقط
-    if (!/^[a-z0-9-]+$/.test(localStoreSlug)) {
-      toast({
-        title: "خطأ",
-        description: "النطاق الفرعي يجب أن يحتوي على أحرف إنجليزية صغيرة وأرقام وشرطات فقط",
-        variant: "destructive",
-        duration: 3000,
-      });
-      return;
-    }
-    
-    // التحقق من الطول المناسب
-    if (localStoreSlug.length < 3) {
-      toast({
-        title: "خطأ",
-        description: "النطاق الفرعي يجب أن يتكون من 3 أحرف على الأقل",
-        variant: "destructive",
-        duration: 3000,
-      });
-      return;
-    }
-    
-    if (localStoreSlug.length > 30) {
-      toast({
-        title: "خطأ",
-        description: "النطاق الفرعي يجب ألا يتجاوز 30 حرفًا",
-        variant: "destructive",
-        duration: 3000,
-      });
-      return;
-    }
-    
-    setStoreSlug(localStoreSlug);
-    await handleSubmit(e);
-    setIsEditing(false);
-  };
-
-  const getStoreUrl = () => {
-    return localStoreSlug ? `${window.location.protocol}//${localStoreSlug}.qrmenuc.com` : '';
-  };
-
   return (
     <Card className="border-2 border-[#ffbcad] dark:border-[#ff9178]/40">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <Link2 className="h-5 w-5 text-[#ff9178]" />
-          <span>النطاق الفرعي المخصص للمتجر</span>
+          <span>رابط المتجر</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex items-center gap-4">
             <Input
               type="text"
-              value={localStoreSlug}
+              value={storeSlug}
               onChange={(e) => {
                 // تحويل النص إلى حروف صغيرة وإزالة المسافات والرموز الخاصة
                 const value = e.target.value
                   .toLowerCase()
                   .replace(/[^a-z0-9-]/g, '')
                   .replace(/\s+/g, '-');
-                setLocalStoreSlug(value);
+                setStoreSlug(value);
               }}
-              placeholder="أدخل النطاق الفرعي لمتجرك (مثل: almadina)"
+              placeholder="ادخل رابط المتجر المميز"
               className="text-right flex-1 dir-ltr"
               disabled={!isEditing}
             />
             <Button
               type="button"
               variant={isEditing ? "destructive" : "outline"}
-              onClick={() => {
-                if (isEditing) {
-                  setLocalStoreSlug(storeSlug); // إعادة ضبط القيمة المحلية عند الإلغاء
-                }
-                setIsEditing(!isEditing);
-              }}
+              onClick={() => setIsEditing(!isEditing)}
             >
               {isEditing ? "إلغاء" : "تعديل"}
             </Button>
@@ -127,20 +59,8 @@ const StoreSlugEditor = ({
           {isEditing && (
             <>
               <p className="text-sm text-gray-500 text-right">
-                سيكون رابط متجرك: <span className="font-bold dir-ltr inline-block">{localStoreSlug || 'your-store'}.qrmenuc.com</span>
+                سيكون رابط متجرك: store.example.com/{storeSlug || 'your-store'}
               </p>
-              <div className="text-sm text-amber-600 mt-2 mb-2 bg-amber-50 p-2 rounded-md border border-amber-200">
-                <p className="text-right">
-                  ملاحظة مهمة: بمجرد حفظ النطاق الفرعي، سيصبح هو الطريقة الوحيدة للوصول إلى صفحة المنتجات الخاصة بك.
-                </p>
-              </div>
-              <div className="text-sm text-gray-600 mt-2 mb-2 bg-gray-50 p-2 rounded-md border border-gray-200">
-                <ul className="text-right list-disc mr-6 space-y-1">
-                  <li>يجب أن يتكون من أحرف إنجليزية صغيرة وأرقام وشرطات فقط</li>
-                  <li>يجب أن يكون بين 3 و 30 حرفًا</li>
-                  <li>سيكون هذا الرابط هو العنوان الرسمي لمتجرك</li>
-                </ul>
-              </div>
               <Button 
                 type="submit" 
                 className="w-full bg-[#ff9178] hover:bg-[#ff7d61] text-white"
@@ -150,27 +70,6 @@ const StoreSlugEditor = ({
                 {isLoading ? "جاري الحفظ..." : "حفظ التغييرات"}
               </Button>
             </>
-          )}
-
-          {!isEditing && storeSlug && (
-            <div className="flex flex-col space-y-2">
-              <div className="flex items-center justify-between p-2 bg-gray-50 rounded-md border border-gray-200">
-                <p className="text-green-600 text-sm">
-                  <span className="font-bold">✓</span> تم تعيين النطاق الفرعي
-                </p>
-                <p className="font-bold dir-ltr text-gray-600">
-                  {storeSlug}.qrmenuc.com
-                </p>
-              </div>
-              <a 
-                href={getStoreUrl()} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-center text-blue-500 hover:text-blue-700 text-sm underline"
-              >
-                افتح صفحة المتجر الخاص بك في نافذة جديدة
-              </a>
-            </div>
           )}
         </form>
       </CardContent>
