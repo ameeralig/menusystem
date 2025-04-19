@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,6 +56,7 @@ const ProductPreview = () => {
   const [fontSettings, setFontSettings] = useState<FontSettings | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [storeOwnerId, setStoreOwnerId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStoreData = async () => {
@@ -83,6 +85,7 @@ const ProductPreview = () => {
         }
 
         const userId = storeSettings.user_id;
+        setStoreOwnerId(userId);
 
         try {
           await supabase.rpc('increment_page_view', { 
@@ -92,12 +95,24 @@ const ProductPreview = () => {
           console.error("Error tracking page view:", error);
         }
 
-        setStoreName(storeSettings.store_name);
-        setColorTheme(storeSettings.color_theme);
-        setSocialLinks(storeSettings.social_links || {});
-        setBannerUrl(storeSettings.banner_url);
-        setFontSettings(storeSettings.font_settings);
-        setContactInfo(storeSettings.contact_info || {});
+        setStoreName(storeSettings.store_name || "");
+        setColorTheme(storeSettings.color_theme || "default");
+        setBannerUrl(storeSettings.banner_url || null);
+        
+        // معالجة الروابط الاجتماعية بشكل صحيح
+        if (storeSettings.social_links) {
+          setSocialLinks(storeSettings.social_links as SocialLinks || {});
+        }
+        
+        // معالجة إعدادات الخط بشكل صحيح
+        if (storeSettings.font_settings) {
+          setFontSettings(storeSettings.font_settings as FontSettings);
+        }
+        
+        // معالجة معلومات الاتصال بشكل صحيح
+        if (storeSettings.contact_info) {
+          setContactInfo(storeSettings.contact_info as ContactInfo || {});
+        }
 
         const { data: productsData, error: productsError } = await supabase
           .from("products")
@@ -160,7 +175,7 @@ const ProductPreview = () => {
         contactInfo={contactInfo}
       />
       <SocialIcons socialLinks={socialLinks} />
-      {userId && <FeedbackDialog userId={userId} />}
+      {storeOwnerId && <FeedbackDialog userId={storeOwnerId} />}
     </ProductPreviewContainer>
   );
 };

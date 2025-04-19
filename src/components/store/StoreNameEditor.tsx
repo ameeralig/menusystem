@@ -8,12 +8,12 @@ import { useState } from "react";
 interface StoreNameEditorProps {
   storeName: string;
   setStoreName: (value: string) => void;
-  storeSlug: string;
-  setStoreSlug: (value: string) => void;
   isEditing: boolean;
   setIsEditing: (value: boolean) => void;
   handleSubmit: () => Promise<void>;
   isLoading: boolean;
+  storeSlug?: string;
+  setStoreSlug?: (value: string) => void;
   slugError?: string;
 }
 
@@ -34,11 +34,13 @@ const StoreNameEditor = ({
   };
 
   const handleSlugChange = (value: string) => {
-    // تحويل النص إلى حروف صغيرة وإزالة الأحرف غير المسموح بها
-    const sanitized = value.toLowerCase()
-      .replace(/[^a-z0-9-]/g, '')
-      .replace(/--+/g, '-'); // تحويل الشرطات المتعددة إلى شرطة واحدة
-    setStoreSlug(sanitized);
+    if (setStoreSlug) {
+      // تحويل النص إلى حروف صغيرة وإزالة الأحرف غير المسموح بها
+      const sanitized = value.toLowerCase()
+        .replace(/[^a-z0-9-]/g, '')
+        .replace(/--+/g, '-'); // تحويل الشرطات المتعددة إلى شرطة واحدة
+      setStoreSlug(sanitized);
+    }
   };
 
   return (
@@ -64,31 +66,33 @@ const StoreNameEditor = ({
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="block text-right text-sm text-gray-600 dark:text-gray-400">
-              رابط المتجر المخصص
-            </label>
-            <div className="relative">
-              <Input
-                type="text"
-                value={storeSlug}
-                onChange={(e) => handleSlugChange(e.target.value)}
-                placeholder="ادخل رابط المتجر المميز"
-                className="text-left pl-10"
-                onFocus={() => setShowSlugPreview(true)}
-                onBlur={() => setShowSlugPreview(false)}
-              />
-              <Link2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          {setStoreSlug && (
+            <div className="space-y-2">
+              <label className="block text-right text-sm text-gray-600 dark:text-gray-400">
+                رابط المتجر المخصص
+              </label>
+              <div className="relative">
+                <Input
+                  type="text"
+                  value={storeSlug || ""}
+                  onChange={(e) => handleSlugChange(e.target.value)}
+                  placeholder="ادخل رابط المتجر المميز"
+                  className="text-left pl-10"
+                  onFocus={() => setShowSlugPreview(true)}
+                  onBlur={() => setShowSlugPreview(false)}
+                />
+                <Link2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              </div>
+              {slugError && (
+                <p className="text-sm text-red-500 text-right">{slugError}</p>
+              )}
+              {showSlugPreview && (
+                <p className="text-sm text-gray-500 text-left">
+                  /ar/p/{storeSlug || 'your-store'}
+                </p>
+              )}
             </div>
-            {slugError && (
-              <p className="text-sm text-red-500 text-right">{slugError}</p>
-            )}
-            {showSlugPreview && (
-              <p className="text-sm text-gray-500 text-left">
-                /ar/p/{storeSlug || 'your-store'}
-              </p>
-            )}
-          </div>
+          )}
 
           <Button 
             type="submit" 

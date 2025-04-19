@@ -277,6 +277,8 @@ const StoreCustomization = () => {
                 <StoreNameEditor 
                   storeName={storeName}
                   setStoreName={setStoreName}
+                  storeSlug={storeSlug}
+                  setStoreSlug={setStoreSlug}
                   isEditing={false}
                   setIsEditing={() => {}}
                   handleSubmit={async () => { await handleNameSubmit(); }}
@@ -331,7 +333,7 @@ const StoreCustomization = () => {
             </Card>
             
             <Card className="p-6 shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-right">روابط التواصل</h2>
+              <h2 className="text-xl font-semibold mb-4 text-right">��وابط التواصل</h2>
               <SocialLinksEditor 
                 initialSocialLinks={socialLinks}
                 onSave={handleSocialLinksSubmit}
