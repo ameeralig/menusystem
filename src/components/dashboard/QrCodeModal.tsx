@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import QRCode from "react-qr-code";
 
@@ -44,26 +44,11 @@ const QrCodeModal = ({ isOpen, onClose, storeUrl }: QrCodeModalProps) => {
     img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
   };
 
-  // استخراج اسم المتجر من الرابط المختصر
-  const getDisplayUrl = () => {
-    try {
-      if (!storeUrl) return "";
-      const url = new URL(storeUrl);
-      const path = url.pathname.substring(1); // إزالة "/" من البداية
-      return path || url.hostname;
-    } catch {
-      return storeUrl;
-    }
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-center">رمز QR لمتجرك</DialogTitle>
-          <DialogDescription className="text-center">
-            امسح الرمز للوصول للرابط: {getDisplayUrl()}
-          </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col items-center justify-center p-4">
           <div className="bg-white p-4 rounded-lg">

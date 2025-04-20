@@ -59,7 +59,7 @@ const StoreSlugEditor = ({
           {isEditing && (
             <>
               <p className="text-sm text-gray-500 text-right">
-                سيكون رابط متجرك: {window.location.origin}/{storeSlug || 'your-store'}
+                سيكون رابط متجرك: store.example.com/{storeSlug || 'your-store'}
               </p>
               <Button 
                 type="submit" 

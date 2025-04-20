@@ -67,22 +67,8 @@ const DashboardActions = () => {
         return;
       }
 
-      // البحث عن الرابط المخصص (slug) للمتجر
-      const { data: storeSettings } = await supabase
-        .from("store_settings")
-        .select("slug")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      // استخدم الرابط المخصص إذا كان موجودًا، وإلا استخدم معرف المستخدم
-      let storeLink;
-      if (storeSettings?.slug) {
-        storeLink = `${window.location.origin}/${storeSettings.slug}`;
-      } else {
-        storeLink = `${window.location.origin}/products/${user.id}`;
-      }
-
-      await copyToClipboard(storeLink);
+      const productsPageUrl = `${window.location.origin}/products/${user.id}`;
+      await copyToClipboard(productsPageUrl);
       
       setTimeout(() => {
         setIsCopying(false);
@@ -107,22 +93,8 @@ const DashboardActions = () => {
         return;
       }
 
-      // البحث عن الرابط المخصص (slug) للمتجر
-      const { data: storeSettings } = await supabase
-        .from("store_settings")
-        .select("slug")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      // استخدم الرابط المخصص إذا كان موجودًا، وإلا استخدم معرف المستخدم
-      let storeLink;
-      if (storeSettings?.slug) {
-        storeLink = `${window.location.origin}/${storeSettings.slug}`;
-      } else {
-        storeLink = `${window.location.origin}/products/${user.id}`;
-      }
-
-      setStoreUrl(storeLink);
+      const productsPageUrl = `${window.location.origin}/products/${user.id}`;
+      setStoreUrl(productsPageUrl);
       setQrModalOpen(true);
     } catch (error) {
       console.error("QR code generation error:", error);
