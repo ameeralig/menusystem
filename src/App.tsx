@@ -37,8 +37,12 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/add-product" element={<AddProduct />} />
           <Route path="/products" element={<ProductsDemo />} />
+          {/* رابط معاينة المنتجات باللغة وكامل */}
           <Route path="/:lang/p/:slug" element={<ProductPreview />} />
-          <Route path="/p/:slug" element={<Navigate replace to={`/ar/p/:slug`} />} />
+          {/* إعادة توجيه قديم */}
+          <Route path="/p/:slug" element={<Navigate replace to={`/${'ar'}/p/:slug`} />} />
+          {/* رابط مختصر مباشر للمعاينة */}
+          <Route path="/:slug" element={<ProductPreview />} />
           <Route path="/edit-product" element={<EditProduct />} />
           <Route path="/edit-product/:productId" element={<EditProduct />} />
           <Route path="/store-customization" element={<StoreCustomization />} />
@@ -56,3 +60,4 @@ const App = () => (
 );
 
 export default App;
+

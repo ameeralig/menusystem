@@ -1,4 +1,3 @@
-
 import { Plus, Edit, Eye, Link2, Settings, MessageSquare, QrCode } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -15,6 +14,20 @@ const DashboardActions = () => {
   const [isCopying, setIsCopying] = useState(false);
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [storeUrl, setStoreUrl] = useState("");
+
+  const getStoreShortUrl = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+    const { data: storeSettings } = await supabase
+      .from("store_settings")
+      .select("slug")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (storeSettings && storeSettings.slug) {
+      return `${window.location.origin}/${storeSettings.slug}`;
+    }
+    return null;
+  };
 
   const handleEditProducts = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -55,21 +68,18 @@ const DashboardActions = () => {
   const copyProductLink = async () => {
     try {
       setIsCopying(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
+      const url = await getStoreShortUrl();
+      if (!url) {
         toast({
           title: "خطأ",
-          description: "يجب تسجيل الدخول أولاً",
+          description: "تعذر جلب رابط المتجر المختصر",
           variant: "destructive",
           duration: 3000,
         });
+        setIsCopying(false);
         return;
       }
-
-      const productsPageUrl = `${window.location.origin}/products/${user.id}`;
-      await copyToClipboard(productsPageUrl);
-      
+      await copyToClipboard(url);
       setTimeout(() => {
         setIsCopying(false);
       }, 3000);
@@ -81,20 +91,17 @@ const DashboardActions = () => {
 
   const showQrCode = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
+      const url = await getStoreShortUrl();
+      if (!url) {
         toast({
           title: "خطأ",
-          description: "يجب تسجيل الدخول أولاً",
+          description: "تعذر جلب رابط المتجر المختصر",
           variant: "destructive",
           duration: 3000,
         });
         return;
       }
-
-      const productsPageUrl = `${window.location.origin}/products/${user.id}`;
-      setStoreUrl(productsPageUrl);
+      setStoreUrl(url);
       setQrModalOpen(true);
     } catch (error) {
       console.error("QR code generation error:", error);
