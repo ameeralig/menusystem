@@ -8,6 +8,8 @@ import DashboardActionButton from "./DashboardActionButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import QrCodeModal from "./QrCodeModal";
 
+const BASE_DOMAIN = "https://qrmenuc.com";
+
 const DashboardActions = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -24,7 +26,7 @@ const DashboardActions = () => {
       .eq("user_id", user.id)
       .maybeSingle();
     if (storeSettings && storeSettings.slug) {
-      return `${window.location.origin}/${storeSettings.slug}`;
+      return `${BASE_DOMAIN}/${storeSettings.slug}`;
     }
     return null;
   };

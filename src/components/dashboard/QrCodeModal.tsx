@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -10,12 +9,20 @@ interface QrCodeModalProps {
   storeUrl: string;
 }
 
+const BASE_DOMAIN = "https://qrmenuc.com";
+
 const QrCodeModal = ({ isOpen, onClose, storeUrl }: QrCodeModalProps) => {
   const [qrValue, setQrValue] = useState("");
 
   useEffect(() => {
     if (storeUrl) {
-      setQrValue(storeUrl);
+      try {
+        const slugMatch = storeUrl.match(/\/([^\/]+)$/);
+        const storeSlug = slugMatch ? slugMatch[1] : "";
+        setQrValue(`${BASE_DOMAIN}/${storeSlug}`);
+      } catch (error) {
+        setQrValue(storeUrl);
+      }
     }
   }, [storeUrl]);
 
