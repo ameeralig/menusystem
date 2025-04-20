@@ -57,12 +57,7 @@ const ProductPreview = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // تحقق من وجود اللغة وإذا لم تكن موجودة، قم بالتوجيه إلى /ar
-    if (!lang && slug) {
-      navigate(`/ar/p/${slug}`);
-      return;
-    }
-
+    // إذا كان هناك لغة، فاستخدمها، وإلا استخدم الرابط المختصر مباشرة
     const fetchStoreData = async () => {
       try {
         setIsLoading(true);
@@ -75,6 +70,7 @@ const ProductPreview = () => {
 
         console.log("Fetching store with slug:", slug);
 
+        // البحث عن المتجر باستخدام slug بغض النظر عن اللغة
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
           .select("user_id, store_name, color_theme, social_links, banner_url, font_settings, contact_info")

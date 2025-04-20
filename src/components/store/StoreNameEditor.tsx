@@ -147,7 +147,7 @@ const StoreNameEditor = ({
                 <p className="text-sm text-red-500 text-right mt-1">{slugError}</p>
               )}
               <p className="text-sm text-gray-500 text-right mt-1 ltr">
-                رابط متجرك سيكون: https://qrmenuc.com/ar/p/{storeSlug || 'your-store'}
+                رابط متجرك سيكون: {window.location.origin}/{storeSlug || 'your-store'}
               </p>
             </div>
           )}
