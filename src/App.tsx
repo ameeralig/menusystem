@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import Index from "./pages/Index";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
@@ -21,6 +21,13 @@ import Privacy from "./pages/Privacy";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
+// مكون صغير لإعادة التوجيه المباشر للمعاينة
+function ShortSlugRedirect() {
+  const { slug } = useParams();
+  // سنعيد التوجيه تلقائياً للرابط العربي
+  return <Navigate to={`/ar/p/${slug}`} replace />;
+}
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -30,6 +37,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* المسارات الثابتة أولاً كي لا يتداخل التحويل مع باقي الصفحات */}
           <Route path="/" element={<Index />} />
           <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/signup" element={<Signup />} />
@@ -48,6 +56,12 @@ const App = () => (
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/404" element={<NotFound />} />
+          {/* مسار مخصص: أي مسار على شكل /:slug سيحوّل للمعاينة */}
+          <Route
+            path=":slug"
+            element={<ShortSlugRedirect />}
+          />
+          {/* أي شيء آخر غير موجود */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
@@ -56,3 +70,4 @@ const App = () => (
 );
 
 export default App;
+
