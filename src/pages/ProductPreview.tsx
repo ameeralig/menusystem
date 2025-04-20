@@ -57,7 +57,6 @@ const ProductPreview = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // إذا كان هناك لغة، فاستخدمها، وإلا استخدم الرابط المختصر مباشرة
     const fetchStoreData = async () => {
       try {
         setIsLoading(true);

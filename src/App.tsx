@@ -40,7 +40,7 @@ const App = () => (
           {/* رابط معاينة المنتجات باللغة وكامل */}
           <Route path="/:lang/p/:slug" element={<ProductPreview />} />
           {/* إعادة توجيه قديم */}
-          <Route path="/p/:slug" element={<Navigate replace to={`/${'ar'}/p/:slug`} />} />
+          <Route path="/p/:slug" element={<Navigate replace to={`/ar/p/:slug`} />} />
           {/* رابط مختصر مباشر للمعاينة */}
           <Route path="/:slug" element={<ProductPreview />} />
           <Route path="/edit-product" element={<EditProduct />} />
@@ -60,4 +60,3 @@ const App = () => (
 );
 
 export default App;
-
