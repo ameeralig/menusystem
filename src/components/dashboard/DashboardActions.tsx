@@ -67,8 +67,22 @@ const DashboardActions = () => {
         return;
       }
 
-      const productsPageUrl = `${window.location.origin}/products/${user.id}`;
-      await copyToClipboard(productsPageUrl);
+      // البحث عن الرابط المخصص (slug) للمتجر
+      const { data: storeSettings } = await supabase
+        .from("store_settings")
+        .select("slug")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      // استخدم الرابط المخصص إذا كان موجودًا، وإلا استخدم معرف المستخدم
+      let storeLink;
+      if (storeSettings?.slug) {
+        storeLink = `${window.location.origin}/${storeSettings.slug}`;
+      } else {
+        storeLink = `${window.location.origin}/products/${user.id}`;
+      }
+
+      await copyToClipboard(storeLink);
       
       setTimeout(() => {
         setIsCopying(false);
@@ -93,8 +107,22 @@ const DashboardActions = () => {
         return;
       }
 
-      const productsPageUrl = `${window.location.origin}/products/${user.id}`;
-      setStoreUrl(productsPageUrl);
+      // البحث عن الرابط المخصص (slug) للمتجر
+      const { data: storeSettings } = await supabase
+        .from("store_settings")
+        .select("slug")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      // استخدم الرابط المخصص إذا كان موجودًا، وإلا استخدم معرف المستخدم
+      let storeLink;
+      if (storeSettings?.slug) {
+        storeLink = `${window.location.origin}/${storeSettings.slug}`;
+      } else {
+        storeLink = `${window.location.origin}/products/${user.id}`;
+      }
+
+      setStoreUrl(storeLink);
       setQrModalOpen(true);
     } catch (error) {
       console.error("QR code generation error:", error);
