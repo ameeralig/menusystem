@@ -57,6 +57,22 @@ const ProductPreview = () => {
   const [storeOwnerId, setStoreOwnerId] = useState<string | null>(null);
   const [categoryImages, setCategoryImages] = useState<CategoryImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [forceRefresh, setForceRefresh] = useState<number>(Date.now());
+
+  // تنفيذ إعادة تحميل البيانات عند تغيير المعلمة t في عنوان URL
+  useEffect(() => {
+    const handleUrlParamChange = () => {
+      // تحديث معرف التحديث القسري
+      setForceRefresh(Date.now());
+    };
+
+    // الاستماع لتغييرات عنوان URL
+    window.addEventListener('popstate', handleUrlParamChange);
+    
+    return () => {
+      window.removeEventListener('popstate', handleUrlParamChange);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchStoreData = async () => {
@@ -104,11 +120,12 @@ const ProductPreview = () => {
         setStoreName(storeSettings.store_name);
         setColorTheme(storeSettings.color_theme || "default");
         
-        // إضافة معرف زمني لصورة البانر
+        // إضافة معرف زمني فريد لمنع التخزين المؤقت لجميع الصور
+        const uniqueTimestamp = forceRefresh || Date.now();
+        
         if (storeSettings.banner_url) {
-          const timestamp = new Date().getTime();
           const bannerBaseUrl = storeSettings.banner_url.split('?')[0];
-          setBannerUrl(`${bannerBaseUrl}?t=${timestamp}`);
+          setBannerUrl(`${bannerBaseUrl}?t=${uniqueTimestamp}`);
         } else {
           setBannerUrl(null);
         }
@@ -137,14 +154,13 @@ const ProductPreview = () => {
           throw new Error("حدث خطأ أثناء جلب المنتجات");
         }
 
-        // إضافة معرف زمني لصور المنتجات
-        const timestamp = new Date().getTime();
+        // إضافة معرف زمني للصور مع استخدام الطابع الزمني الفريد
         const updatedProducts = (productsData || []).map(product => {
           if (product.image_url) {
             const imageBaseUrl = product.image_url.split('?')[0];
             return {
               ...product, 
-              image_url: `${imageBaseUrl}?t=${timestamp}`
+              image_url: `${imageBaseUrl}?t=${uniqueTimestamp}&nocache=${Math.random()}`
             };
           }
           return product;
@@ -161,13 +177,13 @@ const ProductPreview = () => {
         if (categoryImagesError) {
           console.error("Error fetching category images:", categoryImagesError);
         } else {
-          // إضافة معرف زمني لكل صورة لتجنب التخزين المؤقت
+          // إضافة معرف زمني لكل صورة مع إضافة قيمة عشوائية لتجنب التخزين المؤقت نهائيًا
           const updatedCategoryImages = (categoryImagesData || []).map(img => {
             if (img.image_url) {
               const imageBaseUrl = img.image_url.split('?')[0];
               return {
                 ...img,
-                image_url: `${imageBaseUrl}?t=${timestamp}`
+                image_url: `${imageBaseUrl}?t=${uniqueTimestamp}&nocache=${Math.random()}`
               };
             }
             return img;
@@ -189,7 +205,24 @@ const ProductPreview = () => {
     };
 
     fetchStoreData();
-  }, [slug, toast, navigate]);
+  }, [slug, toast, navigate, forceRefresh]); // إضافة forceRefresh للاعتماديات
+
+  // وظيفة تحديث الصفحة يدويًا لتجنب مشاكل التخزين المؤقت
+  const forceReload = () => {
+    window.location.reload();
+  };
+
+  // عرض زر التحديث اليدوي إذا كان هناك مشكلة في تحميل الصور
+  const renderRefreshButton = () => {
+    return (
+      <button 
+        onClick={forceReload}
+        className="fixed bottom-4 right-4 bg-primary text-white px-4 py-2 rounded-full shadow-lg z-50"
+      >
+        تحديث الصفحة
+      </button>
+    );
+  };
 
   if (isLoading) {
     return (
@@ -200,23 +233,26 @@ const ProductPreview = () => {
   }
 
   return (
-    <ProductPreviewContainer 
-      colorTheme={colorTheme} 
-      bannerUrl={bannerUrl}
-      fontSettings={fontSettings}
-      containerHeight="auto"
-    >
-      <StoreProductsDisplay 
-        products={products} 
-        storeName={storeName} 
-        colorTheme={colorTheme}
+    <>
+      <ProductPreviewContainer 
+        colorTheme={colorTheme} 
+        bannerUrl={bannerUrl}
         fontSettings={fontSettings}
-        contactInfo={contactInfo}
-        categoryImages={categoryImages}
-      />
-      <SocialIcons socialLinks={socialLinks} />
-      {storeOwnerId && <FeedbackDialog userId={storeOwnerId} />}
-    </ProductPreviewContainer>
+        containerHeight="auto"
+      >
+        <StoreProductsDisplay 
+          products={products} 
+          storeName={storeName} 
+          colorTheme={colorTheme}
+          fontSettings={fontSettings}
+          contactInfo={contactInfo}
+          categoryImages={categoryImages}
+        />
+        <SocialIcons socialLinks={socialLinks} />
+        {storeOwnerId && <FeedbackDialog userId={storeOwnerId} />}
+      </ProductPreviewContainer>
+      {renderRefreshButton()}
+    </>
   );
 };
 
