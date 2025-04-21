@@ -1,5 +1,4 @@
-
-import { Plus, Edit, Eye, Link2, Settings, MessageSquare, QrCode } from "lucide-react";
+import { Plus, Edit, Eye, Link2, Settings, MessageSquare, QrCode, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +16,7 @@ const DashboardActions = () => {
   const [isCopying, setIsCopying] = useState(false);
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [storeUrl, setStoreUrl] = useState("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const getStoreShortUrl = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -90,22 +90,29 @@ const DashboardActions = () => {
         return;
       }
 
-      // إضافة طابع زمني لتجنب مشكلة التخزين المؤقت
       const timestamp = new Date().getTime();
-      const previewUrl = `${BASE_DOMAIN}/${storeSettings.slug}?t=${timestamp}`;
+      const randomValue = Math.random().toString(36).substring(2, 15);
+      const previewUrl = `${BASE_DOMAIN}/${storeSettings.slug}?t=${timestamp}&r=${randomValue}&force=true`;
       
-      // فتح الرابط في نافذة جديدة مع تعطيل التخزين المؤقت
       const newWindow = window.open('about:blank', '_blank');
       if (newWindow) {
         newWindow.location.href = previewUrl;
+        
+        console.log("تم فتح صفحة المعاينة:", previewUrl);
+        
+        setTimeout(() => {
+          toast({
+            title: "تم فتح صفحة المعاينة",
+            description: "تم فتح صفحة المعاينة في نافذة جديدة بنجاح",
+            duration: 3000,
+          });
+        }, 1000);
       } else {
-        // إذا تم منع النوافذ المنبثقة
         toast({
           title: "تنبيه",
           description: "يرجى السماح بالنوافذ المنبثقة لفتح صفحة المعاينة",
           duration: 5000,
         });
-        // محاولة استخدام الطريقة الاحتياطية
         window.location.href = previewUrl;
       }
     } catch (error) {
@@ -168,6 +175,56 @@ const DashboardActions = () => {
     }
   };
 
+  const forceRefreshStore = async () => {
+    try {
+      setIsRefreshing(true);
+      const url = await getStoreShortUrl();
+      
+      if (!url) {
+        toast({
+          title: "خطأ",
+          description: "تعذر جلب رابط المتجر",
+          variant: "destructive",
+          duration: 3000,
+        });
+        setIsRefreshing(false);
+        return;
+      }
+      
+      const timestamp = new Date().getTime();
+      const randomValue = Math.random().toString(36).substring(2, 15);
+      const refreshUrl = `${url}?t=${timestamp}&r=${randomValue}&clearCache=true&force=true`;
+      
+      await fetch(refreshUrl, { 
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+        cache: 'no-store'
+      });
+      
+      toast({
+        title: "تم التحديث بنجاح",
+        description: "تم تحديث متجرك بنجاح، يرجى فتح صفحة المعاينة لرؤية التغييرات",
+        duration: 3000,
+      });
+      
+      handlePreviewProducts();
+    } catch (error) {
+      console.error("Refresh error:", error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء تحديث المتجر",
+        variant: "destructive",
+        duration: 3000,
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const actionButtons = [
     {
       icon: Plus,
@@ -183,6 +240,12 @@ const DashboardActions = () => {
       icon: Eye,
       label: "معاينة المنتجات",
       onClick: handlePreviewProducts,
+    },
+    {
+      icon: RefreshCw,
+      label: isRefreshing ? "جاري التحديث..." : "تحديث المتجر",
+      onClick: forceRefreshStore,
+      disabled: isRefreshing,
     },
     {
       icon: Settings,
