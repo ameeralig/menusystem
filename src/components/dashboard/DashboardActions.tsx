@@ -1,3 +1,4 @@
+
 import { Plus, Edit, Eye, Link2, Settings, MessageSquare, QrCode } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -61,9 +62,30 @@ const DashboardActions = () => {
   };
 
   const handlePreviewProducts = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      navigate(`/products/${user.id}`);
+    try {
+      // بدلاً من الانتقال إلى صفحة لا توجد، نحصل على رابط المتجر المختصر
+      const url = await getStoreShortUrl();
+      
+      if (!url) {
+        toast({
+          title: "خطأ",
+          description: "تعذر الحصول على رابط المتجر",
+          variant: "destructive",
+          duration: 3000,
+        });
+        return;
+      }
+      
+      // نستخدم window.open لفتح الرابط في نافذة جديدة
+      window.open(url, '_blank');
+    } catch (error) {
+      console.error("Preview error:", error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء معاينة المنتجات",
+        variant: "destructive",
+        duration: 3000,
+      });
     }
   };
 
