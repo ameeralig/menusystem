@@ -63,7 +63,7 @@ const DashboardActions = () => {
 
   const handlePreviewProducts = async () => {
     try {
-      // بدلاً من الانتقال إلى صفحة لا توجد، نحصل على رابط المتجر المختصر
+      // بدلاً من استخدام window.open، سننتقل مباشرة إلى الصفحة
       const url = await getStoreShortUrl();
       
       if (!url) {
@@ -76,8 +76,14 @@ const DashboardActions = () => {
         return;
       }
       
-      // نستخدم window.open لفتح الرابط في نافذة جديدة
-      window.open(url, '_blank');
+      // استخراج الجزء الأخير من الرابط (slug)
+      const slug = url.split('/').pop();
+      console.log("تم العثور على slug:", slug);
+      
+      // الانتقال مباشرة إلى صفحة معاينة المنتجات
+      if (slug) {
+        navigate(`/${slug}`);
+      }
     } catch (error) {
       console.error("Preview error:", error);
       toast({
