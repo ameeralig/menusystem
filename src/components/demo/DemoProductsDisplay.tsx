@@ -8,6 +8,7 @@ import ProductGrid from "@/components/store/ProductGrid";
 import BackButton from "@/components/store/BackButton";
 import EmptyCategoryMessage from "@/components/store/EmptyCategoryMessage";
 import { CategoryImage } from "@/types/categoryImage";
+import { createNoCacheImageUrl } from "@/utils/storageHelpers";
 
 interface DemoProductsDisplayProps {
   products: Product[];
@@ -24,6 +25,16 @@ const DemoProductsDisplay = ({
 }: DemoProductsDisplayProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState<number>(Date.now());
+  
+  // تحديث مفتاح التحديث كل دقيقة للتأكد من تحديث الصور
+  useState(() => {
+    const interval = setInterval(() => {
+      setRefreshKey(Date.now());
+    }, 60000);
+    
+    return () => clearInterval(interval);
+  });
   
   const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
   
@@ -39,7 +50,10 @@ const DemoProductsDisplay = ({
   // دالة للحصول على صورة التصنيف الافتراضية من المنتجات
   const getDefaultCategoryImage = (category: string) => {
     const categoryProduct = products.find(p => p.category === category);
-    return categoryProduct?.image_url || '/placeholder.svg';
+    if (categoryProduct?.image_url) {
+      return createNoCacheImageUrl(categoryProduct.image_url);
+    }
+    return '/placeholder.svg';
   };
 
   return (

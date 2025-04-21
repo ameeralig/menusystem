@@ -51,16 +51,24 @@ export const CategoryImageManager = ({
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
 
       const fileExt = file.name.split(".").pop();
-      // استخدام الدالة الجديدة لتنظيف اسم التصنيف
+      // استخدام الدالة لتنظيف اسم التصنيف
       const sanitizedCategory = sanitizeFileName(category);
-      const fileName = `${user.id}_${sanitizedCategory}_${Date.now()}.${fileExt}`;
+      // إضافة طابع زمني وقيمة عشوائية لمنع التخزين المؤقت
+      const uniqueId = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      const fileName = `${user.id}_${sanitizedCategory}_${uniqueId}.${fileExt}`;
       const filePath = `${fileName}`;
 
       console.log("File path for upload:", filePath);
 
+      // تعيين رؤوس التحكم في التخزين المؤقت
+      const options = {
+        cacheControl: "no-cache, no-store, must-revalidate",
+        upsert: false
+      };
+
       const { error: uploadError } = await supabase.storage
         .from("category-images")
-        .upload(filePath, file);
+        .upload(filePath, file, options);
 
       if (uploadError) throw uploadError;
 
@@ -68,19 +76,37 @@ export const CategoryImageManager = ({
         .from("category-images")
         .getPublicUrl(filePath);
 
+      // إضافة معلمة إصدار فريدة للرابط العام
+      const versionedUrl = `${publicUrl}?v=${uniqueId}`;
+
+      // إذا كانت هناك صورة سابقة، قم بحذفها
+      const existingImage = categoryImages.find(img => img.category === category);
+      if (existingImage && existingImage.image_url) {
+        const oldFileName = existingImage.image_url.split('/').pop()?.split('?')[0];
+        if (oldFileName) {
+          try {
+            // حذف الصورة القديمة من التخزين
+            await deleteImage("category-images", oldFileName);
+          } catch (error) {
+            console.error("خطأ في حذف الصورة القديمة:", error);
+            // نستمر بالرغم من خطأ الحذف
+          }
+        }
+      }
+
       // إضافة أو تحديث صورة التصنيف في قاعدة البيانات
       const { error: dbError } = await supabase
         .from("category_images")
         .upsert({
           user_id: user.id,
           category,
-          image_url: publicUrl,
+          image_url: versionedUrl,
         });
 
       if (dbError) throw dbError;
 
       const updatedImages = [...categoryImages.filter(img => img.category !== category), 
-        { category, image_url: publicUrl }
+        { category, image_url: versionedUrl }
       ];
       onUpdateImages(updatedImages);
 
@@ -117,9 +143,9 @@ export const CategoryImageManager = ({
       if (dbError) throw dbError;
 
       // حذف الملف من التخزين إذا كان موجوداً
-      const fileName = imageToDelete.image_url.split("/").pop();
-      if (fileName) {
-        await deleteImage("category-images", fileName);
+      const oldFileName = imageToDelete.image_url.split('/').pop()?.split('?')[0];
+      if (oldFileName) {
+        await deleteImage("category-images", oldFileName);
       }
 
       const updatedImages = categoryImages.filter(img => img.category !== category);
@@ -145,6 +171,10 @@ export const CategoryImageManager = ({
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {categories.map((category) => {
           const categoryImage = categoryImages.find(img => img.category === category);
+          // إضافة معلمة عشوائية لمنع التخزين المؤقت عند العرض
+          const displayImageUrl = categoryImage?.image_url 
+            ? `${categoryImage.image_url}&nocache=${Math.random().toString(36).substring(2)}`
+            : undefined;
           
           return (
             <Card key={category} className="overflow-hidden">
@@ -166,7 +196,7 @@ export const CategoryImageManager = ({
                 {categoryImage ? (
                   <div className="relative aspect-video rounded-md overflow-hidden">
                     <img
-                      src={categoryImage.image_url}
+                      src={displayImageUrl}
                       alt={category}
                       className="w-full h-full object-cover"
                     />

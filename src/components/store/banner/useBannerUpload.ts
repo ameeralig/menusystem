@@ -34,9 +34,15 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
 
       const filePath = createUniqueFilePath(user.id, 'banners', file);
       
+      // إضافة خيارات التحكم في التخزين المؤقت
+      const options = {
+        cacheControl: "no-cache, no-store, must-revalidate",
+        upsert: false
+      };
+      
       const { data, error: uploadError } = await supabase.storage
         .from('banners')
-        .upload(filePath, file);
+        .upload(filePath, file, options);
 
       if (uploadError) throw uploadError;
 
@@ -44,11 +50,11 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
         .from('banners')
         .getPublicUrl(filePath);
 
-      // إضافة معرف زمني للصورة لتجنب التخزين المؤقت
-      const timestamp = new Date().getTime();
+      // إضافة معرف فريد أكثر تعقيداً للصورة لتجنب التخزين المؤقت
+      const uniqueId = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
       // التأكد من أن العنوان لا يحتوي على معرف سابق
       const baseUrl = publicUrl.split('?')[0];
-      const cachedUrl = `${baseUrl}?t=${timestamp}`;
+      const cachedUrl = `${baseUrl}?v=${uniqueId}`;
       
       setImageUrl(cachedUrl);
       setPreviewUrl(cachedUrl);
@@ -75,10 +81,10 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
       return;
     }
     
-    // إضافة معرف زمني للصورة بعد إزالة أي معرفات موجودة
-    const timestamp = new Date().getTime();
+    // إضافة معرف زمني فريد أكثر تعقيداً للصورة
+    const uniqueId = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
     const baseUrl = url.split('?')[0];
-    const updatedUrl = `${baseUrl}?t=${timestamp}`;
+    const updatedUrl = `${baseUrl}?v=${uniqueId}`;
     
     setImageUrl(updatedUrl);
     setPreviewUrl(updatedUrl);
