@@ -71,7 +71,7 @@ const ProductPreview = () => {
 
         console.log("Fetching store with slug:", slug);
 
-        // البحث عن المتجر باستخدام slug بغض النظر عن اللغة
+        // البحث عن المتجر باستخدام slug
         const { data: storeSettings, error: storeError } = await supabase
           .from("store_settings")
           .select("user_id, store_name, color_theme, social_links, banner_url, font_settings, contact_info")
@@ -103,7 +103,15 @@ const ProductPreview = () => {
 
         setStoreName(storeSettings.store_name);
         setColorTheme(storeSettings.color_theme || "default");
-        setBannerUrl(storeSettings.banner_url);
+        
+        // إضافة معرف زمني لصورة البانر
+        if (storeSettings.banner_url) {
+          const timestamp = new Date().getTime();
+          const bannerBaseUrl = storeSettings.banner_url.split('?')[0];
+          setBannerUrl(`${bannerBaseUrl}?t=${timestamp}`);
+        } else {
+          setBannerUrl(null);
+        }
         
         // تحديث البيانات مع التحقق من الأنواع
         if (storeSettings.social_links) {
@@ -129,10 +137,22 @@ const ProductPreview = () => {
           throw new Error("حدث خطأ أثناء جلب المنتجات");
         }
 
-        setProducts(productsData || []);
-
-        // جلب صور التصنيفات المخصصة مع إضافة معرّف للتحديث
+        // إضافة معرف زمني لصور المنتجات
         const timestamp = new Date().getTime();
+        const updatedProducts = (productsData || []).map(product => {
+          if (product.image_url) {
+            const imageBaseUrl = product.image_url.split('?')[0];
+            return {
+              ...product, 
+              image_url: `${imageBaseUrl}?t=${timestamp}`
+            };
+          }
+          return product;
+        });
+
+        setProducts(updatedProducts);
+
+        // جلب صور التصنيفات المخصصة
         const { data: categoryImagesData, error: categoryImagesError } = await supabase
           .from("category_images")
           .select("*")
@@ -141,13 +161,17 @@ const ProductPreview = () => {
         if (categoryImagesError) {
           console.error("Error fetching category images:", categoryImagesError);
         } else {
-          // إضافة معرف زمني لكل صورة لتجنب التخزين المؤقت وتحديثها فوراً
-          const updatedCategoryImages = (categoryImagesData || []).map(img => ({
-            ...img,
-            image_url: img.image_url.includes('?') 
-              ? `${img.image_url.split('?')[0]}?t=${timestamp}` 
-              : `${img.image_url}?t=${timestamp}`
-          }));
+          // إضافة معرف زمني لكل صورة لتجنب التخزين المؤقت
+          const updatedCategoryImages = (categoryImagesData || []).map(img => {
+            if (img.image_url) {
+              const imageBaseUrl = img.image_url.split('?')[0];
+              return {
+                ...img,
+                image_url: `${imageBaseUrl}?t=${timestamp}`
+              };
+            }
+            return img;
+          });
           setCategoryImages(updatedCategoryImages);
         }
 
@@ -164,7 +188,6 @@ const ProductPreview = () => {
       }
     };
 
-    // استدعاء الدالة والتأكد من تنفيذها دائماً عند تغيير slug
     fetchStoreData();
   }, [slug, toast, navigate]);
 

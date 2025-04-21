@@ -37,11 +37,10 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/add-product" element={<AddProduct />} />
           <Route path="/products" element={<ProductsDemo />} />
-          {/* رابط معاينة المنتجات باللغة */}
+          {/* توجيه جميع الروابط القديمة إلى الروابط الجديدة */}
           <Route path="/:lang/p/:slug" element={<Navigate replace to={`/:slug`} />} />
-          {/* إعادة توجيه من الرابط القديم إلى الرابط الجديد */}
           <Route path="/p/:slug" element={<Navigate replace to={`/:slug`} />} />
-          {/* رابط مختصر مباشر للمعاينة */}
+          {/* الرابط المباشر للمعاينة */}
           <Route path="/:slug" element={<ProductPreview />} />
           <Route path="/edit-product" element={<EditProduct />} />
           <Route path="/edit-product/:productId" element={<EditProduct />} />

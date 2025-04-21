@@ -1,4 +1,3 @@
-
 import { Plus, Edit, Eye, Link2, Settings, MessageSquare, QrCode } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -79,11 +78,10 @@ const DashboardActions = () => {
       const slug = url.split('/').pop();
       console.log("تم العثور على slug:", slug);
       
-      // الانتقال مباشرة إلى صفحة معاينة المنتجات باستخدام الرابط المباشر
       if (slug) {
-        // فتح الرابط في نافذة جديدة بدلاً من استخدام navigate
-        // للتأكد من تحميل أحدث المحتوى وتجنب مشاكل الذاكرة المخبأة
-        window.open(`${BASE_DOMAIN}/${slug}?t=${new Date().getTime()}`, '_blank');
+        // فتح الرابط في نافذة جديدة مع إضافة معرف زمني لتجنب التخزين المؤقت
+        const timestamp = new Date().getTime();
+        window.open(`${BASE_DOMAIN}/${slug}?t=${timestamp}`, '_blank');
       }
     } catch (error) {
       console.error("Preview error:", error);

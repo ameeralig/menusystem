@@ -76,8 +76,9 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
     }
     
     // إضافة معرف زمني للصورة بعد إزالة أي معرفات موجودة
+    const timestamp = new Date().getTime();
     const baseUrl = url.split('?')[0];
-    const updatedUrl = `${baseUrl}?t=${new Date().getTime()}`;
+    const updatedUrl = `${baseUrl}?t=${timestamp}`;
     
     setImageUrl(updatedUrl);
     setPreviewUrl(updatedUrl);
