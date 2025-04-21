@@ -36,7 +36,8 @@ const DemoProductsDisplay = ({
         p.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
 
-  const getCategoryImage = (category: string) => {
+  // دالة للحصول على صورة التصنيف الافتراضية من المنتجات
+  const getDefaultCategoryImage = (category: string) => {
     const categoryProduct = products.find(p => p.category === category);
     return categoryProduct?.image_url || '/placeholder.svg';
   };
@@ -49,7 +50,7 @@ const DemoProductsDisplay = ({
       {!selectedCategory ? (
         <CategoryGrid
           categories={categories}
-          getCategoryImage={getCategoryImage}
+          getCategoryImage={getDefaultCategoryImage}
           onCategorySelect={setSelectedCategory}
           categoryImages={categoryImages}
         />

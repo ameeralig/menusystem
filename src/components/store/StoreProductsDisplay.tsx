@@ -105,7 +105,8 @@ const StoreProductsDisplay = ({
     setSelectedCategory(category);
   }, []);
 
-  const getCategoryImage = useCallback(
+  // دالة الحصول على صورة التصنيف الافتراضية من المنتجات
+  const getDefaultCategoryImage = useCallback(
     (category: string) => {
       const firstProductWithCategory = products.find(
         (product) => product.category === category && product.image_url
@@ -126,6 +127,9 @@ const StoreProductsDisplay = ({
       setSearchQuery("");
     }
   }, [showSearch]);
+
+  // تحديث التسمية للتوضيح
+  console.log("Rendering StoreProductsDisplay with", categoryImages.length, "category images");
 
   return (
     <div className="space-y-6">
@@ -148,7 +152,7 @@ const StoreProductsDisplay = ({
       {!selectedCategory && categories.length > 0 && !searchQuery && (
         <CategoryGrid 
           categories={categories} 
-          getCategoryImage={getCategoryImage} 
+          getCategoryImage={getDefaultCategoryImage} 
           onCategorySelect={handleCategorySelect} 
           fontSettings={fontSettings}
           categoryImages={categoryImages}

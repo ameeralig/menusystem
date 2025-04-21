@@ -131,7 +131,8 @@ const ProductPreview = () => {
 
         setProducts(productsData || []);
 
-        // جلب صور التصنيفات المخصصة
+        // جلب صور التصنيفات المخصصة مع إضافة معرّف للتحديث
+        const timestamp = new Date().getTime();
         const { data: categoryImagesData, error: categoryImagesError } = await supabase
           .from("category_images")
           .select("*")
@@ -140,7 +141,12 @@ const ProductPreview = () => {
         if (categoryImagesError) {
           console.error("Error fetching category images:", categoryImagesError);
         } else {
-          setCategoryImages(categoryImagesData || []);
+          // إضافة معرف زمني لكل صورة لتجنب التخزين المؤقت
+          const updatedCategoryImages = (categoryImagesData || []).map(img => ({
+            ...img,
+            image_url: `${img.image_url}?t=${timestamp}`
+          }));
+          setCategoryImages(updatedCategoryImages);
         }
 
       } catch (error: any) {

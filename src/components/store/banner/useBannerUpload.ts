@@ -44,9 +44,13 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
         .from('banners')
         .getPublicUrl(filePath);
 
-      setImageUrl(publicUrl);
-      setPreviewUrl(publicUrl);
-      setBannerUrl(publicUrl);
+      // إضافة معرف زمني للصورة لتجنب التخزين المؤقت
+      const timestamp = new Date().getTime();
+      const cachedUrl = `${publicUrl}?t=${timestamp}`;
+      
+      setImageUrl(cachedUrl);
+      setPreviewUrl(cachedUrl);
+      setBannerUrl(cachedUrl);
 
       toast({
         title: "تم رفع الصورة بنجاح",
@@ -61,10 +65,13 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
   };
 
   const handleUrlChange = (url: string) => {
-    setImageUrl(url);
-    if (url) {
-      setPreviewUrl(url);
-      setBannerUrl(url);
+    // إضافة معرف زمني للصورة إذا كانت موجودة لتجنب التخزين المؤقت
+    const updatedUrl = url ? `${url}${url.includes('?') ? '&' : '?'}t=${new Date().getTime()}` : url;
+    
+    setImageUrl(updatedUrl);
+    if (updatedUrl) {
+      setPreviewUrl(updatedUrl);
+      setBannerUrl(updatedUrl);
     } else {
       setPreviewUrl(null);
       setBannerUrl(null);

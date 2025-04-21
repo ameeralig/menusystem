@@ -98,13 +98,17 @@ const CategoryGrid = ({
     return {};
   };
 
-  // دالة للحصول على صورة التصنيف من مصفوفة الصور المخصصة إذا كانت موجودة
+  // دالة محسنة للحصول على صورة التصنيف المخصصة
   const getCustomCategoryImage = (category: string): string => {
     // البحث عن صورة التصنيف المخصصة في المصفوفة
-    const customImage = categoryImages.find(img => img.category === category);
-    if (customImage) {
-      return customImage.image_url;
+    const customImage = categoryImages?.find(img => img.category === category);
+    
+    if (customImage && customImage.image_url) {
+      // إضافة معرف فريد للتأكد من تحديث الصورة
+      const timestamp = new Date().getTime();
+      return `${customImage.image_url}?t=${timestamp}`;
     }
+    
     // استخدام دالة الصورة الافتراضية إذا لم تكن هناك صورة مخصصة
     return getCategoryImage(category);
   };
