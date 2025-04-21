@@ -1,3 +1,4 @@
+
 import { Plus, Edit, Eye, Link2, Settings, MessageSquare, QrCode } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -81,7 +82,8 @@ const DashboardActions = () => {
       if (slug) {
         // فتح الرابط في نافذة جديدة مع إضافة معرف زمني لتجنب التخزين المؤقت
         const timestamp = new Date().getTime();
-        window.open(`${BASE_DOMAIN}/${slug}?t=${timestamp}`, '_blank');
+        // فتح الرابط الجديد مباشرة
+        window.open(`/${slug}?t=${timestamp}`, '_blank');
       }
     } catch (error) {
       console.error("Preview error:", error);
