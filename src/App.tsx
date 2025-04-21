@@ -1,8 +1,11 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/react";
 import Index from "./pages/Index";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
@@ -19,7 +22,6 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
-import { SpeedInsights } from "@vercel/speed-insights/react";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +31,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <SpeedInsights />
+      <Analytics />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
