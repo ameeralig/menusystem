@@ -37,10 +37,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/add-product" element={<AddProduct />} />
           <Route path="/products" element={<ProductsDemo />} />
-          {/* توجيه جميع الروابط القديمة إلى الروابط الجديدة */}
-          <Route path="/:lang/p/:slug" element={<Navigate replace to={`/:slug`} />} />
-          <Route path="/p/:slug" element={<Navigate replace to={`/:slug`} />} />
-          {/* الرابط المباشر للمعاينة */}
+          {/* إبقاء رابط المعاينة المركزي فقط */}
           <Route path="/:slug" element={<ProductPreview />} />
           <Route path="/edit-product" element={<EditProduct />} />
           <Route path="/edit-product/:productId" element={<EditProduct />} />

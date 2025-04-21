@@ -61,6 +61,7 @@ const DashboardActions = () => {
     }
   };
 
+  // زر المعاينة يفتح الرابط الموحد فقط
   const handlePreviewProducts = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -89,17 +90,9 @@ const DashboardActions = () => {
         });
         return;
       }
-      
-      // استخراج الجزء الأخير من الرابط (slug)
-      const slug = storeSettings.slug;
-      console.log("تم العثور على slug:", slug);
-      
-      if (slug) {
-        // إضافة معرف زمني لتجنب التخزين المؤقت
-        const timestamp = new Date().getTime();
-        // فتح الرابط الجديد مباشرة
-        window.open(`/${slug}?t=${timestamp}`, '_blank');
-      }
+
+      // فتح الرابط بشكل مباشر على النطاق الرئيسي مع آخر slug
+      window.open(`${BASE_DOMAIN}/${storeSettings.slug}`, '_blank');
     } catch (error) {
       console.error("Preview error:", error);
       toast({
@@ -227,3 +220,4 @@ const DashboardActions = () => {
 };
 
 export default DashboardActions;
+
