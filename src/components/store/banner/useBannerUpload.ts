@@ -46,7 +46,9 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
 
       // إضافة معرف زمني للصورة لتجنب التخزين المؤقت
       const timestamp = new Date().getTime();
-      const cachedUrl = `${publicUrl}?t=${timestamp}`;
+      // التأكد من أن العنوان لا يحتوي على معرف سابق
+      const baseUrl = publicUrl.split('?')[0];
+      const cachedUrl = `${baseUrl}?t=${timestamp}`;
       
       setImageUrl(cachedUrl);
       setPreviewUrl(cachedUrl);
@@ -65,17 +67,21 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
   };
 
   const handleUrlChange = (url: string) => {
-    // إضافة معرف زمني للصورة إذا كانت موجودة لتجنب التخزين المؤقت
-    const updatedUrl = url ? `${url}${url.includes('?') ? '&' : '?'}t=${new Date().getTime()}` : url;
-    
-    setImageUrl(updatedUrl);
-    if (updatedUrl) {
-      setPreviewUrl(updatedUrl);
-      setBannerUrl(updatedUrl);
-    } else {
+    if (!url) {
+      setImageUrl("");
       setPreviewUrl(null);
       setBannerUrl(null);
+      setError(null);
+      return;
     }
+    
+    // إضافة معرف زمني للصورة بعد إزالة أي معرفات موجودة
+    const baseUrl = url.split('?')[0];
+    const updatedUrl = `${baseUrl}?t=${new Date().getTime()}`;
+    
+    setImageUrl(updatedUrl);
+    setPreviewUrl(updatedUrl);
+    setBannerUrl(updatedUrl);
     setError(null);
   };
 

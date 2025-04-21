@@ -1,6 +1,5 @@
 
 import { motion } from "framer-motion";
-import { Product } from "@/types/product";
 import { CSSProperties, useEffect, useState } from "react";
 import { CategoryImage } from "@/types/categoryImage";
 
@@ -98,20 +97,21 @@ const CategoryGrid = ({
     return {};
   };
 
-  // دالة محسنة للحصول على صورة التصنيف المخصصة
+  // دالة محسنة للحصول على صورة التصنيف المخصصة مع التأكد من تحديث الصورة
   const getCustomCategoryImage = (category: string): string => {
     // البحث عن صورة التصنيف المخصصة في المصفوفة
     const customImage = categoryImages?.find(img => img.category === category);
     
     if (customImage && customImage.image_url) {
-      // إضافة معرف فريد للتأكد من تحديث الصورة
-      const timestamp = new Date().getTime();
-      return `${customImage.image_url}?t=${timestamp}`;
+      // التأكد من أن الصورة تحتوي على معرف فريد للتحديث
+      return customImage.image_url;
     }
     
     // استخدام دالة الصورة الافتراضية إذا لم تكن هناك صورة مخصصة
     return getCategoryImage(category);
   };
+
+  console.log("Rendering CategoryGrid with", categoryImages.length, "category images");
 
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">

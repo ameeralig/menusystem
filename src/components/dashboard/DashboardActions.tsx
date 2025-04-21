@@ -63,7 +63,6 @@ const DashboardActions = () => {
 
   const handlePreviewProducts = async () => {
     try {
-      // بدلاً من استخدام window.open، سننتقل مباشرة إلى الصفحة
       const url = await getStoreShortUrl();
       
       if (!url) {
@@ -80,9 +79,11 @@ const DashboardActions = () => {
       const slug = url.split('/').pop();
       console.log("تم العثور على slug:", slug);
       
-      // الانتقال مباشرة إلى صفحة معاينة المنتجات
+      // الانتقال مباشرة إلى صفحة معاينة المنتجات باستخدام الرابط المباشر
       if (slug) {
-        navigate(`/${slug}`);
+        // فتح الرابط في نافذة جديدة بدلاً من استخدام navigate
+        // للتأكد من تحميل أحدث المحتوى وتجنب مشاكل الذاكرة المخبأة
+        window.open(`${BASE_DOMAIN}/${slug}?t=${new Date().getTime()}`, '_blank');
       }
     } catch (error) {
       console.error("Preview error:", error);

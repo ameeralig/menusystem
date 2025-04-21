@@ -43,7 +43,7 @@ type FontSettings = {
 };
 
 const ProductPreview = () => {
-  const { slug, lang } = useParams<{ slug: string; lang: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -141,10 +141,12 @@ const ProductPreview = () => {
         if (categoryImagesError) {
           console.error("Error fetching category images:", categoryImagesError);
         } else {
-          // إضافة معرف زمني لكل صورة لتجنب التخزين المؤقت
+          // إضافة معرف زمني لكل صورة لتجنب التخزين المؤقت وتحديثها فوراً
           const updatedCategoryImages = (categoryImagesData || []).map(img => ({
             ...img,
-            image_url: `${img.image_url}?t=${timestamp}`
+            image_url: img.image_url.includes('?') 
+              ? `${img.image_url.split('?')[0]}?t=${timestamp}` 
+              : `${img.image_url}?t=${timestamp}`
           }));
           setCategoryImages(updatedCategoryImages);
         }
@@ -162,8 +164,9 @@ const ProductPreview = () => {
       }
     };
 
+    // استدعاء الدالة والتأكد من تنفيذها دائماً عند تغيير slug
     fetchStoreData();
-  }, [slug, toast, navigate, lang]);
+  }, [slug, toast, navigate]);
 
   if (isLoading) {
     return (
