@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { CSSProperties, useEffect, useState } from "react";
 import { CategoryImage } from "@/types/categoryImage";
@@ -40,9 +39,8 @@ const CategoryCard = ({
         src={image} 
         alt={category}
         className="w-full aspect-[16/9] object-cover transition-transform duration-300 group-hover:scale-110"
-        // إضافة خصائص لمنع التخزين المؤقت
         loading="eager"
-        fetchpriority="high"
+        fetchPriority="high" // Corrected to camel case
       />
       <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
         <h3 
