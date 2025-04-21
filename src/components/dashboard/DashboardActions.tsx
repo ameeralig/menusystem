@@ -63,9 +63,24 @@ const DashboardActions = () => {
 
   const handlePreviewProducts = async () => {
     try {
-      const url = await getStoreShortUrl();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "خطأ",
+          description: "يجب تسجيل الدخول أولاً",
+          variant: "destructive",
+          duration: 3000,
+        });
+        return;
+      }
       
-      if (!url) {
+      const { data: storeSettings } = await supabase
+        .from("store_settings")
+        .select("slug")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      
+      if (!storeSettings || !storeSettings.slug) {
         toast({
           title: "خطأ",
           description: "تعذر الحصول على رابط المتجر",
@@ -76,11 +91,11 @@ const DashboardActions = () => {
       }
       
       // استخراج الجزء الأخير من الرابط (slug)
-      const slug = url.split('/').pop();
+      const slug = storeSettings.slug;
       console.log("تم العثور على slug:", slug);
       
       if (slug) {
-        // فتح الرابط في نافذة جديدة مع إضافة معرف زمني لتجنب التخزين المؤقت
+        // إضافة معرف زمني لتجنب التخزين المؤقت
         const timestamp = new Date().getTime();
         // فتح الرابط الجديد مباشرة
         window.open(`/${slug}?t=${timestamp}`, '_blank');
