@@ -8,6 +8,7 @@ import ProductPreviewContainer from "@/components/store/ProductPreviewContainer"
 import StoreProductsDisplay from "@/components/store/StoreProductsDisplay";
 import SocialIcons from "@/components/store/SocialIcons";
 import FeedbackDialog from "@/components/store/FeedbackDialog";
+import { CategoryImage } from "@/types/categoryImage";
 
 type SocialLinks = {
   instagram?: string;
@@ -54,6 +55,7 @@ const ProductPreview = () => {
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [fontSettings, setFontSettings] = useState<FontSettings | undefined>();
   const [storeOwnerId, setStoreOwnerId] = useState<string | null>(null);
+  const [categoryImages, setCategoryImages] = useState<CategoryImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -116,6 +118,7 @@ const ProductPreview = () => {
           setContactInfo(storeSettings.contact_info as ContactInfo);
         }
 
+        // جلب المنتجات
         const { data: productsData, error: productsError } = await supabase
           .from("products")
           .select("*")
@@ -127,6 +130,18 @@ const ProductPreview = () => {
         }
 
         setProducts(productsData || []);
+
+        // جلب صور التصنيفات المخصصة
+        const { data: categoryImagesData, error: categoryImagesError } = await supabase
+          .from("category_images")
+          .select("*")
+          .eq("user_id", userId);
+
+        if (categoryImagesError) {
+          console.error("Error fetching category images:", categoryImagesError);
+        } else {
+          setCategoryImages(categoryImagesData || []);
+        }
 
       } catch (error: any) {
         console.error("Error fetching data:", error);
@@ -165,6 +180,7 @@ const ProductPreview = () => {
         colorTheme={colorTheme}
         fontSettings={fontSettings}
         contactInfo={contactInfo}
+        categoryImages={categoryImages}
       />
       <SocialIcons socialLinks={socialLinks} />
       {storeOwnerId && <FeedbackDialog userId={storeOwnerId} />}

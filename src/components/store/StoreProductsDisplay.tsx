@@ -8,6 +8,7 @@ import EmptyCategoryMessage from "@/components/store/EmptyCategoryMessage";
 import BackButton from "@/components/store/BackButton";
 import StoreHeader from "@/components/store/StoreHeader";
 import StoreInfo from "@/components/store/StoreInfo";
+import { CategoryImage } from "@/types/categoryImage";
 
 type FontSettings = {
   storeName?: {
@@ -41,6 +42,7 @@ interface StoreProductsDisplayProps {
   colorTheme: string | null;
   fontSettings?: FontSettings;
   contactInfo?: ContactInfo;
+  categoryImages?: CategoryImage[];
 }
 
 const StoreProductsDisplay = ({ 
@@ -48,7 +50,8 @@ const StoreProductsDisplay = ({
   storeName, 
   colorTheme,
   fontSettings,
-  contactInfo
+  contactInfo,
+  categoryImages = []
 }: StoreProductsDisplayProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -148,6 +151,7 @@ const StoreProductsDisplay = ({
           getCategoryImage={getCategoryImage} 
           onCategorySelect={handleCategorySelect} 
           fontSettings={fontSettings}
+          categoryImages={categoryImages}
         />
       )}
 

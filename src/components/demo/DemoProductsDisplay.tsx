@@ -7,14 +7,21 @@ import CategoryGrid from "@/components/store/CategoryGrid";
 import ProductGrid from "@/components/store/ProductGrid";
 import BackButton from "@/components/store/BackButton";
 import EmptyCategoryMessage from "@/components/store/EmptyCategoryMessage";
+import { CategoryImage } from "@/types/categoryImage";
 
 interface DemoProductsDisplayProps {
   products: Product[];
   storeName: string;
   colorTheme: string;
+  categoryImages?: CategoryImage[];
 }
 
-const DemoProductsDisplay = ({ products, storeName, colorTheme }: DemoProductsDisplayProps) => {
+const DemoProductsDisplay = ({ 
+  products, 
+  storeName, 
+  colorTheme,
+  categoryImages = []
+}: DemoProductsDisplayProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
@@ -44,6 +51,7 @@ const DemoProductsDisplay = ({ products, storeName, colorTheme }: DemoProductsDi
           categories={categories}
           getCategoryImage={getCategoryImage}
           onCategorySelect={setSelectedCategory}
+          categoryImages={categoryImages}
         />
       ) : (
         <>

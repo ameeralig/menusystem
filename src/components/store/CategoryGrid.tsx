@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { Product } from "@/types/product";
 import { CSSProperties, useEffect, useState } from "react";
+import { CategoryImage } from "@/types/categoryImage";
 
 interface FontSettings {
   categoryText?: {
@@ -16,6 +17,7 @@ interface CategoryGridProps {
   getCategoryImage: (category: string) => string;
   onCategorySelect: (category: string) => void;
   fontSettings?: FontSettings;
+  categoryImages?: CategoryImage[];
 }
 
 const CategoryCard = ({ 
@@ -56,7 +58,8 @@ const CategoryGrid = ({
   categories, 
   getCategoryImage, 
   onCategorySelect,
-  fontSettings 
+  fontSettings,
+  categoryImages = []
 }: CategoryGridProps) => {
   const [fontFaceLoaded, setFontFaceLoaded] = useState(false);
   const [fontId, setFontId] = useState<string>("");
@@ -95,6 +98,17 @@ const CategoryGrid = ({
     return {};
   };
 
+  // دالة للحصول على صورة التصنيف من مصفوفة الصور المخصصة إذا كانت موجودة
+  const getCustomCategoryImage = (category: string): string => {
+    // البحث عن صورة التصنيف المخصصة في المصفوفة
+    const customImage = categoryImages.find(img => img.category === category);
+    if (customImage) {
+      return customImage.image_url;
+    }
+    // استخدام دالة الصورة الافتراضية إذا لم تكن هناك صورة مخصصة
+    return getCategoryImage(category);
+  };
+
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
       {categories.map((category) => (
@@ -102,7 +116,7 @@ const CategoryGrid = ({
           <CategoryCard
             key={category}
             category={category}
-            image={getCategoryImage(category)}
+            image={getCustomCategoryImage(category)}
             onClick={() => onCategorySelect(category)}
             fontStyle={getCategoryTextStyle()}
           />

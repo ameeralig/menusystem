@@ -64,8 +64,10 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
     setImageUrl(url);
     if (url) {
       setPreviewUrl(url);
+      setBannerUrl(url);
     } else {
       setPreviewUrl(null);
+      setBannerUrl(null);
     }
     setError(null);
   };
