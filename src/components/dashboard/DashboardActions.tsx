@@ -1,4 +1,3 @@
-
 import { Plus, Edit, Eye, Link2, Settings, MessageSquare, QrCode } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -61,7 +60,6 @@ const DashboardActions = () => {
     }
   };
 
-  // زر المعاينة يفتح الرابط الموحد فقط
   const handlePreviewProducts = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -91,8 +89,8 @@ const DashboardActions = () => {
         return;
       }
 
-      // فتح الرابط بشكل مباشر على النطاق الرئيسي مع آخر slug
-      window.open(`${BASE_DOMAIN}/${storeSettings.slug}`, '_blank');
+      const timestamp = new Date().getTime();
+      window.open(`${BASE_DOMAIN}/${storeSettings.slug}?t=${timestamp}`, '_blank');
     } catch (error) {
       console.error("Preview error:", error);
       toast({
@@ -220,4 +218,3 @@ const DashboardActions = () => {
 };
 
 export default DashboardActions;
-
