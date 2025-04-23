@@ -2,6 +2,7 @@
 import BannerImageUploader from "@/components/store/BannerImageUploader";
 import ColorPickerSelector from "@/components/store/ColorPickerSelector";
 import FontStyleSelector from "@/components/store/FontStyleSelector";
+import { Button } from "@/components/ui/button";
 import { FontSettings } from "../../../pages/StoreCustomization";
 
 interface AppearanceSectionProps {
@@ -23,7 +24,7 @@ const AppearanceSection = ({
   handleBannerSubmit,
   colorTheme,
   setColorTheme,
-  // handleColorThemeSubmit,
+  handleColorThemeSubmit,
   fontSettings,
   setFontSettings,
   handleFontSettingsSubmit,
@@ -41,6 +42,16 @@ const AppearanceSection = ({
       setColor={setColorTheme}
       disabled={isLoading}
     />
+    <div className="mt-4 flex justify-end">
+      <Button 
+        type="button"
+        className="bg-[#ff9178] hover:bg-[#ff7d61] text-white"
+        onClick={handleColorThemeSubmit}
+        disabled={isLoading}
+      >
+        حفظ لون المتجر
+      </Button>
+    </div>
     <h3 className="text-lg font-medium mt-6 mb-2 text-right">تخصيص الخطوط</h3>
     <FontStyleSelector
       fontSettings={fontSettings}

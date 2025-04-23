@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Palette, ColorPicker, SwatchBook } from "lucide-react";
+import { Palette, SwatchBook } from "lucide-react";
 
 const defaultPresets = [
   "#ff9178", "#9b87f5", "#0EA5E9", "#22c55e", "#FDE047", "#D946EF",
