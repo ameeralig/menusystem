@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Product } from "@/types/product";
@@ -45,6 +45,7 @@ type FontSettings = {
 const ProductPreview = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -79,8 +80,9 @@ const ProductPreview = () => {
       try {
         setIsLoading(true);
 
-        if (!slug) {
-          console.error("No slug provided");
+        // التحقق من وجود slug
+        if (!slug || slug === ':slug') {
+          console.error("Invalid slug provided:", slug);
           navigate('/404');
           return;
         }
