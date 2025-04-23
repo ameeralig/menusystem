@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -6,22 +7,26 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import StoreNameEditor from "@/components/store/StoreNameEditor";
-import ColorThemeSelector from "@/components/store/ColorThemeSelector";
-import StoreSlugEditor from "@/components/store/StoreSlugEditor";
-import BannerImageUploader from "@/components/store/BannerImageUploader";
-import SocialLinksEditor from "@/components/store/SocialLinksEditor";
-import FontStyleSelector from "@/components/store/FontStyleSelector";
-import ContactInfoEditor from "@/components/store/ContactInfoEditor";
 import { Card } from "@/components/ui/card";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent
+} from "@/components/ui/accordion";
 
-type SocialLinks = {
+import BasicInfoSection from "@/components/store/customization/BasicInfoSection";
+import ContactInfoSection from "@/components/store/customization/ContactInfoSection";
+import AppearanceSection from "@/components/store/customization/AppearanceSection";
+import SocialLinksSection from "@/components/store/customization/SocialLinksSection";
+
+export type SocialLinks = {
   instagram: string;
   facebook: string;
   telegram: string;
 };
 
-type ContactInfo = {
+export type ContactInfo = {
   description: string;
   address: string;
   phone: string;
@@ -29,7 +34,7 @@ type ContactInfo = {
   businessHours: string;
 };
 
-type FontSettings = {
+export type FontSettings = {
   storeName: {
     family: string;
     isCustom: boolean;
@@ -200,7 +205,6 @@ const StoreCustomization = () => {
         duration: 3000,
       });
 
-      // Update local state for any settings that were changed
       if (updatedData.store_name !== undefined) setStoreName(updatedData.store_name);
       if (updatedData.color_theme !== undefined) setColorTheme(updatedData.color_theme);
       if (updatedData.slug !== undefined) setStoreSlug(updatedData.slug);
@@ -262,85 +266,73 @@ const StoreCustomization = () => {
           <ArrowLeft className="ml-2" />
           العودة للوحة التحكم
         </Button>
-
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="max-w-2xl mx-auto space-y-6"
         >
           <h1 className="text-3xl font-bold mb-6 text-right">تخصيص المتجر</h1>
-          
-          <div className="grid gap-6">
-            <Card className="p-6 shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-right">المعلومات الأساسية</h2>
-              <div className="space-y-6">
-                <StoreNameEditor 
-                  storeName={storeName}
-                  setStoreName={setStoreName}
-                  storeSlug={storeSlug}
-                  setStoreSlug={setStoreSlug}
-                  isEditing={false}
-                  setIsEditing={() => {}}
-                  handleSubmit={async () => { await handleNameSubmit(); }}
-                  isLoading={isLoading}
-                />
-                
-                <StoreSlugEditor
-                  storeSlug={storeSlug}
-                  setStoreSlug={setStoreSlug}
-                  isEditing={false}
-                  setIsEditing={() => {}}
-                  handleSubmit={async () => { await handleSlugSubmit(); }}
-                  isLoading={isLoading}
-                />
-              </div>
-            </Card>
-            
-            <Card className="p-6 shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-right">معلومات المتجر</h2>
-              <ContactInfoEditor 
-                initialContactInfo={contactInfo}
-                onSave={handleContactInfoSubmit}
-                isLoading={isLoading}
-              />
-            </Card>
-            
-            <Card className="p-6 shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-right">المظهر والتخصيص</h2>
-              <div className="space-y-6">
-                <BannerImageUploader 
-                  bannerUrl={bannerUrl}
-                  setBannerUrl={setBannerUrl}
-                  handleSubmit={async () => { await handleBannerSubmit(); }}
-                  isLoading={isLoading}
-                />
-                
-                <ColorThemeSelector 
-                  colorTheme={colorTheme}
-                  setColorTheme={setColorTheme}
-                  handleSubmit={async () => { await handleColorThemeSubmit(); }}
-                  isLoading={isLoading}
-                />
-                
-                <h3 className="text-lg font-medium mt-6 mb-2 text-right">تخصيص الخطوط</h3>
-                <FontStyleSelector
-                  fontSettings={fontSettings}
-                  setFontSettings={setFontSettings}
-                  handleSubmit={async () => { await handleFontSettingsSubmit(); }}
-                  isLoading={isLoading}
-                />
-              </div>
-            </Card>
-            
-            <Card className="p-6 shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-right">��وابط التواصل</h2>
-              <SocialLinksEditor 
-                initialSocialLinks={socialLinks}
-                onSave={handleSocialLinksSubmit}
-                isLoading={isLoading}
-              />
-            </Card>
-          </div>
+          <Accordion type="multiple" className="space-y-4">
+            <AccordionItem value="basic">
+              <AccordionTrigger className="text-xl font-semibold text-right">المعلومات الأساسية</AccordionTrigger>
+              <AccordionContent>
+                <Card className="p-6 shadow-md">
+                  <BasicInfoSection
+                    storeName={storeName}
+                    setStoreName={setStoreName}
+                    storeSlug={storeSlug}
+                    setStoreSlug={setStoreSlug}
+                    isLoading={isLoading}
+                    handleNameSubmit={handleNameSubmit}
+                    handleSlugSubmit={handleSlugSubmit}
+                  />
+                </Card>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="contact">
+              <AccordionTrigger className="text-xl font-semibold text-right">معلومات المتجر</AccordionTrigger>
+              <AccordionContent>
+                <Card className="p-6 shadow-md">
+                  <ContactInfoSection
+                    contactInfo={contactInfo}
+                    handleContactInfoSubmit={handleContactInfoSubmit}
+                    isLoading={isLoading}
+                  />
+                </Card>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="appearance">
+              <AccordionTrigger className="text-xl font-semibold text-right">المظهر والتخصيص</AccordionTrigger>
+              <AccordionContent>
+                <Card className="p-6 shadow-md">
+                  <AppearanceSection
+                    bannerUrl={bannerUrl}
+                    setBannerUrl={setBannerUrl}
+                    handleBannerSubmit={handleBannerSubmit}
+                    colorTheme={colorTheme}
+                    setColorTheme={setColorTheme}
+                    handleColorThemeSubmit={handleColorThemeSubmit}
+                    fontSettings={fontSettings}
+                    setFontSettings={setFontSettings}
+                    handleFontSettingsSubmit={handleFontSettingsSubmit}
+                    isLoading={isLoading}
+                  />
+                </Card>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="social">
+              <AccordionTrigger className="text-xl font-semibold text-right">روابط التواصل</AccordionTrigger>
+              <AccordionContent>
+                <Card className="p-6 shadow-md">
+                  <SocialLinksSection
+                    socialLinks={socialLinks}
+                    handleSocialLinksSubmit={handleSocialLinksSubmit}
+                    isLoading={isLoading}
+                  />
+                </Card>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </motion.div>
       </main>
     </div>
