@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -317,6 +316,16 @@ const StoreCustomization = () => {
                     handleFontSettingsSubmit={handleFontSettingsSubmit}
                     isLoading={isLoading}
                   />
+                  <div className="mt-4 flex justify-end">
+                    <Button 
+                      type="button"
+                      className="bg-[#ff9178] hover:bg-[#ff7d61] text-white"
+                      onClick={handleColorThemeSubmit}
+                      disabled={isLoading}
+                    >
+                      حفظ لون المتجر
+                    </Button>
+                  </div>
                 </Card>
               </AccordionContent>
             </AccordionItem>

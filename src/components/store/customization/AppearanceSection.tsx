@@ -1,6 +1,6 @@
 
 import BannerImageUploader from "@/components/store/BannerImageUploader";
-import ColorThemeSelector from "@/components/store/ColorThemeSelector";
+import ColorPickerSelector from "@/components/store/ColorPickerSelector";
 import FontStyleSelector from "@/components/store/FontStyleSelector";
 import { FontSettings } from "../../../pages/StoreCustomization";
 
@@ -23,7 +23,7 @@ const AppearanceSection = ({
   handleBannerSubmit,
   colorTheme,
   setColorTheme,
-  handleColorThemeSubmit,
+  // handleColorThemeSubmit,
   fontSettings,
   setFontSettings,
   handleFontSettingsSubmit,
@@ -36,11 +36,10 @@ const AppearanceSection = ({
       handleSubmit={handleBannerSubmit}
       isLoading={isLoading}
     />
-    <ColorThemeSelector
-      colorTheme={colorTheme}
-      setColorTheme={setColorTheme}
-      handleSubmit={handleColorThemeSubmit}
-      isLoading={isLoading}
+    <ColorPickerSelector
+      color={colorTheme}
+      setColor={setColorTheme}
+      disabled={isLoading}
     />
     <h3 className="text-lg font-medium mt-6 mb-2 text-right">تخصيص الخطوط</h3>
     <FontStyleSelector
