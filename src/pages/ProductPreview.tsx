@@ -1,6 +1,6 @@
 
-import { useEffect, useState } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Product } from "@/types/product";
@@ -9,6 +9,7 @@ import StoreProductsDisplay from "@/components/store/StoreProductsDisplay";
 import SocialIcons from "@/components/store/SocialIcons";
 import FeedbackDialog from "@/components/store/FeedbackDialog";
 import { CategoryImage } from "@/types/categoryImage";
+import { RefreshCw } from "lucide-react";
 
 type SocialLinks = {
   instagram?: string;
@@ -45,7 +46,6 @@ type FontSettings = {
 const ProductPreview = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
   const { toast } = useToast();
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -58,172 +58,182 @@ const ProductPreview = () => {
   const [storeOwnerId, setStoreOwnerId] = useState<string | null>(null);
   const [categoryImages, setCategoryImages] = useState<CategoryImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [forceRefresh, setForceRefresh] = useState<number>(Date.now());
 
-  // تنفيذ إعادة تحميل البيانات عند تغيير المعلمة t في عنوان URL
+  // تحديث معرف التحديث القسري عند تغيير معلمات URL
   useEffect(() => {
-    const handleUrlParamChange = () => {
-      // تحديث معرف التحديث القسري
+    const queryParams = new URLSearchParams(window.location.search);
+    if (queryParams.has('t') || queryParams.has('force') || queryParams.has('clearCache')) {
+      console.log("تم اكتشاف طلب التحديث القسري في URL");
       setForceRefresh(Date.now());
-    };
+    }
+  }, [window.location.search]);
 
-    // الاستماع لتغييرات عنوان URL
-    window.addEventListener('popstate', handleUrlParamChange);
-    
-    return () => {
-      window.removeEventListener('popstate', handleUrlParamChange);
-    };
+  // دالة لاستخراج معرف التحديث من URL
+  const getRefreshId = useCallback(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const timestamp = queryParams.get('t') || Date.now().toString();
+    const random = queryParams.get('r') || Math.random().toString(36).substring(2, 15);
+    return `${timestamp}_${random}`;
   }, []);
 
-  useEffect(() => {
-    const fetchStoreData = async () => {
+  // دالة لإعادة تحميل البيانات
+  const fetchStoreData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const refreshId = getRefreshId();
+      
+      console.log(`بدء تحميل بيانات المتجر... (${refreshId})`);
+
+      if (!slug) {
+        console.error("لا يوجد slug");
+        navigate('/404');
+        return;
+      }
+
+      console.log(`جاري البحث عن المتجر باستخدام: ${slug}`);
+
+      // البحث عن المتجر باستخدام slug مع تعطيل التخزين المؤقت
+      const { data: storeSettings, error: storeError } = await supabase
+        .from("store_settings")
+        .select("user_id, store_name, color_theme, social_links, banner_url, font_settings, contact_info")
+        .eq("slug", slug.trim())
+        .maybeSingle();
+
+      if (storeError) {
+        console.error("خطأ في جلب إعدادات المتجر:", storeError);
+        navigate('/404');
+        return;
+      }
+
+      if (!storeSettings || !storeSettings.store_name) {
+        console.error(`لم يتم العثور على إعدادات المتجر لـ slug: ${slug}`);
+        navigate('/404');
+        return;
+      }
+
+      const userId = storeSettings.user_id;
+      setStoreOwnerId(userId);
+
       try {
-        setIsLoading(true);
+        await supabase.rpc('increment_page_view', { 
+          store_user_id: userId 
+        });
+      } catch (error) {
+        console.error("خطأ في تتبع مشاهدات الصفحة:", error);
+      }
 
-        // التحقق من وجود slug
-        if (!slug || slug === ':slug') {
-          console.error("Invalid slug provided:", slug);
-          navigate('/404');
-          return;
+      setStoreName(storeSettings.store_name);
+      setColorTheme(storeSettings.color_theme || "default");
+      
+      // إضافة معرف تحديث فريد لكل الصور
+      const uniqueRefreshId = refreshId;
+      
+      if (storeSettings.banner_url) {
+        const bannerBaseUrl = storeSettings.banner_url.split('?')[0];
+        setBannerUrl(`${bannerBaseUrl}?t=${uniqueRefreshId}&nocache=${Math.random()}`);
+      } else {
+        setBannerUrl(null);
+      }
+      
+      if (storeSettings.social_links) {
+        setSocialLinks(storeSettings.social_links as SocialLinks);
+      }
+      
+      if (storeSettings.font_settings) {
+        setFontSettings(storeSettings.font_settings as FontSettings);
+      }
+      
+      if (storeSettings.contact_info) {
+        setContactInfo(storeSettings.contact_info as ContactInfo);
+      }
+
+      // جلب المنتجات مع تعطيل التخزين المؤقت
+      const { data: productsData, error: productsError } = await supabase
+        .from("products")
+        .select("*")
+        .eq("user_id", userId);
+
+      if (productsError) {
+        console.error("خطأ في جلب المنتجات:", productsError);
+        throw new Error("حدث خطأ أثناء جلب المنتجات");
+      }
+
+      // إضافة معرف تحديث لكل صور المنتجات
+      const updatedProducts = (productsData || []).map(product => {
+        if (product.image_url) {
+          const imageBaseUrl = product.image_url.split('?')[0];
+          return {
+            ...product, 
+            image_url: `${imageBaseUrl}?t=${uniqueRefreshId}&nocache=${Math.random()}`
+          };
         }
+        return product;
+      });
 
-        console.log("Fetching store with slug:", slug);
+      setProducts(updatedProducts);
 
-        // البحث عن المتجر باستخدام slug
-        const { data: storeSettings, error: storeError } = await supabase
-          .from("store_settings")
-          .select("user_id, store_name, color_theme, social_links, banner_url, font_settings, contact_info")
-          .eq("slug", slug.trim())
-          .maybeSingle();
+      // جلب صور التصنيفات مع تعطيل التخزين المؤقت
+      const { data: categoryImagesData, error: categoryImagesError } = await supabase
+        .from("category_images")
+        .select("*")
+        .eq("user_id", userId);
 
-        if (storeError) {
-          console.error("Error fetching store settings:", storeError);
-          navigate('/404');
-          return;
-        }
-
-        if (!storeSettings || !storeSettings.store_name) {
-          console.error("Store settings not found for slug:", slug);
-          navigate('/404');
-          return;
-        }
-
-        const userId = storeSettings.user_id;
-        setStoreOwnerId(userId);
-
-        try {
-          await supabase.rpc('increment_page_view', { 
-            store_user_id: userId 
-          });
-        } catch (error) {
-          console.error("Error tracking page view:", error);
-        }
-
-        setStoreName(storeSettings.store_name);
-        setColorTheme(storeSettings.color_theme || "default");
-        
-        // إضافة معرف زمني فريد لمنع التخزين المؤقت لجميع الصور
-        const uniqueTimestamp = forceRefresh || Date.now();
-        
-        if (storeSettings.banner_url) {
-          const bannerBaseUrl = storeSettings.banner_url.split('?')[0];
-          setBannerUrl(`${bannerBaseUrl}?t=${uniqueTimestamp}`);
-        } else {
-          setBannerUrl(null);
-        }
-        
-        // تحديث البيانات مع التحقق من الأنواع
-        if (storeSettings.social_links) {
-          setSocialLinks(storeSettings.social_links as SocialLinks);
-        }
-        
-        if (storeSettings.font_settings) {
-          setFontSettings(storeSettings.font_settings as FontSettings);
-        }
-        
-        if (storeSettings.contact_info) {
-          setContactInfo(storeSettings.contact_info as ContactInfo);
-        }
-
-        // جلب المنتجات
-        const { data: productsData, error: productsError } = await supabase
-          .from("products")
-          .select("*")
-          .eq("user_id", userId);
-
-        if (productsError) {
-          console.error("Error fetching products:", productsError);
-          throw new Error("حدث خطأ أثناء جلب المنتجات");
-        }
-
-        // إضافة معرف زمني للصور مع استخدام الطابع الزمني الفريد
-        const updatedProducts = (productsData || []).map(product => {
-          if (product.image_url) {
-            const imageBaseUrl = product.image_url.split('?')[0];
+      if (categoryImagesError) {
+        console.error("خطأ في جلب صور التصنيفات:", categoryImagesError);
+      } else {
+        // إضافة معرف تحديث لكل صور التصنيفات
+        const updatedCategoryImages = (categoryImagesData || []).map(img => {
+          if (img.image_url) {
+            const imageBaseUrl = img.image_url.split('?')[0];
             return {
-              ...product, 
-              image_url: `${imageBaseUrl}?t=${uniqueTimestamp}&nocache=${Math.random()}`
+              ...img,
+              image_url: `${imageBaseUrl}?t=${uniqueRefreshId}&nocache=${Math.random()}`
             };
           }
-          return product;
+          return img;
         });
-
-        setProducts(updatedProducts);
-
-        // جلب صور التصنيفات المخصصة
-        const { data: categoryImagesData, error: categoryImagesError } = await supabase
-          .from("category_images")
-          .select("*")
-          .eq("user_id", userId);
-
-        if (categoryImagesError) {
-          console.error("Error fetching category images:", categoryImagesError);
-        } else {
-          // إضافة معرف زمني لكل صورة مع إضافة قيمة عشوائية لتجنب التخزين المؤقت نهائيًا
-          const updatedCategoryImages = (categoryImagesData || []).map(img => {
-            if (img.image_url) {
-              const imageBaseUrl = img.image_url.split('?')[0];
-              return {
-                ...img,
-                image_url: `${imageBaseUrl}?t=${uniqueTimestamp}&nocache=${Math.random()}`
-              };
-            }
-            return img;
-          });
-          setCategoryImages(updatedCategoryImages);
-        }
-
-      } catch (error: any) {
-        console.error("Error fetching data:", error);
-        toast({
-          title: "حدث خطأ",
-          description: error.message,
-          variant: "destructive",
-        });
-        navigate('/404');
-      } finally {
-        setIsLoading(false);
+        
+        console.log(`تم جلب ${updatedCategoryImages.length} صورة تصنيف`);
+        setCategoryImages(updatedCategoryImages);
       }
-    };
 
+      console.log(`تم تحميل بيانات المتجر بنجاح (${refreshId})`);
+
+    } catch (error: any) {
+      console.error("خطأ في جلب البيانات:", error);
+      toast({
+        title: "حدث خطأ",
+        description: error.message,
+        variant: "destructive",
+      });
+      navigate('/404');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [slug, toast, navigate, getRefreshId]);
+
+  // تنفيذ جلب البيانات عند تحميل الصفحة أو تغيير slug أو طلب التحديث
+  useEffect(() => {
     fetchStoreData();
-  }, [slug, toast, navigate, forceRefresh]); // إضافة forceRefresh للاعتماديات
+  }, [fetchStoreData, forceRefresh]);
 
-  // وظيفة تحديث الصفحة يدويًا لتجنب مشاكل التخزين المؤقت
-  const forceReload = () => {
-    window.location.reload();
-  };
-
-  // عرض زر التحديث اليدوي إذا كان هناك مشكلة في تحميل الصور
-  const renderRefreshButton = () => {
-    return (
-      <button 
-        onClick={forceReload}
-        className="fixed bottom-4 right-4 bg-primary text-white px-4 py-2 rounded-full shadow-lg z-50"
-      >
-        تحديث الصفحة
-      </button>
-    );
+  // وظيفة تحديث البيانات يدوياً
+  const handleManualRefresh = () => {
+    setIsRefreshing(true);
+    // تعيين معرف تحديث جديد للتأكد من إعادة تحميل البيانات
+    setForceRefresh(Date.now());
+    
+    // إضافة تأخير قصير للتأكد من وضوح حالة التحديث للمستخدم
+    setTimeout(() => {
+      setIsRefreshing(false);
+      toast({
+        title: "تم التحديث",
+        description: "تم تحديث بيانات المتجر بنجاح",
+        duration: 2000,
+      });
+    }, 1500);
   };
 
   if (isLoading) {
@@ -253,7 +263,16 @@ const ProductPreview = () => {
         <SocialIcons socialLinks={socialLinks} />
         {storeOwnerId && <FeedbackDialog userId={storeOwnerId} />}
       </ProductPreviewContainer>
-      {renderRefreshButton()}
+      
+      {/* زر التحديث اليدوي */}
+      <button 
+        onClick={handleManualRefresh}
+        disabled={isRefreshing}
+        className="fixed bottom-4 right-4 bg-primary text-white px-4 py-2 rounded-full shadow-lg z-50 flex items-center gap-2 hover:bg-primary/90 active:bg-primary/80 transition-all"
+      >
+        <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+        {isRefreshing ? "جاري التحديث..." : "تحديث الصفحة"}
+      </button>
     </>
   );
 };

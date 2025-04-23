@@ -39,24 +39,6 @@ export const createUniqueFilePath = (userId: string, folder: string, file: File)
   const fileExt = file.name.split('.').pop();
   // استبدال الأحرف الخاصة والمسافات بشرطة سفلية
   const sanitizedFolder = folder.replace(/\s+/g, '_').replace(/[^\w.-]/g, '_');
-  // إضافة طابع زمني وقيمة عشوائية أكثر تعقيداً
-  const uniqueId = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
-  const fileName = `${userId}_${uniqueId}.${fileExt}`;
+  const fileName = `${userId}_${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
   return `${sanitizedFolder}/${fileName}`;
-};
-
-/**
- * إنشاء رابط بمعلمات لمنع التخزين المؤقت
- * @param baseUrl الرابط الأساسي للصورة
- * @returns الرابط مع معلمات لمنع التخزين المؤقت
- */
-export const createNoCacheImageUrl = (baseUrl: string): string => {
-  if (!baseUrl) return '';
-  
-  // إزالة أي معلمات موجودة سابقاً
-  const cleanUrl = baseUrl.split('?')[0];
-  
-  // إضافة معرف فريد ومعلمات لمنع التخزين المؤقت
-  const uniqueId = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
-  return `${cleanUrl}?v=${uniqueId}&nocache=${Math.random().toString(36).substring(2)}`;
 };

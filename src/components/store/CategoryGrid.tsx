@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { CSSProperties, useEffect, useState } from "react";
 import { CategoryImage } from "@/types/categoryImage";
@@ -39,8 +40,6 @@ const CategoryCard = ({
         src={image} 
         alt={category}
         className="w-full aspect-[16/9] object-cover transition-transform duration-300 group-hover:scale-110"
-        loading="eager"
-        fetchPriority="high" // Corrected to camel case
       />
       <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
         <h3 
@@ -63,12 +62,6 @@ const CategoryGrid = ({
 }: CategoryGridProps) => {
   const [fontFaceLoaded, setFontFaceLoaded] = useState(false);
   const [fontId, setFontId] = useState<string>("");
-  const [refreshKey, setRefreshKey] = useState<number>(Date.now());
-  
-  // تحديث مفتاح التحديث عند تغير قائمة categoryImages
-  useEffect(() => {
-    setRefreshKey(Date.now());
-  }, [categoryImages]);
   
   useEffect(() => {
     if (fontSettings?.categoryText?.isCustom && fontSettings?.categoryText?.customFontUrl) {
@@ -110,50 +103,29 @@ const CategoryGrid = ({
     const customImage = categoryImages?.find(img => img.category === category);
     
     if (customImage && customImage.image_url) {
-      // إضافة معرف زمني وقيمة عشوائية للتأكد من منع التخزين المؤقت
-      const baseUrl = customImage.image_url.split('?')[0];
-      const cacheParams = `?v=${refreshKey}&nocache=${Math.random().toString(36).substring(2)}`;
-      
-      return `${baseUrl}${cacheParams}`;
+      // التأكد من أن الصورة تحتوي على معرف فريد للتحديث
+      return customImage.image_url;
     }
     
     // استخدام دالة الصورة الافتراضية إذا لم تكن هناك صورة مخصصة
     return getCategoryImage(category);
   };
 
-  // إضافة زر لتحديث الصور يدويًا
-  const forceRefresh = () => {
-    setRefreshKey(Date.now());
-  };
+  console.log("Rendering CategoryGrid with", categoryImages.length, "category images");
 
   return (
-    <div className="space-y-6">
-      {categories.length > 0 && (
-        <div className="flex justify-end mb-2">
-          <button
-            onClick={forceRefresh}
-            className="text-xs text-gray-500 dark:text-gray-400 hover:text-primary flex items-center gap-1"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            تحديث الصور
-          </button>
-        </div>
-      )}
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
-        {categories.map((category) => (
-          category && (
-            <CategoryCard
-              key={`${category}-${refreshKey}`}
-              category={category}
-              image={getCustomCategoryImage(category)}
-              onClick={() => onCategorySelect(category)}
-              fontStyle={getCategoryTextStyle()}
-            />
-          )
-        ))}
-      </div>
+    <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
+      {categories.map((category) => (
+        category && (
+          <CategoryCard
+            key={category}
+            category={category}
+            image={getCustomCategoryImage(category)}
+            onClick={() => onCategorySelect(category)}
+            fontStyle={getCategoryTextStyle()}
+          />
+        )
+      ))}
     </div>
   );
 };

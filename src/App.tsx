@@ -4,8 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { SpeedInsights } from "@vercel/speed-insights/react";
-import { Analytics } from "@vercel/analytics/react";
 import Index from "./pages/Index";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
@@ -30,8 +28,6 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <SpeedInsights />
-      <Analytics />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
@@ -41,6 +37,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/add-product" element={<AddProduct />} />
           <Route path="/products" element={<ProductsDemo />} />
+          {/* إبقاء رابط المعاينة المركزي فقط */}
           <Route path="/:slug" element={<ProductPreview />} />
           <Route path="/edit-product" element={<EditProduct />} />
           <Route path="/edit-product/:productId" element={<EditProduct />} />
