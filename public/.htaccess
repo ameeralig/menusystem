@@ -1,0 +1,13 @@
+
+RewriteEngine On
+# توجيه /ar/p/:slug و /p/:slug إلى /:slug
+RewriteRule ^ar/p/(.*)$ /$1 [R=301,L]
+RewriteRule ^p/(.*)$ /$1 [R=301,L]
+
+# التأكد من أن الملفات الحقيقية/المجلدات الفعلية لا تخضع لإعادة الكتابة
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# إعادة كتابة كل المسارات الأخرى إلى /index.html
+RewriteRule ^ index.html [L]
