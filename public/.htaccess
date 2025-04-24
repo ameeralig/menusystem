@@ -1,0 +1,26 @@
+
+# تمكين إعادة الكتابة للتوجيهات
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # إعادة التوجيه من المسارات القديمة
+  RewriteRule ^ar/p/(.*)$ /$1 [R=301,L]
+  RewriteRule ^p/(.*)$ /$1 [R=301,L]
+  
+  # عدم إعادة التوجيه للملفات والمجلدات الموجودة بالفعل
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  
+  # توجيه كل الطلبات الأخرى إلى index.html
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# منع التخزين المؤقت للصور
+<IfModule mod_headers.c>
+  <FilesMatch "\.(jpg|jpeg|png|gif|webp|svg)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires 0
+  </FilesMatch>
+</IfModule>
