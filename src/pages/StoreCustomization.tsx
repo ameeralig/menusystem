@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -6,14 +7,12 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import StoreNameEditor from "@/components/store/StoreNameEditor";
-import ColorThemeSelector from "@/components/store/ColorThemeSelector";
-import StoreSlugEditor from "@/components/store/StoreSlugEditor";
-import BannerImageUploader from "@/components/store/BannerImageUploader";
-import SocialLinksEditor from "@/components/store/SocialLinksEditor";
-import FontStyleSelector from "@/components/store/FontStyleSelector";
-import ContactInfoEditor from "@/components/store/ContactInfoEditor";
-import { Card } from "@/components/ui/card";
+import StoreDetailsSection from "@/components/store/customization/StoreDetailsSection";
+import ContactInfoSection from "@/components/store/customization/ContactInfoSection";
+import AppearanceSection from "@/components/store/customization/AppearanceSection";
+import SocialLinksSection from "@/components/store/customization/SocialLinksSection";
+import ProductPreviewContainer from "@/components/store/ProductPreviewContainer";
+import StoreProductsDisplay from "@/components/store/StoreProductsDisplay";
 
 type SocialLinks = {
   instagram: string;
@@ -86,11 +85,13 @@ const StoreCustomization = () => {
     telegram: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [dummyProducts, setDummyProducts] = useState([]);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     fetchStoreSettings();
+    fetchDummyProducts();
   }, []);
 
   const fetchStoreSettings = async () => {
@@ -140,6 +141,38 @@ const StoreCustomization = () => {
     } catch (error) {
       console.error("Error fetching store settings:", error);
     }
+  };
+
+  // جلب منتجات وهمية للمعاينة
+  const fetchDummyProducts = async () => {
+    // هنا يمكن استبدالها بمنتجات المستخدم الفعلية للمعاينة
+    // لكن حالياً نستخدم منتجات وهمية للمعاينة فقط
+    setDummyProducts([
+      {
+        id: 1,
+        name: "منتج تجريبي 1",
+        description: "وصف للمنتج التجريبي الأول",
+        price: 100,
+        category: "تصنيف 1",
+        image_url: "https://placehold.co/300x200"
+      },
+      {
+        id: 2,
+        name: "منتج تجريبي 2",
+        description: "وصف للمنتج التجريبي الثاني",
+        price: 200,
+        category: "تصنيف 1",
+        image_url: "https://placehold.co/300x200"
+      },
+      {
+        id: 3,
+        name: "منتج تجريبي 3",
+        description: "وصف للمنتج التجريبي الثالث",
+        price: 150,
+        category: "تصنيف 2",
+        image_url: "https://placehold.co/300x200"
+      }
+    ]);
   };
 
   const saveStoreSettings = async (updatedData: Partial<{
@@ -200,7 +233,7 @@ const StoreCustomization = () => {
         duration: 3000,
       });
 
-      // Update local state for any settings that were changed
+      // تحديث البيانات المحلية لأي إعدادات تم تغييرها
       if (updatedData.store_name !== undefined) setStoreName(updatedData.store_name);
       if (updatedData.color_theme !== undefined) setColorTheme(updatedData.color_theme);
       if (updatedData.slug !== undefined) setStoreSlug(updatedData.slug);
@@ -263,85 +296,80 @@ const StoreCustomization = () => {
           العودة للوحة التحكم
         </Button>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-2xl mx-auto space-y-6"
-        >
-          <h1 className="text-3xl font-bold mb-6 text-right">تخصيص المتجر</h1>
-          
-          <div className="grid gap-6">
-            <Card className="p-6 shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-right">المعلومات الأساسية</h2>
-              <div className="space-y-6">
-                <StoreNameEditor 
-                  storeName={storeName}
-                  setStoreName={setStoreName}
-                  storeSlug={storeSlug}
-                  setStoreSlug={setStoreSlug}
-                  isEditing={false}
-                  setIsEditing={() => {}}
-                  handleSubmit={async () => { await handleNameSubmit(); }}
-                  isLoading={isLoading}
-                />
-                
-                <StoreSlugEditor
-                  storeSlug={storeSlug}
-                  setStoreSlug={setStoreSlug}
-                  isEditing={false}
-                  setIsEditing={() => {}}
-                  handleSubmit={async () => { await handleSlugSubmit(); }}
-                  isLoading={isLoading}
-                />
-              </div>
-            </Card>
-            
-            <Card className="p-6 shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-right">معلومات المتجر</h2>
-              <ContactInfoEditor 
-                initialContactInfo={contactInfo}
-                onSave={handleContactInfoSubmit}
-                isLoading={isLoading}
-              />
-            </Card>
-            
-            <Card className="p-6 shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-right">المظهر والتخصيص</h2>
-              <div className="space-y-6">
-                <BannerImageUploader 
+        <h1 className="text-3xl font-bold mb-6 text-right">تخصيص المتجر</h1>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* المعاينة المباشرة - عرض المتجر */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="lg:col-span-5 order-2 lg:order-1"
+          >
+            <div className="sticky top-24">
+              <h2 className="text-xl font-semibold mb-4 text-right">معاينة المتجر</h2>
+              <div className="border rounded-lg overflow-hidden shadow-md max-h-[600px] overflow-y-auto">
+                <ProductPreviewContainer 
+                  colorTheme={colorTheme} 
                   bannerUrl={bannerUrl}
-                  setBannerUrl={setBannerUrl}
-                  handleSubmit={async () => { await handleBannerSubmit(); }}
-                  isLoading={isLoading}
-                />
-                
-                <ColorThemeSelector 
-                  colorTheme={colorTheme}
-                  setColorTheme={setColorTheme}
-                  handleSubmit={async () => { await handleColorThemeSubmit(); }}
-                  isLoading={isLoading}
-                />
-                
-                <h3 className="text-lg font-medium mt-6 mb-2 text-right">تخصيص الخطوط</h3>
-                <FontStyleSelector
                   fontSettings={fontSettings}
-                  setFontSettings={setFontSettings}
-                  handleSubmit={async () => { await handleFontSettingsSubmit(); }}
-                  isLoading={isLoading}
-                />
+                  containerHeight="auto"
+                >
+                  <StoreProductsDisplay 
+                    products={dummyProducts} 
+                    storeName={storeName || "اسم المتجر"} 
+                    colorTheme={colorTheme}
+                    fontSettings={fontSettings}
+                    contactInfo={contactInfo}
+                    categoryImages={[]}
+                  />
+                </ProductPreviewContainer>
               </div>
-            </Card>
-            
-            <Card className="p-6 shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-right">��وابط التواصل</h2>
-              <SocialLinksEditor 
-                initialSocialLinks={socialLinks}
-                onSave={handleSocialLinksSubmit}
-                isLoading={isLoading}
-              />
-            </Card>
-          </div>
-        </motion.div>
+            </div>
+          </motion.div>
+
+          {/* أقسام التخصيص */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="lg:col-span-7 order-1 lg:order-2"
+          >
+            <StoreDetailsSection 
+              storeName={storeName}
+              setStoreName={setStoreName}
+              storeSlug={storeSlug}
+              setStoreSlug={setStoreSlug}
+              handleNameSubmit={handleNameSubmit}
+              handleSlugSubmit={handleSlugSubmit}
+              isLoading={isLoading}
+            />
+
+            <ContactInfoSection 
+              contactInfo={contactInfo}
+              handleContactInfoSubmit={handleContactInfoSubmit}
+              isLoading={isLoading}
+            />
+
+            <AppearanceSection 
+              colorTheme={colorTheme}
+              setColorTheme={setColorTheme}
+              bannerUrl={bannerUrl}
+              setBannerUrl={setBannerUrl}
+              fontSettings={fontSettings}
+              setFontSettings={setFontSettings}
+              handleColorThemeSubmit={handleColorThemeSubmit}
+              handleBannerSubmit={handleBannerSubmit}
+              handleFontSettingsSubmit={handleFontSettingsSubmit}
+              isLoading={isLoading}
+            />
+
+            <SocialLinksSection 
+              socialLinks={socialLinks}
+              handleSocialLinksSubmit={handleSocialLinksSubmit}
+              isLoading={isLoading}
+            />
+          </motion.div>
+        </div>
       </main>
     </div>
   );
