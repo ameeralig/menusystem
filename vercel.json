@@ -1,8 +1,0 @@
-
-{
-  "routes": [
-    { "src": "/ar/p/:slug", "dest": "/:slug", "status": 301 },
-    { "src": "/p/:slug", "dest": "/:slug", "status": 301 },
-    { "src": "/(.*)", "dest": "/index.html" }
-  ]
-}
