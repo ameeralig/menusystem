@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
@@ -19,18 +18,11 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        // تعديل النمط ليتناسب مع الألوان الجديدة
-        "3d": "btn-3d bg-gradient-to-br from-[#c156f1] to-[#9a3ed0] text-white",
-        "3d-accent": "btn-3d-accent bg-gradient-to-br from-[#41fadc] to-[#2ee8c9] text-[#1f1226] font-bold",
-        "3d-secondary": "btn-3d bg-gradient-to-br from-[#6f3ea7] to-[#543086] text-white",
-        "glow": "relative bg-gradient-to-r from-[#c156f1] to-[#9a3ed0] text-white before:absolute before:inset-0 before:-z-10 before:rounded-md before:bg-[#c156f1] before:blur-md",
-        "glass": "backdrop-blur-lg bg-white/10 border border-white/20 text-white hover:bg-white/20"
       },
       size: {
         default: "h-10 px-4 py-2",
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
-        xl: "h-12 text-base rounded-xl px-10 py-3",
         icon: "h-10 w-10",
       },
     },
