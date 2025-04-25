@@ -121,3 +121,27 @@
     transform: scale(1.05);
   }
 }
+
+@layer base {
+  .auth-container {
+    @apply min-h-screen flex items-center justify-center bg-gradient-to-br from-background/50 to-background;
+    background-image: radial-gradient(
+      circle at center,
+      rgba(var(--primary) / 0.1),
+      transparent 70%
+    );
+  }
+
+  .auth-card {
+    @apply w-full max-w-md p-8 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300;
+    @apply backdrop-blur-lg bg-white/10 dark:bg-black/10 border border-white/20 dark:border-white/10;
+  }
+  
+  .auth-card:hover {
+    @apply shadow-[0_8px_32px_rgba(0,0,0,0.18)] scale-[1.01];
+  }
+
+  .auth-title {
+    @apply text-3xl font-bold bg-gradient-to-br from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent mb-8;
+  }
+}

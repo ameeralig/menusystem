@@ -45,11 +45,11 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
+    <div className="auth-container">
+      <div className="auth-card">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900">إنشاء حساب جديد</h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <h2 className="auth-title">إنشاء حساب جديد</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
             لديك حساب بالفعل؟{" "}
             <button
               onClick={() => navigate("/auth/login")}

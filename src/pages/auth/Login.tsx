@@ -7,13 +7,11 @@ const Login = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-background">
-      <div className="w-full max-w-md p-8 bg-white dark:bg-card rounded-lg shadow-lg">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-            تسجيل الدخول
-          </h2>
-        </div>
+    <div className="auth-container">
+      <div className="auth-card">
+        <h2 className="auth-title">
+          تسجيل الدخول
+        </h2>
 
         <LoginForm />
 
@@ -39,4 +37,3 @@ const Login = () => {
 };
 
 export default Login;
-
