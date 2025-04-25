@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -105,7 +104,7 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="p-6 bg-white rounded-lg shadow-md text-center"
+            className="p-6 bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg shadow-[0_8px_32px_0_rgba(31,18,38,0.37)] hover:shadow-[0_8px_32px_0_rgba(31,18,38,0.47)] transition-all duration-300 text-center transform hover:scale-105"
           >
             <div className="h-14 w-14 sm:h-16 sm:w-16 bg-[#fff0e8] rounded-full flex items-center justify-center mx-auto mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8 text-[#ff9178]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -120,7 +119,7 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="p-6 bg-white rounded-lg shadow-md text-center"
+            className="p-6 bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg shadow-[0_8px_32px_0_rgba(31,18,38,0.37)] hover:shadow-[0_8px_32px_0_rgba(31,18,38,0.47)] transition-all duration-300 text-center transform hover:scale-105"
           >
             <div className="h-14 w-14 sm:h-16 sm:w-16 bg-[#fff0e8] rounded-full flex items-center justify-center mx-auto mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8 text-[#ff9178]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -135,7 +134,7 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="p-6 bg-white rounded-lg shadow-md text-center"
+            className="p-6 bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg shadow-[0_8px_32px_0_rgba(31,18,38,0.37)] hover:shadow-[0_8px_32px_0_rgba(31,18,38,0.47)] transition-all duration-300 text-center transform hover:scale-105"
           >
             <div className="h-14 w-14 sm:h-16 sm:w-16 bg-[#fff0e8] rounded-full flex items-center justify-center mx-auto mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8 text-[#ff9178]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -153,7 +152,7 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}
-            className="p-6 bg-white rounded-lg shadow-md text-center"
+            className="p-6 bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg shadow-[0_8px_32px_0_rgba(31,18,38,0.37)] hover:shadow-[0_8px_32px_0_rgba(31,18,38,0.47)] transition-all duration-300 text-center transform hover:scale-105"
           >
             <div className="h-14 w-14 sm:h-16 sm:w-16 bg-[#fff0e8] rounded-full flex items-center justify-center mx-auto mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8 text-[#ff9178]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -168,7 +167,7 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.0 }}
-            className="p-6 bg-white rounded-lg shadow-md text-center"
+            className="p-6 bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg shadow-[0_8px_32px_0_rgba(31,18,38,0.37)] hover:shadow-[0_8px_32px_0_rgba(31,18,38,0.47)] transition-all duration-300 text-center transform hover:scale-105"
           >
             <div className="h-14 w-14 sm:h-16 sm:w-16 bg-[#fff0e8] rounded-full flex items-center justify-center mx-auto mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8 text-[#ff9178]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -183,7 +182,7 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.2 }}
-            className="p-6 bg-white rounded-lg shadow-md text-center"
+            className="p-6 bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg shadow-[0_8px_32px_0_rgba(31,18,38,0.37)] hover:shadow-[0_8px_32px_0_rgba(31,18,38,0.47)] transition-all duration-300 text-center transform hover:scale-105"
           >
             <div className="h-14 w-14 sm:h-16 sm:w-16 bg-[#fff0e8] rounded-full flex items-center justify-center mx-auto mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8 text-[#ff9178]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
