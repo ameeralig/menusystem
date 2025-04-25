@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -24,65 +25,41 @@ export default {
         ring: 'hsl(var(--ring))',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
-        coral: {
-          50: '#fff1f1',
-          100: '#ffe1e1',
-          200: '#ffc7c7',
-          300: '#ffa0a0',
-          400: '#ff7171',
-          500: '#ff4141',
-          600: '#ff1f1f',
-          700: '#e60000',
-          800: '#c00000',
-          900: '#a00000',
+        purple: {
+          50: '#f3e8ff',
+          100: '#e4d0ff',
+          200: '#d0b0ff',
+          300: '#c156f1',
+          400: '#9a3ed0',
+          500: '#6f3ea7',
+          600: '#5a3286',
+          700: '#462769',
+          800: '#341d4f',
+          900: '#1f1226',
         },
         teal: {
-          50: '#f0fdfa',
-          100: '#ccfbf1',
-          200: '#99f6e4',
-          300: '#5eead4',
-          400: '#2dd4bf',
-          500: '#14b8a6',
-          600: '#0d9488',
-          700: '#0f766e',
-          800: '#115e59',
-          900: '#134e4a',
+          50: '#e6fffc',
+          100: '#ccfff8',
+          200: '#99fff3',
+          300: '#41fadc',
+          400: '#1bdcc0',
+          500: '#0fb5a1',
+          600: '#0a8d7d',
+          700: '#06665c',
+          800: '#044941',
+          900: '#022d28',
         },
-        amber: {
-          50: '#fffbeb',
-          100: '#fef3c7',
-          200: '#fde68a',
-          300: '#fcd34d',
-          400: '#fbbf24',
-          500: '#f59e0b',
-          600: '#d97706',
-          700: '#b45309',
-          800: '#92400e',
-          900: '#78350f',
-        },
-        indigo: {
-          50: '#eef2ff',
-          100: '#e0e7ff',
-          200: '#c7d2fe',
-          300: '#a5b4fc',
-          400: '#818cf8',
-          500: '#6366f1',
-          600: '#4f46e5',
-          700: '#4338ca',
-          800: '#3730a3',
-          900: '#312e81',
-        },
-        rose: {
-          50: '#fff1f2',
-          100: '#ffe4e6',
-          200: '#fecdd3',
-          300: '#fda4af',
-          400: '#fb7185',
-          500: '#f43f5e',
-          600: '#e11d48',
-          700: '#be123c',
-          800: '#9f1239',
-          900: '#881337',
+        pink: {
+          50: '#fdf6ff',
+          100: '#fbeeff',
+          200: '#f8deff',
+          300: '#eebffe',
+          400: '#e49efc',
+          500: '#d07ef5',
+          600: '#b761da',
+          700: '#9247b6',
+          800: '#6c3489',
+          900: '#482159',
         },
         primary: {
           DEFAULT: 'hsl(var(--primary))',
@@ -136,11 +113,33 @@ export default {
         'accordion-up': {
           from: { height: 'var(--radix-accordion-content-height)' },
           to: { height: '0' }
+        },
+        'float': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+        'pulse-glow': {
+          '0%, 100%': { 
+            opacity: '1',
+            filter: 'brightness(1)',
+          },
+          '50%': { 
+            opacity: '0.8',
+            filter: 'brightness(1.2)',
+          }
+        },
+        'gradient-shift': {
+          '0%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+          '100%': { backgroundPosition: '0% 50%' }
         }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out'
+        'accordion-up': 'accordion-up 0.2s ease-out',
+        'float': 'float 6s ease-in-out infinite',
+        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+        'gradient-shift': 'gradient-shift 3s ease infinite'
       }
     }
   },

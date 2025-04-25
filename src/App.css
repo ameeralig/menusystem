@@ -12,21 +12,24 @@
   }
 }
 
+/* تأثيرات إضافية للشعار */
 .logo {
   height: 6em;
   padding: 1.5em;
   will-change: filter;
   transition: filter 300ms;
+  filter: drop-shadow(0 0 0.75em rgba(193, 86, 241, 0.6));
 }
 
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+  filter: drop-shadow(0 0 2em rgba(193, 86, 241, 0.8));
 }
 
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  filter: drop-shadow(0 0 2em rgba(65, 250, 220, 0.8));
 }
 
+/* تأثير دوران اللوجو */
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);
@@ -42,6 +45,52 @@
   }
 }
 
+/* تأثير الضوء المتلاشي للأزرار */
+@keyframes button-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(193, 86, 241, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(193, 86, 241, 0.9);
+  }
+}
+
+/* تأثير تدرج متحرك للخلفيات */
+.gradient-bg {
+  background: linear-gradient(45deg, #1f1226, #6f3ea7, #1f1226);
+  background-size: 300% 300%;
+  animation: gradient-shift 10s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* تأثيرات حركية للعناصر */
+.hover-scale {
+  transition: transform 0.3s ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+/* تأثير الكارت الزجاجي المحسن */
+.glass-effect {
+  backdrop-filter: blur(16px);
+  background: rgba(31, 18, 38, 0.6);
+  border: 1px solid rgba(193, 86, 241, 0.2);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
 .card {
   padding: 1.5em;
 }
@@ -53,5 +102,19 @@
 }
 
 .read-the-docs {
-  color: #888;
+  color: rgba(193, 86, 241, 0.7);
+}
+
+/* تأثيرات الخلفية المتحركة */
+.animated-bg-pattern {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  opacity: 0.1;
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(193, 86, 241, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(65, 250, 220, 0.3) 0%, transparent 50%);
 }

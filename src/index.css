@@ -5,83 +5,83 @@
 
 @layer base {
   :root {
-    --background: 30 100% 97%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 270 86% 11%;    /* #1f1226 خلفية */
+    --foreground: 0 0% 100%;      /* نص أبيض فوق الخلفية الداكنة */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 270 86% 11%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 270 86% 11%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 14 100% 75%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 276 84% 47%;       /* #c156f1 البنفسجي الفاتح */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 275 45% 45%;     /* #6f3ea7 البنفسجي الداكن */
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 164 94% 62%;        /* #41fadc التركوازي */
+    --accent-foreground: 270 86% 11%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --muted: 276 30% 80%;         /* #eebffe الوردي الفاتح - مخفف */
+    --muted-foreground: 270 10% 70%;
+
+    --border: 276 45% 50%;
+    --input: 276 45% 50%;
+    --ring: 276 84% 47%;
 
     --radius: 1.5rem;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 14 100% 75%; /* Changed to match coral theme */
+    --sidebar-background: 270 86% 11%;  
+    --sidebar-foreground: 0 0% 100%;    
+    --sidebar-primary: 276 84% 47%;     
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 275 24% 18%;     
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 275 45% 45%;     
+    --sidebar-ring: 276 84% 47%;
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    --background: 270 86% 11%;    /* #1f1226 خلفية */
+    --foreground: 0 0% 100%;      /* نص أبيض */
 
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
+    --card: 270 86% 11%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 270 86% 11%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 14 100% 75%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 276 84% 47%;       /* #c156f1 البنفسجي الفاتح */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 275 45% 45%;     /* #6f3ea7 البنفسجي الداكن */
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 164 94% 62%;        /* #41fadc التركوازي */
+    --accent-foreground: 270 86% 11%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    --muted: 275 24% 18%;
+    --muted-foreground: 276 30% 80%;
 
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 14 100% 75%; /* Changed to match coral theme */
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 276 45% 50%;
+    --input: 276 45% 50%;
+    --ring: 276 84% 47%;
+
+    --sidebar-background: 270 86% 11%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 276 84% 47%;     
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 275 30% 26%;     
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 275 45% 45%;     
+    --sidebar-ring: 276 84% 47%;
   }
 }
 
@@ -95,18 +95,87 @@
   }
 
   .glass-morphism {
-    @apply backdrop-blur-xl bg-white/5 border-2 border-[#9b87f5]/30;
+    @apply backdrop-blur-xl bg-white/5 border-2 border-[#c156f1]/30;
   }
 
   .text-gradient {
     @apply bg-gradient-to-br from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent;
   }
   
-  .coral-button {
-    @apply bg-[#ff9178] hover:bg-[#ff7d61] text-white rounded-full px-6 py-3 font-medium transition-all;
+  /* أنماط الأزرار ثلاثية الأبعاد */
+  .btn-3d {
+    @apply relative overflow-hidden shadow-lg transition-all duration-300 active:translate-y-1 active:shadow-md;
+    transform-style: preserve-3d;
+    box-shadow: 0 6px 0 0 rgba(159, 62, 167, 0.8), 0 8px 10px rgba(0, 0, 0, 0.4);
   }
   
-  .coral-button-outline {
-    @apply bg-[#fff5f2] hover:bg-[#ffeee9] text-[#ff9178] rounded-full px-6 py-3 font-medium transition-all;
+  .btn-3d:hover {
+    @apply shadow-xl;
+    box-shadow: 0 6px 0 0 rgba(159, 62, 167, 0.8), 0 12px 16px rgba(0, 0, 0, 0.3);
+  }
+  
+  .btn-3d:active {
+    box-shadow: 0 2px 0 0 rgba(159, 62, 167, 0.8), 0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+  
+  .btn-3d-accent {
+    @apply relative overflow-hidden shadow-lg transition-all duration-300 active:translate-y-1 active:shadow-md;
+    transform-style: preserve-3d;
+    box-shadow: 0 6px 0 0 rgba(65, 250, 220, 0.6), 0 8px 10px rgba(0, 0, 0, 0.4);
+  }
+  
+  .btn-3d-accent:hover {
+    @apply shadow-xl;
+    box-shadow: 0 6px 0 0 rgba(65, 250, 220, 0.6), 0 12px 16px rgba(0, 0, 0, 0.3);
+  }
+  
+  .btn-3d-accent:active {
+    box-shadow: 0 2px 0 0 rgba(65, 250, 220, 0.6), 0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* أزرار بألوان خاصة بالتصميم الجديد */
+  .btn-primary {
+    @apply bg-gradient-to-br from-[#c156f1] to-[#9a3ed0] text-white rounded-xl px-6 py-3 font-medium transition-all;
+  }
+  
+  .btn-secondary {
+    @apply bg-gradient-to-br from-[#6f3ea7] to-[#543086] text-white rounded-xl px-6 py-3 font-medium transition-all;
+  }
+  
+  .btn-accent {
+    @apply bg-gradient-to-br from-[#41fadc] to-[#2ee8c9] text-[#1f1226] font-bold rounded-xl px-6 py-3 transition-all;
+  }
+
+  /* أنماط كروت بتأثير زجاجي */
+  .glass-card {
+    @apply backdrop-blur-lg bg-white/5 border border-white/10 rounded-xl shadow-lg;
+    box-shadow: 0 4px 15px rgba(193, 86, 241, 0.15);
+  }
+  
+  /* تأثير التوهج للألوان الرئيسية */
+  .glow-primary {
+    @apply relative;
+  }
+  
+  .glow-primary::before {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    background: radial-gradient(circle at 50% 50%, rgba(193, 86, 241, 0.6), transparent 70%);
+    z-index: -1;
+    filter: blur(8px);
+  }
+  
+  .glow-accent {
+    @apply relative;
+  }
+  
+  .glow-accent::before {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    background: radial-gradient(circle at 50% 50%, rgba(65, 250, 220, 0.6), transparent 70%);
+    z-index: -1;
+    filter: blur(8px);
   }
 }
