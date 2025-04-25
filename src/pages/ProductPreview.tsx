@@ -59,18 +59,28 @@ const ProductPreview = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [forceRefresh, setForceRefresh] = useState<number>(Date.now());
 
-  // تنفيذ إعادة تحميل البيانات عند تغيير المعلمة t في عنوان URL
+  // استخدام زر "تنشيط" لتحديث البيانات عند الحاجة
+  const refreshData = () => {
+    setForceRefresh(Date.now());
+  };
+
   useEffect(() => {
+    // تعيين مستمع للتغيرات في عنوان URL
     const handleUrlParamChange = () => {
-      // تحديث معرف التحديث القسري
-      setForceRefresh(Date.now());
+      refreshData();
     };
 
     // الاستماع لتغييرات عنوان URL
     window.addEventListener('popstate', handleUrlParamChange);
     
+    // التحديث كل دقيقة للحصول على البيانات الجديدة في حالة لم يقم المستخدم بتحديث الصفحة يدوياً
+    const autoRefreshInterval = setInterval(() => {
+      refreshData();
+    }, 60000); // تحديث كل دقيقة
+    
     return () => {
       window.removeEventListener('popstate', handleUrlParamChange);
+      clearInterval(autoRefreshInterval);
     };
   }, []);
 
@@ -121,11 +131,12 @@ const ProductPreview = () => {
         setColorTheme(storeSettings.color_theme || "default");
         
         // إضافة معرف زمني فريد لمنع التخزين المؤقت لجميع الصور
-        const uniqueTimestamp = forceRefresh || Date.now();
+        const uniqueTimestamp = forceRefresh;
+        const cacheBreaker = `t=${uniqueTimestamp}&nocache=${Math.random()}`;
         
         if (storeSettings.banner_url) {
           const bannerBaseUrl = storeSettings.banner_url.split('?')[0];
-          setBannerUrl(`${bannerBaseUrl}?t=${uniqueTimestamp}`);
+          setBannerUrl(`${bannerBaseUrl}?${cacheBreaker}`);
         } else {
           setBannerUrl(null);
         }
@@ -160,7 +171,7 @@ const ProductPreview = () => {
             const imageBaseUrl = product.image_url.split('?')[0];
             return {
               ...product, 
-              image_url: `${imageBaseUrl}?t=${uniqueTimestamp}&nocache=${Math.random()}`
+              image_url: `${imageBaseUrl}?${cacheBreaker}`
             };
           }
           return product;
@@ -183,7 +194,7 @@ const ProductPreview = () => {
               const imageBaseUrl = img.image_url.split('?')[0];
               return {
                 ...img,
-                image_url: `${imageBaseUrl}?t=${uniqueTimestamp}&nocache=${Math.random()}`
+                image_url: `${imageBaseUrl}?${cacheBreaker}`
               };
             }
             return img;
@@ -205,14 +216,44 @@ const ProductPreview = () => {
     };
 
     fetchStoreData();
-  }, [slug, toast, navigate, forceRefresh]); // إضافة forceRefresh للاعتماديات
+  }, [slug, toast, navigate, forceRefresh]); 
 
-  // وظيفة تحديث الصفحة يدويًا لتجنب مشاكل التخزين المؤقت
+  // إضافة تعليمات للمتصفح بعدم تخزين هذه الصفحة
+  useEffect(() => {
+    // إضافة meta tags لمنع التخزين المؤقت
+    const metaTags = [
+      { name: 'Cache-Control', content: 'no-cache, no-store, must-revalidate' },
+      { name: 'Pragma', content: 'no-cache' },
+      { name: 'Expires', content: '0' }
+    ];
+
+    metaTags.forEach(tag => {
+      let metaTag = document.querySelector(`meta[name="${tag.name}"]`);
+      if (!metaTag) {
+        metaTag = document.createElement('meta');
+        metaTag.setAttribute('name', tag.name);
+        document.head.appendChild(metaTag);
+      }
+      metaTag.setAttribute('content', tag.content);
+    });
+
+    return () => {
+      // إزالة meta tags عند تفريغ المكون
+      metaTags.forEach(tag => {
+        const metaTag = document.querySelector(`meta[name="${tag.name}"]`);
+        if (metaTag) {
+          metaTag.remove();
+        }
+      });
+    };
+  }, []);
+
+  // وظيفة تحديث الصفحة يدويًا
   const forceReload = () => {
-    window.location.reload();
+    refreshData();
   };
 
-  // عرض زر التحديث اليدوي إذا كان هناك مشكلة في تحميل الصور
+  // زر التحديث اليدوي
   const renderRefreshButton = () => {
     return (
       <button 

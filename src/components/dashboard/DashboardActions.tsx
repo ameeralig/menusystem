@@ -1,4 +1,3 @@
-
 import { Plus, Edit, Eye, Link2, Settings, MessageSquare, QrCode } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -90,22 +89,15 @@ const DashboardActions = () => {
         return;
       }
 
-      // إضافة طابع زمني لتجنب مشكلة التخزين المؤقت
-      const timestamp = new Date().getTime();
-      const previewUrl = `${BASE_DOMAIN}/${storeSettings.slug}?t=${timestamp}`;
+      const previewUrl = `${BASE_DOMAIN}/${storeSettings.slug}`;
       
-      // فتح الرابط في نافذة جديدة مع تعطيل التخزين المؤقت
-      const newWindow = window.open('about:blank', '_blank');
-      if (newWindow) {
-        newWindow.location.href = previewUrl;
-      } else {
-        // إذا تم منع النوافذ المنبثقة
+      const newWindow = window.open(previewUrl, '_blank', 'noopener,noreferrer');
+      if (!newWindow) {
         toast({
           title: "تنبيه",
           description: "يرجى السماح بالنوافذ المنبثقة لفتح صفحة المعاينة",
           duration: 5000,
         });
-        // محاولة استخدام الطريقة الاحتياطية
         window.location.href = previewUrl;
       }
     } catch (error) {
