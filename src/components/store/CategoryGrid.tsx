@@ -97,21 +97,27 @@ const CategoryGrid = ({
     return {};
   };
 
-  // دالة محسنة للحصول على صورة التصنيف المخصصة مع التأكد من تحديث الصورة
-  const getCustomCategoryImage = (category: string): string => {
-    // البحث عن صورة التصنيف المخصصة في المصفوفة
+  // تحسين دالة الحصول على صورة التصنيف
+  const getCategoryImageUrl = (category: string): string => {
+    // البحث أولاً عن صورة مخصصة للتصنيف من قائمة الصور المخصصة
     const customImage = categoryImages?.find(img => img.category === category);
     
+    // إذا وجدنا صورة مخصصة، نستخدمها
     if (customImage && customImage.image_url) {
-      // التأكد من أن الصورة تحتوي على معرف فريد للتحديث
+      console.log(`Using custom image for category ${category}:`, customImage.image_url);
       return customImage.image_url;
     }
     
-    // استخدام دالة الصورة الافتراضية إذا لم تكن هناك صورة مخصصة
-    return getCategoryImage(category);
+    // إذا لم توجد صورة مخصصة، نستخدم الدالة الافتراضية للحصول على صورة
+    const defaultImage = getCategoryImage(category);
+    console.log(`Using default image for category ${category}:`, defaultImage);
+    return defaultImage;
   };
 
-  console.log("Rendering CategoryGrid with", categoryImages.length, "category images");
+  console.log("CategoryGrid rendering with", categoryImages?.length || 0, "custom category images");
+  if (categoryImages?.length > 0) {
+    console.log("Available category images:", categoryImages.map(img => ({ category: img.category, url: img.image_url })));
+  }
 
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
@@ -120,7 +126,7 @@ const CategoryGrid = ({
           <CategoryCard
             key={category}
             category={category}
-            image={getCustomCategoryImage(category)}
+            image={getCategoryImageUrl(category)}
             onClick={() => onCategorySelect(category)}
             fontStyle={getCategoryTextStyle()}
           />

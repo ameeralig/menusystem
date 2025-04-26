@@ -42,6 +42,11 @@ const DemoProductsDisplay = ({
     return categoryProduct?.image_url || '/placeholder.svg';
   };
 
+  // سنطبع معلومات حول صور التصنيفات للمساعدة في التصحيح
+  if (categoryImages && categoryImages.length > 0) {
+    console.log("DemoProductsDisplay has", categoryImages.length, "category images");
+  }
+
   return (
     <>
       <StoreHeader storeName={storeName} colorTheme={colorTheme} />

@@ -128,8 +128,12 @@ const StoreProductsDisplay = ({
     }
   }, [showSearch]);
 
-  // تحديث التسمية للتوضيح
-  console.log("Rendering StoreProductsDisplay with", categoryImages.length, "category images");
+  // سنطبع معلومات حول صور التصنيفات للمساعدة في التصحيح
+  console.log("StoreProductsDisplay rendering with", categoryImages?.length || 0, "category images");
+  if (categoryImages?.length > 0) {
+    console.log("Available category images in StoreProductsDisplay:", 
+      categoryImages.map(img => ({ category: img.category, url: img.image_url })));
+  }
 
   return (
     <div className="space-y-6">
