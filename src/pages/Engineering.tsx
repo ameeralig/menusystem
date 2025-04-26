@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -6,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import UsersManagement from "@/components/engineering/UsersManagement";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Ban } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 type SystemStats = {
   total_users: number;
@@ -20,23 +20,33 @@ const Engineering = () => {
   const [error, setError] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkAdminRole = async () => {
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
-
-      if (roleError) {
-        console.error('Error checking admin role:', roleError);
-        setError("غير مصرح لك بالوصول إلى هذه الصفحة");
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        navigate('/auth/login');
         return false;
       }
 
-      if (roleData?.role !== 'admin') {
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (roleError || roleData?.role !== 'admin') {
         setError("غير مصرح لك بالوصول إلى هذه الصفحة");
+        setIsAdmin(false);
+        
+        toast({
+          variant: "destructive",
+          title: "تحذير",
+          description: "يتطلب هذا المسار صلاحيات المشرف"
+        });
+
         return false;
       }
 
@@ -81,7 +91,7 @@ const Engineering = () => {
     const interval = setInterval(fetchStats, 60000);
 
     return () => clearInterval(interval);
-  }, [toast]);
+  }, [toast, navigate]);
 
   if (loading) {
     return (
