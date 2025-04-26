@@ -32,34 +32,21 @@ const UsersManagement = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const { toast } = useToast();
 
+  // التحقق من صلاحيات المستخدم وجلب قائمة المستخدمين
   const fetchUsers = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
-
-      // First check if the current user is an admin
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', session.user.id)
-        .single();
-
-      if (roleData?.role !== 'admin') {
-        throw new Error('Not authorized');
-      }
-
-      // Get the service key for admin operations
-      const serviceKey = await supabase.functions.invoke('get-service-key', {
+      setLoading(true);
+      
+      // جلب معلومات جميع المستخدمين
+      const { data: usersData, error: usersError } = await supabase.functions.invoke('get-service-key', {
         body: { action: 'get_users' }
       });
-
-      if (!serviceKey.data) throw new Error('Failed to get service key');
-
-      // Create a new Supabase client with the service key
-      const adminClient = supabase.auth.admin;
-      const { data: usersData, error: usersError } = await adminClient.listUsers();
       
       if (usersError) throw usersError;
+      
+      if (!usersData || !usersData.users) {
+        throw new Error('فشل في جلب بيانات المستخدمين');
+      }
 
       // جلب معلومات المتاجر للمستخدمين
       const { data: storeData, error: storeError } = await supabase
@@ -79,7 +66,7 @@ const UsersManagement = () => {
       }));
 
       setUsers(enrichedUsers);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching users:', error);
       toast({
         variant: "destructive",
@@ -95,6 +82,7 @@ const UsersManagement = () => {
     fetchUsers();
   }, []);
 
+  // حظر أو إلغاء حظر مستخدم
   const handleBanUser = async (userId: string, isBanned: boolean) => {
     try {
       const { error } = await supabase.functions.invoke('manage-user', {
@@ -122,6 +110,7 @@ const UsersManagement = () => {
     }
   };
 
+  // حذف مستخدم
   const handleDeleteUser = async () => {
     if (!selectedUser) return;
 
@@ -155,7 +144,7 @@ const UsersManagement = () => {
   };
 
   if (loading) {
-    return <div className="text-center">جاري تحميل بيانات المستخدمين...</div>;
+    return <div className="text-center py-8">جاري تحميل بيانات المستخدمين...</div>;
   }
 
   return (
@@ -176,54 +165,62 @@ const UsersManagement = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.store_name || 'لا يوجد متجر'}</TableCell>
-                  <TableCell>
-                    {new Date(user.created_at).toLocaleDateString('ar-SA')}
-                  </TableCell>
-                  <TableCell>
-                    {user.banned_until ? (
-                      <span className="text-red-500">محظور</span>
-                    ) : (
-                      <span className="text-green-500">نشط</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleBanUser(user.id, !!user.banned_until)}
-                      >
-                        {user.banned_until ? (
-                          <>
-                            <Ban className="w-4 h-4 ml-2" />
-                            إلغاء الحظر
-                          </>
-                        ) : (
-                          <>
-                            <UserX className="w-4 h-4 ml-2" />
-                            حظر
-                          </>
-                        )}
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setDeleteDialogOpen(true);
-                        }}
-                      >
-                        <Trash className="w-4 h-4 ml-2" />
-                        حذف
-                      </Button>
-                    </div>
+              {users.length > 0 ? (
+                users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="font-medium">{user.email}</TableCell>
+                    <TableCell>{user.store_name || 'لا يوجد متجر'}</TableCell>
+                    <TableCell>
+                      {new Date(user.created_at).toLocaleDateString('ar-SA')}
+                    </TableCell>
+                    <TableCell>
+                      {user.banned_until ? (
+                        <span className="text-red-500">محظور</span>
+                      ) : (
+                        <span className="text-green-500">نشط</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleBanUser(user.id, !!user.banned_until)}
+                        >
+                          {user.banned_until ? (
+                            <>
+                              <Ban className="w-4 h-4 ml-2" />
+                              إلغاء الحظر
+                            </>
+                          ) : (
+                            <>
+                              <UserX className="w-4 h-4 ml-2" />
+                              حظر
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setDeleteDialogOpen(true);
+                          }}
+                        >
+                          <Trash className="w-4 h-4 ml-2" />
+                          حذف
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-6">
+                    لا توجد بيانات للعرض
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </div>

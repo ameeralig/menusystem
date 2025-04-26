@@ -1,96 +1,102 @@
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.24.0";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
 serve(async (req) => {
-  // التعامل مع طلبات CORS المسبقة
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
-
+  
   try {
-    // التحقق من المصادقة
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
-    );
+    // Create a Supabase client with the service role key
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
     
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if (!user) throw new Error("غير مصرح");
-
-    // التحقق من أن المستخدم هو مشرف
-    const { data: roleData, error: roleError } = await supabaseClient
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (roleError || roleData?.role !== 'admin') {
-      throw new Error("يجب أن تكون مشرفًا للقيام بهذه العملية");
-    }
-
+    // Get the request body
     const { email } = await req.json();
-    if (!email) throw new Error("عنوان البريد الإلكتروني مطلوب");
-
-    // استخدام مفتاح خدمة Supabase للبحث عن المستخدم
-    const adminClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-    );
     
-    // البحث عن المستخدم بواسطة البريد الإلكتروني
-    const { data: userData, error: userError } = await adminClient.auth.admin.listUsers({
-      filter: {
-        email: email
-      }
-    });
-
-    if (userError || !userData.users.length) {
-      throw new Error("المستخدم غير موجود");
+    if (!email) {
+      return new Response(
+        JSON.stringify({ error: 'Email is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
-
-    const targetUserId = userData.users[0].id;
-
-    // إضافة دور المشرف
-    const { error } = await adminClient
+    
+    // Search for a user with the given email
+    const { data: users, error: userError } = await supabase.auth.admin.listUsers();
+    
+    if (userError) {
+      console.error('Error listing users:', userError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to list users' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    const user = users.users.find(u => u.email === email);
+    
+    if (!user) {
+      return new Response(
+        JSON.stringify({ error: 'User not found with the provided email' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Check if the user already has the admin role
+    const { data: existingRole, error: roleError } = await supabase
       .from('user_roles')
-      .upsert({ 
-        user_id: targetUserId, 
-        role: 'admin' 
-      }, {
-        onConflict: 'user_id'
-      });
-
-    if (error) throw error;
-
-    return new Response(
-      JSON.stringify({ success: true, message: "تم إضافة دور المشرف بنجاح" }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
-      }
-    );
-
-  } catch (error) {
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('role', 'admin');
+      
+    if (roleError) {
+      console.error('Error checking existing role:', roleError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to check existing role' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    if (existingRole && existingRole.length > 0) {
+      return new Response(
+        JSON.stringify({ success: true, message: 'User already has admin role' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Add admin role to the user
+    const { data: insertData, error: insertError } = await supabase
+      .from('user_roles')
+      .insert([{ user_id: user.id, role: 'admin' }]);
+      
+    if (insertError) {
+      console.error('Error adding admin role:', insertError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to add admin role' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     return new Response(
       JSON.stringify({ 
-        success: false, 
-        error: error instanceof Error ? error.message : "حدث خطأ غير معروف" 
+        success: true, 
+        message: `Admin role added successfully to ${email}` 
       }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400 
-      }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+    
+  } catch (error) {
+    console.error('Error processing request:', error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

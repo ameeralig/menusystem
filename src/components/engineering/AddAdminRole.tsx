@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { PlusCircle } from 'lucide-react';
 
 const AddAdminRole = () => {
   const [email, setEmail] = useState('');
@@ -28,14 +29,14 @@ const AddAdminRole = () => {
 
       if (error) throw error;
 
-      if (data.success) {
+      if (data && data.success) {
         toast({
           title: 'نجاح',
           description: data.message || 'تم إضافة دور المشرف بنجاح'
         });
         setEmail('');
       } else {
-        throw new Error(data.error || 'فشلت عملية إضافة المشرف');
+        throw new Error(data?.error || 'فشلت عملية إضافة المشرف');
       }
     } catch (error: any) {
       toast({
@@ -49,20 +50,25 @@ const AddAdminRole = () => {
   };
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold">إضافة دور مشرف</h2>
-      <div className="flex gap-2 flex-row-reverse">
-        <Button onClick={addAdminRole} disabled={loading}>
-          {loading ? 'جاري الإضافة...' : 'إضافة مشرف'}
-        </Button>
+    <div className="bg-white p-6 rounded-lg shadow-sm border">
+      <h2 className="text-xl font-bold mb-4">إضافة مشرف جديد</h2>
+      <div className="flex gap-3 flex-col md:flex-row">
         <Input 
           type="email" 
-          placeholder="أدخل البريد الإلكتروني" 
+          placeholder="أدخل البريد الإلكتروني للمشرف" 
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="flex-grow"
           dir="rtl"
         />
+        <Button 
+          onClick={addAdminRole} 
+          disabled={loading}
+          className="whitespace-nowrap"
+        >
+          <PlusCircle className="w-4 h-4 ml-2" />
+          {loading ? 'جاري الإضافة...' : 'إضافة كمشرف'}
+        </Button>
       </div>
     </div>
   );

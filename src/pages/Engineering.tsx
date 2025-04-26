@@ -6,7 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import UsersManagement from "@/components/engineering/UsersManagement";
 import AdminVerification from "@/components/engineering/AdminVerification";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Ban } from "lucide-react";
+import { Ban, Plus } from "lucide-react";
+import AddAdminRole from "@/components/engineering/AddAdminRole";
 
 type SystemStats = {
   total_users: number;
@@ -34,17 +35,35 @@ const Engineering = () => {
 
     const fetchStats = async () => {
       try {
-        await supabase.rpc('update_system_stats');
+        setLoading(true);
+        
+        // استدعاء الوظيفة الخلفية لتحديث الإحصائيات
+        const { data: updateResult, error: updateError } = await supabase.functions.invoke('update-system-stats', {
+          method: 'POST',
+          body: {}
+        });
 
-        const { data, error } = await supabase
-          .from("system_stats")
-          .select("*")
-          .maybeSingle();
+        if (updateError) {
+          console.error("Error updating stats:", updateError);
+          throw updateError;
+        }
 
-        if (error) throw error;
+        if (updateResult && updateResult.success && updateResult.data) {
+          setStats(updateResult.data);
+        } else {
+          // إذا لم تنجح عملية التحديث، نحاول جلب البيانات مباشرة
+          const { data, error } = await supabase
+            .from("system_stats")
+            .select("*")
+            .maybeSingle();
 
-        if (data) {
-          setStats(data);
+          if (error) throw error;
+
+          if (data) {
+            setStats(data);
+          } else {
+            throw new Error("لا توجد إحصائيات متاحة");
+          }
         }
       } catch (error: any) {
         console.error("Error fetching stats:", error);
@@ -117,6 +136,10 @@ const Engineering = () => {
             <p className="text-3xl font-bold">{stats?.total_page_views || 0}</p>
           </CardContent>
         </Card>
+      </div>
+      
+      <div className="mb-8">
+        <AddAdminRole />
       </div>
 
       <UsersManagement />
