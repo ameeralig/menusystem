@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import UsersManagement from "@/components/engineering/UsersManagement";
+import AdminVerification from "@/components/engineering/AdminVerification";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Ban } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 type SystemStats = {
   total_users: number;
@@ -18,50 +19,21 @@ const Engineering = () => {
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const checkAdminRole = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        navigate('/auth/login');
-        return false;
-      }
+    const storedVerification = localStorage.getItem('eng_verified');
+    if (storedVerification === 'true') {
+      setIsVerified(true);
+    }
+  }, []);
 
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', session.user.id)
-        .single();
-
-      if (roleError || roleData?.role !== 'admin') {
-        setError("غير مصرح لك بالوصول إلى هذه الصفحة");
-        setIsAdmin(false);
-        
-        toast({
-          variant: "destructive",
-          title: "تحذير",
-          description: "يتطلب هذا المسار صلاحيات المشرف"
-        });
-
-        return false;
-      }
-
-      setIsAdmin(true);
-      return true;
-    };
+  useEffect(() => {
+    if (!isVerified) return;
 
     const fetchStats = async () => {
       try {
-        const isAdminUser = await checkAdminRole();
-        if (!isAdminUser) {
-          setLoading(false);
-          return;
-        }
-
         await supabase.rpc('update_system_stats');
 
         const { data, error } = await supabase
@@ -91,7 +63,11 @@ const Engineering = () => {
     const interval = setInterval(fetchStats, 60000);
 
     return () => clearInterval(interval);
-  }, [toast, navigate]);
+  }, [toast, isVerified]);
+
+  if (!isVerified) {
+    return <AdminVerification onVerified={() => setIsVerified(true)} />;
+  }
 
   if (loading) {
     return (
@@ -101,7 +77,7 @@ const Engineering = () => {
     );
   }
 
-  if (error || !isAdmin) {
+  if (error) {
     return (
       <div className="container mx-auto py-8">
         <Alert variant="destructive" className="mb-6">
@@ -143,7 +119,7 @@ const Engineering = () => {
         </Card>
       </div>
 
-      {isAdmin && <UsersManagement />}
+      <UsersManagement />
       
       <div className="text-center mt-4 text-sm text-gray-500">
         آخر تحديث: {stats?.last_updated ? new Date(stats.last_updated).toLocaleString('ar-SA') : 'غير متوفر'}
