@@ -119,7 +119,7 @@ const CategorySelector = ({ existingCategories, onCategorySelected }: CategorySe
               >
                 <Link className="h-4 w-4 ml-2" />
                 رابط صورة
-              </Link>
+              </Button>
             </div>
 
             {uploadMethod === "url" ? (
