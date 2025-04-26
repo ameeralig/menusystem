@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import UsersManagement from "@/components/engineering/UsersManagement";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Ban } from "lucide-react";
 
 type SystemStats = {
   total_users: number;
@@ -14,6 +17,7 @@ type SystemStats = {
 const Engineering = () => {
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -33,6 +37,7 @@ const Engineering = () => {
         }
       } catch (error: any) {
         console.error("Error fetching stats:", error);
+        setError("حدث خطأ أثناء جلب الإحصائيات");
         toast({
           variant: "destructive",
           title: "خطأ",
@@ -44,7 +49,7 @@ const Engineering = () => {
     };
 
     fetchStats();
-    const interval = setInterval(fetchStats, 60000); // تحديث كل دقيقة
+    const interval = setInterval(fetchStats, 60000);
 
     return () => clearInterval(interval);
   }, [toast]);
@@ -60,7 +65,15 @@ const Engineering = () => {
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold mb-6 text-center">لوحة تحكم المبرمج</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <Ban className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card>
           <CardHeader>
             <CardTitle>إجمالي المستخدمين</CardTitle>
@@ -86,6 +99,9 @@ const Engineering = () => {
           </CardContent>
         </Card>
       </div>
+
+      <UsersManagement />
+      
       <div className="text-center mt-4 text-sm text-gray-500">
         آخر تحديث: {stats?.last_updated ? new Date(stats.last_updated).toLocaleString('ar-SA') : 'غير متوفر'}
       </div>
