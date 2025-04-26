@@ -34,9 +34,32 @@ const UsersManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      // First check if the current user is an admin
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (roleData?.role !== 'admin') {
+        throw new Error('Not authorized');
+      }
+
+      // Get the service key for admin operations
+      const serviceKey = await supabase.functions.invoke('get-service-key', {
+        body: { action: 'get_users' }
+      });
+
+      if (!serviceKey.data) throw new Error('Failed to get service key');
+
+      // Create a new Supabase client with the service key
+      const adminClient = supabase.auth.admin;
+      const { data: usersData, error: usersError } = await adminClient.listUsers();
       
-      if (userError) throw userError;
+      if (usersError) throw usersError;
 
       // جلب معلومات المتاجر للمستخدمين
       const { data: storeData, error: storeError } = await supabase
@@ -45,9 +68,9 @@ const UsersManagement = () => {
 
       if (storeError) throw storeError;
 
-      const storeMap = new Map(storeData.map(store => [store.user_id, store.store_name]));
+      const storeMap = new Map(storeData.map((store: any) => [store.user_id, store.store_name]));
 
-      const enrichedUsers = userData.users.map(user => ({
+      const enrichedUsers = usersData.users.map((user: any) => ({
         id: user.id,
         email: user.email || '',
         created_at: user.created_at,
@@ -74,8 +97,11 @@ const UsersManagement = () => {
 
   const handleBanUser = async (userId: string, isBanned: boolean) => {
     try {
-      const { error } = await supabase.auth.admin.updateUserById(userId, {
-        ban_duration: isBanned ? null : '876000h' // حظر لمدة 100 سنة أو إلغاء الحظر
+      const { error } = await supabase.functions.invoke('manage-user', {
+        body: { 
+          action: isBanned ? 'unban' : 'ban',
+          userId
+        }
       });
 
       if (error) throw error;
@@ -100,18 +126,14 @@ const UsersManagement = () => {
     if (!selectedUser) return;
 
     try {
-      // حذف المتجر أولاً (سيتم حذف كل البيانات المرتبطة تلقائياً)
-      const { error: storeError } = await supabase
-        .from('store_settings')
-        .delete()
-        .eq('user_id', selectedUser.id);
+      const { error } = await supabase.functions.invoke('manage-user', {
+        body: { 
+          action: 'delete',
+          userId: selectedUser.id
+        }
+      });
 
-      if (storeError) throw storeError;
-
-      // حذف حساب المستخدم
-      const { error: userError } = await supabase.auth.admin.deleteUser(selectedUser.id);
-
-      if (userError) throw userError;
+      if (error) throw error;
 
       toast({
         title: "تم بنجاح",

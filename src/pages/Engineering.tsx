@@ -18,19 +18,48 @@ const Engineering = () => {
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
+    const checkAdminRole = async () => {
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (roleError) {
+        console.error('Error checking admin role:', roleError);
+        setError("غير مصرح لك بالوصول إلى هذه الصفحة");
+        return false;
+      }
+
+      if (roleData?.role !== 'admin') {
+        setError("غير مصرح لك بالوصول إلى هذه الصفحة");
+        return false;
+      }
+
+      setIsAdmin(true);
+      return true;
+    };
+
     const fetchStats = async () => {
       try {
+        const isAdminUser = await checkAdminRole();
+        if (!isAdminUser) {
+          setLoading(false);
+          return;
+        }
+
+        await supabase.rpc('update_system_stats');
+
         const { data, error } = await supabase
           .from("system_stats")
           .select("*")
           .maybeSingle();
 
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
 
         if (data) {
           setStats(data);
@@ -62,17 +91,21 @@ const Engineering = () => {
     );
   }
 
-  return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-6 text-center">لوحة تحكم المبرمج</h1>
-      
-      {error && (
+  if (error || !isAdmin) {
+    return (
+      <div className="container mx-auto py-8">
         <Alert variant="destructive" className="mb-6">
           <Ban className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
-      )}
+      </div>
+    );
+  }
 
+  return (
+    <div className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-6 text-center">لوحة تحكم المبرمج</h1>
+      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card>
           <CardHeader>
@@ -100,7 +133,7 @@ const Engineering = () => {
         </Card>
       </div>
 
-      <UsersManagement />
+      {isAdmin && <UsersManagement />}
       
       <div className="text-center mt-4 text-sm text-gray-500">
         آخر تحديث: {stats?.last_updated ? new Date(stats.last_updated).toLocaleString('ar-SA') : 'غير متوفر'}
