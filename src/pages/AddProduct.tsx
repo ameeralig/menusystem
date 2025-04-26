@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -69,7 +70,8 @@ const AddProduct = () => {
     }
   };
 
-  useState(() => {
+  // تصحيح الخطأ: استخدام useEffect بدلاً من useState للاستدعاء المباشر للدالة
+  useEffect(() => {
     fetchCategories();
   }, []);
 
