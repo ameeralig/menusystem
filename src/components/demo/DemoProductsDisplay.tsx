@@ -9,18 +9,38 @@ import BackButton from "@/components/store/BackButton";
 import EmptyCategoryMessage from "@/components/store/EmptyCategoryMessage";
 import { CategoryImage } from "@/types/categoryImage";
 
+type FontSettings = {
+  storeName?: {
+    family: string;
+    isCustom: boolean;
+    customFontUrl: string | null;
+  };
+  categoryText?: {
+    family: string;
+    isCustom: boolean;
+    customFontUrl: string | null;
+  };
+  generalText?: {
+    family: string;
+    isCustom: boolean;
+    customFontUrl: string | null;
+  };
+};
+
 interface DemoProductsDisplayProps {
   products: Product[];
   storeName: string;
   colorTheme: string;
   categoryImages?: CategoryImage[];
+  fontSettings?: FontSettings;
 }
 
 const DemoProductsDisplay = ({ 
   products, 
   storeName, 
   colorTheme,
-  categoryImages = []
+  categoryImages = [],
+  fontSettings
 }: DemoProductsDisplayProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -49,7 +69,7 @@ const DemoProductsDisplay = ({
 
   return (
     <>
-      <StoreHeader storeName={storeName} colorTheme={colorTheme} />
+      <StoreHeader storeName={storeName} colorTheme={colorTheme} fontSettings={fontSettings} />
       <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
       {!selectedCategory ? (
@@ -58,6 +78,7 @@ const DemoProductsDisplay = ({
           getCategoryImage={getDefaultCategoryImage}
           onCategorySelect={setSelectedCategory}
           categoryImages={categoryImages}
+          fontSettings={fontSettings}
         />
       ) : (
         <>
