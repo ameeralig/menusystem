@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import AddProductForm from "@/components/products/AddProductForm";
 import CategorySelector from "@/components/products/CategorySelector";
+import { uploadImage, urlToFile } from "@/utils/storageHelpers";
 
 const AddProduct = () => {
   const navigate = useNavigate();
@@ -37,25 +38,6 @@ const AddProduct = () => {
     }
   };
 
-  const uploadImage = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${crypto.randomUUID()}.${fileExt}`;
-    
-    const { error: uploadError, data } = await supabase.storage
-      .from('product-images')
-      .upload(fileName, file);
-
-    if (uploadError) {
-      throw new Error('Failed to upload image');
-    }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('product-images')
-      .getPublicUrl(fileName);
-
-    return publicUrl;
-  };
-
   const fetchCategories = async () => {
     try {
       const { data: products } = await supabase
@@ -70,51 +52,37 @@ const AddProduct = () => {
     }
   };
 
-  // تصحيح الخطأ: استخدام useEffect بدلاً من useState للاستدعاء المباشر للدالة
   useEffect(() => {
     fetchCategories();
   }, []);
 
   const handleCategorySelected = async (category: string, imageUrl?: string) => {
     setSelectedCategory(category);
+    
     if (imageUrl) {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error("يجب تسجيل الدخول أولاً");
-
+        
+        let finalImageUrl: string;
+        
         if (imageUrl.startsWith("blob:")) {
-          const response = await fetch(imageUrl);
-          const blob = await response.blob();
-          const file = new File([blob], "category-image.jpg", { type: "image/jpeg" });
-
-          const fileExt = file.name.split('.').pop();
-          const fileName = `${user.id}_${category}_${Date.now()}.${fileExt}`;
-
-          const { error: uploadError, data } = await supabase.storage
-            .from("category-images")
-            .upload(fileName, file);
-
-          if (uploadError) throw uploadError;
-
-          const { data: { publicUrl } } = supabase.storage
-            .from("category-images")
-            .getPublicUrl(fileName);
-
-          await supabase.from("category_images").insert({
-            user_id: user.id,
-            category: category,
-            image_url: publicUrl
-          });
-
-          setCategoryImageUrl(publicUrl);
+          // تحويل blob URL إلى ملف لرفعه
+          const file = await urlToFile(imageUrl, "category-image.jpg");
+          finalImageUrl = await uploadImage("category-images", file, user.id, category);
         } else {
-          await supabase.from("category_images").insert({
-            user_id: user.id,
-            category: category,
-            image_url: imageUrl
-          });
-          setCategoryImageUrl(imageUrl);
+          // استخدام الرابط مباشرة
+          finalImageUrl = imageUrl;
         }
+        
+        // حفظ صورة التصنيف في قاعدة البيانات
+        await supabase.from("category_images").insert({
+          user_id: user.id,
+          category: category,
+          image_url: finalImageUrl
+        });
+        
+        setCategoryImageUrl(finalImageUrl);
       } catch (error: any) {
         console.error("Error uploading category image:", error);
         toast({
@@ -125,6 +93,8 @@ const AddProduct = () => {
         return;
       }
     }
+    
+    setFormData(prev => ({ ...prev, category }));
     setShowProductForm(true);
   };
 
@@ -141,7 +111,7 @@ const AddProduct = () => {
       let finalImageUrl = formData.image_url;
       
       if (uploadMethod === "file" && selectedFile) {
-        finalImageUrl = await uploadImage(selectedFile);
+        finalImageUrl = await uploadImage("product-images", selectedFile, userData.user.id, "products");
       }
 
       const { error } = await supabase.from("products").insert({
@@ -150,7 +120,7 @@ const AddProduct = () => {
         description: formData.description || null,
         price: parseFloat(formData.price),
         image_url: finalImageUrl || null,
-        category: formData.category || null,
+        category: formData.category || selectedCategory || null,
         is_new: formData.is_new,
         is_popular: formData.is_popular,
       });

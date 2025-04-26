@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { CategoryImage } from "@/types/categoryImage";
 import { cn } from "@/lib/utils";
 import { Folder, ImagePlus, Link, Upload } from "lucide-react";
 
@@ -26,6 +25,7 @@ const CategorySelector = ({ existingCategories, onCategorySelected }: CategorySe
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFile(file);
+      // إنشاء URL مؤقت لعرض الصورة (سيتم إزالته تلقائيًا عند تنظيف المكون)
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
     }
@@ -119,7 +119,7 @@ const CategorySelector = ({ existingCategories, onCategorySelected }: CategorySe
               >
                 <Link className="h-4 w-4 ml-2" />
                 رابط صورة
-              </Button>
+              </Link>
             </div>
 
             {uploadMethod === "url" ? (
