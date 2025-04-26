@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,6 +19,7 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
+import Engineering from "./pages/Engineering";
 
 const queryClient = new QueryClient();
 
@@ -37,7 +37,6 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/add-product" element={<AddProduct />} />
           <Route path="/products" element={<ProductsDemo />} />
-          {/* إبقاء رابط المعاينة المركزي فقط */}
           <Route path="/:slug" element={<ProductPreview />} />
           <Route path="/edit-product" element={<EditProduct />} />
           <Route path="/edit-product/:productId" element={<EditProduct />} />
@@ -47,6 +46,7 @@ const App = () => (
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/engineering" element={<Engineering />} />
           <Route path="/404" element={<NotFound />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

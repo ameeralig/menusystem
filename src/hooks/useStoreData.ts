@@ -7,9 +7,9 @@ import { Product } from "@/types/product";
 import { CategoryImage } from "@/types/categoryImage";
 
 export type SocialLinks = {
-  instagram?: string;
-  facebook?: string;
-  telegram?: string;
+  instagram?: string | null;
+  facebook?: string | null;
+  telegram?: string | null;
 };
 
 export type ContactInfo = {
@@ -159,10 +159,10 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
           products: updatedProducts,
           storeName: storeSettings.store_name,
           colorTheme: storeSettings.color_theme || "default",
-          socialLinks: storeSettings.social_links || {},
-          contactInfo: storeSettings.contact_info || {},
+          socialLinks: storeSettings.social_links as SocialLinks || {},
+          contactInfo: storeSettings.contact_info as ContactInfo || {},
           bannerUrl,
-          fontSettings: storeSettings.font_settings,
+          fontSettings: storeSettings.font_settings as FontSettings,
           storeOwnerId: userId,
           categoryImages: updatedCategoryImages,
         });
@@ -185,3 +185,4 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
 
   return { storeData, isLoading };
 };
+
