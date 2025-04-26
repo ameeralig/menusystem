@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
 import StoreNameEditor from "@/components/store/StoreNameEditor";
 import StoreSlugEditor from "@/components/store/StoreSlugEditor";
 import { Store } from "lucide-react";

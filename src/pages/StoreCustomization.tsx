@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -12,7 +11,7 @@ import ContactInfoSection from "@/components/store/customization/ContactInfoSect
 import AppearanceSection from "@/components/store/customization/AppearanceSection";
 import SocialLinksSection from "@/components/store/customization/SocialLinksSection";
 import ProductPreviewContainer from "@/components/store/ProductPreviewContainer";
-import StoreProductsDisplay from "@/components/store/StoreProductsDisplay";
+import DemoProductsDisplay from "@/components/demo/DemoProductsDisplay";
 
 type SocialLinks = {
   instagram: string;
@@ -143,10 +142,7 @@ const StoreCustomization = () => {
     }
   };
 
-  // جلب منتجات وهمية للمعاينة
   const fetchDummyProducts = async () => {
-    // هنا يمكن استبدالها بمنتجات المستخدم الفعلية للمعاينة
-    // لكن حالياً نستخدم منتجات وهمية للمعاينة فقط
     setDummyProducts([
       {
         id: 1,
@@ -233,7 +229,6 @@ const StoreCustomization = () => {
         duration: 3000,
       });
 
-      // تحديث البيانات المحلية لأي إعدادات تم تغييرها
       if (updatedData.store_name !== undefined) setStoreName(updatedData.store_name);
       if (updatedData.color_theme !== undefined) setColorTheme(updatedData.color_theme);
       if (updatedData.slug !== undefined) setStoreSlug(updatedData.slug);
@@ -256,11 +251,41 @@ const StoreCustomization = () => {
   };
 
   const handleNameSubmit = async () => {
+    if (!storeName.trim()) {
+      toast({
+        title: "خطأ",
+        description: "اسم المتجر مطلوب",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+
     await saveStoreSettings({ store_name: storeName });
   };
 
   const handleSlugSubmit = async () => {
-    await saveStoreSettings({ slug: storeSlug });
+    if (!storeSlug.trim()) {
+      toast({
+        title: "خطأ",
+        description: "رابط المتجر مطلوب",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+
+    try {
+      await saveStoreSettings({ slug: storeSlug.trim() });
+    } catch (error: any) {
+      console.error("Error saving store slug:", error);
+      toast({
+        title: "حدث خطأ",
+        description: error.message || "فشل في حفظ رابط المتجر",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
   };
 
   const handleColorThemeSubmit = async () => {
@@ -299,7 +324,6 @@ const StoreCustomization = () => {
         <h1 className="text-3xl font-bold mb-6 text-right">تخصيص المتجر</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* المعاينة المباشرة - عرض المتجر */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -314,12 +338,11 @@ const StoreCustomization = () => {
                   fontSettings={fontSettings}
                   containerHeight="auto"
                 >
-                  <StoreProductsDisplay 
+                  <DemoProductsDisplay 
                     products={dummyProducts} 
                     storeName={storeName || "اسم المتجر"} 
                     colorTheme={colorTheme}
                     fontSettings={fontSettings}
-                    contactInfo={contactInfo}
                     categoryImages={[]}
                   />
                 </ProductPreviewContainer>
@@ -327,7 +350,6 @@ const StoreCustomization = () => {
             </div>
           </motion.div>
 
-          {/* أقسام التخصيص */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
