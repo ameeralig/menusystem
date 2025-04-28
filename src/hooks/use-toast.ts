@@ -1,7 +1,7 @@
 
 import * as React from "react"
 import { State, ToasterToast } from "./toast/toastTypes";
-import { reducer, toastTimeouts } from "./toast/toastReducer";
+import { reducer, dispatch, toastTimeouts } from "./toast/toastReducer";
 
 let count = 0;
 
@@ -13,13 +13,6 @@ function genId() {
 const listeners: Array<(state: State) => void> = [];
 
 let memoryState: State = { toasts: [] };
-
-function dispatch(action: any) {
-  memoryState = reducer(memoryState, action);
-  listeners.forEach((listener) => {
-    listener(memoryState);
-  });
-}
 
 type Toast = Omit<ToasterToast, "id">
 

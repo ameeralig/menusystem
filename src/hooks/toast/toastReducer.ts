@@ -19,6 +19,19 @@ type Action =
       toastId?: ToasterToast["id"];
     };
 
+// نقوم بتعريف وإنشاء state أولي
+let memoryState: State = { toasts: [] };
+// نُنشئ متغيراً للمستمعين
+const listeners: Array<(state: State) => void> = [];
+
+// نُضيف دالة dispatch
+export const dispatch = (action: Action) => {
+  memoryState = reducer(memoryState, action);
+  listeners.forEach((listener) => {
+    listener(memoryState);
+  });
+};
+
 export const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "ADD_TOAST":

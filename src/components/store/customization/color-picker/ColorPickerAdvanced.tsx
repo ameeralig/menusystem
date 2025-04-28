@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Save, Palette, RefreshCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { colorThemes } from "./colorThemes";
 import ColorPalette from "./ColorPalette";
 import ColorCustomizer from "./ColorCustomizer";
 import ColorPreview from "./ColorPreview";
