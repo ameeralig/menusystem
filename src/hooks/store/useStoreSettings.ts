@@ -19,6 +19,25 @@ export const useStoreSettings = (slug: string | undefined) => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // الإعدادات الافتراضية للخطوط إذا لم تكن موجودة في قاعدة البيانات
+  const defaultFontSettings: FontSettings = {
+    storeName: {
+      family: "inherit",
+      isCustom: false,
+      customFontUrl: null,
+    },
+    categoryText: {
+      family: "inherit",
+      isCustom: false,
+      customFontUrl: null,
+    },
+    generalText: {
+      family: "inherit",
+      isCustom: false,
+      customFontUrl: null,
+    },
+  };
+
   useEffect(() => {
     const fetchStoreSettings = async () => {
       try {
@@ -40,13 +59,41 @@ export const useStoreSettings = (slug: string | undefined) => {
           return;
         }
 
+        // تحويل بيانات الخطوط إلى النوع المطلوب بطريقة آمنة
+        let parsedFontSettings: FontSettings = defaultFontSettings;
+        
+        if (settings.font_settings) {
+          const fontData = settings.font_settings as any;
+          
+          // التحقق من أن البيانات تحتوي على العناصر اللازمة
+          if (fontData.storeName && fontData.categoryText && fontData.generalText) {
+            parsedFontSettings = {
+              storeName: {
+                family: fontData.storeName.family || "inherit",
+                isCustom: fontData.storeName.isCustom || false,
+                customFontUrl: fontData.storeName.customFontUrl || null,
+              },
+              categoryText: {
+                family: fontData.categoryText.family || "inherit",
+                isCustom: fontData.categoryText.isCustom || false,
+                customFontUrl: fontData.categoryText.customFontUrl || null,
+              },
+              generalText: {
+                family: fontData.generalText.family || "inherit",
+                isCustom: fontData.generalText.isCustom || false,
+                customFontUrl: fontData.generalText.customFontUrl || null,
+              }
+            };
+          }
+        }
+
         setStoreSettings({
           storeName: settings.store_name,
           colorTheme: settings.color_theme || "default",
           socialLinks: settings.social_links as SocialLinks || {},
           contactInfo: settings.contact_info as ContactInfo || {},
           bannerUrl: settings.banner_url,
-          fontSettings: settings.font_settings as FontSettings,
+          fontSettings: parsedFontSettings,
           storeOwnerId: settings.user_id,
         });
 
