@@ -1,4 +1,4 @@
-import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Upload, ImagePlus, Link as LinkIcon, Star, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 interface AddProductFormProps {
   loading: boolean;
@@ -14,7 +15,7 @@ interface AddProductFormProps {
     description: string;
     price: string;
     image_url: string;
-    category: string;
+    categoryName: string;
     is_new: boolean;
     is_popular: boolean;
   };
@@ -25,6 +26,7 @@ interface AddProductFormProps {
   selectedFile: File | null;
   previewUrl: string | null;
   handleFileSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  categoryName: string;
 }
 
 const AddProductForm = ({
@@ -37,6 +39,7 @@ const AddProductForm = ({
   selectedFile,
   previewUrl,
   handleFileSelect,
+  categoryName
 }: AddProductFormProps) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -64,14 +67,12 @@ const AddProductForm = ({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="category">تصنيف المنتج (اختياري)</Label>
-        <Input
-          id="category"
-          value={formData.category}
-          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-          placeholder="أدخل تصنيف المنتج"
-          className="w-full"
-        />
+        <Label>التصنيف</Label>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="px-3 py-1 text-sm font-medium">
+            {categoryName}
+          </Badge>
+        </div>
       </div>
 
       <div className="space-y-2">

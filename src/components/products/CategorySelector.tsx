@@ -1,44 +1,113 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
-import { Folder, ImagePlus, Link, Upload } from "lucide-react";
+import { Folder, ImagePlus, Upload, Link as LinkIcon } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { createCategory, getCategoryByName } from "@/utils/categoryStorage";
+import { Category } from "@/types/category";
 
 interface CategorySelectorProps {
-  existingCategories: string[];
-  onCategorySelected: (category: string, imageUrl?: string) => void;
+  existingCategories: Category[];
+  isLoading: boolean;
+  onCategorySelected: (categoryId: string, category?: Category) => void;
 }
 
-const CategorySelector = ({ existingCategories, onCategorySelected }: CategorySelectorProps) => {
+const CategorySelector = ({ existingCategories, isLoading, onCategorySelected }: CategorySelectorProps) => {
+  const { toast } = useToast();
   const [selectionType, setSelectionType] = useState<"existing" | "new">("existing");
   const [newCategory, setNewCategory] = useState("");
-  const [uploadMethod, setUploadMethod] = useState<"file" | "url">("file");
-  const [imageUrl, setImageUrl] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const [isCreating, setIsCreating] = useState(false);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      // إنشاء URL مؤقت لعرض الصورة (سيتم إزالته تلقائيًا عند تنظيف المكون)
+      // إنشاء URL مؤقت لعرض الصورة
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
     }
   };
 
-  const handleSubmit = () => {
-    if (selectionType === "existing" && selectedCategory) {
-      onCategorySelected(selectedCategory);
-    } else if (selectionType === "new" && newCategory) {
-      const finalImageUrl = uploadMethod === "url" ? imageUrl : previewUrl;
-      onCategorySelected(newCategory, finalImageUrl || undefined);
+  const handleSubmit = async () => {
+    try {
+      // الحصول على معرف المستخدم الحالي
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          variant: "destructive",
+          title: "خطأ",
+          description: "يجب تسجيل الدخول أولاً"
+        });
+        return;
+      }
+
+      if (selectionType === "existing" && selectedCategoryId) {
+        // استخدام تصنيف موجود
+        const selectedCategory = existingCategories.find(c => c.id === selectedCategoryId);
+        onCategorySelected(selectedCategoryId, selectedCategory);
+      } else if (selectionType === "new" && newCategory) {
+        // التحقق من وجود الملف
+        if (!selectedFile) {
+          toast({
+            variant: "destructive",
+            title: "خطأ",
+            description: "يرجى اختيار صورة للتصنيف الجديد"
+          });
+          return;
+        }
+
+        // التحقق مما إذا كان التصنيف موجودًا بالفعل
+        const existingCategory = await getCategoryByName(newCategory, user.id);
+        if (existingCategory) {
+          toast({
+            variant: "destructive",
+            title: "تصنيف موجود",
+            description: "هذا التصنيف موجود بالفعل، يرجى اختياره من القائمة"
+          });
+          return;
+        }
+
+        setIsCreating(true);
+        
+        // إنشاء تصنيف جديد مع صورة
+        const newCategoryData = await createCategory(newCategory, selectedFile, user.id);
+        
+        if (newCategoryData) {
+          toast({
+            title: "تم إنشاء التصنيف",
+            description: `تم إنشاء التصنيف "${newCategory}" بنجاح`
+          });
+          onCategorySelected(newCategoryData.id, newCategoryData);
+        }
+      }
+    } catch (error: any) {
+      console.error("خطأ:", error);
+      toast({
+        variant: "destructive",
+        title: "فشل العملية",
+        description: error.message
+      });
+    } finally {
+      setIsCreating(false);
     }
   };
+
+  // تنظيف عنوان URL المؤقت عند إزالة المكون
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   return (
     <div className="space-y-6">
@@ -72,18 +141,37 @@ const CategorySelector = ({ existingCategories, onCategorySelected }: CategorySe
       {selectionType === "existing" && (
         <div className="space-y-4">
           <Label>اختر التصنيف</Label>
-          <div className="grid grid-cols-2 gap-4">
-            {existingCategories.map((category) => (
-              <Button
-                key={category}
-                variant={selectedCategory === category ? "default" : "outline"}
-                onClick={() => setSelectedCategory(category)}
-                className="justify-start"
-              >
-                {category}
-              </Button>
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center p-6">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : existingCategories.length > 0 ? (
+            <div className="grid grid-cols-2 gap-4">
+              {existingCategories.map((category) => (
+                <div key={category.id} className="relative">
+                  <Button
+                    type="button"
+                    variant={selectedCategoryId === category.id ? "default" : "outline"}
+                    onClick={() => setSelectedCategoryId(category.id)}
+                    className="w-full h-auto p-2 flex flex-col items-center gap-2"
+                  >
+                    <div className="w-full aspect-video overflow-hidden rounded-md">
+                      <img 
+                        src={category.image_url} 
+                        alt={category.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <span>{category.name}</span>
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center p-6 bg-muted/50 rounded-lg">
+              <p className="text-muted-foreground">لم يتم العثور على تصنيفات. قم بإنشاء تصنيف جديد.</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -101,62 +189,32 @@ const CategorySelector = ({ existingCategories, onCategorySelected }: CategorySe
 
           <div className="space-y-2">
             <Label>صورة التصنيف</Label>
-            <div className="flex gap-4">
-              <Button
-                type="button"
-                variant={uploadMethod === "file" ? "default" : "outline"}
-                onClick={() => setUploadMethod("file")}
-                className="flex-1"
+            <div>
+              <div 
+                onClick={() => document.getElementById('file-upload')?.click()}
+                className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
               >
-                <Upload className="h-4 w-4 ml-2" />
-                رفع صورة
-              </Button>
-              <Button
-                type="button"
-                variant={uploadMethod === "url" ? "default" : "outline"}
-                onClick={() => setUploadMethod("url")}
-                className="flex-1"
-              >
-                <Link className="h-4 w-4 ml-2" />
-                رابط صورة
-              </Button>
-            </div>
-
-            {uploadMethod === "url" ? (
-              <Input
-                type="url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="أدخل رابط الصورة"
-              />
-            ) : (
-              <div>
-                <div 
-                  onClick={() => document.getElementById('file-upload')?.click()}
-                  className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
-                >
-                  {previewUrl ? (
-                    <img 
-                      src={previewUrl} 
-                      alt="معاينة" 
-                      className="max-h-48 mx-auto rounded-lg"
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center gap-2">
-                      <ImagePlus className="h-12 w-12 text-muted-foreground" />
-                      <p className="text-muted-foreground">اضغط هنا لاختيار صورة</p>
-                    </div>
-                  )}
-                </div>
-                <input
-                  id="file-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
+                {previewUrl ? (
+                  <img 
+                    src={previewUrl} 
+                    alt="معاينة" 
+                    className="max-h-48 mx-auto rounded-lg"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <ImagePlus className="h-12 w-12 text-muted-foreground" />
+                    <p className="text-muted-foreground">اضغط هنا لاختيار صورة</p>
+                  </div>
+                )}
               </div>
-            )}
+              <input
+                id="file-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+            </div>
           </div>
         </div>
       )}
@@ -164,12 +222,20 @@ const CategorySelector = ({ existingCategories, onCategorySelected }: CategorySe
       <Button 
         onClick={handleSubmit}
         disabled={
-          (selectionType === "existing" && !selectedCategory) ||
-          (selectionType === "new" && !newCategory)
+          isCreating ||
+          (selectionType === "existing" && !selectedCategoryId) ||
+          (selectionType === "new" && (!newCategory || !selectedFile))
         }
         className="w-full"
       >
-        متابعة
+        {isCreating ? (
+          <>
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+            جاري الإنشاء...
+          </>
+        ) : (
+          "متابعة"
+        )}
       </Button>
     </div>
   );
