@@ -32,6 +32,7 @@ const StoreNameEditor = ({
   const [isSlugPristine, setIsSlugPristine] = useState(true);
   const { toast } = useToast();
 
+  // تحقق من الرابط المخصص عند تحميل المكون
   useEffect(() => {
     const checkSlug = async () => {
       const { data: { user } } = await supabase.auth.getUser();

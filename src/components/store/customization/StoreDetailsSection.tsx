@@ -25,6 +25,11 @@ const StoreDetailsSection = ({
 }: StoreDetailsSectionProps) => {
   const [isEditingName, setIsEditingName] = useState(false);
 
+  const handleSubmit = async () => {
+    // مزج عمليتي الإرسال لكل من الاسم والرابط
+    await handleNameSubmit();
+  };
+
   return (
     <CustomizationSection 
       title="المعلومات الأساسية" 
@@ -39,7 +44,7 @@ const StoreDetailsSection = ({
           setStoreSlug={setStoreSlug}
           isEditing={isEditingName}
           setIsEditing={setIsEditingName}
-          handleSubmit={handleNameSubmit}
+          handleSubmit={handleSubmit}
           isLoading={isLoading}
         />
       </div>
