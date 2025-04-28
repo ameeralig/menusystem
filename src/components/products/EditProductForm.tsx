@@ -6,7 +6,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Star, TrendingUp, Loader2 } from "lucide-react";
 import { Product } from "@/types/product";
-import { Category } from "@/types/category";
 import {
   Card,
   CardContent,
@@ -16,13 +15,6 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface EditProductFormProps {
   product: Product | null;
@@ -34,9 +26,8 @@ interface EditProductFormProps {
   setDescription: (value: string) => void;
   price: string;
   setPrice: (value: string) => void;
-  categoryId: string;
-  setCategoryId: (value: string) => void;
-  categories: Category[];
+  category: string;
+  setCategory: (value: string) => void;
   isNew: boolean;
   setIsNew: (value: boolean) => void;
   isPopular: boolean;
@@ -54,9 +45,8 @@ const EditProductForm = ({
   setDescription,
   price,
   setPrice,
-  categoryId,
-  setCategoryId,
-  categories,
+  category,
+  setCategory,
   isNew,
   setIsNew,
   isPopular,
@@ -112,20 +102,14 @@ const EditProductForm = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="categoryId">التصنيف</Label>
-                <Select value={categoryId} onValueChange={setCategoryId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="اختر التصنيف" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="no-category">بدون تصنيف</SelectItem>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="category">التصنيف</Label>
+                <Input
+                  id="category"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  placeholder="أدخل التصنيف"
+                  className="text-right"
+                />
               </div>
             </div>
           </div>

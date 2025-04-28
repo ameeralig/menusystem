@@ -1,10 +1,9 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Product } from "@/types/product";
-import { Category } from "@/types/category";
+import { CategoryImage } from "@/types/categoryImage";
 import ProductsList from "@/components/products/ProductsList";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Loader2 } from "lucide-react";
@@ -13,7 +12,7 @@ import LoadingState from "@/components/products/LoadingState";
 import EditProductForm from "@/components/products/EditProductForm";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
-import { getCategoryByName, createCategory } from "@/utils/categoryStorage";
+import { CategoryImageManager } from "@/components/products/CategoryImageManager";
 
 const EditProductContainer = () => {
   const navigate = useNavigate();
@@ -27,31 +26,15 @@ const EditProductContainer = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoryImages, setCategoryImages] = useState<CategoryImage[]>([]);
+  const [uniqueCategories, setUniqueCategories] = useState<string[]>([]);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [categoryId, setCategoryId] = useState("");
+  const [category, setCategory] = useState("");
   const [isNew, setIsNew] = useState(false);
   const [isPopular, setIsPopular] = useState(false);
-
-  const fetchCategories = async (userId: string) => {
-    try {
-      const { data: categoryData, error: categoryError } = await supabase
-        .from("categories")
-        .select("*")
-        .eq("user_id", userId);
-
-      if (!categoryError && categoryData) {
-        setCategories(categoryData);
-      } else {
-        console.error("Error fetching categories:", categoryError);
-      }
-    } catch (error) {
-      console.error("Failed to fetch categories:", error);
-    }
-  };
 
   const fetchProducts = async () => {
     setIsLoading(true);
@@ -59,8 +42,6 @@ const EditProductContainer = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("لم يتم العثور على المستخدم");
-
-      await fetchCategories(user.id);
 
       const { data: productsData, error: productsError } = await supabase
         .from("products")
@@ -71,6 +52,17 @@ const EditProductContainer = () => {
 
       if (productsData) {
         setProducts(productsData);
+        const categories = [...new Set(productsData?.map(p => p.category).filter(Boolean))];
+        setUniqueCategories(categories);
+
+        const { data: imagesData, error: imagesError } = await supabase
+          .from("category_images")
+          .select("*")
+          .eq("user_id", user.id);
+
+        if (!imagesError && imagesData) {
+          setCategoryImages(imagesData);
+        }
       }
 
       if (productId) {
@@ -103,7 +95,7 @@ const EditProductContainer = () => {
     setName(product.name);
     setDescription(product.description || "");
     setPrice(product.price.toString());
-    setCategoryId(product.category_id || "no-category");
+    setCategory(product.category || "");
     setIsNew(product.is_new || false);
     setIsPopular(product.is_popular || false);
   };
@@ -120,7 +112,7 @@ const EditProductContainer = () => {
           name,
           description,
           price: parseFloat(price),
-          category_id: categoryId === "no-category" ? null : categoryId,
+          category,
           is_new: isNew,
           is_popular: isPopular
         })
@@ -133,18 +125,10 @@ const EditProductContainer = () => {
         duration: 3000,
       });
 
-      const updatedProduct = {
-        ...selectedProduct,
-        name,
-        description,
-        price: parseFloat(price),
-        category_id: categoryId === "no-category" ? null : categoryId,
-        is_new: isNew,
-        is_popular: isPopular
-      };
-
       setProducts(products.map(p => 
-        p.id === selectedProduct.id ? updatedProduct : p
+        p.id === selectedProduct.id 
+          ? { ...p, name, description, price: parseFloat(price), category, is_new: isNew, is_popular: isPopular }
+          : p
       ));
 
       handleCancel();
@@ -199,7 +183,7 @@ const EditProductContainer = () => {
     setName("");
     setDescription("");
     setPrice("");
-    setCategoryId("");
+    setCategory("");
     setIsNew(false);
     setIsPopular(false);
     
@@ -214,6 +198,39 @@ const EditProductContainer = () => {
     const product = products.find(p => p.id === productId);
     if (product) {
       setSelectedProductData(product);
+    }
+  };
+
+  const handleUpdateCategoryImages = async (images: CategoryImage[]) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("يجب تسجيل الدخول أولاً");
+
+      await supabase
+        .from("category_images")
+        .delete()
+        .eq("user_id", user.id);
+
+      if (images.length > 0) {
+        const { error } = await supabase
+          .from("category_images")
+          .upsert(images.map(img => ({
+            user_id: user.id,
+            category: img.category,
+            image_url: img.image_url,
+          })));
+
+        if (error) throw error;
+      }
+
+      setCategoryImages(images);
+    } catch (error: any) {
+      console.error("Error updating category images:", error);
+      toast({
+        variant: "destructive",
+        title: "خطأ في تحديث صور التصنيفات",
+        description: error.message,
+      });
     }
   };
 
@@ -257,6 +274,13 @@ const EditProductContainer = () => {
               onSelectProduct={handleSelectProduct}
               onDeleteProduct={handleDelete}
             />
+            {uniqueCategories.length > 0 && (
+              <CategoryImageManager
+                categories={uniqueCategories}
+                categoryImages={categoryImages}
+                onUpdateImages={handleUpdateCategoryImages}
+              />
+            )}
           </>
         ) : (
           <EditProductForm
@@ -269,9 +293,8 @@ const EditProductContainer = () => {
             setDescription={setDescription}
             price={price}
             setPrice={setPrice}
-            categoryId={categoryId}
-            setCategoryId={setCategoryId}
-            categories={categories}
+            category={category}
+            setCategory={setCategory}
             isNew={isNew}
             setIsNew={setIsNew}
             isPopular={isPopular}
