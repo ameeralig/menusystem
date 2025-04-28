@@ -1,6 +1,6 @@
 import { Plus, Edit, Eye, Link2, Settings, MessageSquare, QrCode } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { copyToClipboard } from "@/utils/clipboard";
@@ -16,18 +16,60 @@ const DashboardActions = () => {
   const [isCopying, setIsCopying] = useState(false);
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [storeUrl, setStoreUrl] = useState("");
+  const [storeSlug, setStoreSlug] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const fetchStoreSlug = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        
+        const { data: storeSettings } = await supabase
+          .from("store_settings")
+          .select("slug")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        
+        if (storeSettings?.slug) {
+          console.log("تم العثور على رابط المتجر:", storeSettings.slug);
+          setStoreSlug(storeSettings.slug);
+        } else {
+          console.log("لم يتم العثور على رابط مخصص للمتجر");
+        }
+      } catch (error) {
+        console.error("خطأ أثناء جلب رابط المتجر:", error);
+      }
+    };
+    
+    fetchStoreSlug();
+  }, []);
 
   const getStoreShortUrl = async () => {
+    if (storeSlug) {
+      return `${BASE_DOMAIN}/${storeSlug}`;
+    }
+    
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
+    
     const { data: storeSettings } = await supabase
       .from("store_settings")
       .select("slug")
       .eq("user_id", user.id)
       .maybeSingle();
+    
     if (storeSettings && storeSettings.slug) {
+      setStoreSlug(storeSettings.slug);
       return `${BASE_DOMAIN}/${storeSettings.slug}`;
     }
+    
+    toast({
+      title: "الرابط المخصص غير متوفر",
+      description: "يرجى إعداد رابط مخصص في صفحة تخصيص المتجر أولاً",
+      variant: "destructive",
+      duration: 5000,
+    });
+    
     return null;
   };
 
@@ -62,6 +104,20 @@ const DashboardActions = () => {
 
   const handlePreviewProducts = async () => {
     try {
+      if (storeSlug) {
+        const previewUrl = `${BASE_DOMAIN}/${storeSlug}`;
+        const newWindow = window.open(previewUrl, '_blank', 'noopener,noreferrer');
+        if (!newWindow) {
+          toast({
+            title: "تنبيه",
+            description: "يرجى السماح بالنوافذ المنبثقة لفتح صفحة المعاينة",
+            duration: 5000,
+          });
+          window.location.href = previewUrl;
+        }
+        return;
+      }
+      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast({
@@ -82,13 +138,16 @@ const DashboardActions = () => {
       if (!storeSettings || !storeSettings.slug) {
         toast({
           title: "خطأ",
-          description: "تعذر الحصول على رابط المتجر",
+          description: "تعذر الحصول على رابط المتجر. يرجى إعداد رابط مخصص في صفحة تخصيص المتجر أولاً",
           variant: "destructive",
-          duration: 3000,
+          duration: 5000,
         });
+        navigate("/store-customization");
         return;
       }
 
+      setStoreSlug(storeSettings.slug);
+      
       const previewUrl = `${BASE_DOMAIN}/${storeSettings.slug}`;
       
       const newWindow = window.open(previewUrl, '_blank', 'noopener,noreferrer');
@@ -118,20 +177,32 @@ const DashboardActions = () => {
       if (!url) {
         toast({
           title: "خطأ",
-          description: "تعذر جلب رابط المتجر المختصر",
+          description: "يرجى إعداد رابط مخصص في صفحة تخصيص المتجر أولاً",
           variant: "destructive",
-          duration: 3000,
+          duration: 5000,
         });
         setIsCopying(false);
+        navigate("/store-customization");
         return;
       }
       await copyToClipboard(url);
+      toast({
+        title: "تم النسخ!",
+        description: `تم نسخ رابط المتجر: ${url}`,
+        duration: 3000,
+      });
       setTimeout(() => {
         setIsCopying(false);
       }, 3000);
     } catch (error) {
       console.error("Copy link error:", error);
       setIsCopying(false);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء نسخ الرابط",
+        variant: "destructive",
+        duration: 3000,
+      });
     }
   };
 
@@ -141,10 +212,11 @@ const DashboardActions = () => {
       if (!url) {
         toast({
           title: "خطأ",
-          description: "تعذر جلب رابط المتجر المختصر",
+          description: "يرجى إعداد رابط مخصص في صفحة تخصيص المتجر أولاً",
           variant: "destructive",
-          duration: 3000,
+          duration: 5000,
         });
+        navigate("/store-customization");
         return;
       }
       setStoreUrl(url);

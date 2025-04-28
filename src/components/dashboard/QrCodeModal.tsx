@@ -10,24 +10,18 @@ interface QrCodeModalProps {
   storeUrl: string;
 }
 
-const BASE_DOMAIN = "https://qrmenuc.com";
-
 const QrCodeModal = ({ isOpen, onClose, storeUrl }: QrCodeModalProps) => {
   const [qrValue, setQrValue] = useState("");
 
   useEffect(() => {
     if (storeUrl) {
       try {
-        // نحن نتأكد من أننا نستخدم فقط الـ slug من الرابط
-        const slug = storeUrl.split('/').pop();
-        if (slug) {
-          const fullUrl = `${BASE_DOMAIN}/${slug}`;
-          console.log("Generating QR code for URL:", fullUrl);
-          setQrValue(fullUrl);
-        }
+        // استخدم الرابط كما هو دون تغيير لأننا متأكدين أنه رابط كامل
+        console.log("إنشاء رمز QR للرابط:", storeUrl);
+        setQrValue(storeUrl);
       } catch (error) {
-        console.error("Error processing store URL:", error);
-        setQrValue(BASE_DOMAIN);
+        console.error("حدث خطأ أثناء معالجة رابط المتجر:", error);
+        setQrValue("https://qrmenuc.com");
       }
     }
   }, [storeUrl]);
@@ -35,7 +29,7 @@ const QrCodeModal = ({ isOpen, onClose, storeUrl }: QrCodeModalProps) => {
   const handleDownload = () => {
     const svg = document.getElementById("qr-code");
     if (!svg) {
-      console.error("QR code SVG element not found");
+      console.error("تعذر العثور على عنصر رمز QR");
       return;
     }
     

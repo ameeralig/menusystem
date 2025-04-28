@@ -25,9 +25,10 @@ const StoreDetailsSection = ({
 }: StoreDetailsSectionProps) => {
   const [isEditingName, setIsEditingName] = useState(false);
 
+  // دمج حفظ الاسم والرابط معًا في عملية واحدة
   const handleSubmit = async () => {
-    // مزج عمليتي الإرسال لكل من الاسم والرابط
     await handleNameSubmit();
+    await handleSlugSubmit();
   };
 
   return (

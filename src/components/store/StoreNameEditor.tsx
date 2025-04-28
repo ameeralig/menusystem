@@ -35,18 +35,27 @@ const StoreNameEditor = ({
   // تحقق من الرابط المخصص عند تحميل المكون
   useEffect(() => {
     const checkSlug = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
 
-      const { data: settings } = await supabase
-        .from("store_settings")
-        .select("slug")
-        .eq("user_id", user.id)
-        .maybeSingle();
+        const { data: settings } = await supabase
+          .from("store_settings")
+          .select("slug")
+          .eq("user_id", user.id)
+          .maybeSingle();
 
-      if (settings?.slug) {
-        setStoreSlug(settings.slug);
-        setIsSlugPristine(false);
+        // إذا كان للمستخدم رابط مخصص بالفعل
+        if (settings?.slug) {
+          console.log("رابط المتجر المخزن:", settings.slug);
+          setStoreSlug(settings.slug);
+          setIsSlugPristine(false);
+        } else {
+          console.log("المستخدم ليس لديه رابط مخصص بعد");
+          setIsSlugPristine(true);
+        }
+      } catch (error) {
+        console.error("خطأ أثناء جلب رابط المتجر:", error);
       }
     };
 
@@ -99,12 +108,13 @@ const StoreNameEditor = ({
   const onFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // إذا كان الرابط الحالي موجود بالفعل، فقط احفظ اسم المتجر
     if (!isSlugPristine) {
-      // إذا كان الرابط قد تم حفظه مسبقاً، نقوم فقط بحفظ اسم المتجر
       await handleSubmit();
       return;
     }
 
+    // إذا كان الرابط جديد، تحقق منه قبل الحفظ
     const isValid = await validateSlug(storeSlug);
     if (!isValid) {
       toast({
@@ -115,7 +125,9 @@ const StoreNameEditor = ({
       return;
     }
 
+    // حفظ كل من اسم المتجر والرابط المخصص
     await handleSubmit();
+    // تعيين الرابط كغير قابل للتغيير بعد حفظه
     setIsSlugPristine(false);
   };
 
