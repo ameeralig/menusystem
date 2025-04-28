@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
@@ -102,7 +103,7 @@ const EditProductContainer = () => {
     setName(product.name);
     setDescription(product.description || "");
     setPrice(product.price.toString());
-    setCategoryId(product.category_id || "");
+    setCategoryId(product.category_id || "no-category");
     setIsNew(product.is_new || false);
     setIsPopular(product.is_popular || false);
   };
@@ -119,7 +120,7 @@ const EditProductContainer = () => {
           name,
           description,
           price: parseFloat(price),
-          category_id: categoryId || null,
+          category_id: categoryId === "no-category" ? null : categoryId,
           is_new: isNew,
           is_popular: isPopular
         })
@@ -137,7 +138,7 @@ const EditProductContainer = () => {
         name,
         description,
         price: parseFloat(price),
-        category_id: categoryId,
+        category_id: categoryId === "no-category" ? null : categoryId,
         is_new: isNew,
         is_popular: isPopular
       };
