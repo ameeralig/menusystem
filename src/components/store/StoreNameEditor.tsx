@@ -10,8 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 interface StoreNameEditorProps {
   storeName: string;
   setStoreName: (value: string) => void;
-  storeSlug?: string;
-  setStoreSlug?: (value: string) => void;
+  storeSlug: string;
+  setStoreSlug: (value: string) => void;
   isEditing: boolean;
   setIsEditing: (value: boolean) => void;
   handleSubmit: () => Promise<void>;
@@ -23,22 +23,89 @@ const StoreNameEditor = ({
   setStoreName,
   storeSlug,
   setStoreSlug,
-  isLoading,
+  isEditing,
+  setIsEditing,
   handleSubmit,
+  isLoading
 }: StoreNameEditorProps) => {
-  const [showSlugPreview, setShowSlugPreview] = useState(false);
   const [slugError, setSlugError] = useState<string | null>(null);
+  const [isSlugPristine, setIsSlugPristine] = useState(true);
   const { toast } = useToast();
 
-  const onSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    const checkSlug = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: settings } = await supabase
+        .from("store_settings")
+        .select("slug")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (settings?.slug) {
+        setStoreSlug(settings.slug);
+        setIsSlugPristine(false);
+      }
+    };
+
+    checkSlug();
+  }, [setStoreSlug]);
+
+  const validateSlug = async (slug: string) => {
+    if (!slug) {
+      setSlugError("الرابط المخصص مطلوب");
+      return false;
+    }
+
+    if (!/^[a-z0-9-]+$/.test(slug)) {
+      setSlugError("يسمح فقط بالحروف الإنجليزية الصغيرة والأرقام والشرطات");
+      return false;
+    }
+
+    if (slug.includes('--')) {
+      setSlugError("لا يمكن استخدام شرطتين متتاليتين");
+      return false;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setSlugError("يجب تسجيل الدخول أولاً");
+        return false;
+      }
+
+      const { data: existingStore } = await supabase
+        .from("store_settings")
+        .select("user_id")
+        .eq("slug", slug)
+        .maybeSingle();
+
+      if (existingStore && existingStore.user_id !== user.id) {
+        setSlugError("هذا الرابط مستخدم بالفعل");
+        return false;
+      }
+    } catch (error) {
+      console.error("Error checking slug:", error);
+      setSlugError("حدث خطأ أثناء التحقق من الرابط");
+      return false;
+    }
+
+    setSlugError(null);
+    return true;
+  };
+
+  const onFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!storeSlug && setStoreSlug) {
-      setSlugError("يجب إدخال الرابط المخصص");
+    if (!isSlugPristine) {
+      // إذا كان الرابط قد تم حفظه مسبقاً، نقوم فقط بحفظ اسم المتجر
+      await handleSubmit();
       return;
     }
 
-    if (slugError) {
+    const isValid = await validateSlug(storeSlug);
+    if (!isValid) {
       toast({
         title: "خطأ في الرابط المخصص",
         description: slugError,
@@ -48,57 +115,7 @@ const StoreNameEditor = ({
     }
 
     await handleSubmit();
-  };
-
-  const validateSlug = async (slug: string) => {
-    // التحقق من الشكل العام للرابط
-    if (!/^[a-z0-9-]+$/.test(slug)) {
-      return "يسمح فقط بالحروف الإنجليزية الصغيرة والأرقام والشرطات";
-    }
-
-    // التحقق من عدم وجود شرطتين متتاليتين
-    if (slug.includes('--')) {
-      return "لا يمكن استخدام شرطتين متتاليتين";
-    }
-
-    // التحقق من أن الرابط غير مستخدم
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return "يجب تسجيل الدخول أولاً";
-
-      const { data: existingStore } = await supabase
-        .from("store_settings")
-        .select("user_id")
-        .eq("slug", slug)
-        .single();
-
-      if (existingStore && existingStore.user_id !== user.id) {
-        return "هذا الرابط مستخدم بالفعل";
-      }
-    } catch (error) {
-      console.error("Error checking slug:", error);
-      return "حدث خطأ أثناء التحقق من الرابط";
-    }
-
-    return null;
-  };
-
-  const handleSlugChange = async (value: string) => {
-    if (setStoreSlug) {
-      // تنظيف الرابط من الأحرف غير المسموح بها
-      const sanitizedSlug = value.toLowerCase()
-        .replace(/[^a-z0-9-]/g, '')
-        .replace(/--+/g, '-');
-      
-      setStoreSlug(sanitizedSlug);
-      
-      if (sanitizedSlug) {
-        const error = await validateSlug(sanitizedSlug);
-        setSlugError(error);
-      } else {
-        setSlugError("الرابط المخصص مطلوب");
-      }
-    }
+    setIsSlugPristine(false);
   };
 
   return (
@@ -110,7 +127,7 @@ const StoreNameEditor = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={onFormSubmit} className="space-y-4">
           <div className="space-y-2">
             <label className="block text-right text-sm text-gray-600 dark:text-gray-400">
               أدخل اسم المتجر الخاص بك
@@ -125,20 +142,24 @@ const StoreNameEditor = ({
             />
           </div>
 
-          {setStoreSlug && (
+          {isSlugPristine && (
             <div className="space-y-2">
               <label className="block text-right text-sm text-gray-600 dark:text-gray-400">
-                رابط المتجر المخصص
+                رابط المتجر المخصص (سيتم حفظه مرة واحدة فقط)
               </label>
               <div className="relative">
                 <Input
                   type="text"
-                  value={storeSlug || ""}
-                  onChange={(e) => handleSlugChange(e.target.value)}
+                  value={storeSlug}
+                  onChange={(e) => {
+                    const value = e.target.value
+                      .toLowerCase()
+                      .replace(/[^a-z0-9-]/g, '')
+                      .replace(/\s+/g, '-');
+                    setStoreSlug(value);
+                  }}
                   placeholder="ادخل رابط المتجر المميز (مثال: mado)"
                   className="text-left pl-10"
-                  onFocus={() => setShowSlugPreview(true)}
-                  onBlur={() => setShowSlugPreview(false)}
                   required
                 />
                 <Link2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -149,13 +170,24 @@ const StoreNameEditor = ({
               <p className="text-sm text-gray-500 text-right mt-1 ltr">
                 رابط متجرك سيكون: https://qrmenuc.com/{storeSlug || 'your-store'}
               </p>
+              <p className="text-sm text-amber-500 text-right mt-1">
+                ملاحظة: لا يمكن تغيير الرابط بعد حفظه
+              </p>
+            </div>
+          )}
+
+          {!isSlugPristine && (
+            <div className="space-y-2">
+              <p className="text-sm text-gray-500 text-right mt-1 ltr">
+                رابط متجرك: https://qrmenuc.com/{storeSlug}
+              </p>
             </div>
           )}
 
           <Button 
             type="submit" 
             className="w-full bg-[#ff9178] hover:bg-[#ff7d61] text-white"
-            disabled={isLoading || !!slugError}
+            disabled={isLoading}
           >
             <Save className="ml-2 h-4 w-4" />
             {isLoading ? "جاري الحفظ..." : "حفظ التغييرات"}

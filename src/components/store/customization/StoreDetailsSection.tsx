@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import StoreNameEditor from "@/components/store/StoreNameEditor";
-import StoreSlugEditor from "@/components/store/StoreSlugEditor";
 import { Store } from "lucide-react";
 import CustomizationSection from "./CustomizationSection";
 
@@ -25,7 +24,6 @@ const StoreDetailsSection = ({
   isLoading
 }: StoreDetailsSectionProps) => {
   const [isEditingName, setIsEditingName] = useState(false);
-  const [isEditingSlug, setIsEditingSlug] = useState(false);
 
   return (
     <CustomizationSection 
@@ -42,15 +40,6 @@ const StoreDetailsSection = ({
           isEditing={isEditingName}
           setIsEditing={setIsEditingName}
           handleSubmit={handleNameSubmit}
-          isLoading={isLoading}
-        />
-        
-        <StoreSlugEditor
-          storeSlug={storeSlug}
-          setStoreSlug={setStoreSlug}
-          isEditing={isEditingSlug}
-          setIsEditing={setIsEditingSlug}
-          handleSubmit={handleSlugSubmit}
           isLoading={isLoading}
         />
       </div>
