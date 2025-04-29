@@ -5,7 +5,6 @@ import ProductPreviewContainer from "@/components/store/ProductPreviewContainer"
 import StoreProductsDisplay from "@/components/store/StoreProductsDisplay";
 import SocialIcons from "@/components/store/SocialIcons";
 import FeedbackDialog from "@/components/store/FeedbackDialog";
-import RefreshButton from "@/components/store/RefreshButton";
 import LoadingState from "@/components/store/LoadingState";
 import { useStoreData } from "@/hooks/useStoreData";
 import { useRefreshData } from "@/hooks/useRefreshData";
@@ -142,7 +141,6 @@ const ProductPreview = () => {
         <SocialIcons socialLinks={storeData.socialLinks} />
         {storeData.storeOwnerId && <FeedbackDialog userId={storeData.storeOwnerId} />}
       </ProductPreviewContainer>
-      <RefreshButton onClick={refreshData} isAutoRefresh={isAutoRefresh} setIsAutoRefresh={setIsAutoRefresh} />
     </>
   );
 };
