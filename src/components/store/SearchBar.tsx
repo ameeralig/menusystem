@@ -1,8 +1,9 @@
 
-import { Search, SparklesIcon } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Search, SparklesIcon, Shuffle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { Product } from "@/types/product";
 import {
   CommandDialog,
   CommandInput,
@@ -10,7 +11,9 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandItem,
+  CommandSeparator,
 } from "@/components/ui/command";
+import { toast } from "sonner";
 
 interface SearchBarProps {
   query?: string;
@@ -19,7 +22,7 @@ interface SearchBarProps {
   setSearchQuery?: (query: string) => void;
   onToggleSearch?: () => void;
   showSearch?: boolean;
-  products?: any[]; // يمكن استخدام نوع Product هنا
+  products?: Product[];
 }
 
 const SearchBar = ({ 
@@ -31,134 +34,154 @@ const SearchBar = ({
   showSearch,
   products = [],
 }: SearchBarProps) => {
-  const [aiSearchOpen, setAiSearchOpen] = useState(false);
-  const [aiResults, setAiResults] = useState<any[]>([]);
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
+  const [results, setResults] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [aiQuery, setAiQuery] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   
-  // يتم استخدام كلاً من query/onQueryChange أو searchQuery/setSearchQuery حسب المكون الأب
+  // المتغير الذي سيتم استخدامه للبحث (سواء من query أو searchQuery)
   const currentQuery = query || searchQuery || "";
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (onQueryChange) onQueryChange(e.target.value);
-    if (setSearchQuery) setSearchQuery(e.target.value);
+    const value = e.target.value;
+    if (onQueryChange) onQueryChange(value);
+    if (setSearchQuery) setSearchQuery(value);
+    setSearchTerm(value);
   };
-
-  const toggleAiSearch = () => {
-    setAiSearchOpen(!aiSearchOpen);
-    if (!aiSearchOpen) {
-      setAiQuery(currentQuery); // نقل النص الحالي إلى البحث الذكي
-    }
-  };
-
-  // دالة مساعدة لقياس التشابه بين سلسلتي نصوص
-  const calculateSimilarity = (str1: string, str2: string): number => {
-    const s1 = str1.toLowerCase().trim();
-    const s2 = str2.toLowerCase().trim();
+  
+  // دالة لقياس تشابه النصوص بطريقة Fuzzy Search
+  const fuzzysort = (text: string, query: string): number => {
+    if (!text || !query) return 0;
     
-    // إذا كانت إحدى السلاسل فارغة
-    if (s1.length === 0 || s2.length === 0) return 0;
+    text = text.toLowerCase();
+    query = query.toLowerCase();
     
-    // مطابقة تامة
-    if (s1 === s2) return 1;
+    // حالة التطابق التام
+    if (text === query) return 1;
     
-    // مطابقة جزئية (إذا كانت إحدى السلاسل تحتوي الأخرى)
-    if (s1.includes(s2) || s2.includes(s1)) {
-      const minLength = Math.min(s1.length, s2.length);
-      const maxLength = Math.max(s1.length, s2.length);
-      return minLength / maxLength;
+    // حالة احتواء النص على المصطلح
+    if (text.includes(query)) {
+      // كلما كانت الكلمة أقصر، كان التطابق أعلى
+      return 0.9 * (query.length / text.length);
     }
     
-    // حساب عدد الكلمات المشتركة
-    const words1 = s1.split(/\s+/);
-    const words2 = s2.split(/\s+/);
-    const commonWords = words1.filter(word => words2.includes(word)).length;
+    // مقارنة الكلمات
+    const textWords = text.split(/\s+/);
+    const queryWords = query.split(/\s+/);
     
-    if (commonWords > 0) {
-      return commonWords / Math.max(words1.length, words2.length);
+    let matchScore = 0;
+    for (const queryWord of queryWords) {
+      for (const textWord of textWords) {
+        if (textWord.includes(queryWord) || queryWord.includes(textWord)) {
+          matchScore += 0.5 * Math.min(textWord.length, queryWord.length) / Math.max(textWord.length, queryWord.length);
+        }
+      }
     }
     
-    // البحث عن التشابه في الأحرف المتتالية (وهذا مفيد للغة الإنجليزية)
+    // تحمل الأخطاء الإملائية البسيطة
     let commonChars = 0;
-    for (let i = 0; i < s1.length; i++) {
-      if (s2.includes(s1[i])) commonChars++;
+    for (let i = 0; i < Math.min(text.length, query.length); i++) {
+      if (text[i] === query[i]) commonChars++;
     }
     
-    return commonChars / Math.max(s1.length, s2.length);
+    const spellingMatchScore = commonChars / Math.max(text.length, query.length);
+    
+    return Math.max(matchScore, spellingMatchScore * 0.7);
   };
 
-  const handleAiSearch = async (value: string) => {
-    if (!value.trim()) return;
+  // دالة البحث الرئيسية
+  const performSearch = useCallback((value: string) => {
+    if (!value.trim()) {
+      setResults([]);
+      return;
+    }
     
     setIsLoading(true);
-    setAiQuery(value);
     
     try {
-      // التحقق من اللغة وتطبيق البحث الذكي
-      const searchQuery = value.toLowerCase().trim();
-      const isEnglishQuery = /[a-zA-Z]/.test(searchQuery);
-      
-      // نحسب درجة تشابه لكل منتج
-      const productsWithScores = products.map(product => {
-        const nameMatch = calculateSimilarity(product.name, searchQuery);
-        const descMatch = product.description ? 
-          calculateSimilarity(product.description, searchQuery) : 0;
+      // نسخة متقدمة من البحث
+      const searchResults = products.map(product => {
+        const nameMatch = fuzzysort(product.name, value);
+        const descMatch = product.description ? fuzzysort(product.description, value) : 0;
+        const categoryMatch = product.category ? fuzzysort(product.category, value) : 0;
         
-        // نأخذ أعلى قيمة تشابه (إما الاسم أو الوصف)
-        const similarityScore = Math.max(nameMatch, descMatch);
+        // نحسب درجة التطابق الكلية
+        const matchScore = Math.max(nameMatch, descMatch, categoryMatch);
         
         return {
           ...product,
-          similarityScore
+          score: matchScore
         };
-      });
+      })
+      // نأخذ النتائج ذات التطابق المعقول فقط
+      .filter(item => item.score > 0.1)
+      // ونرتبها حسب درجة التطابق
+      .sort((a, b) => b.score - a.score);
       
-      // ترتيب النتائج حسب درجة التشابه (من الأعلى للأقل)
-      const sortedResults = [...productsWithScores]
-        .filter(product => product.similarityScore > 0.1) // فلترة النتائج ذات التشابه الضعيف جداً
-        .sort((a, b) => b.similarityScore - a.similarityScore);
-      
-      // إذا كانت النتائج قليلة، نضيف اقتراحات إضافية
-      if (sortedResults.length < 3 && products.length > 0) {
-        // اختيار منتجات عشوائية لم تظهر في النتائج
-        const additionalSuggestions = products
-          .filter(p => !sortedResults.some(r => r.id === p.id))
-          .slice(0, 3);
-          
-        setAiResults([...sortedResults, ...additionalSuggestions]);
-      } else {
-        setAiResults(sortedResults);
-      }
+      setResults(searchResults);
     } catch (error) {
-      console.error("خطأ في البحث الذكي:", error);
+      console.error("خطأ في البحث:", error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [products]);
+
+  // البحث أثناء الكتابة
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      performSearch(searchTerm);
+    }, 200); // تأخير بسيط لتحسين الأداء
+    
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, performSearch]);
   
-  useEffect(() => {
-    if (aiSearchOpen && aiQuery) {
-      handleAiSearch(aiQuery);
+  // ميزة اختيار عنصر عشوائي
+  const suggestRandomItem = () => {
+    if (products.length === 0) {
+      toast.error("لا توجد منتجات متاحة");
+      return;
     }
-  }, [aiSearchOpen, aiQuery]);
-
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        toggleAiSearch();
+    
+    // نقسم المنتجات حسب التصنيف
+    const categoriesMap: Record<string, Product[]> = {};
+    
+    products.forEach(product => {
+      const category = product.category || "أخرى";
+      if (!categoriesMap[category]) {
+        categoriesMap[category] = [];
       }
-    };
+      categoriesMap[category].push(product);
+    });
+    
+    // نختار فئة عشوائية
+    const categories = Object.keys(categoriesMap);
+    const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+    
+    // نختار منتج عشوائي من الفئة
+    const productsInCategory = categoriesMap[randomCategory];
+    const randomProduct = productsInCategory[Math.floor(Math.random() * productsInCategory.length)];
+    
+    // نضبط البحث على هذا المنتج
+    if (onQueryChange) onQueryChange(randomProduct.name);
+    if (setSearchQuery) setSearchQuery(randomProduct.name);
+    setSearchTerm(randomProduct.name);
+    
+    // نعرض رسالة للمستخدم
+    toast.success(`اقتراح: ${randomProduct.name} (${randomCategory})`);
+  };
 
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
-  }, [aiSearchOpen]);
-
-  const selectProduct = (product: any) => {
+  const selectProduct = (product: Product) => {
     if (onQueryChange) onQueryChange(product.name);
     if (setSearchQuery) setSearchQuery(product.name);
-    setAiSearchOpen(false);
+    setSearchTerm(product.name);
+    setSearchDialogOpen(false);
   };
+  
+  // استخدام useEffect لتحديث البحث عند تغيير query أو searchQuery من الخارج
+  useEffect(() => {
+    setSearchTerm(currentQuery);
+    performSearch(currentQuery);
+  }, [currentQuery, performSearch]);
 
   return (
     <div className="relative max-w-md mx-auto mb-8">
@@ -167,29 +190,42 @@ const SearchBar = ({
         <Input
           type="text"
           placeholder="ابحث عن طبق..."
-          className="w-full pl-10 pr-10 py-2 text-right"
+          className="w-full pl-20 pr-10 py-2 text-right"
           value={currentQuery}
           onChange={handleChange}
+          onClick={() => {
+            if (products.length > 0) {
+              setSearchDialogOpen(true);
+            }
+          }}
         />
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute left-1 top-1 p-1 h-8 w-8 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
-          onClick={toggleAiSearch}
-          title="بحث ذكي (Ctrl+K)"
-        >
-          <SparklesIcon className="h-4 w-4 text-blue-500" />
-        </Button>
+        <div className="absolute left-1 top-1 flex gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="p-1 h-8 w-8 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
+            onClick={() => setSearchDialogOpen(true)}
+            title="بحث"
+          >
+            <SparklesIcon className="h-4 w-4 text-blue-500" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="p-1 h-8 w-8 rounded-full hover:bg-green-100 dark:hover:bg-green-900 transition-colors"
+            onClick={suggestRandomItem}
+            title="اقترح وجبة"
+          >
+            <Shuffle className="h-4 w-4 text-green-500" />
+          </Button>
+        </div>
       </div>
 
-      <CommandDialog open={aiSearchOpen} onOpenChange={setAiSearchOpen}>
+      <CommandDialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
         <CommandInput 
           placeholder="ماذا تريد أن تأكل اليوم؟" 
-          value={aiQuery}
-          onValueChange={(value) => {
-            setAiQuery(value);
-            handleAiSearch(value);
-          }}
+          value={searchTerm}
+          onValueChange={setSearchTerm}
         />
         <CommandList>
           <CommandEmpty>
@@ -199,34 +235,40 @@ const SearchBar = ({
               <p className="py-6 text-center text-sm">لا توجد نتائج. جرّب كلمات أخرى.</p>
             )}
           </CommandEmpty>
-          {aiResults.length > 0 && (
-            <CommandGroup heading="نتائج البحث">
-              {aiResults.map((product) => (
-                <CommandItem
-                  key={product.id}
-                  onSelect={() => selectProduct(product)}
-                  className="flex items-center justify-between py-2"
-                >
-                  <div className="flex items-center">
-                    <span>{product.name}</span>
-                    <span className="ml-2 text-sm text-gray-500">
-                      {product.price ? `${product.price} د.ع` : ''}
-                    </span>
-                  </div>
-                  {product.category && (
-                    <span className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
-                      {product.category}
-                    </span>
-                  )}
-                  {product.similarityScore > 0.3 && product.similarityScore < 1 && (
-                    <span className="text-xs text-blue-500 bg-blue-50 dark:bg-blue-900 dark:text-blue-200 px-2 py-1 rounded-full mr-1">
-                      تطابق مشابه
-                    </span>
-                  )}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
+          
+          <CommandGroup heading="نتائج البحث">
+            {results.map((product) => (
+              <CommandItem
+                key={product.id}
+                onSelect={() => selectProduct(product)}
+                className="flex items-center justify-between py-2"
+              >
+                <div className="flex items-center">
+                  <span>{product.name}</span>
+                  <span className="ml-2 text-sm text-gray-500">
+                    {product.price ? `${product.price} د.ع` : ''}
+                  </span>
+                </div>
+                {product.category && (
+                  <span className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
+                    {product.category}
+                  </span>
+                )}
+              </CommandItem>
+            ))}
+          </CommandGroup>
+          
+          <CommandSeparator />
+          
+          <CommandGroup heading="اقتراحات">
+            <CommandItem
+              onSelect={suggestRandomItem}
+              className="flex items-center justify-center py-3 text-green-600"
+            >
+              <Shuffle className="h-4 w-4 mr-2" />
+              <span>اقترح وجبة عشوائية</span>
+            </CommandItem>
+          </CommandGroup>
         </CommandList>
       </CommandDialog>
     </div>

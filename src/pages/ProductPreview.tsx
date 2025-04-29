@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import ProductPreviewContainer from "@/components/store/ProductPreviewContainer";
 import StoreProductsDisplay from "@/components/store/StoreProductsDisplay";
@@ -9,11 +9,14 @@ import RefreshButton from "@/components/store/RefreshButton";
 import LoadingState from "@/components/store/LoadingState";
 import { useStoreData } from "@/hooks/useStoreData";
 import { useRefreshData } from "@/hooks/useRefreshData";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 const ProductPreview = () => {
   const { slug } = useParams<{ slug: string }>();
   const { forceRefresh, refreshData } = useRefreshData();
-  const { storeData, isLoading } = useStoreData(slug, forceRefresh);
+  const { storeData, isLoading, storeOwnerId } = useStoreData(slug, forceRefresh);
+  const [isAutoRefresh, setIsAutoRefresh] = useState<boolean>(true);
 
   useEffect(() => {
     const metaTags = [
@@ -42,6 +45,59 @@ const ProductPreview = () => {
     };
   }, []);
 
+  // تفعيل الاستماع للتحديثات المباشرة
+  useEffect(() => {
+    if (!storeOwnerId) return;
+    
+    // اشتراك في تغييرات جدول المنتجات
+    const productsChannel = supabase
+      .channel('public:products')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'products', filter: `user_id=eq.${storeOwnerId}` }, 
+        () => {
+          if (isAutoRefresh) {
+            toast.info("تم تحديث المنتجات");
+            refreshData();
+          }
+        }
+      )
+      .subscribe();
+    
+    // اشتراك في تغييرات إعدادات المتجر
+    const settingsChannel = supabase
+      .channel('public:store_settings')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'store_settings', filter: `user_id=eq.${storeOwnerId}` }, 
+        () => {
+          if (isAutoRefresh) {
+            toast.info("تم تحديث إعدادات المتجر");
+            refreshData();
+          }
+        }
+      )
+      .subscribe();
+
+    // اشتراك في تغييرات صور التصنيفات
+    const categoryImagesChannel = supabase
+      .channel('public:categories')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'categories', filter: `user_id=eq.${storeOwnerId}` }, 
+        () => {
+          if (isAutoRefresh) {
+            toast.info("تم تحديث التصنيفات");
+            refreshData();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(productsChannel);
+      supabase.removeChannel(settingsChannel);
+      supabase.removeChannel(categoryImagesChannel);
+    };
+  }, [storeOwnerId, refreshData, isAutoRefresh]);
+
   if (isLoading) {
     return <LoadingState />;
   }
@@ -65,7 +121,7 @@ const ProductPreview = () => {
         <SocialIcons socialLinks={storeData.socialLinks} />
         {storeData.storeOwnerId && <FeedbackDialog userId={storeData.storeOwnerId} />}
       </ProductPreviewContainer>
-      <RefreshButton onClick={refreshData} />
+      <RefreshButton onClick={refreshData} isAutoRefresh={isAutoRefresh} />
     </>
   );
 };

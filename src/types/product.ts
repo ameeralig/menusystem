@@ -10,4 +10,7 @@ export interface Product {
   is_new?: boolean | null;
   is_popular?: boolean | null;
   display_order?: number | null;
+  category_id?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
