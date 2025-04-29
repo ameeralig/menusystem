@@ -1,3 +1,4 @@
+
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = "https://zqlckixwpyrwdwrsuhsg.supabase.co";
@@ -12,5 +13,13 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10
+    }
   }
 });
+
+// تسجيل الدخول عندما يتم تحميل الملف لأغراض التصحيح
+console.log("Supabase client initialized with realtime config");

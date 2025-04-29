@@ -12,8 +12,15 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
   const products = useStoreProducts(storeSettings.storeOwnerId, forceRefresh);
   const categoryImages = useCategoryImages(storeSettings.storeOwnerId, forceRefresh);
 
+  // تسجيل معلومات تصحيح الأخطاء
+  useEffect(() => {
+    console.log("useStoreData - storeOwnerId:", storeSettings.storeOwnerId);
+    console.log("useStoreData - forceRefresh:", forceRefresh);
+  }, [storeSettings.storeOwnerId, forceRefresh]);
+
   useEffect(() => {
     if (storeSettings && products && categoryImages) {
+      console.log("Data loaded - stopping loading state");
       setIsLoading(false);
     }
   }, [storeSettings, products, categoryImages]);
@@ -25,6 +32,6 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
       categoryImages,
     },
     isLoading,
-    storeOwnerId: storeSettings.storeOwnerId // إضافة storeOwnerId هنا
+    storeOwnerId: storeSettings.storeOwnerId
   };
 };
