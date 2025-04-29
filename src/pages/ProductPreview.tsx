@@ -44,19 +44,11 @@ const ProductPreview = () => {
     };
   }, []);
 
-  // تسجيل معلومات تصحيح الأخطاء لتتبع المشكلة
-  useEffect(() => {
-    console.log("Realtime setup - storeOwnerId:", storeOwnerId);
-  }, [storeOwnerId]);
-
-  // تفعيل الاستماع للتحديثات المباشرة
+  // تفعيل الاستماع للتحديثات المباشرة بشكل هادئ في الخلفية
   useEffect(() => {
     if (!storeOwnerId) {
-      console.log("No storeOwnerId available, skipping realtime setup");
       return;
     }
-    
-    console.log("Setting up realtime listeners for user ID:", storeOwnerId);
     
     // اشتراك في تغييرات جدول المنتجات
     const productsChannel = supabase
@@ -64,16 +56,13 @@ const ProductPreview = () => {
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'products', filter: `user_id=eq.${storeOwnerId}` }, 
         (payload) => {
-          console.log("Products change detected:", payload);
           if (isAutoRefresh) {
             toast.info("تم تحديث المنتجات");
             refreshData();
           }
         }
       )
-      .subscribe((status) => {
-        console.log("Products channel status:", status);
-      });
+      .subscribe();
     
     // اشتراك في تغييرات إعدادات المتجر
     const settingsChannel = supabase
@@ -81,16 +70,13 @@ const ProductPreview = () => {
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'store_settings', filter: `user_id=eq.${storeOwnerId}` }, 
         (payload) => {
-          console.log("Store settings change detected:", payload);
           if (isAutoRefresh) {
             toast.info("تم تحديث إعدادات المتجر");
             refreshData();
           }
         }
       )
-      .subscribe((status) => {
-        console.log("Settings channel status:", status);
-      });
+      .subscribe();
 
     // اشتراك في تغييرات صور التصنيفات
     const categoryImagesChannel = supabase
@@ -98,20 +84,16 @@ const ProductPreview = () => {
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'category_images', filter: `user_id=eq.${storeOwnerId}` }, 
         (payload) => {
-          console.log("Category images change detected:", payload);
           if (isAutoRefresh) {
             toast.info("تم تحديث التصنيفات");
             refreshData();
           }
         }
       )
-      .subscribe((status) => {
-        console.log("Category images channel status:", status);
-      });
+      .subscribe();
 
     // تنظيف عند إزالة المكون
     return () => {
-      console.log("Cleaning up realtime channels");
       supabase.removeChannel(productsChannel);
       supabase.removeChannel(settingsChannel);
       supabase.removeChannel(categoryImagesChannel);
