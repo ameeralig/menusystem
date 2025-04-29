@@ -24,6 +24,7 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
       products,
       categoryImages,
     },
-    isLoading
+    isLoading,
+    storeOwnerId: storeSettings.storeOwnerId // إضافة storeOwnerId هنا
   };
 };
