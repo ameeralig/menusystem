@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -79,7 +78,9 @@ const AdminStatsTab = () => {
       // جلب عدد المنتجات لكل مستخدم
       const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select('user_id, count(*)');
+        .select('user_id, count')
+        .select('user_id')
+        .count();
       
       if (productsError) throw productsError;
       
@@ -91,9 +92,9 @@ const AdminStatsTab = () => {
       if (viewsError) throw viewsError;
       
       // تحويل البيانات إلى خرائط للوصول السريع
-      const storeMap = new Map(storeData.map((store: any) => [store.user_id, store.store_name]));
-      const productsMap = new Map(productsData.map((product: any) => [product.user_id, parseInt(product.count) || 0]));
-      const viewsMap = new Map(viewsData.map((view: any) => [view.user_id, view.view_count]));
+      const storeMap = new Map(storeData?.map((store: any) => [store.user_id, store.store_name]) || []);
+      const productsMap = new Map(productsData?.map((product: any) => [product.user_id, parseInt(product.count) || 0]) || []);
+      const viewsMap = new Map(viewsData?.map((view: any) => [view.user_id, view.view_count]) || []);
       
       // دمج البيانات للإحصائيات
       const userStats = userData.users ? userData.users.map((user: any) => ({
@@ -138,6 +139,13 @@ const AdminStatsTab = () => {
     const daysCount = range === "7days" ? 7 : range === "30days" ? 30 : 90;
     
     try {
+      // جلب بيانات تسجيلات الدخول من جدول auth.users (باستخدام get-service-key)
+      const { data: loginData, error: loginError } = await supabase.functions.invoke('get-service-key', {
+        body: { action: 'get_login_activities', days: daysCount }
+      });
+      
+      if (loginError) throw loginError;
+      
       // جلب بيانات المشاهدات من جدول page_views
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - daysCount);
@@ -150,33 +158,33 @@ const AdminStatsTab = () => {
         
       if (viewsError) throw viewsError;
       
-      // جلب بيانات تسجيلات الدخول من جدول auth.users (سنستخدم get-service-key)
-      const { data: loginData } = await supabase.functions.invoke('get-service-key', {
-        body: { action: 'get_login_activities', days: daysCount }
-      });
-      
       // تحويل البيانات إلى تنسيق مناسب للرسم البياني
       const activityData = [];
+      const loginActivities = loginData?.activities || [];
+      
+      // إنشاء مصفوفة بالتواريخ
       for (let i = 0; i < daysCount; i++) {
         const date = new Date();
         date.setDate(date.getDate() - i);
         const dateStr = date.toISOString().split('T')[0];
+        
+        // البحث عن بيانات تسجيل الدخول لهذا اليوم
+        const loginForDay = loginActivities.find((item: any) => item.date === dateStr);
+        const loginCount = loginForDay ? loginForDay.count : 0;
         
         // حساب عدد المشاهدات في هذا اليوم
         const dayViews = viewsData ? viewsData.filter((view: any) => {
           return new Date(view.last_viewed_at).toISOString().split('T')[0] === dateStr;
         }).reduce((sum: number, view: any) => sum + (view.view_count || 0), 0) : 0;
         
-        // حساب عدد تسجيلات الدخول في هذا اليوم (نستخدم بيانات وهمية حتى نحصل على البيانات الحقيقية)
-        const dayLogins = Math.floor(Math.random() * 10) + 1; // بيانات وهمية مؤقتة
-        
-        // حساب عدد التحديثات في هذا اليوم (نستخدم بيانات وهمية حتى نحصل على البيانات الحقيقية)
-        const dayUpdates = Math.floor(Math.random() * 15); // بيانات وهمية مؤقتة
+        // لا نملك بيانات حقيقية للتحديثات، لذا سنستخدم قيمة عشوائية مؤقتة
+        // في تطبيق حقيقي، ستأتي هذه البيانات من جدول خاص بالنشاطات
+        const dayUpdates = Math.floor(Math.random() * 15);
         
         activityData.unshift({
           date: dateStr,
           visits: dayViews,
-          logins: dayLogins,
+          logins: loginCount,
           updates: dayUpdates,
         });
       }
@@ -184,7 +192,8 @@ const AdminStatsTab = () => {
       return activityData;
     } catch (error) {
       console.error("Error fetching activity data:", error);
-      return generateDummyActivityData(range); // الرجوع إلى البيانات الوهمية في حالة الخطأ
+      // في حالة حدوث خطأ، نرجع بيانات وهمية
+      return generateDummyActivityData(range);
     }
   };
 

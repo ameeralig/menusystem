@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,7 +17,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -95,7 +93,9 @@ const AdminUsersTab = () => {
       // جلب عدد المنتجات لكل مستخدم
       const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select('user_id, count(*)');
+        .select('user_id, count')
+        .select('user_id')
+        .count();
       
       if (productsError) throw productsError;
       
@@ -192,8 +192,9 @@ const AdminUsersTab = () => {
             });
           } else {
             await supabase.from('user_roles')
-              .update({ role: 'user' })
-              .eq('user_id', selectedUser.id);
+              .delete()
+              .eq('user_id', selectedUser.id)
+              .eq('role', 'admin');
           }
           
           toast({
