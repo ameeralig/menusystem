@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -76,16 +75,15 @@ const AdminStatsTab = () => {
 
       if (storeError) throw storeError;
       
-      // جلب عدد المنتجات لكل مستخدم
-      const { data: productsCountResult, error: productsError } = await supabase
+      // جلب عدد المنتجات لكل مستخدم - نستخدم طريقة مختلفة
+      const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select('user_id', { count: 'exact', head: false })
-        .csv();
+        .select('user_id');
       
       if (productsError) throw productsError;
       
-      // تجميع عدد المنتجات حسب المستخدم
-      const productsData = productsCountResult ? productsCountResult.reduce((acc: any[], curr: any) => {
+      // تجميع عدد المنتجات حسب المستخدم يدويًا
+      const productsByUser = Array.isArray(productsData) ? productsData.reduce((acc, curr) => {
         const existingUser = acc.find(item => item.user_id === curr.user_id);
         if (existingUser) {
           existingUser.count = (existingUser.count || 0) + 1;
@@ -93,7 +91,7 @@ const AdminStatsTab = () => {
           acc.push({ user_id: curr.user_id, count: 1 });
         }
         return acc;
-      }, []) : [];
+      }, [] as {user_id: string, count: number}[]) : [];
       
       // جلب عدد الزوار لكل مستخدم
       const { data: viewsData, error: viewsError } = await supabase
@@ -104,7 +102,7 @@ const AdminStatsTab = () => {
       
       // تحويل البيانات إلى خرائط للوصول السريع
       const storeMap = new Map(storeData?.map((store: any) => [store.user_id, store.store_name]) || []);
-      const productsMap = new Map(productsData?.map((product: any) => [product.user_id, product.count || 0]) || []);
+      const productsMap = new Map(productsByUser?.map((product) => [product.user_id, product.count || 0]) || []);
       const viewsMap = new Map(viewsData?.map((view: any) => [view.user_id, view.view_count]) || []);
       
       // دمج البيانات للإحصائيات
@@ -118,7 +116,7 @@ const AdminStatsTab = () => {
       })) : [];
 
       // إجمالي الإحصائيات
-      const totalProducts = productsData ? productsData.reduce((sum: number, curr: any) => sum + (curr.count || 0), 0) : 0;
+      const totalProducts = Array.isArray(productsByUser) ? productsByUser.reduce((sum, curr) => sum + curr.count, 0) : 0;
       
       const totalStats = {
         totalUsers: userData.users ? userData.users.length : 0,
