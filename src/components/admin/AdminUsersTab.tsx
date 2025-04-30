@@ -94,8 +94,7 @@ const AdminUsersTab = () => {
       // جلب عدد المنتجات لكل مستخدم
       const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select('user_id, count')
-        .group('user_id');
+        .select('user_id, count(*)');
       
       if (productsError) throw productsError;
       
