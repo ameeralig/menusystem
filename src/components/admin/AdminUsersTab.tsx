@@ -25,6 +25,7 @@ import { Label } from "@/components/ui/label";
 import { Search, UserCheck, UserX, Trash, RefreshCw, Shield, ShieldX, Send } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { Spinner } from "@/components/ui/spinner";
 
 type UserStatus = "active" | "banned" | "pending";
 
@@ -77,7 +78,7 @@ const AdminUsersTab = () => {
     setIsLoading(true);
 
     try {
-      // جلب المستخدمين
+      // جلب المستخدمين من خلال وظيفة Edge
       const { data: userData, error: userError } = await supabase.functions.invoke('get-service-key', {
         body: { action: 'get_users' }
       });
@@ -113,13 +114,13 @@ const AdminUsersTab = () => {
       if (rolesError) throw rolesError;
       
       // تحويل البيانات إلى خرائط للوصول السريع
-      const storeMap = new Map(storeData.map((store: any) => [store.user_id, store.store_name]));
-      const productsMap = new Map(productsData.map((product: any) => [product.user_id, product.count]));
-      const viewsMap = new Map(viewsData.map((view: any) => [view.user_id, view.view_count]));
-      const rolesMap = new Map(rolesData.map((role: any) => [role.user_id, role.role]));
+      const storeMap = new Map(storeData ? storeData.map((store: any) => [store.user_id, store.store_name]) : []);
+      const productsMap = new Map(productsData ? productsData.map((product: any) => [product.user_id, parseInt(product.count) || 0]) : []);
+      const viewsMap = new Map(viewsData ? viewsData.map((view: any) => [view.user_id, view.view_count]) : []);
+      const rolesMap = new Map(rolesData ? rolesData.map((role: any) => [role.user_id, role.role]) : []);
       
       // دمج البيانات
-      const enrichedUsers = userData.users.map((user: any) => ({
+      const enrichedUsers = userData.users ? userData.users.map((user: any) => ({
         id: user.id,
         email: user.email || '',
         created_at: user.created_at,
@@ -129,7 +130,7 @@ const AdminUsersTab = () => {
         lastActivity: user.last_sign_in_at || user.created_at,
         visitsCount: viewsMap.get(user.id) || 0,
         productsCount: productsMap.get(user.id) || 0
-      }));
+      })) : [];
 
       setUsers(enrichedUsers);
       setFilteredUsers(enrichedUsers);
@@ -264,20 +265,16 @@ const AdminUsersTab = () => {
               disabled={isLoading}
               className="flex items-center gap-1"
             >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              {isLoading ? <Spinner className="h-4 w-4" /> : <RefreshCw className="h-4 w-4" />}
               تحديث
             </Button>
             
-            <Button 
-              variant="outline" 
-              size="sm"
-              disabled={isLoading}
-            >
+            <div className="flex items-center space-x-2 rtl:space-x-reverse">
               <Label htmlFor="show-inactive" className="cursor-pointer flex items-center gap-1">
                 عرض المحظورين فقط
               </Label>
               <Switch id="show-inactive" />
-            </Button>
+            </div>
           </div>
         </div>
         
@@ -299,7 +296,7 @@ const AdminUsersTab = () => {
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-10">
                     <div className="flex justify-center items-center">
-                      <RefreshCw className="h-6 w-6 animate-spin mr-2" />
+                      <Spinner className="h-6 w-6 mr-2" />
                       جاري تحميل البيانات...
                     </div>
                   </TableCell>

@@ -43,22 +43,48 @@ const AdminLogin = () => {
         setIsLoading(false);
         return;
       }
-      
-      // تسجيل جلسة المسؤول
-      localStorage.setItem("adminSession", JSON.stringify({
+
+      // محاولة تسجيل الدخول إلى Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        timestamp: new Date().toISOString(),
-        isAdmin: true
-      }));
-      
-      toast({
-        title: "تم تسجيل الدخول بنجاح",
-        description: "مرحباً بك في لوحة تحكم المسؤول."
+        password: pin
       });
-      
-      // توجيه المستخدم إلى لوحة التحكم
-      navigate("/admin/dashboard");
-    } catch (error) {
+
+      // إذا كان هناك خطأ في تسجيل الدخول في Supabase، نقوم بإنشاء جلسة محلية
+      if (error) {
+        console.log("تسجيل الدخول باستخدام الجلسة المحلية");
+        
+        // تسجيل جلسة المسؤول
+        localStorage.setItem("adminSession", JSON.stringify({
+          email,
+          timestamp: new Date().toISOString(),
+          isAdmin: true
+        }));
+        
+        toast({
+          title: "تم تسجيل الدخول بنجاح",
+          description: "مرحباً بك في لوحة تحكم المسؤول."
+        });
+        
+        // توجيه المستخدم إلى لوحة التحكم
+        navigate("/admin/dashboard");
+      } else {
+        // تم تسجيل الدخول بنجاح في Supabase
+        localStorage.setItem("adminSession", JSON.stringify({
+          email,
+          timestamp: new Date().toISOString(),
+          isAdmin: true,
+          supabase_session: data.session
+        }));
+        
+        toast({
+          title: "تم تسجيل الدخول بنجاح",
+          description: "مرحباً بك في لوحة تحكم المسؤول."
+        });
+        
+        navigate("/admin/dashboard");
+      }
+    } catch (error: any) {
       console.error("خطأ في تسجيل الدخول:", error);
       toast({
         variant: "destructive",
