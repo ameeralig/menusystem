@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -91,13 +92,23 @@ const AdminUsersTab = () => {
       if (storeError) throw storeError;
       
       // جلب عدد المنتجات لكل مستخدم
-      const { data: productsData, error: productsError } = await supabase
+      const { data: productsResult, error: productsError } = await supabase
         .from('products')
-        .select('user_id, count')
-        .select('user_id')
-        .count();
+        .select('user_id', { count: 'exact', head: false })
+        .csv();
       
       if (productsError) throw productsError;
+
+      // تجميع عدد المنتجات حسب المستخدم
+      const productsData = productsResult ? productsResult.reduce((acc: any[], curr: any) => {
+        const existingUser = acc.find(item => item.user_id === curr.user_id);
+        if (existingUser) {
+          existingUser.count = (existingUser.count || 0) + 1;
+        } else {
+          acc.push({ user_id: curr.user_id, count: 1 });
+        }
+        return acc;
+      }, []) : [];
       
       // جلب عدد الزوار لكل مستخدم
       const { data: viewsData, error: viewsError } = await supabase
@@ -115,7 +126,7 @@ const AdminUsersTab = () => {
       
       // تحويل البيانات إلى خرائط للوصول السريع
       const storeMap = new Map(storeData ? storeData.map((store: any) => [store.user_id, store.store_name]) : []);
-      const productsMap = new Map(productsData ? productsData.map((product: any) => [product.user_id, parseInt(product.count) || 0]) : []);
+      const productsMap = new Map(productsData ? productsData.map((product: any) => [product.user_id, product.count || 0]) : []);
       const viewsMap = new Map(viewsData ? viewsData.map((view: any) => [view.user_id, view.view_count]) : []);
       const rolesMap = new Map(rolesData ? rolesData.map((role: any) => [role.user_id, role.role]) : []);
       
