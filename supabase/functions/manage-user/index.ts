@@ -31,7 +31,8 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceRoleKey);
     
     // Get the request body
-    const { action, userId } = await req.json();
+    const requestData = await req.json();
+    const { action, userId, message } = requestData;
     
     console.log(`الإجراء المطلوب: ${action}, معرف المستخدم: ${userId}`);
     
@@ -173,8 +174,6 @@ serve(async (req) => {
     }
     else if (action === 'message') {
       // إرسال إشعار للمستخدم
-      const { message } = await req.json();
-      
       if (!message) {
         return new Response(
           JSON.stringify({ error: 'نص الرسالة مطلوب' }),
@@ -203,6 +202,43 @@ serve(async (req) => {
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    else if (action === 'approve') {
+      // الموافقة على حساب المستخدم
+      console.log(`تفعيل حساب المستخدم: ${userId}`);
+      
+      const { error: approveError } = await supabase.auth.admin.updateUserById(
+        userId,
+        { 
+          user_metadata: {
+            account_status: 'active'
+          }
+        }
+      );
+      
+      if (approveError) {
+        console.error('خطأ في تفعيل حساب المستخدم:', approveError);
+        throw approveError;
+      }
+      
+      // إرسال إشعار للمستخدم
+      const { error: notificationError } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: userId,
+          message: 'تمت الموافقة على حسابك! يمكنك الآن تسجيل الدخول واستخدام النظام.',
+          type: 'account_approved',
+          is_read: false
+        });
+        
+      if (notificationError) {
+        console.warn('خطأ في إرسال إشعار التفعيل:', notificationError);
+      }
+      
+      return new Response(
+        JSON.stringify({ success: true, action: 'approve' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } 
     
     // إذا وصلنا هنا فالإجراء غير صالح
     return new Response(

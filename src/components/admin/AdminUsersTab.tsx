@@ -21,7 +21,17 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Search, UserCheck, UserX, Trash, RefreshCw, Shield, ShieldX, Send } from "lucide-react";
+import { 
+  Search, 
+  UserCheck, 
+  UserX, 
+  Trash, 
+  RefreshCw, 
+  Shield, 
+  ShieldX, 
+  Send,
+  CheckCircle
+} from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Spinner } from "@/components/ui/spinner";
@@ -38,6 +48,8 @@ interface User {
   lastActivity: string;
   visitsCount: number;
   productsCount: number;
+  phone: string | null;
+  account_status: string | null;
 }
 
 const AdminUsersTab = () => {
@@ -47,9 +59,10 @@ const AdminUsersTab = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showActionDialog, setShowActionDialog] = useState(false);
-  const [dialogAction, setDialogAction] = useState<"ban" | "delete" | "role" | "message">("ban");
+  const [dialogAction, setDialogAction] = useState<"ban" | "delete" | "role" | "message" | "approve">("ban");
   const [isAdmin, setIsAdmin] = useState(false);
   const [message, setMessage] = useState("");
+  const [showPendingOnly, setShowPendingOnly] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -58,20 +71,31 @@ const AdminUsersTab = () => {
 
   useEffect(() => {
     if (searchQuery.trim() === "") {
-      setFilteredUsers(users);
+      // أولا، تطبيق فلتر حسب المعلق فقط إذا كان مفعلا
+      if (showPendingOnly) {
+        setFilteredUsers(users.filter(user => user.account_status === "pending"));
+      } else {
+        setFilteredUsers(users);
+      }
       return;
     }
 
     const query = searchQuery.toLowerCase();
-    const filtered = users.filter((user) => {
+    let filtered = users.filter((user) => {
       return (
         user.email?.toLowerCase().includes(query) ||
-        user.store_name?.toLowerCase().includes(query)
+        user.store_name?.toLowerCase().includes(query) ||
+        user.phone?.toLowerCase().includes(query)
       );
     });
 
+    // تطبيق فلتر المعلق إذا كان مفعلا
+    if (showPendingOnly) {
+      filtered = filtered.filter(user => user.account_status === "pending");
+    }
+
     setFilteredUsers(filtered);
-  }, [searchQuery, users]);
+  }, [searchQuery, users, showPendingOnly]);
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -149,7 +173,9 @@ const AdminUsersTab = () => {
         role: rolesMap.get(user.id) || 'user',
         lastActivity: user.last_sign_in_at || user.created_at,
         visitsCount: viewsMap.get(user.id) || 0,
-        productsCount: productsMap.get(user.id) || 0
+        productsCount: productsMap.get(user.id) || 0,
+        phone: user.user_metadata?.phone || null,
+        account_status: user.user_metadata?.account_status || 'active'
       })) : [];
 
       setUsers(enrichedUsers);
@@ -225,18 +251,33 @@ const AdminUsersTab = () => {
           
         case "message":
           // إرسال إشعار للمستخدم
-          await supabase.from('notifications')
-            .insert({
-              user_id: selectedUser.id,
-              message: message,
-              type: 'admin_message',
-              is_read: false
-            });
+          await supabase.functions.invoke('manage-user', {
+            body: { 
+              action: 'message',
+              userId: selectedUser.id,
+              message: message
+            }
+          });
             
           setMessage("");
           toast({
             title: "تم بنجاح",
-            description: "تم إرسال ا��إشعار إلى المستخدم بنجاح"
+            description: "تم إرسال الإشعار إلى المستخدم بنجاح"
+          });
+          break;
+
+        case "approve":
+          // الموافقة على الحساب
+          await supabase.functions.invoke('manage-user', {
+            body: { 
+              action: 'approve',
+              userId: selectedUser.id
+            }
+          });
+          
+          toast({
+            title: "تم بنجاح",
+            description: "تم تفعيل حساب المستخدم بنجاح"
           });
           break;
       }
@@ -255,7 +296,7 @@ const AdminUsersTab = () => {
     }
   };
 
-  const openActionDialog = (user: User, action: "ban" | "delete" | "role" | "message") => {
+  const openActionDialog = (user: User, action: "ban" | "delete" | "role" | "message" | "approve") => {
     setSelectedUser(user);
     setDialogAction(action);
     if (action === "role") {
@@ -271,7 +312,7 @@ const AdminUsersTab = () => {
           <div className="relative w-full md:w-1/2">
             <Search className="absolute top-3 right-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="البحث حسب البريد الإلكتروني أو اسم المتجر..."
+              placeholder="البحث حسب البريد الإلكتروني أو اسم المتجر أو رقم الهاتف..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="py-2 pl-3 pr-10"
@@ -291,10 +332,14 @@ const AdminUsersTab = () => {
             </Button>
             
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
-              <Label htmlFor="show-inactive" className="cursor-pointer flex items-center gap-1">
-                عرض المحظورين فقط
+              <Label htmlFor="show-pending" className="cursor-pointer flex items-center gap-1">
+                عرض المعلقين فقط
               </Label>
-              <Switch id="show-inactive" />
+              <Switch 
+                id="show-pending" 
+                checked={showPendingOnly}
+                onCheckedChange={setShowPendingOnly}
+              />
             </div>
           </div>
         </div>
@@ -305,6 +350,7 @@ const AdminUsersTab = () => {
               <TableRow>
                 <TableHead>البريد الإلكتروني</TableHead>
                 <TableHead>اسم المتجر</TableHead>
+                <TableHead>رقم الهاتف</TableHead>
                 <TableHead>الحالة</TableHead>
                 <TableHead>آخر نشاط</TableHead>
                 <TableHead>عدد الزوار</TableHead>
@@ -315,7 +361,7 @@ const AdminUsersTab = () => {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10">
+                  <TableCell colSpan={8} className="text-center py-10">
                     <div className="flex justify-center items-center">
                       <Spinner className="h-6 w-6 mr-2" />
                       جاري تحميل البيانات...
@@ -324,7 +370,7 @@ const AdminUsersTab = () => {
                 </TableRow>
               ) : filteredUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10">
+                  <TableCell colSpan={8} className="text-center py-10">
                     لم يتم العثور على مستخدمين
                   </TableCell>
                 </TableRow>
@@ -333,13 +379,16 @@ const AdminUsersTab = () => {
                   <TableRow key={user.id}>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.store_name || 'لا يوجد متجر'}</TableCell>
+                    <TableCell>{user.phone || 'غير متوفر'}</TableCell>
                     <TableCell>
-                      {user.status === "active" ? (
+                      {user.account_status === "pending" ? (
+                        <Badge variant="outline" className="bg-yellow-100 text-yellow-800">قيد المراجعة</Badge>
+                      ) : user.status === "active" ? (
                         <Badge variant="success" className="bg-green-500">نشط</Badge>
                       ) : user.status === "banned" ? (
                         <Badge variant="destructive">محظور</Badge>
                       ) : (
-                        <Badge variant="outline">قيد المراجعة</Badge>
+                        <Badge variant="outline">غير معروف</Badge>
                       )}
                       {user.role === "admin" && (
                         <Badge variant="secondary" className="mr-1">مسؤول</Badge>
@@ -350,6 +399,18 @@ const AdminUsersTab = () => {
                     <TableCell>{user.productsCount}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
+                        {user.account_status === "pending" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openActionDialog(user, "approve")}
+                            title="الموافقة على الحساب"
+                            className="bg-green-100 hover:bg-green-200 border-green-200"
+                          >
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                          </Button>
+                        )}
+                        
                         <Button
                           size="sm"
                           variant="outline"
@@ -417,6 +478,7 @@ const AdminUsersTab = () => {
                   : "تأكيد إزالة صلاحية المسؤول"
                 )}
                 {dialogAction === "message" && "إرسال إشعار للمستخدم"}
+                {dialogAction === "approve" && "تأكيد تفعيل الحساب"}
               </DialogTitle>
             </DialogHeader>
             
@@ -513,6 +575,30 @@ const AdminUsersTab = () => {
                     disabled={!message.trim()}
                   >
                     إرسال الإشعار
+                  </Button>
+                </DialogFooter>
+              </div>
+            )}
+            
+            {dialogAction === "approve" && (
+              <div>
+                <p>
+                  هل أنت متأكد من تفعيل حساب المستخدم {selectedUser?.email}؟
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  سيتمكن المستخدم من تسجيل الدخول واستخدام النظام بعد الموافقة.
+                </p>
+                
+                <DialogFooter className="mt-4">
+                  <Button variant="outline" onClick={() => setShowActionDialog(false)}>
+                    إلغاء
+                  </Button>
+                  <Button 
+                    variant="default"
+                    onClick={() => handleUserAction("approve")}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    تفعيل الحساب
                   </Button>
                 </DialogFooter>
               </div>
