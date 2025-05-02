@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -10,8 +11,11 @@ import StoreDetailsSection from "@/components/store/customization/StoreDetailsSe
 import ContactInfoSection from "@/components/store/customization/ContactInfoSection";
 import AppearanceSection from "@/components/store/customization/AppearanceSection";
 import SocialLinksSection from "@/components/store/customization/SocialLinksSection";
+import ThemeToggleSection from "@/components/store/customization/ThemeToggleSection";
 import ProductPreviewContainer from "@/components/store/ProductPreviewContainer";
 import DemoProductsDisplay from "@/components/demo/DemoProductsDisplay";
+import { ThemeProvider } from "@/components/store/ThemeProvider";
+import { ThemeMode } from "@/components/store/ThemeProvider";
 
 type SocialLinks = {
   instagram: string;
@@ -83,6 +87,7 @@ const StoreCustomization = () => {
     facebook: "",
     telegram: "",
   });
+  const [themeMode, setThemeMode] = useState<ThemeMode>("system");
   const [isLoading, setIsLoading] = useState(false);
   const [dummyProducts, setDummyProducts] = useState([]);
   const navigate = useNavigate();
@@ -100,7 +105,7 @@ const StoreCustomization = () => {
 
       const { data: storeSettings, error } = await supabase
         .from("store_settings")
-        .select("store_name, color_theme, slug, social_links, banner_url, font_settings, contact_info")
+        .select("store_name, color_theme, slug, social_links, banner_url, font_settings, contact_info, theme_mode")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -135,6 +140,10 @@ const StoreCustomization = () => {
             wifi: (storeSettings.contact_info as ContactInfo)?.wifi || "",
             businessHours: (storeSettings.contact_info as ContactInfo)?.businessHours || "",
           });
+        }
+        
+        if (storeSettings.theme_mode) {
+          setThemeMode(storeSettings.theme_mode as ThemeMode);
         }
       }
     } catch (error) {
@@ -179,6 +188,7 @@ const StoreCustomization = () => {
     banner_url: string | null;
     font_settings: FontSettings;
     contact_info: ContactInfo;
+    theme_mode: ThemeMode;
   }>) => {
     setIsLoading(true);
 
@@ -236,6 +246,7 @@ const StoreCustomization = () => {
       if (updatedData.banner_url !== undefined) setBannerUrl(updatedData.banner_url);
       if (updatedData.font_settings !== undefined) setFontSettings(updatedData.font_settings);
       if (updatedData.contact_info !== undefined) setContactInfo(updatedData.contact_info);
+      if (updatedData.theme_mode !== undefined) setThemeMode(updatedData.theme_mode);
 
     } catch (error: any) {
       console.error("Error saving store settings:", error);
@@ -307,6 +318,10 @@ const StoreCustomization = () => {
   const handleContactInfoSubmit = async (info: ContactInfo) => {
     await saveStoreSettings({ contact_info: info });
   };
+  
+  const handleThemeModeSubmit = async () => {
+    await saveStoreSettings({ theme_mode: themeMode });
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -332,20 +347,22 @@ const StoreCustomization = () => {
             <div className="sticky top-24">
               <h2 className="text-xl font-semibold mb-4 text-right">معاينة المتجر</h2>
               <div className="border rounded-lg overflow-hidden shadow-md max-h-[600px] overflow-y-auto">
-                <ProductPreviewContainer 
-                  colorTheme={colorTheme} 
-                  bannerUrl={bannerUrl}
-                  fontSettings={fontSettings}
-                  containerHeight="auto"
-                >
-                  <DemoProductsDisplay 
-                    products={dummyProducts} 
-                    storeName={storeName || "اسم المتجر"} 
-                    colorTheme={colorTheme}
+                <ThemeProvider defaultTheme={themeMode}>
+                  <ProductPreviewContainer 
+                    colorTheme={colorTheme} 
+                    bannerUrl={bannerUrl}
                     fontSettings={fontSettings}
-                    categoryImages={[]}
-                  />
-                </ProductPreviewContainer>
+                    containerHeight="auto"
+                  >
+                    <DemoProductsDisplay 
+                      products={dummyProducts} 
+                      storeName={storeName || "اسم المتجر"} 
+                      colorTheme={colorTheme}
+                      fontSettings={fontSettings}
+                      categoryImages={[]}
+                    />
+                  </ProductPreviewContainer>
+                </ThemeProvider>
               </div>
             </div>
           </motion.div>
@@ -363,6 +380,13 @@ const StoreCustomization = () => {
               setStoreSlug={setStoreSlug}
               handleNameSubmit={handleNameSubmit}
               handleSlugSubmit={handleSlugSubmit}
+              isLoading={isLoading}
+            />
+
+            <ThemeToggleSection 
+              mode={themeMode}
+              setMode={setThemeMode}
+              handleSubmit={handleThemeModeSubmit}
               isLoading={isLoading}
             />
 

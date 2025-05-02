@@ -6,10 +6,23 @@ import StoreProductsDisplay from "@/components/store/StoreProductsDisplay";
 import SocialIcons from "@/components/store/SocialIcons";
 import FeedbackDialog from "@/components/store/FeedbackDialog";
 import LoadingState from "@/components/store/LoadingState";
+import { ThemeProvider } from "@/components/store/ThemeProvider";
+import { ThemeToggle } from "@/components/store/ThemeToggle";
 import { useStoreData } from "@/hooks/useStoreData";
 import { useRefreshData } from "@/hooks/useRefreshData";
+import { useTheme } from "@/components/store/ThemeProvider";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+
+const ThemeControls = () => {
+  const { theme, setTheme } = useTheme();
+  
+  return (
+    <div className="fixed top-4 left-4 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg shadow-md p-2">
+      <ThemeToggle theme={theme} setTheme={setTheme} />
+    </div>
+  );
+};
 
 const ProductPreview = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -105,7 +118,8 @@ const ProductPreview = () => {
   }
 
   return (
-    <>
+    <ThemeProvider>
+      <ThemeControls />
       <ProductPreviewContainer 
         colorTheme={storeData.colorTheme} 
         bannerUrl={storeData.bannerUrl}
@@ -123,7 +137,7 @@ const ProductPreview = () => {
         <SocialIcons socialLinks={storeData.socialLinks} />
         {storeData.storeOwnerId && <FeedbackDialog userId={storeData.storeOwnerId} />}
       </ProductPreviewContainer>
-    </>
+    </ThemeProvider>
   );
 };
 
