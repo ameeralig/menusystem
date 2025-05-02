@@ -65,40 +65,52 @@ export const useStoreSettings = (slug: string | undefined) => {
         let parsedFontSettings: FontSettings = defaultFontSettings;
         
         if (settings.font_settings) {
-          const fontData = settings.font_settings as any;
-          
-          // التحقق من أن البيانات تحتوي على العناصر اللازمة
-          if (fontData.storeName && fontData.categoryText && fontData.generalText) {
-            parsedFontSettings = {
-              storeName: {
-                family: fontData.storeName.family || "inherit",
-                isCustom: fontData.storeName.isCustom || false,
-                customFontUrl: fontData.storeName.customFontUrl || null,
-              },
-              categoryText: {
-                family: fontData.categoryText.family || "inherit",
-                isCustom: fontData.categoryText.isCustom || false,
-                customFontUrl: fontData.categoryText.customFontUrl || null,
-              },
-              generalText: {
-                family: fontData.generalText.family || "inherit",
-                isCustom: fontData.generalText.isCustom || false,
-                customFontUrl: fontData.generalText.customFontUrl || null,
-              }
-            };
+          try {
+            const fontData = settings.font_settings as any;
+            
+            // التحقق من أن البيانات تحتوي على العناصر اللازمة
+            if (fontData.storeName && fontData.categoryText && fontData.generalText) {
+              parsedFontSettings = {
+                storeName: {
+                  family: fontData.storeName.family || "inherit",
+                  isCustom: fontData.storeName.isCustom || false,
+                  customFontUrl: fontData.storeName.customFontUrl || null,
+                },
+                categoryText: {
+                  family: fontData.categoryText.family || "inherit",
+                  isCustom: fontData.categoryText.isCustom || false,
+                  customFontUrl: fontData.categoryText.customFontUrl || null,
+                },
+                generalText: {
+                  family: fontData.generalText.family || "inherit",
+                  isCustom: fontData.generalText.isCustom || false,
+                  customFontUrl: fontData.generalText.customFontUrl || null,
+                }
+              };
+            }
+          } catch (e) {
+            console.error("Error parsing font settings:", e);
           }
         }
+
+        // تحويل بيانات معلومات الاتصال
+        const contactInfo: ContactInfo = settings.contact_info as any || {};
+        
+        // تحويل بيانات روابط التواصل الاجتماعي
+        const socialLinks: SocialLinks = settings.social_links as any || {};
 
         setStoreSettings({
           storeName: settings.store_name,
           colorTheme: settings.color_theme || "default",
-          socialLinks: settings.social_links as SocialLinks || {},
-          contactInfo: settings.contact_info as ContactInfo || {},
+          socialLinks,
+          contactInfo,
           bannerUrl: settings.banner_url,
           fontSettings: parsedFontSettings,
           storeOwnerId: settings.user_id,
           themeMode: (settings.theme_mode as ThemeMode) || "system"
         });
+        
+        setIsLoading(false);
 
       } catch (error: any) {
         console.error("Error fetching settings:", error);

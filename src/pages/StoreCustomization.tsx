@@ -15,7 +15,7 @@ import ProductPreviewContainer from "@/components/store/ProductPreviewContainer"
 import DemoProductsDisplay from "@/components/demo/DemoProductsDisplay";
 import { ThemeProvider } from "@/components/store/ThemeProvider";
 import { ThemeMode } from "@/components/store/ThemeProvider";
-import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
+import { SocialLinks, ContactInfo, FontSettings, Json } from "@/types/store";
 
 const defaultFontSettings: FontSettings = {
   storeName: {
@@ -43,6 +43,12 @@ const defaultContactInfo: ContactInfo = {
   businessHours: "",
 };
 
+const defaultSocialLinks: SocialLinks = {
+  instagram: "",
+  facebook: "",
+  telegram: "",
+};
+
 const StoreCustomization = () => {
   const [storeName, setStoreName] = useState("");
   const [storeSlug, setStoreSlug] = useState("");
@@ -50,11 +56,7 @@ const StoreCustomization = () => {
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [fontSettings, setFontSettings] = useState<FontSettings>(defaultFontSettings);
   const [contactInfo, setContactInfo] = useState<ContactInfo>(defaultContactInfo);
-  const [socialLinks, setSocialLinks] = useState<SocialLinks>({
-    instagram: "",
-    facebook: "",
-    telegram: "",
-  });
+  const [socialLinks, setSocialLinks] = useState<SocialLinks>(defaultSocialLinks);
   const [themeMode, setThemeMode] = useState<ThemeMode>("system");
   const [isLoading, setIsLoading] = useState(false);
   const [dummyProducts, setDummyProducts] = useState([]);
@@ -89,25 +91,55 @@ const StoreCustomization = () => {
         setStoreSlug(data.slug || "");
         setBannerUrl(data.banner_url || null);
         
+        // التعامل مع روابط التواصل الاجتماعي
         if (data.social_links) {
+          const socialData = data.social_links as any;
           setSocialLinks({
-            instagram: (data.social_links as SocialLinks)?.instagram || "",
-            facebook: (data.social_links as SocialLinks)?.facebook || "",
-            telegram: (data.social_links as SocialLinks)?.telegram || "",
+            instagram: socialData?.instagram || "",
+            facebook: socialData?.facebook || "",
+            telegram: socialData?.telegram || "",
           });
         }
         
+        // التعامل مع إعدادات الخط
         if (data.font_settings) {
-          setFontSettings(data.font_settings as FontSettings || defaultFontSettings);
+          try {
+            const fontData = data.font_settings as any;
+            
+            if (fontData && typeof fontData === 'object' && 
+                fontData.storeName && fontData.categoryText && fontData.generalText) {
+              setFontSettings({
+                storeName: {
+                  family: fontData.storeName.family || "inherit",
+                  isCustom: fontData.storeName.isCustom || false,
+                  customFontUrl: fontData.storeName.customFontUrl || null,
+                },
+                categoryText: {
+                  family: fontData.categoryText.family || "inherit",
+                  isCustom: fontData.categoryText.isCustom || false,
+                  customFontUrl: fontData.categoryText.customFontUrl || null,
+                },
+                generalText: {
+                  family: fontData.generalText.family || "inherit",
+                  isCustom: fontData.generalText.isCustom || false,
+                  customFontUrl: fontData.generalText.customFontUrl || null,
+                }
+              });
+            }
+          } catch (e) {
+            console.error("خطأ في تحليل إعدادات الخط:", e);
+          }
         }
         
+        // التعامل مع معلومات الاتصال
         if (data.contact_info) {
+          const contactData = data.contact_info as any;
           setContactInfo({
-            description: (data.contact_info as ContactInfo)?.description || "",
-            address: (data.contact_info as ContactInfo)?.address || "",
-            phone: (data.contact_info as ContactInfo)?.phone || "",
-            wifi: (data.contact_info as ContactInfo)?.wifi || "",
-            businessHours: (data.contact_info as ContactInfo)?.businessHours || "",
+            description: contactData?.description || "",
+            address: contactData?.address || "",
+            phone: contactData?.phone || "",
+            wifi: contactData?.wifi || "",
+            businessHours: contactData?.businessHours || "",
           });
         }
         
@@ -176,8 +208,12 @@ const StoreCustomization = () => {
         console.error("خطأ في التحقق من الإعدادات الحالية:", checkError);
       }
 
+      // تحويل الكائنات إلى تنسيق Json قبل حفظها في قاعدة البيانات
       const dataToUpdate = {
         ...updatedData,
+        social_links: updatedData.social_links as any,
+        font_settings: updatedData.font_settings as any,
+        contact_info: updatedData.contact_info as any,
         updated_at: new Date().toISOString()
       };
 
