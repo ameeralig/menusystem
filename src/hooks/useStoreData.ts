@@ -30,6 +30,7 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
       ...storeSettings,
       products,
       categoryImages,
+      themeMode: storeSettings.themeMode // إضافة themeMode إلى storeData
     },
     isLoading,
     storeOwnerId: storeSettings.storeOwnerId

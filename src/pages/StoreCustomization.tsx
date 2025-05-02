@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -16,38 +15,7 @@ import ProductPreviewContainer from "@/components/store/ProductPreviewContainer"
 import DemoProductsDisplay from "@/components/demo/DemoProductsDisplay";
 import { ThemeProvider } from "@/components/store/ThemeProvider";
 import { ThemeMode } from "@/components/store/ThemeProvider";
-
-type SocialLinks = {
-  instagram: string;
-  facebook: string;
-  telegram: string;
-};
-
-type ContactInfo = {
-  description: string;
-  address: string;
-  phone: string;
-  wifi: string;
-  businessHours: string;
-};
-
-type FontSettings = {
-  storeName: {
-    family: string;
-    isCustom: boolean;
-    customFontUrl: string | null;
-  };
-  categoryText: {
-    family: string;
-    isCustom: boolean;
-    customFontUrl: string | null;
-  };
-  generalText: {
-    family: string;
-    isCustom: boolean;
-    customFontUrl: string | null;
-  };
-};
+import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
 
 const defaultFontSettings: FontSettings = {
   storeName: {
@@ -103,51 +71,53 @@ const StoreCustomization = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: storeSettings, error } = await supabase
+      const { data, error } = await supabase
         .from("store_settings")
         .select("store_name, color_theme, slug, social_links, banner_url, font_settings, contact_info, theme_mode")
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (error) {
-        console.error("Error fetching store settings:", error);
+        console.error("خطأ في استعادة إعدادات المتجر:", error);
         return;
       }
 
-      if (storeSettings) {
-        setStoreName(storeSettings.store_name || "");
-        setColorTheme(storeSettings.color_theme || "default");
-        setStoreSlug(storeSettings.slug || "");
-        setBannerUrl(storeSettings.banner_url || null);
+      if (data) {
+        // تعيين البيانات إذا كانت متوفرة، أو استخدام القيم الافتراضية
+        setStoreName(data.store_name || "");
+        setColorTheme(data.color_theme || "default");
+        setStoreSlug(data.slug || "");
+        setBannerUrl(data.banner_url || null);
         
-        if (storeSettings.social_links) {
+        if (data.social_links) {
           setSocialLinks({
-            instagram: (storeSettings.social_links as SocialLinks)?.instagram || "",
-            facebook: (storeSettings.social_links as SocialLinks)?.facebook || "",
-            telegram: (storeSettings.social_links as SocialLinks)?.telegram || "",
+            instagram: (data.social_links as SocialLinks)?.instagram || "",
+            facebook: (data.social_links as SocialLinks)?.facebook || "",
+            telegram: (data.social_links as SocialLinks)?.telegram || "",
           });
         }
         
-        if (storeSettings.font_settings) {
-          setFontSettings(storeSettings.font_settings as FontSettings || defaultFontSettings);
+        if (data.font_settings) {
+          setFontSettings(data.font_settings as FontSettings || defaultFontSettings);
         }
         
-        if (storeSettings.contact_info) {
+        if (data.contact_info) {
           setContactInfo({
-            description: (storeSettings.contact_info as ContactInfo)?.description || "",
-            address: (storeSettings.contact_info as ContactInfo)?.address || "",
-            phone: (storeSettings.contact_info as ContactInfo)?.phone || "",
-            wifi: (storeSettings.contact_info as ContactInfo)?.wifi || "",
-            businessHours: (storeSettings.contact_info as ContactInfo)?.businessHours || "",
+            description: (data.contact_info as ContactInfo)?.description || "",
+            address: (data.contact_info as ContactInfo)?.address || "",
+            phone: (data.contact_info as ContactInfo)?.phone || "",
+            wifi: (data.contact_info as ContactInfo)?.wifi || "",
+            businessHours: (data.contact_info as ContactInfo)?.businessHours || "",
           });
         }
         
-        if (storeSettings.theme_mode) {
-          setThemeMode(storeSettings.theme_mode as ThemeMode);
+        // التحقق من وجود عمود theme_mode واستخدامه
+        if (data.theme_mode) {
+          setThemeMode(data.theme_mode as ThemeMode);
         }
       }
     } catch (error) {
-      console.error("Error fetching store settings:", error);
+      console.error("خطأ في استعادة إعدادات المتجر:", error);
     }
   };
 
@@ -203,7 +173,7 @@ const StoreCustomization = () => {
         .maybeSingle();
 
       if (checkError) {
-        console.error("Error checking existing settings:", checkError);
+        console.error("خطأ في التحقق من الإعدادات الحالية:", checkError);
       }
 
       const dataToUpdate = {
@@ -239,6 +209,7 @@ const StoreCustomization = () => {
         duration: 3000,
       });
 
+      // تحديث المتغيرات المحلية بالقيم الجديدة
       if (updatedData.store_name !== undefined) setStoreName(updatedData.store_name);
       if (updatedData.color_theme !== undefined) setColorTheme(updatedData.color_theme);
       if (updatedData.slug !== undefined) setStoreSlug(updatedData.slug);
@@ -249,7 +220,7 @@ const StoreCustomization = () => {
       if (updatedData.theme_mode !== undefined) setThemeMode(updatedData.theme_mode);
 
     } catch (error: any) {
-      console.error("Error saving store settings:", error);
+      console.error("خطأ في حفظ إعدادات المتجر:", error);
       toast({
         title: "حدث خطأ",
         description: error.message,

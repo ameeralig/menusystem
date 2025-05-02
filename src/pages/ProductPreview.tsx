@@ -118,7 +118,7 @@ const ProductPreview = () => {
   }
 
   return (
-    <ThemeProvider>
+    <ThemeProvider defaultTheme={storeData.themeMode}>
       <ThemeControls />
       <ProductPreviewContainer 
         colorTheme={storeData.colorTheme} 

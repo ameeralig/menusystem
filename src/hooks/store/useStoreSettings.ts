@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
+import { ThemeMode } from "@/components/store/ThemeProvider";
 
 export const useStoreSettings = (slug: string | undefined) => {
   const [storeSettings, setStoreSettings] = useState({
@@ -14,6 +15,7 @@ export const useStoreSettings = (slug: string | undefined) => {
     bannerUrl: null as string | null,
     fontSettings: undefined as FontSettings | undefined,
     storeOwnerId: null as string | null,
+    themeMode: "system" as ThemeMode
   });
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -49,7 +51,7 @@ export const useStoreSettings = (slug: string | undefined) => {
 
         const { data: settings, error } = await supabase
           .from("store_settings")
-          .select("user_id, store_name, color_theme, social_links, banner_url, font_settings, contact_info")
+          .select("user_id, store_name, color_theme, social_links, banner_url, font_settings, contact_info, theme_mode")
           .eq("slug", slug.trim())
           .maybeSingle();
 
@@ -95,6 +97,7 @@ export const useStoreSettings = (slug: string | undefined) => {
           bannerUrl: settings.banner_url,
           fontSettings: parsedFontSettings,
           storeOwnerId: settings.user_id,
+          themeMode: (settings.theme_mode as ThemeMode) || "system"
         });
 
       } catch (error: any) {
