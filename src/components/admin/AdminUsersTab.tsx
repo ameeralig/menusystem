@@ -63,6 +63,7 @@ const AdminUsersTab = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [message, setMessage] = useState("");
   const [showPendingOnly, setShowPendingOnly] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -110,6 +111,8 @@ const AdminUsersTab = () => {
         console.error("خطأ في جلب بيانات المستخدمين:", userError);
         throw userError;
       }
+      
+      console.log("بيانات المستخدمين المستلمة:", userData);
       
       // جلب إعدادات المتاجر للمستخدمين
       const { data: storeData, error: storeError } = await supabase
@@ -178,6 +181,9 @@ const AdminUsersTab = () => {
         account_status: user.user_metadata?.account_status || 'active'
       })) : [];
 
+      // طباعة بيانات المستخدمين المعالجة للتصحيح
+      console.log("بيانات المستخدمين المعالجة:", enrichedUsers);
+      
       setUsers(enrichedUsers);
       setFilteredUsers(enrichedUsers);
     } catch (error) {
@@ -195,9 +201,12 @@ const AdminUsersTab = () => {
   const handleUserAction = async (action: string) => {
     if (!selectedUser) return;
     
+    setIsProcessing(true);
     setShowActionDialog(false);
     
     try {
+      console.log(`معالجة إجراء ${action} للمستخدم ${selectedUser.id}`);
+      
       switch (action) {
         case "ban":
           await supabase.functions.invoke('manage-user', {
@@ -267,13 +276,17 @@ const AdminUsersTab = () => {
           break;
 
         case "approve":
+          console.log("محاولة تفعيل حساب المستخدم:", selectedUser);
+          
           // الموافقة على الحساب
-          await supabase.functions.invoke('manage-user', {
+          const response = await supabase.functions.invoke('manage-user', {
             body: { 
               action: 'approve',
               userId: selectedUser.id
             }
           });
+          
+          console.log("استجابة تفعيل الحساب:", response);
           
           toast({
             title: "تم بنجاح",
@@ -284,15 +297,16 @@ const AdminUsersTab = () => {
       
       // إعادة تحميل البيانات بعد التحديث
       await fetchUsers();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error processing user action:", error);
       toast({
         variant: "destructive",
         title: "خطأ",
-        description: "حدث خطأ أثناء معالجة الطلب"
+        description: "حدث خطأ أثناء معالجة الطلب: " + (error.message || "خطأ غير متوقع")
       });
     } finally {
       setSelectedUser(null);
+      setIsProcessing(false);
     }
   };
 
@@ -377,7 +391,7 @@ const AdminUsersTab = () => {
               ) : (
                 filteredUsers.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell>{user.email}</TableCell>
+                    <TableCell className="font-medium">{user.email}</TableCell>
                     <TableCell>{user.store_name || 'لا يوجد متجر'}</TableCell>
                     <TableCell>{user.phone || 'غير متوفر'}</TableCell>
                     <TableCell>
@@ -498,8 +512,16 @@ const AdminUsersTab = () => {
                   <Button 
                     variant={selectedUser?.status === "banned" ? "default" : "destructive"}
                     onClick={() => handleUserAction("ban")}
+                    disabled={isProcessing}
                   >
-                    {selectedUser?.status === "banned" ? "إلغاء الحظر" : "حظر المستخدم"}
+                    {isProcessing ? (
+                      <>
+                        <Spinner className="h-4 w-4 mr-2" />
+                        جاري المعالجة...
+                      </>
+                    ) : (
+                      selectedUser?.status === "banned" ? "إلغاء الحظر" : "حظر المستخدم"
+                    )}
                   </Button>
                 </DialogFooter>
               </div>
@@ -519,8 +541,16 @@ const AdminUsersTab = () => {
                   <Button 
                     variant="destructive"
                     onClick={() => handleUserAction("delete")}
+                    disabled={isProcessing}
                   >
-                    حذف الحساب نهائياً
+                    {isProcessing ? (
+                      <>
+                        <Spinner className="h-4 w-4 mr-2" />
+                        جاري المعالجة...
+                      </>
+                    ) : (
+                      "حذف الحساب نهائياً"
+                    )}
                   </Button>
                 </DialogFooter>
               </div>
@@ -542,8 +572,16 @@ const AdminUsersTab = () => {
                   <Button 
                     variant={isAdmin ? "default" : "secondary"}
                     onClick={() => handleUserAction("role")}
+                    disabled={isProcessing}
                   >
-                    {isAdmin ? "ترقية إلى مسؤول" : "إزالة صلاحية المسؤول"}
+                    {isProcessing ? (
+                      <>
+                        <Spinner className="h-4 w-4 mr-2" />
+                        جاري المعالجة...
+                      </>
+                    ) : (
+                      isAdmin ? "ترقية إلى مسؤول" : "إزالة صلاحية المسؤول"
+                    )}
                   </Button>
                 </DialogFooter>
               </div>
@@ -572,9 +610,16 @@ const AdminUsersTab = () => {
                   <Button 
                     variant="default"
                     onClick={() => handleUserAction("message")}
-                    disabled={!message.trim()}
+                    disabled={!message.trim() || isProcessing}
                   >
-                    إرسال الإشعار
+                    {isProcessing ? (
+                      <>
+                        <Spinner className="h-4 w-4 mr-2" />
+                        جاري المعالجة...
+                      </>
+                    ) : (
+                      "إرسال الإشعار"
+                    )}
                   </Button>
                 </DialogFooter>
               </div>
@@ -596,9 +641,17 @@ const AdminUsersTab = () => {
                   <Button 
                     variant="default"
                     onClick={() => handleUserAction("approve")}
+                    disabled={isProcessing}
                     className="bg-green-600 hover:bg-green-700"
                   >
-                    تفعيل الحساب
+                    {isProcessing ? (
+                      <>
+                        <Spinner className="h-4 w-4 mr-2" />
+                        جاري التفعيل...
+                      </>
+                    ) : (
+                      "تفعيل الحساب"
+                    )}
                   </Button>
                 </DialogFooter>
               </div>

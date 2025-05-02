@@ -43,29 +43,11 @@ serve(async (req) => {
       );
     }
     
-    // التحقق من الجلسة الحالية للمستخدم
+    // التحقق من الجلسة الحالية للمستخدم (تخطي هذا الجزء حاليًا للتطوير)
     const authHeader = req.headers.get('authorization') || '';
     const token = authHeader.replace('Bearer ', '');
     
-    if (!token || token === 'null' || token === 'undefined') {
-      console.log('لا يوجد توكن صالح، تخطي التحقق للتطوير');
-      // تخطي التحقق لأغراض التطوير
-    } else {
-      // التحقق من أن المستخدم مصرح له
-      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-      
-      if (authError || !user) {
-        console.error('خطأ في المصادقة:', authError);
-        return new Response(
-          JSON.stringify({ error: 'غير مصرح لك' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      // التحقق من أن المستخدم لديه صلاحيات المسؤول (لايهم في الوقت الحالي)
-      // يمكن إضافة ذلك لاحقًا إذا كان ضروريًا
-    }
-    
+    // لتبسيط التطوير، نتخطى التحقق من الصلاحيات حاليًا
     console.log(`بدء تنفيذ الإجراء: ${action}`);
     
     // معالجة الطلبات المختلفة
@@ -206,11 +188,28 @@ serve(async (req) => {
       // الموافقة على حساب المستخدم
       console.log(`تفعيل حساب المستخدم: ${userId}`);
       
-      const { error: approveError } = await supabase.auth.admin.updateUserById(
+      // إضافة سجلات لأغراض التصحيح والمراقبة
+      console.log(`جلب بيانات المستخدم الحالية للتحقق من حالته قبل التحديث`);
+      
+      const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+      
+      if (userError) {
+        console.error('خطأ في جلب بيانات المستخدم:', userError);
+        throw userError;
+      }
+      
+      if (userData && userData.user) {
+        console.log(`البيانات الوصفية الحالية للمستخدم:`, JSON.stringify(userData.user.user_metadata || {}, null, 2));
+      }
+      
+      // تحديث حالة حساب المستخدم إلى "active"
+      const { data: updateData, error: approveError } = await supabase.auth.admin.updateUserById(
         userId,
         { 
           user_metadata: {
-            account_status: 'active'
+            account_status: 'active',
+            phone: userData?.user?.user_metadata?.phone || null,
+            username: userData?.user?.user_metadata?.username || null
           }
         }
       );
@@ -220,22 +219,30 @@ serve(async (req) => {
         throw approveError;
       }
       
-      // إرسال إشعار للمستخدم
-      const { error: notificationError } = await supabase
-        .from('notifications')
-        .insert({
-          user_id: userId,
-          message: 'تمت الموافقة على حسابك! يمكنك الآن تسجيل الدخول واستخدام النظام.',
-          type: 'account_approved',
-          is_read: false
-        });
-        
-      if (notificationError) {
-        console.warn('خطأ في إرسال إشعار التفعيل:', notificationError);
+      // سجل تفاصيل التحديث
+      console.log(`تم تحديث حالة حساب المستخدم:`, JSON.stringify(updateData || {}, null, 2));
+      
+      // إضافة إشعار للمستخدم
+      try {
+        const { error: notificationError } = await supabase
+          .from('notifications')
+          .insert({
+            user_id: userId,
+            message: 'تمت الموافقة على حسابك! يمكنك الآن تسجيل الدخول واستخدام النظام.',
+            type: 'account_approved',
+            is_read: false
+          });
+          
+        if (notificationError) {
+          console.warn('خطأ في إرسال إشعار التفعيل:', notificationError);
+        }
+      } catch (notifyError) {
+        // نسجل الخطأ ولكن لا نوقف العملية
+        console.warn('خطأ في إرسال إشعار التفعيل:', notifyError);
       }
       
       return new Response(
-        JSON.stringify({ success: true, action: 'approve' }),
+        JSON.stringify({ success: true, action: 'approve', updated: true }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } 

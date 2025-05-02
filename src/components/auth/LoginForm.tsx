@@ -33,6 +33,7 @@ export function LoginForm() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [accountPending, setAccountPending] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -55,12 +56,15 @@ export function LoginForm() {
       }
 
       if (data.user) {
-        // التحقق من حالة الحساب
+        console.log("معلومات المستخدم:", data.user);
         const userData = data.user.user_metadata;
         
-        if (userData.account_status === "pending") {
+        console.log("حالة الحساب:", userData?.account_status);
+        
+        if (userData?.account_status === "pending") {
           // تسجيل خروج المستخدم لأن حسابه لا يزال قيد المراجعة
           await supabase.auth.signOut();
+          setUserEmail(values.email);
           setAccountPending(true);
           return;
         }
@@ -94,7 +98,7 @@ export function LoginForm() {
           <AlertCircle className="h-4 w-4 text-yellow-600" />
           <AlertTitle className="text-yellow-600">الحساب قيد المراجعة</AlertTitle>
           <AlertDescription className="mt-2">
-            حسابك قيد المراجعة من قبل المشرفين. سيتم الاتصال بك عبر رقم الهاتف المسجل لتفعيل حسابك.
+            حسابك ({userEmail}) لا يزال قيد المراجعة من قبل المشرفين. سيتم الاتصال بك عبر رقم الهاتف المسجل لتفعيل حسابك.
             يرجى المحاولة مرة أخرى لاحقاً.
           </AlertDescription>
         </Alert>
