@@ -224,13 +224,21 @@ const StoreCustomization = () => {
       }
 
       // تحويل الكائنات إلى تنسيق Json قبل حفظها في قاعدة البيانات
-      const dataToUpdate = {
+      const dataToUpdate: Record<string, any> = {
         ...updatedData,
-        social_links: updatedData.social_links as Json,
-        font_settings: updatedData.font_settings as Json,
-        contact_info: updatedData.contact_info as Json,
         updated_at: new Date().toISOString()
       };
+
+      // تحويل الأنواع المعقدة إلى Json
+      if (dataToUpdate.social_links) {
+        dataToUpdate.social_links = dataToUpdate.social_links as unknown as Json;
+      }
+      if (dataToUpdate.font_settings) {
+        dataToUpdate.font_settings = dataToUpdate.font_settings as unknown as Json;
+      }
+      if (dataToUpdate.contact_info) {
+        dataToUpdate.contact_info = dataToUpdate.contact_info as unknown as Json;
+      }
 
       let result;
       if (existingSettings) {
