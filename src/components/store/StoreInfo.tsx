@@ -1,4 +1,3 @@
-
 import { MapPin, Phone, Wifi, Info, Clock, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { 
@@ -6,20 +5,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger, 
 } from "@/components/ui/collapsible";
+import { ContactInfo } from "@/types/store";
 
 type WorkDay = {
   day: string;
   isOpen: boolean;
   openTime: string;
   closeTime: string;
-};
-
-type ContactInfo = {
-  description?: string | null;
-  address?: string | null;
-  phone?: string | null;
-  wifi?: string | null;
-  businessHours?: string | null;
 };
 
 interface StoreInfoProps {

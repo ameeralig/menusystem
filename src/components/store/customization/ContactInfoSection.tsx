@@ -2,14 +2,7 @@
 import ContactInfoEditor from "@/components/store/ContactInfoEditor";
 import { Info } from "lucide-react";
 import CustomizationSection from "./CustomizationSection";
-
-type ContactInfo = {
-  description: string;
-  address: string;
-  phone: string;
-  wifi: string;
-  businessHours: string;
-};
+import { ContactInfo } from "@/types/store";
 
 interface ContactInfoSectionProps {
   contactInfo: ContactInfo;

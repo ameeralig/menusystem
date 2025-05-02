@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -93,12 +94,18 @@ const StoreCustomization = () => {
         
         // التعامل مع روابط التواصل الاجتماعي
         if (data.social_links) {
-          const socialData = data.social_links as any;
-          setSocialLinks({
-            instagram: socialData?.instagram || "",
-            facebook: socialData?.facebook || "",
-            telegram: socialData?.telegram || "",
-          });
+          try {
+            const socialData = data.social_links as any;
+            const parsedSocialLinks: SocialLinks = {
+              instagram: socialData?.instagram || "",
+              facebook: socialData?.facebook || "",
+              telegram: socialData?.telegram || "",
+            };
+            setSocialLinks(parsedSocialLinks);
+          } catch (e) {
+            console.error("خطأ في تحليل روابط التواصل الاجتماعي:", e);
+            setSocialLinks(defaultSocialLinks);
+          }
         }
         
         // التعامل مع إعدادات الخط
@@ -108,7 +115,7 @@ const StoreCustomization = () => {
             
             if (fontData && typeof fontData === 'object' && 
                 fontData.storeName && fontData.categoryText && fontData.generalText) {
-              setFontSettings({
+              const parsedFontSettings: FontSettings = {
                 storeName: {
                   family: fontData.storeName.family || "inherit",
                   isCustom: fontData.storeName.isCustom || false,
@@ -124,23 +131,31 @@ const StoreCustomization = () => {
                   isCustom: fontData.generalText.isCustom || false,
                   customFontUrl: fontData.generalText.customFontUrl || null,
                 }
-              });
+              };
+              setFontSettings(parsedFontSettings);
             }
           } catch (e) {
             console.error("خطأ في تحليل إعدادات الخط:", e);
+            setFontSettings(defaultFontSettings);
           }
         }
         
         // التعامل مع معلومات الاتصال
         if (data.contact_info) {
-          const contactData = data.contact_info as any;
-          setContactInfo({
-            description: contactData?.description || "",
-            address: contactData?.address || "",
-            phone: contactData?.phone || "",
-            wifi: contactData?.wifi || "",
-            businessHours: contactData?.businessHours || "",
-          });
+          try {
+            const contactData = data.contact_info as any;
+            const parsedContactInfo: ContactInfo = {
+              description: contactData?.description || "",
+              address: contactData?.address || "",
+              phone: contactData?.phone || "",
+              wifi: contactData?.wifi || "",
+              businessHours: contactData?.businessHours || "",
+            };
+            setContactInfo(parsedContactInfo);
+          } catch (e) {
+            console.error("خطأ في تحليل معلومات الاتصال:", e);
+            setContactInfo(defaultContactInfo);
+          }
         }
         
         // التحقق من وجود عمود theme_mode واستخدامه
@@ -211,9 +226,9 @@ const StoreCustomization = () => {
       // تحويل الكائنات إلى تنسيق Json قبل حفظها في قاعدة البيانات
       const dataToUpdate = {
         ...updatedData,
-        social_links: updatedData.social_links as any,
-        font_settings: updatedData.font_settings as any,
-        contact_info: updatedData.contact_info as any,
+        social_links: updatedData.social_links as Json,
+        font_settings: updatedData.font_settings as Json,
+        contact_info: updatedData.contact_info as Json,
         updated_at: new Date().toISOString()
       };
 
