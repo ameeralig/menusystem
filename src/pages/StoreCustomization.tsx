@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -11,12 +10,40 @@ import StoreDetailsSection from "@/components/store/customization/StoreDetailsSe
 import ContactInfoSection from "@/components/store/customization/ContactInfoSection";
 import AppearanceSection from "@/components/store/customization/AppearanceSection";
 import SocialLinksSection from "@/components/store/customization/SocialLinksSection";
-import ThemeToggleSection from "@/components/store/customization/ThemeToggleSection";
 import ProductPreviewContainer from "@/components/store/ProductPreviewContainer";
 import DemoProductsDisplay from "@/components/demo/DemoProductsDisplay";
-import { ThemeProvider } from "@/components/store/ThemeProvider";
-import { ThemeMode } from "@/components/store/ThemeProvider";
-import { SocialLinks, ContactInfo, FontSettings, Json } from "@/types/store";
+
+type SocialLinks = {
+  instagram: string;
+  facebook: string;
+  telegram: string;
+};
+
+type ContactInfo = {
+  description: string;
+  address: string;
+  phone: string;
+  wifi: string;
+  businessHours: string;
+};
+
+type FontSettings = {
+  storeName: {
+    family: string;
+    isCustom: boolean;
+    customFontUrl: string | null;
+  };
+  categoryText: {
+    family: string;
+    isCustom: boolean;
+    customFontUrl: string | null;
+  };
+  generalText: {
+    family: string;
+    isCustom: boolean;
+    customFontUrl: string | null;
+  };
+};
 
 const defaultFontSettings: FontSettings = {
   storeName: {
@@ -44,12 +71,6 @@ const defaultContactInfo: ContactInfo = {
   businessHours: "",
 };
 
-const defaultSocialLinks: SocialLinks = {
-  instagram: "",
-  facebook: "",
-  telegram: "",
-};
-
 const StoreCustomization = () => {
   const [storeName, setStoreName] = useState("");
   const [storeSlug, setStoreSlug] = useState("");
@@ -57,8 +78,11 @@ const StoreCustomization = () => {
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [fontSettings, setFontSettings] = useState<FontSettings>(defaultFontSettings);
   const [contactInfo, setContactInfo] = useState<ContactInfo>(defaultContactInfo);
-  const [socialLinks, setSocialLinks] = useState<SocialLinks>(defaultSocialLinks);
-  const [themeMode, setThemeMode] = useState<ThemeMode>("system");
+  const [socialLinks, setSocialLinks] = useState<SocialLinks>({
+    instagram: "",
+    facebook: "",
+    telegram: "",
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [dummyProducts, setDummyProducts] = useState([]);
   const navigate = useNavigate();
@@ -74,97 +98,47 @@ const StoreCustomization = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
+      const { data: storeSettings, error } = await supabase
         .from("store_settings")
-        .select("store_name, color_theme, slug, social_links, banner_url, font_settings, contact_info, theme_mode")
+        .select("store_name, color_theme, slug, social_links, banner_url, font_settings, contact_info")
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (error) {
-        console.error("خطأ في استعادة إعدادات المتجر:", error);
+        console.error("Error fetching store settings:", error);
         return;
       }
 
-      if (data) {
-        // تعيين البيانات إذا كانت متوفرة، أو استخدام القيم الافتراضية
-        setStoreName(data.store_name || "");
-        setColorTheme(data.color_theme || "default");
-        setStoreSlug(data.slug || "");
-        setBannerUrl(data.banner_url || null);
+      if (storeSettings) {
+        setStoreName(storeSettings.store_name || "");
+        setColorTheme(storeSettings.color_theme || "default");
+        setStoreSlug(storeSettings.slug || "");
+        setBannerUrl(storeSettings.banner_url || null);
         
-        // التعامل مع روابط التواصل الاجتماعي
-        if (data.social_links) {
-          try {
-            const socialData = data.social_links as any;
-            const parsedSocialLinks: SocialLinks = {
-              instagram: socialData?.instagram || "",
-              facebook: socialData?.facebook || "",
-              telegram: socialData?.telegram || "",
-            };
-            setSocialLinks(parsedSocialLinks);
-          } catch (e) {
-            console.error("خطأ في تحليل روابط التواصل الاجتماعي:", e);
-            setSocialLinks(defaultSocialLinks);
-          }
+        if (storeSettings.social_links) {
+          setSocialLinks({
+            instagram: (storeSettings.social_links as SocialLinks)?.instagram || "",
+            facebook: (storeSettings.social_links as SocialLinks)?.facebook || "",
+            telegram: (storeSettings.social_links as SocialLinks)?.telegram || "",
+          });
         }
         
-        // التعامل مع إعدادات الخط
-        if (data.font_settings) {
-          try {
-            const fontData = data.font_settings as any;
-            
-            if (fontData && typeof fontData === 'object' && 
-                fontData.storeName && fontData.categoryText && fontData.generalText) {
-              const parsedFontSettings: FontSettings = {
-                storeName: {
-                  family: fontData.storeName.family || "inherit",
-                  isCustom: fontData.storeName.isCustom || false,
-                  customFontUrl: fontData.storeName.customFontUrl || null,
-                },
-                categoryText: {
-                  family: fontData.categoryText.family || "inherit",
-                  isCustom: fontData.categoryText.isCustom || false,
-                  customFontUrl: fontData.categoryText.customFontUrl || null,
-                },
-                generalText: {
-                  family: fontData.generalText.family || "inherit",
-                  isCustom: fontData.generalText.isCustom || false,
-                  customFontUrl: fontData.generalText.customFontUrl || null,
-                }
-              };
-              setFontSettings(parsedFontSettings);
-            }
-          } catch (e) {
-            console.error("خطأ في تحليل إعدادات الخط:", e);
-            setFontSettings(defaultFontSettings);
-          }
+        if (storeSettings.font_settings) {
+          setFontSettings(storeSettings.font_settings as FontSettings || defaultFontSettings);
         }
         
-        // التعامل مع معلومات الاتصال
-        if (data.contact_info) {
-          try {
-            const contactData = data.contact_info as any;
-            const parsedContactInfo: ContactInfo = {
-              description: contactData?.description || "",
-              address: contactData?.address || "",
-              phone: contactData?.phone || "",
-              wifi: contactData?.wifi || "",
-              businessHours: contactData?.businessHours || "",
-            };
-            setContactInfo(parsedContactInfo);
-          } catch (e) {
-            console.error("خطأ في تحليل معلومات الاتصال:", e);
-            setContactInfo(defaultContactInfo);
-          }
-        }
-        
-        // التحقق من وجود عمود theme_mode واستخدامه
-        if (data.theme_mode) {
-          setThemeMode(data.theme_mode as ThemeMode);
+        if (storeSettings.contact_info) {
+          setContactInfo({
+            description: (storeSettings.contact_info as ContactInfo)?.description || "",
+            address: (storeSettings.contact_info as ContactInfo)?.address || "",
+            phone: (storeSettings.contact_info as ContactInfo)?.phone || "",
+            wifi: (storeSettings.contact_info as ContactInfo)?.wifi || "",
+            businessHours: (storeSettings.contact_info as ContactInfo)?.businessHours || "",
+          });
         }
       }
     } catch (error) {
-      console.error("خطأ في استعادة إعدادات المتجر:", error);
+      console.error("Error fetching store settings:", error);
     }
   };
 
@@ -205,7 +179,6 @@ const StoreCustomization = () => {
     banner_url: string | null;
     font_settings: FontSettings;
     contact_info: ContactInfo;
-    theme_mode: ThemeMode;
   }>) => {
     setIsLoading(true);
 
@@ -220,25 +193,13 @@ const StoreCustomization = () => {
         .maybeSingle();
 
       if (checkError) {
-        console.error("خطأ في التحقق من الإعدادات الحالية:", checkError);
+        console.error("Error checking existing settings:", checkError);
       }
 
-      // تحويل الكائنات إلى تنسيق Json قبل حفظها في قاعدة البيانات
-      const dataToUpdate: Record<string, any> = {
+      const dataToUpdate = {
         ...updatedData,
         updated_at: new Date().toISOString()
       };
-
-      // تحويل الأنواع المعقدة إلى Json
-      if (dataToUpdate.social_links) {
-        dataToUpdate.social_links = dataToUpdate.social_links as unknown as Json;
-      }
-      if (dataToUpdate.font_settings) {
-        dataToUpdate.font_settings = dataToUpdate.font_settings as unknown as Json;
-      }
-      if (dataToUpdate.contact_info) {
-        dataToUpdate.contact_info = dataToUpdate.contact_info as unknown as Json;
-      }
 
       let result;
       if (existingSettings) {
@@ -268,7 +229,6 @@ const StoreCustomization = () => {
         duration: 3000,
       });
 
-      // تحديث المتغيرات المحلية بالقيم الجديدة
       if (updatedData.store_name !== undefined) setStoreName(updatedData.store_name);
       if (updatedData.color_theme !== undefined) setColorTheme(updatedData.color_theme);
       if (updatedData.slug !== undefined) setStoreSlug(updatedData.slug);
@@ -276,10 +236,9 @@ const StoreCustomization = () => {
       if (updatedData.banner_url !== undefined) setBannerUrl(updatedData.banner_url);
       if (updatedData.font_settings !== undefined) setFontSettings(updatedData.font_settings);
       if (updatedData.contact_info !== undefined) setContactInfo(updatedData.contact_info);
-      if (updatedData.theme_mode !== undefined) setThemeMode(updatedData.theme_mode);
 
     } catch (error: any) {
-      console.error("خطأ في حفظ إعدادات المتجر:", error);
+      console.error("Error saving store settings:", error);
       toast({
         title: "حدث خطأ",
         description: error.message,
@@ -348,10 +307,6 @@ const StoreCustomization = () => {
   const handleContactInfoSubmit = async (info: ContactInfo) => {
     await saveStoreSettings({ contact_info: info });
   };
-  
-  const handleThemeModeSubmit = async () => {
-    await saveStoreSettings({ theme_mode: themeMode });
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -377,22 +332,20 @@ const StoreCustomization = () => {
             <div className="sticky top-24">
               <h2 className="text-xl font-semibold mb-4 text-right">معاينة المتجر</h2>
               <div className="border rounded-lg overflow-hidden shadow-md max-h-[600px] overflow-y-auto">
-                <ThemeProvider defaultTheme={themeMode}>
-                  <ProductPreviewContainer 
-                    colorTheme={colorTheme} 
-                    bannerUrl={bannerUrl}
+                <ProductPreviewContainer 
+                  colorTheme={colorTheme} 
+                  bannerUrl={bannerUrl}
+                  fontSettings={fontSettings}
+                  containerHeight="auto"
+                >
+                  <DemoProductsDisplay 
+                    products={dummyProducts} 
+                    storeName={storeName || "اسم المتجر"} 
+                    colorTheme={colorTheme}
                     fontSettings={fontSettings}
-                    containerHeight="auto"
-                  >
-                    <DemoProductsDisplay 
-                      products={dummyProducts} 
-                      storeName={storeName || "اسم المتجر"} 
-                      colorTheme={colorTheme}
-                      fontSettings={fontSettings}
-                      categoryImages={[]}
-                    />
-                  </ProductPreviewContainer>
-                </ThemeProvider>
+                    categoryImages={[]}
+                  />
+                </ProductPreviewContainer>
               </div>
             </div>
           </motion.div>
@@ -410,13 +363,6 @@ const StoreCustomization = () => {
               setStoreSlug={setStoreSlug}
               handleNameSubmit={handleNameSubmit}
               handleSlugSubmit={handleSlugSubmit}
-              isLoading={isLoading}
-            />
-
-            <ThemeToggleSection 
-              mode={themeMode}
-              setMode={setThemeMode}
-              handleSubmit={handleThemeModeSubmit}
               isLoading={isLoading}
             />
 

@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
-import { ThemeMode } from "@/components/store/ThemeProvider";
 
 export const useStoreSettings = (slug: string | undefined) => {
   const [storeSettings, setStoreSettings] = useState({
@@ -15,7 +14,6 @@ export const useStoreSettings = (slug: string | undefined) => {
     bannerUrl: null as string | null,
     fontSettings: undefined as FontSettings | undefined,
     storeOwnerId: null as string | null,
-    themeMode: "system" as ThemeMode
   });
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -51,7 +49,7 @@ export const useStoreSettings = (slug: string | undefined) => {
 
         const { data: settings, error } = await supabase
           .from("store_settings")
-          .select("user_id, store_name, color_theme, social_links, banner_url, font_settings, contact_info, theme_mode")
+          .select("user_id, store_name, color_theme, social_links, banner_url, font_settings, contact_info")
           .eq("slug", slug.trim())
           .maybeSingle();
 
@@ -65,52 +63,39 @@ export const useStoreSettings = (slug: string | undefined) => {
         let parsedFontSettings: FontSettings = defaultFontSettings;
         
         if (settings.font_settings) {
-          try {
-            const fontData = settings.font_settings as any;
-            
-            // التحقق من أن البيانات تحتوي على العناصر اللازمة
-            if (fontData.storeName && fontData.categoryText && fontData.generalText) {
-              parsedFontSettings = {
-                storeName: {
-                  family: fontData.storeName.family || "inherit",
-                  isCustom: fontData.storeName.isCustom || false,
-                  customFontUrl: fontData.storeName.customFontUrl || null,
-                },
-                categoryText: {
-                  family: fontData.categoryText.family || "inherit",
-                  isCustom: fontData.categoryText.isCustom || false,
-                  customFontUrl: fontData.categoryText.customFontUrl || null,
-                },
-                generalText: {
-                  family: fontData.generalText.family || "inherit",
-                  isCustom: fontData.generalText.isCustom || false,
-                  customFontUrl: fontData.generalText.customFontUrl || null,
-                }
-              };
-            }
-          } catch (e) {
-            console.error("Error parsing font settings:", e);
+          const fontData = settings.font_settings as any;
+          
+          // التحقق من أن البيانات تحتوي على العناصر اللازمة
+          if (fontData.storeName && fontData.categoryText && fontData.generalText) {
+            parsedFontSettings = {
+              storeName: {
+                family: fontData.storeName.family || "inherit",
+                isCustom: fontData.storeName.isCustom || false,
+                customFontUrl: fontData.storeName.customFontUrl || null,
+              },
+              categoryText: {
+                family: fontData.categoryText.family || "inherit",
+                isCustom: fontData.categoryText.isCustom || false,
+                customFontUrl: fontData.categoryText.customFontUrl || null,
+              },
+              generalText: {
+                family: fontData.generalText.family || "inherit",
+                isCustom: fontData.generalText.isCustom || false,
+                customFontUrl: fontData.generalText.customFontUrl || null,
+              }
+            };
           }
         }
-
-        // تحويل بيانات معلومات الاتصال
-        const contactInfo: ContactInfo = settings.contact_info as any || {};
-        
-        // تحويل بيانات روابط التواصل الاجتماعي
-        const socialLinks: SocialLinks = settings.social_links as any || {};
 
         setStoreSettings({
           storeName: settings.store_name,
           colorTheme: settings.color_theme || "default",
-          socialLinks,
-          contactInfo,
+          socialLinks: settings.social_links as SocialLinks || {},
+          contactInfo: settings.contact_info as ContactInfo || {},
           bannerUrl: settings.banner_url,
           fontSettings: parsedFontSettings,
           storeOwnerId: settings.user_id,
-          themeMode: (settings.theme_mode as ThemeMode) || "system"
         });
-        
-        setIsLoading(false);
 
       } catch (error: any) {
         console.error("Error fetching settings:", error);

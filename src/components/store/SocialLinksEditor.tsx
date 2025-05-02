@@ -1,9 +1,15 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Instagram, Facebook, MessageSquare, Save } from "lucide-react";
-import { SocialLinks } from "@/types/store";
+
+type SocialLinks = {
+  instagram: string;
+  facebook: string;
+  telegram: string;
+};
 
 interface SocialLinksEditorProps {
   initialSocialLinks: SocialLinks;

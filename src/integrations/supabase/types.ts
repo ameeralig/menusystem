@@ -230,7 +230,6 @@ export type Database = {
           slug: string | null
           social_links: Json | null
           store_name: string | null
-          theme_mode: string | null
           updated_at: string
           user_id: string
         }
@@ -245,7 +244,6 @@ export type Database = {
           slug?: string | null
           social_links?: Json | null
           store_name?: string | null
-          theme_mode?: string | null
           updated_at?: string
           user_id: string
         }
@@ -260,7 +258,6 @@ export type Database = {
           slug?: string | null
           social_links?: Json | null
           store_name?: string | null
-          theme_mode?: string | null
           updated_at?: string
           user_id?: string
         }

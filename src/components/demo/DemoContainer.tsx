@@ -7,7 +7,7 @@ interface DemoContainerProps {
 
 const DemoContainer = ({ children }: DemoContainerProps) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-amber-100 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-amber-100">
       <div className="container mx-auto py-6 px-4 max-w-6xl">
         {children}
       </div>

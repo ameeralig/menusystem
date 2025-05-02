@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,13 +22,20 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { ContactInfo } from "@/types/store";
 
 type WorkDay = {
   day: string;
   isOpen: boolean;
   openTime: string;
   closeTime: string;
+};
+
+type ContactInfo = {
+  description: string;
+  address: string;
+  phone: string;
+  wifi: string;
+  businessHours: string;
 };
 
 interface ContactInfoEditorProps {

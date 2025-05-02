@@ -2,7 +2,12 @@
 import { Share2 } from "lucide-react";
 import SocialLinksEditor from "@/components/store/SocialLinksEditor";
 import CustomizationSection from "./CustomizationSection";
-import { SocialLinks } from "@/types/store";
+
+type SocialLinks = {
+  instagram: string;
+  facebook: string;
+  telegram: string;
+};
 
 interface SocialLinksSectionProps {
   socialLinks: SocialLinks;
