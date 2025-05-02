@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -81,7 +82,10 @@ const AdminUsersTab = () => {
         body: { action: 'get_users' }
       });
       
-      if (userError) throw userError;
+      if (userError) {
+        console.error("خطأ في جلب بيانات المستخدمين:", userError);
+        throw userError;
+      }
       
       // جلب إعدادات المتاجر للمستخدمين
       const { data: storeData, error: storeError } = await supabase
@@ -90,7 +94,7 @@ const AdminUsersTab = () => {
 
       if (storeError) throw storeError;
       
-      // جلب عدد المنتجات لكل مستخدم - نستخدم طريقة مختلفة
+      // جلب عدد المنتجات لكل مستخدم
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select('user_id');
@@ -98,15 +102,22 @@ const AdminUsersTab = () => {
       if (productsError) throw productsError;
 
       // تجميع عدد المنتجات حسب المستخدم يدويًا
-      const productsByUser = Array.isArray(productsData) ? productsData.reduce((acc, curr) => {
-        const existingUser = acc.find(item => item.user_id === curr.user_id);
-        if (existingUser) {
-          existingUser.count = (existingUser.count || 0) + 1;
-        } else {
-          acc.push({ user_id: curr.user_id, count: 1 });
-        }
-        return acc;
-      }, [] as {user_id: string, count: number}[]) : [];
+      let productsByUser: { user_id: string, count: number }[] = [];
+      
+      if (Array.isArray(productsData)) {
+        const productMap = new Map<string, number>();
+        
+        productsData.forEach(item => {
+          const userId = item.user_id;
+          const currentCount = productMap.get(userId) || 0;
+          productMap.set(userId, currentCount + 1);
+        });
+        
+        productsByUser = Array.from(productMap.entries()).map(([user_id, count]) => ({
+          user_id,
+          count
+        }));
+      }
       
       // جلب عدد الزوار لكل مستخدم
       const { data: viewsData, error: viewsError } = await supabase
@@ -129,7 +140,7 @@ const AdminUsersTab = () => {
       const rolesMap = new Map(rolesData ? rolesData.map((role: any) => [role.user_id, role.role]) : []);
       
       // دمج البيانات
-      const enrichedUsers = userData.users ? userData.users.map((user: any) => ({
+      const enrichedUsers = userData?.users ? userData.users.map((user: any) => ({
         id: user.id,
         email: user.email || '',
         created_at: user.created_at,

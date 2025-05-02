@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -66,7 +67,10 @@ const AdminStatsTab = () => {
         body: { action: 'get_users' }
       });
       
-      if (userError) throw userError;
+      if (userError) {
+        console.error("خطأ في جلب بيانات المستخدمين:", userError);
+        throw userError;
+      }
       
       // جلب إعدادات المتاجر
       const { data: storeData, error: storeError } = await supabase
@@ -75,7 +79,7 @@ const AdminStatsTab = () => {
 
       if (storeError) throw storeError;
       
-      // جلب عدد المنتجات لكل مستخدم - نستخدم طريقة مختلفة
+      // جلب عدد المنتجات لكل مستخدم
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select('user_id');
@@ -83,15 +87,22 @@ const AdminStatsTab = () => {
       if (productsError) throw productsError;
       
       // تجميع عدد المنتجات حسب المستخدم يدويًا
-      const productsByUser = Array.isArray(productsData) ? productsData.reduce((acc, curr) => {
-        const existingUser = acc.find(item => item.user_id === curr.user_id);
-        if (existingUser) {
-          existingUser.count = (existingUser.count || 0) + 1;
-        } else {
-          acc.push({ user_id: curr.user_id, count: 1 });
-        }
-        return acc;
-      }, [] as {user_id: string, count: number}[]) : [];
+      let productsByUser: { user_id: string, count: number }[] = [];
+      
+      if (Array.isArray(productsData)) {
+        const productMap = new Map<string, number>();
+        
+        productsData.forEach(item => {
+          const userId = item.user_id;
+          const currentCount = productMap.get(userId) || 0;
+          productMap.set(userId, currentCount + 1);
+        });
+        
+        productsByUser = Array.from(productMap.entries()).map(([user_id, count]) => ({
+          user_id,
+          count
+        }));
+      }
       
       // جلب عدد الزوار لكل مستخدم
       const { data: viewsData, error: viewsError } = await supabase
@@ -106,7 +117,7 @@ const AdminStatsTab = () => {
       const viewsMap = new Map(viewsData?.map((view: any) => [view.user_id, view.view_count]) || []);
       
       // دمج البيانات للإحصائيات
-      const userStats = userData.users ? userData.users.map((user: any) => ({
+      const userStats = userData?.users ? userData.users.map((user: any) => ({
         id: user.id,
         email: user.email || '',
         store_name: storeMap.get(user.id) || null,
@@ -116,10 +127,10 @@ const AdminStatsTab = () => {
       })) : [];
 
       // إجمالي الإحصائيات
-      const totalProducts = Array.isArray(productsByUser) ? productsByUser.reduce((sum, curr) => sum + curr.count, 0) : 0;
+      const totalProducts = Array.isArray(productsByUser) ? productsByUser.reduce((sum, curr) => sum + (curr.count || 0), 0) : 0;
       
       const totalStats = {
-        totalUsers: userData.users ? userData.users.length : 0,
+        totalUsers: userData?.users ? userData.users.length : 0,
         totalProducts: totalProducts,
         totalVisits: viewsData ? viewsData.reduce((sum: number, curr: any) => sum + (curr.view_count || 0), 0) : 0,
         totalStores: storeData ? storeData.length : 0,
