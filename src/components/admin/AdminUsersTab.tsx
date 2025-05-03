@@ -35,6 +35,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 
 type UserStatus = "active" | "banned" | "pending";
 
@@ -260,13 +261,19 @@ const AdminUsersTab = () => {
           
         case "message":
           // إرسال إشعار للمستخدم
-          await supabase.functions.invoke('manage-user', {
+          const response = await supabase.functions.invoke('manage-user', {
             body: { 
               action: 'message',
               userId: selectedUser.id,
               message: message
             }
           });
+          
+          console.log("استجابة إرسال الإشعار:", response);
+          
+          if (response.error) {
+            throw new Error(response.error);
+          }
             
           setMessage("");
           toast({
@@ -279,14 +286,14 @@ const AdminUsersTab = () => {
           console.log("محاولة تفعيل حساب المستخدم:", selectedUser);
           
           // الموافقة على الحساب
-          const response = await supabase.functions.invoke('manage-user', {
+          const approveResponse = await supabase.functions.invoke('manage-user', {
             body: { 
               action: 'approve',
               userId: selectedUser.id
             }
           });
           
-          console.log("استجابة تفعيل الحساب:", response);
+          console.log("استجابة تفعيل الحساب:", approveResponse);
           
           toast({
             title: "تم بنجاح",
@@ -595,11 +602,12 @@ const AdminUsersTab = () => {
                 
                 <div className="space-y-2 my-4">
                   <Label htmlFor="message">نص الإشعار</Label>
-                  <Input
+                  <Textarea
                     id="message"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="اكتب نص الإشعار هنا..."
+                    className="min-h-[100px]"
                   />
                 </div>
                 

@@ -32,13 +32,13 @@ serve(async (req) => {
     
     // Get the request body
     const requestData = await req.json();
-    const { action, userId, message } = requestData;
+    const { action, userId, message, messageAll } = requestData;
     
     console.log(`الإجراء المطلوب: ${action}, معرف المستخدم: ${userId}`);
     
-    if (!action || !userId) {
+    if (!action) {
       return new Response(
-        JSON.stringify({ error: 'بيانات ناقصة في الطلب' }),
+        JSON.stringify({ error: 'الإجراء مطلوب في الطلب' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -156,33 +156,80 @@ serve(async (req) => {
     }
     else if (action === 'message') {
       // إرسال إشعار للمستخدم
-      if (!message) {
+      if (!message && !messageAll) {
         return new Response(
           JSON.stringify({ error: 'نص الرسالة مطلوب' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
-      console.log(`إرسال إشعار للمستخدم ${userId}: ${message}`);
-      
-      const { error: notificationError } = await supabase
-        .from('notifications')
-        .insert({
-          user_id: userId,
-          message: message,
-          type: 'admin_message',
-          is_read: false
-        });
-        
-      if (notificationError) {
-        console.error('خطأ في إرسال الإشعار:', notificationError);
-        throw notificationError;
+      try {
+        // التحقق إذا كانت الرسالة لمستخدم محدد أو لجميع المستخدمين
+        if (messageAll) {
+          console.log(`إرسال إشعار لجميع المستخدمين: ${messageAll}`);
+          
+          // الحصول على جميع المستخدمين
+          const { data: usersData, error: usersError } = await supabase.auth.admin.listUsers();
+          
+          if (usersError) {
+            console.error('خطأ في جلب قائمة المستخدمين:', usersError);
+            throw usersError;
+          }
+          
+          if (usersData && usersData.users) {
+            // إنشاء مصفوفة من الإشعارات لجميع المستخدمين
+            const notifications = usersData.users.map(user => ({
+              user_id: user.id,
+              message: messageAll,
+              type: 'admin_message',
+              is_read: false
+            }));
+            
+            // إدراج جميع الإشعارات دفعة واحدة
+            const { error: batchNotificationError } = await supabase
+              .from('notifications')
+              .insert(notifications);
+              
+            if (batchNotificationError) {
+              console.error('خطأ في إرسال الإشعارات الجماعية:', batchNotificationError);
+              throw batchNotificationError;
+            }
+            
+            return new Response(
+              JSON.stringify({ success: true, action: 'message_all', count: notifications.length }),
+              { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+        } else if (userId) {
+          console.log(`إرسال إشعار للمستخدم ${userId}: ${message}`);
+          
+          // التحقق من وجود جدول الإشعارات
+          await checkNotificationsTable(supabase);
+          
+          // إرسال إشعار لمستخدم محدد
+          const { error: notificationError } = await supabase
+            .from('notifications')
+            .insert({
+              user_id: userId,
+              message: message,
+              type: 'admin_message',
+              is_read: false
+            });
+            
+          if (notificationError) {
+            console.error('خطأ في إرسال الإشعار:', notificationError);
+            throw notificationError;
+          }
+          
+          return new Response(
+            JSON.stringify({ success: true, action: 'message' }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      } catch (error) {
+        console.error("خطأ في إرسال الإشعار:", error);
+        throw error;
       }
-      
-      return new Response(
-        JSON.stringify({ success: true, action: 'message' }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
     }
     else if (action === 'approve') {
       // الموافقة على حساب المستخدم
@@ -224,6 +271,9 @@ serve(async (req) => {
       
       // إضافة إشعار للمستخدم
       try {
+        // التحقق من وجود جدول الإشعارات
+        await checkNotificationsTable(supabase);
+        
         const { error: notificationError } = await supabase
           .from('notifications')
           .insert({
@@ -261,3 +311,23 @@ serve(async (req) => {
     );
   }
 });
+
+// دالة للتحقق من وجود جدول الإشعارات وإنشائه إذا لم يكن موجودًا
+async function checkNotificationsTable(supabase) {
+  try {
+    // التحقق من وجود جدول الإشعارات
+    const { error } = await supabase.from('notifications').select('id').limit(1);
+    
+    if (error) {
+      console.log('جدول الإشعارات غير موجود، محاولة إنشاءه...');
+      
+      // هنا يمكن إضافة منطق لإنشاء الجدول إذا كان لديك صلاحيات لذلك
+      // ولكن في معظم الحالات، سيكون الجدول موجودًا بالفعل
+      
+      throw new Error('جدول الإشعارات غير موجود. يرجى إنشاءه أولاً.');
+    }
+  } catch (error) {
+    console.error('خطأ في التحقق من جدول الإشعارات:', error);
+    throw error;
+  }
+}

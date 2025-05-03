@@ -1,37 +1,20 @@
 
-project_id = "zqlckixwpyrwdwrsuhsg"
+zqlckixwpyrwdwrsuhsg
 
-[api]
-enabled = true
-port = 54321
-schemas = ["public", "storage", "graphql_public"]
+[functions."get-service-key"]
+verify_jwt = true
 
-[db]
-port = 54322
+[functions."manage-user"]
+verify_jwt = true
 
-[realtime]
-enabled = true
+[functions."create-system-stats"]
+verify_jwt = true
 
-[studio]
-enabled = true
-port = 54323
-api_url = "http://localhost"
+[functions."update-system-stats"]
+verify_jwt = true
 
-[functions]
-[functions.manage-user]
-verify_jwt = false
+[functions."check-notifications-table"]
+verify_jwt = true
 
-[functions.get-service-key]
-verify_jwt = false
-
-[functions.admin-role]
-verify_jwt = false
-
-[functions.create-system-stats]
-verify_jwt = false
-
-[functions.update-system-stats]
-verify_jwt = false
-
-[functions.handle-password-reset]
+[functions."handle-password-reset"]
 verify_jwt = false
