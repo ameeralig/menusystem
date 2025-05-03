@@ -27,26 +27,31 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, serviceRoleKey);
     
-    // التحقق من وجود جدول الإشعارات وإنشائه إذا لم يكن موجودًا
-    const { data, error } = await supabase
-      .rpc('create_notifications_table_if_not_exists');
-    
-    if (error) {
-      console.error('خطأ في إنشاء جدول الإشعارات:', error);
+    try {
+      // التحقق من جدول الإشعارات باستخدام استعلام SQL مباشر
+      const { data, error } = await supabase.rpc(
+        'create_notifications_table_if_not_exists'
+      );
+      
+      if (error) {
+        console.error('خطأ في التحقق من جدول الإشعارات:', error);
+        throw error;
+      }
+
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          message: 'تم التحقق من جدول الإشعارات بنجاح',
+          data
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } catch (error) {
+      console.error('خطأ في التحقق من جدول الإشعارات:', error);
       throw error;
     }
-    
-    return new Response(
-      JSON.stringify({ 
-        success: true,
-        message: 'تم التحقق من جدول الإشعارات بنجاح',
-        data
-      }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-    
   } catch (error: any) {
-    console.error('خطأ في التحقق من جدول الإشعارات:', error);
+    console.error('خطأ عام في معالجة الطلب:', error);
     return new Response(
       JSON.stringify({ error: error.message || 'حدث خطأ غير متوقع' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

@@ -21,11 +21,27 @@ export const useUsers = () => {
 
   useEffect(() => {
     fetchUsers();
+    
+    // التحقق من وجود جدول الإشعارات عند تحميل المكون
+    checkNotificationsTable();
   }, []);
 
   useEffect(() => {
     setFilteredUsers(filterUsers(users, searchQuery, showPendingOnly));
   }, [searchQuery, users, showPendingOnly]);
+
+  // دالة للتحقق من وجود جدول الإشعارات
+  const checkNotificationsTable = async () => {
+    try {
+      const { error } = await supabase.functions.invoke('check-notifications-table');
+      
+      if (error) {
+        console.error("خطأ في التحقق من جدول الإشعارات:", error);
+      }
+    } catch (err) {
+      console.error("استثناء في التحقق من جدول الإشعارات:", err);
+    }
+  };
 
   const fetchUsers = async () => {
     setIsLoading(true);

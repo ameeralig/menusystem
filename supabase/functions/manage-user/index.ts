@@ -137,6 +137,14 @@ serve(async (req) => {
           .eq('user_id', userId);
           
         if (rolesError) console.warn('خطأ في حذف الدور:', rolesError);
+
+        // حذف الإشعارات
+        const { error: notificationsError } = await supabase
+          .from('notifications')
+          .delete()
+          .eq('user_id', userId);
+          
+        if (notificationsError) console.warn('خطأ في حذف الإشعارات:', notificationsError);
       } catch (error) {
         console.error("خطأ في حذف بيانات المستخدم:", error);
       }
@@ -203,9 +211,6 @@ serve(async (req) => {
         } else if (userId) {
           console.log(`إرسال إشعار للمستخدم ${userId}: ${message}`);
           
-          // التحقق من وجود جدول الإشعارات
-          await checkNotificationsTable(supabase);
-          
           // إرسال إشعار لمستخدم محدد
           const { error: notificationError } = await supabase
             .from('notifications')
@@ -271,9 +276,6 @@ serve(async (req) => {
       
       // إضافة إشعار للمستخدم
       try {
-        // التحقق من وجود جدول الإشعارات
-        await checkNotificationsTable(supabase);
-        
         const { error: notificationError } = await supabase
           .from('notifications')
           .insert({
@@ -311,23 +313,3 @@ serve(async (req) => {
     );
   }
 });
-
-// دالة للتحقق من وجود جدول الإشعارات وإنشائه إذا لم يكن موجودًا
-async function checkNotificationsTable(supabase) {
-  try {
-    // التحقق من وجود جدول الإشعارات
-    const { error } = await supabase.from('notifications').select('id').limit(1);
-    
-    if (error) {
-      console.log('جدول الإشعارات غير موجود، محاولة إنشاءه...');
-      
-      // هنا يمكن إضافة منطق لإنشاء الجدول إذا كان لديك صلاحيات لذلك
-      // ولكن في معظم الحالات، سيكون الجدول موجودًا بالفعل
-      
-      throw new Error('جدول الإشعارات غير موجود. يرجى إنشاءه أولاً.');
-    }
-  } catch (error) {
-    console.error('خطأ في التحقق من جدول الإشعارات:', error);
-    throw error;
-  }
-}

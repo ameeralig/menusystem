@@ -66,17 +66,35 @@ const DashboardHeader = () => {
         if (feedbackError) {
           console.error("Error fetching feedback:", feedbackError);
         } else {
-          setNotificationCount(feedbackData?.length || 0);
-          setNotifications(feedbackData || []);
+          // Fetch admin notifications
+          const { data: notificationsData, error: notificationsError } = await supabase
+            .from('notifications')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('is_read', false)
+            .order('created_at', { ascending: false });
+          
+          if (notificationsError) {
+            console.error("Error fetching notifications:", notificationsError);
+          } else {
+            // Combine feedback and admin notifications
+            const allNotifications = [
+              ...(feedbackData || []),
+              ...(notificationsData || [])
+            ];
+            
+            setNotificationCount(allNotifications.length);
+            setNotifications(allNotifications);
+          }
         }
       }
     };
 
     getUserInfo();
 
-    // Set up real-time listener for new feedback
-    const channel = supabase
-      .channel('public:feedback')
+    // Set up real-time listener for new feedback and notifications
+    const feedbackChannel = supabase
+      .channel('feedback_changes')
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
@@ -97,8 +115,31 @@ const DashboardHeader = () => {
       })
       .subscribe();
 
+    const notificationsChannel = supabase
+      .channel('notifications_changes')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+      }, async (payload) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && payload.new && payload.new.user_id === user.id) {
+          // Refresh notifications when new notification is received
+          getUserInfo();
+          
+          // Show toast notification
+          toast({
+            title: "إشعار جديد",
+            description: payload.new.message,
+            duration: 5000,
+          });
+        }
+      })
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(feedbackChannel);
+      supabase.removeChannel(notificationsChannel);
     };
   }, [toast]);
 
@@ -147,6 +188,33 @@ const DashboardHeader = () => {
     });
   };
 
+  const markNotificationAsRead = async (notificationId: string) => {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('id', notificationId);
+      
+    if (error) {
+      console.error("Error marking notification as read:", error);
+    } else {
+      // Refresh notifications list
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: notificationsData } = await supabase
+          .from('notifications')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('is_read', false)
+          .order('created_at', { ascending: false });
+          
+        if (notificationsData) {
+          setNotifications(notificationsData);
+          setNotificationCount(notificationsData.length);
+        }
+      }
+    }
+  };
+
   return (
     <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border/50 shadow-sm">
       <div className="container mx-auto px-4 py-3">
@@ -179,18 +247,28 @@ const DashboardHeader = () => {
                       <div 
                         key={notification.id} 
                         className="p-3 border-b last:border-0 hover:bg-muted/50 cursor-pointer"
-                        onClick={() => navigate('/feedback')}
+                        onClick={() => {
+                          if (notification.type === 'admin_message') {
+                            markNotificationAsRead(notification.id);
+                          } else {
+                            navigate('/feedback');
+                          }
+                        }}
                       >
                         <div className="flex justify-between items-start">
                           <span className="text-sm font-medium">
-                            {notification.visitor_name}
+                            {notification.visitor_name || 'إشعار من النظام'}
                           </span>
                           <span className="text-xs text-muted-foreground">
                             {formatDate(notification.created_at)}
                           </span>
                         </div>
                         <p className="text-xs mt-1 text-muted-foreground line-clamp-2">
-                          {notification.type === 'complaint' ? 'شكوى' : 'اقتراح'}: {notification.description}
+                          {notification.type === 'complaint' 
+                            ? 'شكوى: ' + notification.description 
+                            : notification.type === 'suggestion' 
+                              ? 'اقتراح: ' + notification.description
+                              : notification.message}
                         </p>
                       </div>
                     ))}
