@@ -75,14 +75,18 @@ const DashboardHeader = () => {
           // التحقق مما إذا كان جدول الإشعارات موجودًا قبل محاولة الاستعلام عنه
           await supabase.functions.invoke('check-notifications-table');
 
-          // محاولة الاستعلام عن الإشعارات
-          const notificationsResult = await supabase.rpc('get_user_notifications', { user_id_param: user.id });
+          // محاولة الاستعلام عن الإشعارات باستخدام استعلام مباشر بدلاً من RPC
+          const { data: notificationsResult, error } = await supabase
+            .from('notifications')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
           
-          if (notificationsResult.error) {
-            throw notificationsResult.error;
+          if (error) {
+            throw error;
           }
           
-          notificationsData = notificationsResult.data || [];
+          notificationsData = notificationsResult || [];
         } catch (error) {
           console.error("Error fetching notifications:", error);
           notificationsError = error;
@@ -223,8 +227,12 @@ const DashboardHeader = () => {
       // التحقق من وجود جدول الإشعارات
       await supabase.functions.invoke('check-notifications-table');
       
-      // محاولة تحديث الإشعار لوضعه كمقروء
-      const { error } = await supabase.rpc('mark_notification_as_read', { notification_id_param: notificationId });
+      // استخدام تحديث مباشر بدلاً من RPC
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', notificationId)
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id || '');
         
       if (error) {
         console.error("Error marking notification as read:", error);
@@ -232,11 +240,12 @@ const DashboardHeader = () => {
         // تحديث قائمة الإشعارات
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          // تحديث القائمة من خلال استدعاء الدالة التي تستخدم RPC
-          const { data: notificationsData, error: notificationsError } = await supabase.rpc(
-            'get_user_notifications', 
-            { user_id_param: user.id }
-          );
+          // تحديث القائمة من خلال استدعاء استعلام مباشر
+          const { data: notificationsData, error: notificationsError } = await supabase
+            .from('notifications')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
             
           if (notificationsError) {
             console.error("Error fetching updated notifications:", notificationsError);
@@ -248,7 +257,8 @@ const DashboardHeader = () => {
             });
             
             // تحديث عدد الإشعارات غير المقروءة
-            setNotificationCount(notificationsData.filter(n => !n.is_read).length);
+            const unreadCount = notificationsData.filter(n => !n.is_read).length;
+            setNotificationCount(unreadCount);
           }
         }
       }

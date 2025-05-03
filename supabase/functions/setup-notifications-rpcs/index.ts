@@ -26,63 +26,84 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, serviceRoleKey);
     
-    // إنشاء دالة RPC لوضع علامة "مقروء" على الإشعار
-    const markAsReadSql = `
-    CREATE OR REPLACE FUNCTION mark_notification_as_read(notification_id_param uuid)
-    RETURNS void
-    SECURITY DEFINER
+    // إنشاء دالة SQL لإنشاء جدول الإشعارات إذا لم يكن موجودًا
+    const createNotificationsTableSql = `
+    CREATE OR REPLACE FUNCTION public.create_notifications_table_if_not_exists()
+    RETURNS text
     LANGUAGE plpgsql
+    SECURITY DEFINER
     AS $$
     BEGIN
-      UPDATE public.notifications
-      SET is_read = true
-      WHERE id = notification_id_param 
-      AND user_id = auth.uid();
+      -- التحقق من وجود الجدول
+      IF EXISTS (
+        SELECT FROM pg_tables 
+        WHERE schemaname = 'public' 
+        AND tablename = 'notifications'
+      ) THEN
+        RETURN 'جدول الإشعارات موجود بالفعل';
+      ELSE
+        -- إنشاء جدول الإشعارات
+        CREATE TABLE public.notifications (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID NOT NULL,
+          message TEXT NOT NULL,
+          type TEXT NOT NULL DEFAULT 'info',
+          is_read BOOLEAN NOT NULL DEFAULT false,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+        );
+        
+        -- إضافة سياسة أمان RLS
+        ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+        
+        -- سياسة للقراءة - يمكن للمستخدمين قراءة إشعاراتهم فقط
+        CREATE POLICY "Users can read their own notifications"
+        ON public.notifications
+        FOR SELECT
+        USING (auth.uid() = user_id);
+        
+        -- سياسة للتحديث - يمكن للمستخدمين تحديث إشعاراتهم فقط
+        CREATE POLICY "Users can update their own notifications"
+        ON public.notifications
+        FOR UPDATE
+        USING (auth.uid() = user_id);
+        
+        RETURN 'تم إنشاء جدول الإشعارات بنجاح';
+      END IF;
+    EXCEPTION
+      WHEN OTHERS THEN
+        RETURN 'حدث خطأ أثناء إنشاء جدول الإشعارات: ' || SQLERRM;
     END;
     $$;
     `;
-
-    // إنشاء دالة RPC لجلب إشعارات المستخدم
-    const getUserNotificationsSql = `
-    CREATE OR REPLACE FUNCTION get_user_notifications(user_id_param uuid)
-    RETURNS SETOF public.notifications
-    LANGUAGE sql
-    SECURITY DEFINER
-    AS $$
-      SELECT * FROM public.notifications
-      WHERE user_id = user_id_param
-      ORDER BY created_at DESC;
-    $$;
-    `;
     
-    // تنفيذ الإجراءين المخزنين
-    const { error: markAsReadError } = await supabase.rpc('exec_sql', {
-      sql_query: markAsReadSql
+    // تنفيذ إنشاء دالة جدول الإشعارات
+    const { error: createFunctionError } = await supabase.rpc('exec_sql', {
+      sql_query: createNotificationsTableSql
     });
     
-    if (markAsReadError) {
-      console.error('خطأ في إنشاء دالة وضع علامة مقروء:', markAsReadError);
-      throw markAsReadError;
+    if (createFunctionError) {
+      console.error('خطأ في إنشاء دالة جدول الإشعارات:', createFunctionError);
+      throw createFunctionError;
     }
     
-    const { error: getUserNotificationsError } = await supabase.rpc('exec_sql', {
-      sql_query: getUserNotificationsSql
-    });
+    // استدعاء الدالة للتحقق من وجود جدول الإشعارات وإنشائه إذا لزم الأمر
+    const { data: tableCheckResult, error: tableCheckError } = await supabase.rpc('create_notifications_table_if_not_exists');
     
-    if (getUserNotificationsError) {
-      console.error('خطأ في إنشاء دالة جلب الإشعارات:', getUserNotificationsError);
-      throw getUserNotificationsError;
+    if (tableCheckError) {
+      console.error('خطأ في التحقق من جدول الإشعارات:', tableCheckError);
+      throw tableCheckError;
     }
     
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: 'تم إنشاء دوال RPC للإشعارات بنجاح',
+        message: 'تم إنشاء وظائف الإشعارات بنجاح',
+        table_result: tableCheckResult
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('خطأ في تنفيذ وظيفة إعداد دوال الإشعارات:', error);
+    console.error('خطأ في تنفيذ وظيفة إعداد وظائف الإشعارات:', error);
     return new Response(
       JSON.stringify({ error: error.message || 'حدث خطأ غير متوقع' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

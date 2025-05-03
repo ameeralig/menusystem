@@ -28,7 +28,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceRoleKey);
     
     try {
-      // التحقق من جدول الإشعارات باستخدام الدالة التي أنشأناها
+      // التحقق من جدول الإشعارات
       const { data, error } = await supabase.rpc(
         'create_notifications_table_if_not_exists'
       );
@@ -36,6 +36,43 @@ serve(async (req) => {
       if (error) {
         console.error('خطأ في التحقق من جدول الإشعارات:', error);
         throw error;
+      }
+      
+      // إنشاء SQL لفحص وإنشاء الدوال الضرورية
+      const checkFunctionSql = `
+      -- التحقق مما إذا كانت الدالة موجودة بالفعل
+      DO $$
+      BEGIN
+        -- دالة وضع علامة قراءة على الإشعار
+        IF NOT EXISTS (
+          SELECT FROM pg_proc 
+          WHERE proname = 'mark_notification_as_read'
+        ) THEN
+          -- إنشاء دالة وضع علامة "مقروء" على الإشعار
+          CREATE OR REPLACE FUNCTION mark_notification_as_read(notification_id_param uuid)
+          RETURNS void
+          SECURITY DEFINER
+          LANGUAGE plpgsql
+          AS $$
+          BEGIN
+            UPDATE public.notifications
+            SET is_read = true
+            WHERE id = notification_id_param 
+            AND user_id = auth.uid();
+          END;
+          $$;
+        END IF;
+      END
+      $$;
+      `;
+      
+      // تنفيذ SQL لإنشاء الدوال إذا لم تكن موجودة
+      const { error: funcError } = await supabase.rpc('exec_sql', {
+        sql_query: checkFunctionSql
+      });
+      
+      if (funcError) {
+        console.error('خطأ في إنشاء دوال الإشعارات:', funcError);
       }
 
       return new Response(
