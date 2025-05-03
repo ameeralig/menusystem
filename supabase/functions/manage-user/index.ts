@@ -7,6 +7,28 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// دالة للتحقق من وجود جدول الإشعارات
+const checkNotificationsTable = async (supabase) => {
+  try {
+    // التحقق من وجود جدول الإشعارات
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('id')
+      .limit(1);
+
+    if (error && error.code === '42P01') {
+      // الجدول غير موجود
+      console.log("جدول الإشعارات غير موجود، محاولة إنشاءه...");
+      throw new Error("جدول الإشعارات غير موجود. يرجى إنشاءه أولاً.");
+    }
+
+    return true;
+  } catch (err) {
+    console.error("خطأ في التحقق من جدول الإشعارات:", err);
+    throw err;
+  }
+};
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -172,6 +194,9 @@ serve(async (req) => {
       }
       
       try {
+        // التحقق من وجود جدول الإشعارات
+        await checkNotificationsTable(supabase);
+        
         // التحقق إذا كانت الرسالة لمستخدم محدد أو لجميع المستخدمين
         if (messageAll) {
           console.log(`إرسال إشعار لجميع المستخدمين: ${messageAll}`);
@@ -276,6 +301,9 @@ serve(async (req) => {
       
       // إضافة إشعار للمستخدم
       try {
+        // التحقق من وجود جدول الإشعارات
+        await checkNotificationsTable(supabase);
+        
         const { error: notificationError } = await supabase
           .from('notifications')
           .insert({

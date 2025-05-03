@@ -65,28 +65,38 @@ const DashboardHeader = () => {
           
         if (feedbackError) {
           console.error("Error fetching feedback:", feedbackError);
-        } else {
-          // Fetch admin notifications
-          const { data: notificationsData, error: notificationsError } = await supabase
-            .from('notifications')
-            .select('*')
-            .eq('user_id', user.id)
-            .eq('is_read', false)
-            .order('created_at', { ascending: false });
-          
-          if (notificationsError) {
-            console.error("Error fetching notifications:", notificationsError);
-          } else {
-            // Combine feedback and admin notifications
-            const allNotifications = [
-              ...(feedbackData || []),
-              ...(notificationsData || [])
-            ];
-            
-            setNotificationCount(allNotifications.length);
-            setNotifications(allNotifications);
-          }
         }
+
+        // Fetch admin notifications
+        let notificationsData: any[] = [];
+        let notificationsError = null;
+
+        try {
+          // التحقق مما إذا كان جدول الإشعارات موجودًا قبل محاولة الاستعلام عنه
+          await supabase.functions.invoke('check-notifications-table');
+
+          // محاولة الاستعلام عن الإشعارات
+          const notificationsResult = await supabase.rpc('get_user_notifications', { user_id_param: user.id });
+          
+          if (notificationsResult.error) {
+            throw notificationsResult.error;
+          }
+          
+          notificationsData = notificationsResult.data || [];
+        } catch (error) {
+          console.error("Error fetching notifications:", error);
+          notificationsError = error;
+          notificationsData = [];
+        }
+          
+        // Combine feedback and admin notifications
+        const allNotifications = [
+          ...(feedbackData || []),
+          ...(notificationsData || [])
+        ];
+        
+        setNotificationCount(allNotifications.length);
+        setNotifications(allNotifications);
       }
     };
 
@@ -115,31 +125,51 @@ const DashboardHeader = () => {
       })
       .subscribe();
 
-    const notificationsChannel = supabase
-      .channel('notifications_changes')
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'notifications',
-      }, async (payload) => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user && payload.new && payload.new.user_id === user.id) {
-          // Refresh notifications when new notification is received
-          getUserInfo();
-          
-          // Show toast notification
-          toast({
-            title: "إشعار جديد",
-            description: payload.new.message,
-            duration: 5000,
+    // إضافة مستمع للإشعارات الجديدة عند إنشاء جدول الإشعارات
+    const setupNotificationsListener = async () => {
+      try {
+        // محاولة إنشاء القناة للإشعارات
+        const notificationsChannel = supabase
+          .channel('notifications_insert')
+          .on('postgres_changes', {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+          }, async (payload) => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user && payload.new && payload.new.user_id === user.id) {
+              // Refresh notifications when new notification is received
+              getUserInfo();
+              
+              // Show toast notification
+              toast({
+                title: "إشعار جديد",
+                description: payload.new.message,
+                duration: 5000,
+              });
+            }
+          })
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              console.log('تم الاشتراك في تغييرات جدول الإشعارات بنجاح');
+            }
           });
-        }
-      })
-      .subscribe();
 
+        return notificationsChannel;
+      } catch (error) {
+        console.error('خطأ في إنشاء مستمع الإشعارات:', error);
+        return null;
+      }
+    };
+
+    // إنشاء مستمع للإشعارات
+    const notificationsChannelPromise = setupNotificationsListener();
+    
     return () => {
       supabase.removeChannel(feedbackChannel);
-      supabase.removeChannel(notificationsChannel);
+      notificationsChannelPromise.then(channel => {
+        if (channel) supabase.removeChannel(channel);
+      });
     };
   }, [toast]);
 
@@ -189,29 +219,41 @@ const DashboardHeader = () => {
   };
 
   const markNotificationAsRead = async (notificationId: string) => {
-    const { error } = await supabase
-      .from('notifications')
-      .update({ is_read: true })
-      .eq('id', notificationId);
+    try {
+      // التحقق من وجود جدول الإشعارات
+      await supabase.functions.invoke('check-notifications-table');
       
-    if (error) {
-      console.error("Error marking notification as read:", error);
-    } else {
-      // Refresh notifications list
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: notificationsData } = await supabase
-          .from('notifications')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('is_read', false)
-          .order('created_at', { ascending: false });
-          
-        if (notificationsData) {
-          setNotifications(notificationsData);
-          setNotificationCount(notificationsData.length);
+      // محاولة تحديث الإشعار لوضعه كمقروء
+      const { error } = await supabase.rpc('mark_notification_as_read', { notification_id_param: notificationId });
+        
+      if (error) {
+        console.error("Error marking notification as read:", error);
+      } else {
+        // تحديث قائمة الإشعارات
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          // تحديث القائمة من خلال استدعاء الدالة التي تستخدم RPC
+          const { data: notificationsData, error: notificationsError } = await supabase.rpc(
+            'get_user_notifications', 
+            { user_id_param: user.id }
+          );
+            
+          if (notificationsError) {
+            console.error("Error fetching updated notifications:", notificationsError);
+          } else if (notificationsData) {
+            setNotifications(prevNotifications => {
+              // تحديث فقط الإشعارات من نوع "notifications"، والاحتفاظ بالشكاوى والاقتراحات
+              const feedbackItems = prevNotifications.filter(item => item.type === 'complaint' || item.type === 'suggestion');
+              return [...feedbackItems, ...notificationsData];
+            });
+            
+            // تحديث عدد الإشعارات غير المقروءة
+            setNotificationCount(notificationsData.filter(n => !n.is_read).length);
+          }
         }
       }
+    } catch (error) {
+      console.error("حصل خطأ أثناء تحديث الإشعار:", error);
     }
   };
 
@@ -248,7 +290,7 @@ const DashboardHeader = () => {
                         key={notification.id} 
                         className="p-3 border-b last:border-0 hover:bg-muted/50 cursor-pointer"
                         onClick={() => {
-                          if (notification.type === 'admin_message') {
+                          if (notification.type === 'admin_message' || notification.type === 'account_approved') {
                             markNotificationAsRead(notification.id);
                           } else {
                             navigate('/feedback');

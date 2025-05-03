@@ -28,7 +28,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceRoleKey);
     
     try {
-      // التحقق من جدول الإشعارات باستخدام استعلام SQL مباشر
+      // التحقق من جدول الإشعارات باستخدام الدالة التي أنشأناها
       const { data, error } = await supabase.rpc(
         'create_notifications_table_if_not_exists'
       );

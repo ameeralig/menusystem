@@ -33,6 +33,9 @@ const UserNotificationTab = () => {
     try {
       setIsSending(true);
       
+      // تأكد من وجود جدول الإشعارات قبل محاولة الإرسال
+      await supabase.functions.invoke('check-notifications-table');
+      
       if (sendToAll) {
         // إرسال إشعار لجميع المستخدمين
         console.log("إرسال إشعار لجميع المستخدمين");
