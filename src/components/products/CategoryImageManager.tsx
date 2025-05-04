@@ -1,14 +1,14 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Image, X } from "lucide-react";
+import { X } from "lucide-react";
 import { CategoryImage } from "@/types/categoryImage";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { deleteImage } from "@/utils/storageHelpers";
+import CategoryImageUploader from "./CategoryImageUploader";
 
 interface CategoryImageManagerProps {
   categories: string[];
@@ -24,15 +24,7 @@ export const CategoryImageManager = ({
   const { toast } = useToast();
   const [uploading, setUploading] = useState<string | null>(null);
 
-  // تنظيف اسم التصنيف ليكون صالحاً للاستخدام في مسارات الملفات
-  const sanitizeFileName = (fileName: string): string => {
-    // استبدال الأحرف الخاصة والمسافات بشرطة سفلية
-    return fileName
-      .replace(/\s+/g, '_')
-      .replace(/[^\w.-]/g, '_');
-  };
-
-  const handleFileUpload = async (category: string, file: File) => {
+  const handleImageUpload = async (file: File, category: string) => {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
@@ -51,8 +43,7 @@ export const CategoryImageManager = ({
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
 
       const fileExt = file.name.split(".").pop();
-      // استخدام الدالة الجديدة لتنظيف اسم التصنيف
-      const sanitizedCategory = sanitizeFileName(category);
+      const sanitizedCategory = category.replace(/\s+/g, '_').replace(/[^\w.-]/g, '_');
       const fileName = `${user.id}_${sanitizedCategory}_${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
@@ -147,52 +138,30 @@ export const CategoryImageManager = ({
           const categoryImage = categoryImages.find(img => img.category === category);
           
           return (
-            <Card key={category} className="overflow-hidden">
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-base font-medium">{category}</Label>
-                  {categoryImage && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeImage(category)}
-                      className="h-8 w-8"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-
-                {categoryImage ? (
-                  <div className="relative aspect-video rounded-md overflow-hidden">
-                    <img
-                      src={categoryImage.image_url}
-                      alt={category}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div className="aspect-video rounded-md bg-muted flex items-center justify-center">
-                    <Image className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                )}
-
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => e.target.files?.[0] && handleFileUpload(category, e.target.files[0])}
-                    className="text-xs"
-                  />
-                  {uploading === category && (
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <div key={category} className="relative">
+              {categoryImage && (
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  onClick={() => removeImage(category)}
+                  className="h-8 w-8 absolute top-2 right-2 z-10"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+              
+              <CategoryImageUploader
+                category={category}
+                initialImageUrl={categoryImage?.image_url}
+                onImageSelect={handleImageUpload}
+                isUploading={uploading === category}
+              />
+            </div>
           );
         })}
       </div>
     </div>
   );
 };
+
+export default CategoryImageManager;

@@ -1,34 +1,26 @@
-import { useEffect, useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Product } from "@/types/product";
-import { CategoryImage } from "@/types/categoryImage";
-import ProductsList from "@/components/products/ProductsList";
+import EditProductForm from "../EditProductForm";
+import LoadingState from "../LoadingState";
+import EditProductImageSection from "./EditProductImageSection";
+import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Loader2 } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
-import LoadingState from "@/components/products/LoadingState";
-import EditProductForm from "@/components/products/EditProductForm";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
-import { CategoryImageManager } from "@/components/products/CategoryImageManager";
+import { ArrowLeft } from "lucide-react";
 
 const EditProductContainer = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { productId } = useParams();
   const { toast } = useToast();
-  const isMobile = useIsMobile();
-  
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [categoryImages, setCategoryImages] = useState<CategoryImage[]>([]);
-  const [uniqueCategories, setUniqueCategories] = useState<string[]>([]);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
+  // حالة المنتج الذي يجري تحريره
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -36,76 +28,57 @@ const EditProductContainer = () => {
   const [isNew, setIsNew] = useState(false);
   const [isPopular, setIsPopular] = useState(false);
 
-  const fetchProducts = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("لم يتم العثور على المستخدم");
-
-      const { data: productsData, error: productsError } = await supabase
-        .from("products")
-        .select("*")
-        .eq("user_id", user.id);
-
-      if (productsError) throw productsError;
-
-      if (productsData) {
-        setProducts(productsData);
-        const categories = [...new Set(productsData?.map(p => p.category).filter(Boolean))];
-        setUniqueCategories(categories);
-
-        const { data: imagesData, error: imagesError } = await supabase
-          .from("category_images")
-          .select("*")
-          .eq("user_id", user.id);
-
-        if (!imagesError && imagesData) {
-          setCategoryImages(imagesData);
-        }
-      }
-
-      if (productId) {
-        const product = productsData?.find(p => p.id === productId);
-        if (product) {
-          setSelectedProductData(product);
-        } else {
-          navigate("/edit-product", { replace: true });
-        }
-      }
-    } catch (error: any) {
-      console.error("Error fetching products:", error);
-      setError(error.message);
-      toast({
-        variant: "destructive",
-        title: "خطأ في تحميل المنتجات",
-        description: error.message,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    const fetchProduct = async () => {
+      try {
+        if (!id) return;
+        
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .eq("id", id)
+          .single();
+        
+        if (error) throw error;
+        if (!data) {
+          toast({
+            variant: "destructive",
+            title: "خطأ",
+            description: "لم يتم العثور على المنتج",
+          });
+          navigate("/dashboard");
+          return;
+        }
+        
+        setProduct(data);
+        setName(data.name || "");
+        setDescription(data.description || "");
+        setPrice(data.price?.toString() || "");
+        setCategory(data.category || "");
+        setIsNew(data.is_new || false);
+        setIsPopular(data.is_popular || false);
+      } catch (error: any) {
+        console.error("Error fetching product:", error);
+        toast({
+          variant: "destructive",
+          title: "خطأ في جلب بيانات المنتج",
+          description: error.message,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProduct();
+  }, [id, navigate, toast]);
 
-  const setSelectedProductData = (product: Product) => {
-    setSelectedProduct(product);
-    setName(product.name);
-    setDescription(product.description || "");
-    setPrice(product.price.toString());
-    setCategory(product.category || "");
-    setIsNew(product.is_new || false);
-    setIsPopular(product.is_popular || false);
-  };
-
-  const handleUpdate = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedProduct) return;
-
-    setIsSaving(true);
+    setSaving(true);
+    
     try {
+      if (!product) return;
+      
       const { error } = await supabase
         .from("products")
         .update({
@@ -114,24 +87,27 @@ const EditProductContainer = () => {
           price: parseFloat(price),
           category,
           is_new: isNew,
-          is_popular: isPopular
+          is_popular: isPopular,
         })
-        .eq("id", selectedProduct.id);
-
+        .eq("id", product.id);
+      
       if (error) throw error;
-
+      
       toast({
         title: "تم تحديث المنتج بنجاح",
-        duration: 3000,
       });
-
-      setProducts(products.map(p => 
-        p.id === selectedProduct.id 
-          ? { ...p, name, description, price: parseFloat(price), category, is_new: isNew, is_popular: isPopular }
-          : p
-      ));
-
-      handleCancel();
+      
+      // تحديث المنتج في الحالة المحلية
+      setProduct(prev => prev ? {
+        ...prev,
+        name,
+        description,
+        price: parseFloat(price),
+        category,
+        is_new: isNew,
+        is_popular: isPopular,
+      } : null);
+      
     } catch (error: any) {
       console.error("Error updating product:", error);
       toast({
@@ -140,152 +116,53 @@ const EditProductContainer = () => {
         description: error.message,
       });
     } finally {
-      setIsSaving(false);
+      setSaving(false);
     }
   };
 
-  const handleDelete = async (productId: string) => {
-    if (window.confirm("هل أنت متأكد من حذف هذا المنتج؟")) {
-      setIsDeleting(true);
-      try {
-        const { error } = await supabase
-          .from("products")
-          .delete()
-          .eq("id", productId);
-
-        if (error) throw error;
-
-        setProducts(products.filter(p => p.id !== productId));
-        
-        if (selectedProduct && selectedProduct.id === productId) {
-          handleCancel();
-        }
-
-        toast({
-          title: "تم حذف المنتج بنجاح",
-          duration: 3000,
-        });
-      } catch (error: any) {
-        console.error("Error deleting product:", error);
-        toast({
-          variant: "destructive",
-          title: "خطأ في حذف المنتج",
-          description: error.message,
-        });
-      } finally {
-        setIsDeleting(false);
-      }
+  const handleImageUpdate = (imageUrl: string) => {
+    if (product) {
+      setProduct({ ...product, image_url: imageUrl });
     }
   };
 
   const handleCancel = () => {
-    setSelectedProduct(null);
-    setName("");
-    setDescription("");
-    setPrice("");
-    setCategory("");
-    setIsNew(false);
-    setIsPopular(false);
-    
-    if (productId) {
-      navigate("/edit-product", { replace: true });
-    }
+    navigate("/dashboard");
   };
-
-  const handleSelectProduct = (productId: string) => {
-    navigate(`/edit-product/${productId}`);
-    
-    const product = products.find(p => p.id === productId);
-    if (product) {
-      setSelectedProductData(product);
-    }
-  };
-
-  const handleUpdateCategoryImages = async (images: CategoryImage[]) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("يجب تسجيل الدخول أولاً");
-
-      await supabase
-        .from("category_images")
-        .delete()
-        .eq("user_id", user.id);
-
-      if (images.length > 0) {
-        const { error } = await supabase
-          .from("category_images")
-          .upsert(images.map(img => ({
-            user_id: user.id,
-            category: img.category,
-            image_url: img.image_url,
-          })));
-
-        if (error) throw error;
-      }
-
-      setCategoryImages(images);
-    } catch (error: any) {
-      console.error("Error updating category images:", error);
-      toast({
-        variant: "destructive",
-        title: "خطأ في تحديث صور التصنيفات",
-        description: error.message,
-      });
-    }
-  };
-
-  if (isLoading) {
-    return <LoadingState />;
+  
+  if (loading) {
+    return <LoadingState message="جاري تحميل بيانات المنتج..." />;
   }
-
+  
+  if (!product) {
+    return null;
+  }
+  
   return (
-    <div className="container mx-auto py-4 px-3 md:py-8 md:px-6">
-      <div className="mb-4 md:mb-6">
+    <div className="container py-6 max-w-4xl">
+      <div className="mb-6">
         <Button
-          variant="ghost"
+          variant="outline"
+          size="sm"
           onClick={() => navigate("/dashboard")}
-          className="flex items-center gap-2 mb-2 md:mb-4 px-2 md:px-4"
-          size={isMobile ? "sm" : "default"}
+          className="mb-4"
         >
-          <ArrowRight className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
-          العودة إلى لوحة التحكم
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          العودة إلى المنتجات
         </Button>
+        <h1 className="text-2xl font-bold">تعديل المنتج: {product.name}</h1>
       </div>
-
-      {error && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      <div className="grid gap-4 md:gap-6">
-        {isDeleting && (
-          <div className="flex justify-center items-center p-4">
-            <Loader2 className="h-6 w-6 animate-spin mr-2" />
-            <span>جاري حذف المنتج...</span>
-          </div>
-        )}
-
-        {!selectedProduct ? (
-          <>
-            <ProductsList 
-              products={products}
-              onSelectProduct={handleSelectProduct}
-              onDeleteProduct={handleDelete}
-            />
-            {uniqueCategories.length > 0 && (
-              <CategoryImageManager
-                categories={uniqueCategories}
-                categoryImages={categoryImages}
-                onUpdateImages={handleUpdateCategoryImages}
-              />
-            )}
-          </>
-        ) : (
+      
+      <Tabs defaultValue="info">
+        <TabsList className="mb-6">
+          <TabsTrigger value="info">معلومات المنتج</TabsTrigger>
+          <TabsTrigger value="image">صورة المنتج</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="info">
           <EditProductForm
-            product={selectedProduct}
-            onSubmit={handleUpdate}
+            product={product}
+            onSubmit={handleSubmit}
             onCancel={handleCancel}
             name={name}
             setName={setName}
@@ -299,9 +176,47 @@ const EditProductContainer = () => {
             setIsNew={setIsNew}
             isPopular={isPopular}
             setIsPopular={setIsPopular}
-            isLoading={isSaving}
+            isLoading={saving}
           />
-        )}
+        </TabsContent>
+        
+        <TabsContent value="image">
+          <EditProductImageSection 
+            product={product}
+            onImageUpdate={handleImageUpdate}
+          />
+        </TabsContent>
+      </Tabs>
+      
+      <Separator className="my-8" />
+      
+      <div className="bg-muted/50 p-4 rounded-lg">
+        <h3 className="font-medium mb-2">معاينة المنتج</h3>
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="w-full md:w-1/3 bg-background rounded-lg shadow overflow-hidden">
+            {product.image_url ? (
+              <img 
+                src={product.image_url} 
+                alt={product.name} 
+                className="w-full h-48 object-cover"
+              />
+            ) : (
+              <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
+                لا توجد صورة
+              </div>
+            )}
+          </div>
+          <div className="w-full md:w-2/3">
+            <h2 className="text-xl font-bold">{name}</h2>
+            <div className="flex gap-2 my-1">
+              {isNew && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">جديد</span>}
+              {isPopular && <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">الأكثر طلباً</span>}
+              {category && <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{category}</span>}
+            </div>
+            <p className="text-lg font-bold my-2">{parseFloat(price).toLocaleString()} دينار</p>
+            <p className="text-gray-600">{description}</p>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import AddProductForm from "@/components/products/AddProductForm";
 import CategorySelector from "@/components/products/CategorySelector";
 import { uploadImage, urlToFile } from "@/utils/storageHelpers";
+import { imageProcessingService } from "@/utils/imageProcessingService";
 
 const AddProduct = () => {
   const navigate = useNavigate();
@@ -69,14 +70,22 @@ const AddProduct = () => {
         if (imageUrl.startsWith("blob:")) {
           // تحويل blob URL إلى ملف لرفعه
           const file = await urlToFile(imageUrl, "category-image.jpg");
+          
+          // تطبيق إعدادات الصورة المحفوظة إن وجدت
+          const categoryImageKey = `category_image_${category}`;
+          const imageSettings = imageProcessingService.getImageSettings(categoryImageKey);
+          
           finalImageUrl = await uploadImage("category-images", file, user.id, category);
+          
+          // حفظ إعدادات الصورة مع الرابط الجديد
+          imageProcessingService.saveImageSettings(finalImageUrl, imageSettings.config, imageSettings.fitMode);
         } else {
           // استخدام الرابط مباشرة
           finalImageUrl = imageUrl;
         }
         
         // حفظ صورة التصنيف في قاعدة البيانات
-        await supabase.from("category_images").insert({
+        await supabase.from("category_images").upsert({
           user_id: user.id,
           category: category,
           image_url: finalImageUrl
@@ -111,7 +120,14 @@ const AddProduct = () => {
       let finalImageUrl = formData.image_url;
       
       if (uploadMethod === "file" && selectedFile) {
+        // تطبيق إعدادات الصورة المحفوظة إن وجدت
+        const productImageKey = finalImageUrl;
+        const imageSettings = imageProcessingService.getImageSettings(productImageKey);
+        
         finalImageUrl = await uploadImage("product-images", selectedFile, userData.user.id, "products");
+        
+        // حفظ إعدادات الصورة مع الرابط الجديد
+        imageProcessingService.saveImageSettings(finalImageUrl, imageSettings.config, imageSettings.fitMode);
       }
 
       const { error } = await supabase.from("products").insert({
