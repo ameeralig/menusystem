@@ -89,6 +89,7 @@ const ProductWizard = ({
               opacity: currentStep === index ? 1 : 0,
               y: currentStep === index ? 0 : 10,
               display: currentStep === index ? "block" : "none",
+              height: currentStep === index ? "auto" : 0,
             }}
             transition={{ duration: 0.3 }}
             className="wizard-step"
@@ -148,13 +149,13 @@ export const MobileProductWizard = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between border-b pb-4">
-        <h2 className="font-semibold">{steps[currentStep].title}</h2>
-        <div className="text-sm text-muted-foreground">
-          خطوة {currentStep + 1} من {steps.length}
+        <h2 className="font-semibold text-base">{steps[currentStep].title}</h2>
+        <div className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded-full">
+          <span className="font-bold">{currentStep + 1}</span> / {steps.length}
         </div>
       </div>
 
-      <div>
+      <div className="pb-2">
         <AnimatePresence mode="wait">
           <motion.div
             key={steps[currentStep].id}
@@ -162,40 +163,43 @@ export const MobileProductWizard = ({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
+            className="min-h-[60vh] flex flex-col justify-between"
           >
-            {steps[currentStep].component}
+            <div>
+              {steps[currentStep].component}
+            </div>
+            
+            <div className="flex justify-between mt-8 pt-4 border-t">
+              {currentStep > 0 ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onStepChange(currentStep - 1)}
+                  disabled={isSubmitting}
+                >
+                  السابق
+                </Button>
+              ) : (
+                <div></div>
+              )}
+
+              {currentStep < steps.length - 1 ? (
+                <Button type="button" onClick={() => onStepChange(currentStep + 1)}>
+                  التالي
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={onComplete}
+                  disabled={isSubmitting}
+                  className="min-w-[100px]"
+                >
+                  {isSubmitting ? "جاري الحفظ..." : "حفظ المنتج"}
+                </Button>
+              )}
+            </div>
           </motion.div>
         </AnimatePresence>
-
-        <div className="flex justify-between mt-6 pt-4 border-t">
-          {currentStep > 0 ? (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onStepChange(currentStep - 1)}
-              disabled={isSubmitting}
-            >
-              السابق
-            </Button>
-          ) : (
-            <div></div>
-          )}
-
-          {currentStep < steps.length - 1 ? (
-            <Button type="button" onClick={() => onStepChange(currentStep + 1)}>
-              التالي
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              onClick={onComplete}
-              disabled={isSubmitting}
-              className="min-w-[100px]"
-            >
-              {isSubmitting ? "جاري الحفظ..." : "حفظ المنتج"}
-            </Button>
-          )}
-        </div>
       </div>
     </div>
   );

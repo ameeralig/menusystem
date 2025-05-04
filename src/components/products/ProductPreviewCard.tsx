@@ -8,9 +8,10 @@ import { cn } from "@/lib/utils";
 interface ProductPreviewCardProps {
   product: Partial<Product>;
   className?: string;
+  onClick?: () => void;
 }
 
-const ProductPreviewCard = ({ product, className }: ProductPreviewCardProps) => {
+const ProductPreviewCard = ({ product, className, onClick }: ProductPreviewCardProps) => {
   // تنسيق السعر
   const formatPrice = (price: number | string | undefined) => {
     if (!price) return "0";
@@ -22,8 +23,10 @@ const ProductPreviewCard = ({ product, className }: ProductPreviewCardProps) => 
     <Card 
       className={cn(
         "overflow-hidden transition-all duration-200 h-full flex flex-col",
+        onClick ? "cursor-pointer hover:shadow-md" : "",
         className
       )}
+      onClick={onClick}
     >
       <div className="relative">
         <AspectRatio ratio={1} className="bg-muted">
@@ -32,6 +35,17 @@ const ProductPreviewCard = ({ product, className }: ProductPreviewCardProps) => 
               src={product.image_url}
               alt={product.name}
               className="object-cover w-full h-full"
+              onError={(e) => {
+                // في حالة فشل تحميل الصورة، نعرض أيقونة افتراضية
+                e.currentTarget.style.display = 'none';
+                const parent = e.currentTarget.parentElement;
+                if (parent) {
+                  const fallback = document.createElement('div');
+                  fallback.className = "flex items-center justify-center w-full h-full";
+                  fallback.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-muted-foreground/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>`;
+                  parent.appendChild(fallback);
+                }
+              }}
             />
           ) : (
             <div className="flex items-center justify-center w-full h-full">
