@@ -1,11 +1,11 @@
-
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Star, TrendingUp } from "lucide-react";
-import ProductImageUploader from "./ProductImageUploader";
+import { Upload, ImagePlus, Link as LinkIcon, Star, TrendingUp } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface AddProductFormProps {
   loading: boolean;
@@ -36,12 +36,8 @@ const AddProductForm = ({
   setUploadMethod,
   selectedFile,
   previewUrl,
+  handleFileSelect,
 }: AddProductFormProps) => {
-  // معالج لتحديد الصورة من مكون رفع الصورة
-  const handleImageSelect = (file: File | null, url: string) => {
-    setFormData({ ...formData, image_url: url });
-  };
-
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
@@ -120,10 +116,71 @@ const AddProductForm = ({
         </div>
       </div>
 
-      <ProductImageUploader 
-        onImageSelect={handleImageSelect}
-        initialImageUrl={previewUrl || formData.image_url}
-      />
+      <div className="space-y-4">
+        <Label>صورة المنتج</Label>
+        <div className="flex gap-4">
+          <Button
+            type="button"
+            variant={uploadMethod === "url" ? "default" : "outline"}
+            onClick={() => setUploadMethod("url")}
+            className="flex-1"
+          >
+            <LinkIcon className="w-4 h-4 ml-2" />
+            رابط صورة
+          </Button>
+          <Button
+            type="button"
+            variant={uploadMethod === "file" ? "default" : "outline"}
+            onClick={() => setUploadMethod("file")}
+            className="flex-1"
+          >
+            <Upload className="w-4 h-4 ml-2" />
+            رفع صورة
+          </Button>
+        </div>
+
+        {uploadMethod === "url" ? (
+          <div className="space-y-2">
+            <Input
+              type="url"
+              value={formData.image_url}
+              onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+              placeholder="أدخل رابط صورة المنتج"
+              className="w-full"
+            />
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div 
+              className={cn(
+                "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors",
+                "flex flex-col items-center justify-center gap-2"
+              )}
+              onClick={() => document.getElementById('file-upload')?.click()}
+            >
+              {previewUrl ? (
+                <img 
+                  src={previewUrl} 
+                  alt="Preview" 
+                  className="max-h-48 rounded-lg"
+                />
+              ) : (
+                <>
+                  <ImagePlus className="w-12 h-12 text-muted-foreground" />
+                  <p className="text-muted-foreground">اضغط هنا لاختيار صورة</p>
+                </>
+              )}
+            </div>
+            <input
+              id="file-upload"
+              type="file"
+              accept="image/*"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+          </div>
+        )}
+      </div>
 
       <Button
         type="submit"
