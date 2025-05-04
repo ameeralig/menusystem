@@ -16,8 +16,10 @@ import {
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Mail } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { PasswordInput } from "./PasswordInput";
+import { getErrorMessage } from "@/utils/errorHandling";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -81,10 +83,7 @@ export function LoginForm() {
       toast({
         variant: "destructive",
         title: "خطأ في تسجيل الدخول",
-        description:
-          error.message === "Invalid login credentials"
-            ? "البريد الإلكتروني أو كلمة المرور غير صحيحة"
-            : error.message || "حدث خطأ غير متوقع",
+        description: getErrorMessage(error),
       });
     } finally {
       setLoading(false);
@@ -124,12 +123,17 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>البريد الإلكتروني</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="your@email.com"
-                  {...field}
-                  className="text-right"
-                  dir="rtl"
-                />
+                <div className="relative">
+                  <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <Input
+                    placeholder="your@email.com"
+                    {...field}
+                    className="ps-10 text-right"
+                    dir="rtl"
+                  />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -142,12 +146,10 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>كلمة المرور</FormLabel>
               <FormControl>
-                <Input
-                  type="password"
-                  placeholder="********"
+                <PasswordInput
                   {...field}
-                  className="text-right"
-                  dir="rtl"
+                  placeholder="********"
+                  disabled={loading}
                 />
               </FormControl>
               <FormMessage />
@@ -155,7 +157,12 @@ export function LoginForm() {
           )}
         />
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "جاري التحميل..." : "تسجيل الدخول"}
+          {loading ? (
+            <>
+              <span className="mr-2">جاري التحميل...</span>
+              <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+            </>
+          ) : "تسجيل الدخول"}
         </Button>
       </form>
     </Form>
