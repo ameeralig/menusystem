@@ -1,5 +1,6 @@
 
 import { FitMode, PositionConfig } from "@/components/shared/ImageUploadPreview";
+import React, { CSSProperties } from "react";
 
 /**
  * خدمة معالجة الصور لتطبيق إعدادات المستخدم والحفاظ على تنسيق الصورة
@@ -11,41 +12,45 @@ export const imageProcessingService = {
    * @param fitMode وضع ملاءمة الصورة
    * @returns أنماط CSS كسلسلة نصية
    */
-  generateImageStyles: (config: PositionConfig, fitMode: FitMode): string => {
-    let styles = `
-      transform-origin: ${config.x}% ${config.y}%;
-      transform: translate(-${config.x}%, -${config.y}%) scale(${config.scale}) rotate(${config.rotation}deg);
-    `;
+  generateImageStyles: (config: PositionConfig, fitMode: FitMode): CSSProperties => {
+    let styles: CSSProperties = {
+      transformOrigin: `${config.x}% ${config.y}%`,
+      transform: `translate(-${config.x}%, -${config.y}%) scale(${config.scale}) rotate(${config.rotation}deg)`
+    };
     
     switch (fitMode) {
       case "cover":
-        styles += `
-          object-fit: cover;
-          width: 100%;
-          height: 100%;
-        `;
+        styles = {
+          ...styles,
+          objectFit: 'cover',
+          width: '100%',
+          height: '100%'
+        };
         break;
       case "contain":
-        styles += `
-          object-fit: contain;
-          max-width: 100%;
-          max-height: 100%;
-        `;
+        styles = {
+          ...styles,
+          objectFit: 'contain',
+          maxWidth: '100%',
+          maxHeight: '100%'
+        };
         break;
       case "fill":
-        styles += `
-          object-fit: fill;
-          width: 100%;
-          height: 100%;
-        `;
+        styles = {
+          ...styles,
+          objectFit: 'fill',
+          width: '100%',
+          height: '100%'
+        };
         break;
       case "center":
-        styles += `
-          object-fit: none;
-          object-position: center;
-          max-width: 100%;
-          max-height: 100%;
-        `;
+        styles = {
+          ...styles,
+          objectFit: 'none',
+          objectPosition: 'center',
+          maxWidth: '100%',
+          maxHeight: '100%'
+        };
         break;
     }
     
@@ -124,10 +129,10 @@ export const imageProcessingService = {
  * @param imageKey مفتاح فريد للصورة (اختياري، سيتم استخدام imageUrl إذا لم يتم توفيره)
  * @returns أنماط CSS كسلسلة نصية
  */
-export const useImageSettings = (imageUrl: string, imageKey?: string): string => {
+export const useImageSettings = (imageUrl: string, imageKey?: string): CSSProperties => {
   const key = imageKey || imageUrl;
   
-  if (!key) return "";
+  if (!key) return {};
   
   const { config, fitMode } = imageProcessingService.getImageSettings(key);
   return imageProcessingService.generateImageStyles(config, fitMode);
@@ -154,7 +159,7 @@ export const StyledImage = ({
       src={src} 
       alt={alt} 
       className={className} 
-      style={{ ...styles }}
+      style={styles}
     />
   );
 };

@@ -71,7 +71,7 @@ export const ImageUploadPreview = ({
   useEffect(() => {
     // إذا كان هناك صورة أولية، قم بتحميلها لمعرفة أبعادها
     if (initialImageUrl) {
-      const img = new Image();
+      const img = document.createElement('img');
       img.onload = () => {
         setOriginalDimensions({
           width: img.naturalWidth,
@@ -125,7 +125,7 @@ export const ImageUploadPreview = ({
     setShowControls(true);
     
     // الحصول على أبعاد الصورة الأصلية
-    const img = new Image();
+    const img = document.createElement('img');
     img.onload = () => {
       setOriginalDimensions({
         width: img.naturalWidth,
