@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
 const EditProductContainer = () => {
-  const { id } = useParams<{ id: string }>();
+  // تعديل استخدام الباراميتر للحصول على معرف المنتج من عنوان URL
+  const { productId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [product, setProduct] = useState<Product | null>(null);
@@ -31,12 +32,12 @@ const EditProductContainer = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        if (!id) return;
+        if (!productId) return;
         
         const { data, error } = await supabase
           .from("products")
           .select("*")
-          .eq("id", id)
+          .eq("id", productId)
           .single();
         
         if (error) throw error;
@@ -70,7 +71,7 @@ const EditProductContainer = () => {
     };
     
     fetchProduct();
-  }, [id, navigate, toast]);
+  }, [productId, navigate, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
