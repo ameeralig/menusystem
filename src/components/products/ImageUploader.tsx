@@ -1,9 +1,9 @@
 
 import { useState, useEffect } from "react";
-import { ImagePlus, Upload, Link, X } from "lucide-react";
+import { ImagePlus, Upload, Link, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import ImageFitEditor from "@/components/products/ImageFitEditor";
+import SmartImagePreview from "@/components/products/SmartImagePreview";
 import { useToast } from "@/hooks/use-toast";
 
 interface ImageUploaderProps {
@@ -31,7 +31,12 @@ const ImageUploader = ({
   const [imageUrl, setImageUrl] = useState<string | null>(initialUrl);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
+  
+  // إعدادات ضبط الصورة
+  const [fitStyle, setFitStyle] = useState<"cover" | "contain" | "fill" | "scale-down">("cover");
+  const [zoom, setZoom] = useState<number>(1);
+  const [position, setPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   useEffect(() => {
     if (initialUrl) {
@@ -66,26 +71,35 @@ const ImageUploader = ({
     setSelectedFile(file);
     const objectUrl = URL.createObjectURL(file);
     setPreviewUrl(objectUrl);
-    setIsEditing(true);
+    setIsPreviewMode(true);
   };
 
   const handleUrlChange = (url: string) => {
     setImageUrl(url);
     if (url) {
-      setIsEditing(true);
+      setPreviewUrl(url);
+      setIsPreviewMode(true);
     }
   };
 
-  const handleImageComplete = (adjustedData) => {
-    onImageSelect(adjustedData);
-    setIsEditing(false);
+  const handleImageComplete = (previewData: {
+    url: string;
+    fitStyle: "cover" | "contain" | "fill" | "scale-down";
+    zoom: number;
+    position: { x: number; y: number };
+  }) => {
+    setFitStyle(previewData.fitStyle);
+    setZoom(previewData.zoom);
+    setPosition(previewData.position);
+    onImageSelect(previewData);
+    setIsPreviewMode(false);
   };
 
   const handleCancel = () => {
-    setIsEditing(false);
+    setIsPreviewMode(false);
     if (selectedFile) {
       setSelectedFile(null);
-      if (previewUrl) {
+      if (previewUrl && !imageUrl) {
         URL.revokeObjectURL(previewUrl);
         setPreviewUrl(null);
       }
@@ -99,7 +113,7 @@ const ImageUploader = ({
 
   return (
     <div className="space-y-4">
-      {!isEditing ? (
+      {!isPreviewMode ? (
         <>
           <div className="flex gap-4 mb-4">
             <Button
@@ -134,10 +148,10 @@ const ImageUploader = ({
               {imageUrl && (
                 <Button 
                   type="button" 
-                  onClick={() => setIsEditing(true)}
+                  onClick={() => setIsPreviewMode(true)}
                   className="w-full"
                 >
-                  ضبط الصورة
+                  معاينة الصورة وضبطها
                 </Button>
               )}
             </div>
@@ -157,7 +171,7 @@ const ImageUploader = ({
                       alt={label} 
                       className="max-h-48 mx-auto rounded-lg"
                     />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity">
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity rounded-lg">
                       <span className="text-white font-medium">تغيير الصورة</span>
                     </div>
                   </div>
@@ -181,7 +195,7 @@ const ImageUploader = ({
       ) : (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-medium">ضبط الصورة</h3>
+            <h3 className="font-medium">معاينة وضبط الصورة</h3>
             <Button 
               type="button" 
               variant="ghost" 
@@ -193,10 +207,11 @@ const ImageUploader = ({
             </Button>
           </div>
           
-          <ImageFitEditor 
-            imageUrl={uploadMethod === "file" ? previewUrl : imageUrl}
+          <SmartImagePreview 
+            imageUrl={previewUrl}
             aspectRatio={aspectRatio}
             onComplete={handleImageComplete}
+            onCancel={handleCancel}
           />
         </div>
       )}

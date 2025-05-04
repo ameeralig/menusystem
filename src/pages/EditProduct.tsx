@@ -1,7 +1,6 @@
 
 import EditProductContainer from "@/components/products/edit/EditProductContainer";
 import { useEffect } from "react";
-import { Helmet } from "react-helmet";
 
 const EditProduct = () => {
   useEffect(() => {
@@ -11,9 +10,7 @@ const EditProduct = () => {
 
   return (
     <>
-      <Helmet>
-        <title>تعديل المنتجات</title>
-      </Helmet>
+      <title>تعديل المنتجات</title>
       <EditProductContainer />
     </>
   );
