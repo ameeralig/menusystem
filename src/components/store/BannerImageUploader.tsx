@@ -105,8 +105,14 @@ const BannerImageUploader = ({
             <div>
               <CameraUploadButton onFileSelect={handleFileSelect} />
               
+              <div className="my-2 flex items-center">
+                <div className="flex-grow h-px bg-gray-200 dark:bg-gray-700"></div>
+                <span className="px-2 text-sm text-gray-500 dark:text-gray-400">أو</span>
+                <div className="flex-grow h-px bg-gray-200 dark:bg-gray-700"></div>
+              </div>
+              
               <label className="text-sm font-medium block mb-1 text-right">
-                أو قم بإدخال رابط الصورة
+                أدخل رابط الصورة مباشرة
               </label>
               <Input
                 type="text"
