@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { Search, SparklesIcon, Shuffle } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -12,6 +11,7 @@ import {
   CommandGroup,
   CommandItem,
   CommandSeparator,
+  Command,
 } from "@/components/ui/command";
 import { toast } from "sonner";
 
@@ -235,56 +235,58 @@ const SearchBar = ({
         </Button>
       </div>
 
-      <CommandDialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen} className="bg-background/80 backdrop-blur-lg">
-        <CommandInput 
-          placeholder="ماذا تريد أن تأكل اليوم؟" 
-          value={searchTerm}
-          onValueChange={setSearchTerm}
-          className="border-b border-primary/20 dark:border-primary-foreground/20 text-right"
-        />
-        <CommandList className="bg-background/50 backdrop-blur-lg">
-          <CommandEmpty>
-            {isLoading ? (
-              <p className="py-6 text-center text-sm">جارٍ البحث...</p>
-            ) : (
-              <p className="py-6 text-center text-sm">لا توجد نتائج. جرّب كلمات أخرى.</p>
-            )}
-          </CommandEmpty>
-          
-          <CommandGroup heading="نتائج البحث">
-            {results.map((product) => (
+      <CommandDialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
+        <Command className="bg-background/80 backdrop-blur-lg">
+          <CommandInput 
+            placeholder="ماذا تريد أن تأكل اليوم؟" 
+            value={searchTerm}
+            onValueChange={setSearchTerm}
+            className="border-b border-primary/20 dark:border-primary-foreground/20 text-right"
+          />
+          <CommandList className="bg-background/50 backdrop-blur-lg">
+            <CommandEmpty>
+              {isLoading ? (
+                <p className="py-6 text-center text-sm">جارٍ البحث...</p>
+              ) : (
+                <p className="py-6 text-center text-sm">لا توجد نتائج. جرّب كلمات أخرى.</p>
+              )}
+            </CommandEmpty>
+            
+            <CommandGroup heading="نتائج البحث">
+              {results.map((product) => (
+                <CommandItem
+                  key={product.id}
+                  onSelect={() => selectProduct(product)}
+                  className="flex items-center justify-between py-2 hover:bg-primary/10 dark:hover:bg-primary-foreground/10"
+                >
+                  <div className="flex items-center">
+                    <span>{product.name}</span>
+                    <span className="ml-2 text-sm text-gray-500">
+                      {product.price ? `${product.price} د.ع` : ''}
+                    </span>
+                  </div>
+                  {product.category && (
+                    <span className="text-xs bg-primary/10 dark:bg-primary-foreground/10 px-2 py-1 rounded-full">
+                      {product.category}
+                    </span>
+                  )}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            
+            <CommandSeparator className="bg-primary/20 dark:bg-primary-foreground/20" />
+            
+            <CommandGroup heading="اقتراحات">
               <CommandItem
-                key={product.id}
-                onSelect={() => selectProduct(product)}
-                className="flex items-center justify-between py-2 hover:bg-primary/10 dark:hover:bg-primary-foreground/10"
+                onSelect={suggestRandomItem}
+                className="flex items-center justify-center py-3 text-primary dark:text-primary-foreground hover:bg-primary/10 dark:hover:bg-primary-foreground/10"
               >
-                <div className="flex items-center">
-                  <span>{product.name}</span>
-                  <span className="ml-2 text-sm text-gray-500">
-                    {product.price ? `${product.price} د.ع` : ''}
-                  </span>
-                </div>
-                {product.category && (
-                  <span className="text-xs bg-primary/10 dark:bg-primary-foreground/10 px-2 py-1 rounded-full">
-                    {product.category}
-                  </span>
-                )}
+                <Shuffle className="h-4 w-4 mr-2" />
+                <span>اقترح وجبة عشوائية</span>
               </CommandItem>
-            ))}
-          </CommandGroup>
-          
-          <CommandSeparator className="bg-primary/20 dark:bg-primary-foreground/20" />
-          
-          <CommandGroup heading="اقتراحات">
-            <CommandItem
-              onSelect={suggestRandomItem}
-              className="flex items-center justify-center py-3 text-primary dark:text-primary-foreground hover:bg-primary/10 dark:hover:bg-primary-foreground/10"
-            >
-              <Shuffle className="h-4 w-4 mr-2" />
-              <span>اقترح وجبة عشوائية</span>
-            </CommandItem>
-          </CommandGroup>
-        </CommandList>
+            </CommandGroup>
+          </CommandList>
+        </Command>
       </CommandDialog>
     </div>
   );
