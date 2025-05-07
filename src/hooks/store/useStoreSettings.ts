@@ -69,16 +69,35 @@ export const useStoreSettings = (slug: string | undefined) => {
           banner_url: bannerUrl
         });
 
-        // إضافة تحويل صريح للنوع لضمان أن البيانات تتطابق مع الأنواع المتوقعة
+        // تأمين التحويل بين الأنواع باستخدام فحوصات نوع البيانات
+        const safeSocialLinks = typeof data.social_links === 'object' && data.social_links !== null 
+          ? data.social_links as SocialLinks 
+          : null;
+        
+        const safeContactInfo = typeof data.contact_info === 'object' && data.contact_info !== null 
+          ? data.contact_info as ContactInfo 
+          : null;
+        
+        // تحويل إعدادات الخط مع التحقق من البنية الصحيحة
+        let safeFontSettings: FontSettings | null = null;
+        if (typeof data.font_settings === 'object' && 
+            data.font_settings !== null && 
+            'storeName' in data.font_settings && 
+            'categoryText' in data.font_settings && 
+            'generalText' in data.font_settings) {
+          safeFontSettings = data.font_settings as FontSettings;
+        }
+
+        // تعيين البيانات المحولة بشكل آمن
         setStoreSettings({
           storeOwnerId: data.user_id,
           storeName: data.store_name,
           slug: data.slug,
           colorTheme: data.color_theme,
-          socialLinks: data.social_links as SocialLinks,
-          contactInfo: data.contact_info as ContactInfo,
+          socialLinks: safeSocialLinks,
+          contactInfo: safeContactInfo,
           bannerUrl: bannerUrl,
-          fontSettings: data.font_settings as FontSettings
+          fontSettings: safeFontSettings
         });
 
         setIsLoading(false);
