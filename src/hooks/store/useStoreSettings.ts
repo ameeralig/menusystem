@@ -3,6 +3,12 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
+import { Json } from "@/integrations/supabase/types";
+
+// دالة مساعدة للتحقق من أن البيانات هي كائن وليست مصفوفة
+const isJsonObject = (data: Json): data is { [key: string]: Json } => {
+  return typeof data === 'object' && data !== null && !Array.isArray(data);
+};
 
 interface StoreSettings {
   storeOwnerId: string | null;
@@ -71,7 +77,7 @@ export const useStoreSettings = (slug: string | undefined) => {
 
         // تأمين التحويل بين الأنواع باستخدام فحوصات نوع البيانات
         let safeSocialLinks: SocialLinks | null = null;
-        if (typeof data.social_links === 'object' && data.social_links !== null) {
+        if (data.social_links && isJsonObject(data.social_links)) {
           // التحقق من بنية الكائن
           safeSocialLinks = {
             instagram: data.social_links.instagram?.toString() || undefined,
@@ -81,7 +87,7 @@ export const useStoreSettings = (slug: string | undefined) => {
         }
         
         let safeContactInfo: ContactInfo | null = null;
-        if (typeof data.contact_info === 'object' && data.contact_info !== null) {
+        if (data.contact_info && isJsonObject(data.contact_info)) {
           // التحقق من بنية الكائن
           safeContactInfo = {
             description: data.contact_info.description?.toString() || undefined,
@@ -94,30 +100,33 @@ export const useStoreSettings = (slug: string | undefined) => {
         
         // تحويل إعدادات الخط مع التحقق من البنية الصحيحة بشكل كامل
         let safeFontSettings: FontSettings | null = null;
-        if (typeof data.font_settings === 'object' && 
-            data.font_settings !== null && 
-            data.font_settings.storeName && 
-            data.font_settings.categoryText && 
-            data.font_settings.generalText) {
+        if (data.font_settings && isJsonObject(data.font_settings)) {
+          const fontSettings = data.font_settings;
           
-          // إنشاء كائن FontSettings بشكل صريح للتأكد من بنيته الصحيحة
-          safeFontSettings = {
-            storeName: {
-              family: (data.font_settings.storeName as any).family?.toString() || "inherit",
-              isCustom: !!(data.font_settings.storeName as any).isCustom,
-              customFontUrl: (data.font_settings.storeName as any).customFontUrl?.toString() || null
-            },
-            categoryText: {
-              family: (data.font_settings.categoryText as any).family?.toString() || "inherit",
-              isCustom: !!(data.font_settings.categoryText as any).isCustom,
-              customFontUrl: (data.font_settings.categoryText as any).customFontUrl?.toString() || null
-            },
-            generalText: {
-              family: (data.font_settings.generalText as any).family?.toString() || "inherit",
-              isCustom: !!(data.font_settings.generalText as any).isCustom,
-              customFontUrl: (data.font_settings.generalText as any).customFontUrl?.toString() || null
-            }
-          };
+          // نتحقق من وجود الخصائص المطلوبة وأنها كائنات أيضًا
+          if (isJsonObject(fontSettings.storeName) && 
+              isJsonObject(fontSettings.categoryText) && 
+              isJsonObject(fontSettings.generalText)) {
+            
+            // إنشاء كائن FontSettings بشكل صريح للتأكد من بنيته الصحيحة
+            safeFontSettings = {
+              storeName: {
+                family: fontSettings.storeName.family?.toString() || "inherit",
+                isCustom: !!fontSettings.storeName.isCustom,
+                customFontUrl: fontSettings.storeName.customFontUrl?.toString() || null
+              },
+              categoryText: {
+                family: fontSettings.categoryText.family?.toString() || "inherit",
+                isCustom: !!fontSettings.categoryText.isCustom,
+                customFontUrl: fontSettings.categoryText.customFontUrl?.toString() || null
+              },
+              generalText: {
+                family: fontSettings.generalText.family?.toString() || "inherit",
+                isCustom: !!fontSettings.generalText.isCustom,
+                customFontUrl: fontSettings.generalText.customFontUrl?.toString() || null
+              }
+            };
+          }
         }
 
         // تعيين البيانات المحولة بشكل آمن
