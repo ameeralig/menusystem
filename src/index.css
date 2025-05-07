@@ -110,7 +110,7 @@
     @apply bg-[#fff5f2] hover:bg-[#ffeee9] text-[#ff9178] rounded-full px-6 py-3 font-medium transition-all;
   }
   
-  /* تحسينات لشريط البحث */
+  /* إضافات جديدة لتحسين شريط البحث */
   .search-container {
     @apply transition-all duration-300;
   }
@@ -120,19 +120,19 @@
   }
   
   .search-container input:focus {
-    @apply shadow-lg shadow-primary/30 dark:shadow-primary-foreground/30;
+    @apply shadow-lg shadow-purple-300/30 dark:shadow-purple-700/30;
   }
   
   .neon-glow {
-    box-shadow: 0 0 5px theme('colors.primary.DEFAULT'),
-                0 0 10px theme('colors.primary.DEFAULT'),
-                0 0 15px theme('colors.primary.DEFAULT');
+    box-shadow: 0 0 5px theme('colors.purple.400'),
+                0 0 10px theme('colors.purple.500'),
+                0 0 15px theme('colors.indigo.500');
   }
   
   .neon-text {
-    text-shadow: 0 0 5px theme('colors.primary.DEFAULT'),
-                0 0 10px theme('colors.primary.DEFAULT'),
-                0 0 15px theme('colors.primary.DEFAULT');
+    text-shadow: 0 0 5px theme('colors.purple.400'),
+                0 0 10px theme('colors.purple.500'),
+                0 0 15px theme('colors.indigo.500');
   }
 }
 
