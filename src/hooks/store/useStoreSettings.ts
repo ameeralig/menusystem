@@ -2,42 +2,17 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
 
 interface StoreSettings {
   storeOwnerId: string | null;
   storeName: string | null;
   slug: string | null;
   colorTheme: string | null;
-  socialLinks: {
-    facebook?: string | null;
-    instagram?: string | null;
-    telegram?: string | null;
-  } | null;
-  contactInfo: {
-    description?: string | null;
-    address?: string | null;
-    phone?: string | null;
-    wifi?: string | null;
-    businessHours?: string | null;
-  } | null;
+  socialLinks: SocialLinks | null;
+  contactInfo: ContactInfo | null;
   bannerUrl: string | null;
-  fontSettings: {
-    storeName: {
-      family: string;
-      isCustom: boolean;
-      customFontUrl: string | null;
-    };
-    categoryText: {
-      family: string;
-      isCustom: boolean;
-      customFontUrl: string | null;
-    };
-    generalText: {
-      family: string;
-      isCustom: boolean;
-      customFontUrl: string | null;
-    };
-  } | null;
+  fontSettings: FontSettings | null;
 }
 
 export const useStoreSettings = (slug: string | undefined) => {
@@ -94,15 +69,16 @@ export const useStoreSettings = (slug: string | undefined) => {
           banner_url: bannerUrl
         });
 
+        // إضافة تحويل صريح للنوع لضمان أن البيانات تتطابق مع الأنواع المتوقعة
         setStoreSettings({
           storeOwnerId: data.user_id,
           storeName: data.store_name,
           slug: data.slug,
           colorTheme: data.color_theme,
-          socialLinks: data.social_links,
-          contactInfo: data.contact_info,
+          socialLinks: data.social_links as SocialLinks,
+          contactInfo: data.contact_info as ContactInfo,
           bannerUrl: bannerUrl,
-          fontSettings: data.font_settings
+          fontSettings: data.font_settings as FontSettings
         });
 
         setIsLoading(false);
