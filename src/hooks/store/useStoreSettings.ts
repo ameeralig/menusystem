@@ -70,22 +70,54 @@ export const useStoreSettings = (slug: string | undefined) => {
         });
 
         // تأمين التحويل بين الأنواع باستخدام فحوصات نوع البيانات
-        const safeSocialLinks = typeof data.social_links === 'object' && data.social_links !== null 
-          ? data.social_links as SocialLinks 
-          : null;
+        let safeSocialLinks: SocialLinks | null = null;
+        if (typeof data.social_links === 'object' && data.social_links !== null) {
+          // التحقق من بنية الكائن
+          safeSocialLinks = {
+            instagram: data.social_links.instagram?.toString() || undefined,
+            facebook: data.social_links.facebook?.toString() || undefined,
+            telegram: data.social_links.telegram?.toString() || undefined
+          };
+        }
         
-        const safeContactInfo = typeof data.contact_info === 'object' && data.contact_info !== null 
-          ? data.contact_info as ContactInfo 
-          : null;
+        let safeContactInfo: ContactInfo | null = null;
+        if (typeof data.contact_info === 'object' && data.contact_info !== null) {
+          // التحقق من بنية الكائن
+          safeContactInfo = {
+            description: data.contact_info.description?.toString() || undefined,
+            address: data.contact_info.address?.toString() || undefined,
+            phone: data.contact_info.phone?.toString() || undefined,
+            wifi: data.contact_info.wifi?.toString() || undefined,
+            businessHours: data.contact_info.businessHours?.toString() || undefined
+          };
+        }
         
-        // تحويل إعدادات الخط مع التحقق من البنية الصحيحة
+        // تحويل إعدادات الخط مع التحقق من البنية الصحيحة بشكل كامل
         let safeFontSettings: FontSettings | null = null;
         if (typeof data.font_settings === 'object' && 
             data.font_settings !== null && 
-            'storeName' in data.font_settings && 
-            'categoryText' in data.font_settings && 
-            'generalText' in data.font_settings) {
-          safeFontSettings = data.font_settings as FontSettings;
+            data.font_settings.storeName && 
+            data.font_settings.categoryText && 
+            data.font_settings.generalText) {
+          
+          // إنشاء كائن FontSettings بشكل صريح للتأكد من بنيته الصحيحة
+          safeFontSettings = {
+            storeName: {
+              family: (data.font_settings.storeName as any).family?.toString() || "inherit",
+              isCustom: !!(data.font_settings.storeName as any).isCustom,
+              customFontUrl: (data.font_settings.storeName as any).customFontUrl?.toString() || null
+            },
+            categoryText: {
+              family: (data.font_settings.categoryText as any).family?.toString() || "inherit",
+              isCustom: !!(data.font_settings.categoryText as any).isCustom,
+              customFontUrl: (data.font_settings.categoryText as any).customFontUrl?.toString() || null
+            },
+            generalText: {
+              family: (data.font_settings.generalText as any).family?.toString() || "inherit",
+              isCustom: !!(data.font_settings.generalText as any).isCustom,
+              customFontUrl: (data.font_settings.generalText as any).customFontUrl?.toString() || null
+            }
+          };
         }
 
         // تعيين البيانات المحولة بشكل آمن
