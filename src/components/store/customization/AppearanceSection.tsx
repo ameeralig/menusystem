@@ -1,28 +1,10 @@
 
-import { useState } from "react";
 import { Palette } from "lucide-react";
 import CustomizationSection from "./CustomizationSection";
 import BannerImageUploader from "@/components/store/BannerImageUploader";
 import ColorPickerAdvanced from "./ColorPickerAdvanced";
 import FontStyleSelector from "@/components/store/FontStyleSelector";
-
-type FontSettings = {
-  storeName: {
-    family: string;
-    isCustom: boolean;
-    customFontUrl: string | null;
-  };
-  categoryText: {
-    family: string;
-    isCustom: boolean;
-    customFontUrl: string | null;
-  };
-  generalText: {
-    family: string;
-    isCustom: boolean;
-    customFontUrl: string | null;
-  };
-};
+import { FontSettings } from "@/types/store";
 
 interface AppearanceSectionProps {
   colorTheme: string;

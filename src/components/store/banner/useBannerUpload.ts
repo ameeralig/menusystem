@@ -29,6 +29,10 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
         return;
       }
 
+      // إنشاء عنوان URL مؤقت للمعاينة قبل الرفع
+      const tempPreviewUrl = URL.createObjectURL(file);
+      setPreviewUrl(tempPreviewUrl);
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
 
@@ -50,9 +54,11 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
       const baseUrl = publicUrl.split('?')[0];
       const cachedUrl = `${baseUrl}?t=${timestamp}`;
       
+      // تحرير عنوان URL المؤقت
+      URL.revokeObjectURL(tempPreviewUrl);
+      
       setImageUrl(cachedUrl);
       setPreviewUrl(cachedUrl);
-      setBannerUrl(cachedUrl);
 
       toast({
         title: "تم رفع الصورة بنجاح",
@@ -68,10 +74,7 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
 
   const handleUrlChange = (url: string) => {
     if (!url) {
-      setImageUrl("");
-      setPreviewUrl(null);
-      setBannerUrl(null);
-      setError(null);
+      clearImage();
       return;
     }
     
@@ -82,7 +85,6 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
     
     setImageUrl(updatedUrl);
     setPreviewUrl(updatedUrl);
-    setBannerUrl(updatedUrl);
     setError(null);
   };
 

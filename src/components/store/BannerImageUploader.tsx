@@ -1,11 +1,11 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Image, Save } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import CameraUploadButton from "./banner/CameraUploadButton";
+import ImageUploadButton from "./banner/ImageUploadButton";
 import ImagePreview from "./banner/ImagePreview";
 import { useBannerUpload } from "./banner/useBannerUpload";
 
@@ -31,6 +31,9 @@ const BannerImageUploader = ({
     handleUrlChange,
     clearImage
   } = useBannerUpload({ setBannerUrl });
+  
+  // محلي لتتبع حالة النموذج
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (bannerUrl) {
@@ -50,6 +53,7 @@ const BannerImageUploader = ({
     
     try {
       setError(null);
+      setIsSubmitting(true);
       
       if (imageUrl && !isValidUrl(imageUrl)) {
         setError("الرجاء إدخال رابط صحيح للصورة");
@@ -62,6 +66,8 @@ const BannerImageUploader = ({
     } catch (error: any) {
       console.error("Error saving banner image:", error);
       setError(error.message || "حدث خطأ أثناء حفظ صورة الغلاف");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -103,7 +109,7 @@ const BannerImageUploader = ({
           
           <div className="space-y-4">
             <div>
-              <CameraUploadButton onFileSelect={handleFileSelect} />
+              <ImageUploadButton onFileSelect={handleFileSelect} />
               
               <div className="my-2 flex items-center">
                 <div className="flex-grow h-px bg-gray-200 dark:bg-gray-700"></div>
@@ -128,10 +134,10 @@ const BannerImageUploader = ({
           <Button 
             type="submit" 
             className="w-full bg-[#ff9178] hover:bg-[#ff7d61] text-white"
-            disabled={isLoading}
+            disabled={isLoading || isSubmitting}
           >
             <Save className="ml-2 h-4 w-4" />
-            {isLoading ? "جاري الحفظ..." : "حفظ صورة الغلاف"}
+            {isLoading || isSubmitting ? "جاري الحفظ..." : "حفظ صورة الغلاف"}
           </Button>
         </form>
       </CardContent>
