@@ -3,34 +3,23 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
-import { toast } from "sonner";
 
 export const useStoreProducts = (userId: string | null, forceRefresh: number) => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { toast: uiToast } = useToast();
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchProducts = async () => {
-      try {
-        if (!userId) {
-          console.log("No userId provided to useStoreProducts, skipping fetch");
-          setIsLoading(false);
-          return;
-        }
+      if (!userId) return;
 
-        console.log("Fetching products for userId:", userId);
-        
+      try {
         const { data, error } = await supabase
           .from("products")
           .select("*")
           .eq("user_id", userId);
 
         if (error) {
-          console.error("Error fetching products:", error);
-          toast.error("خطأ في جلب المنتجات");
-          setIsLoading(false);
-          return;
+          throw error;
         }
 
         const uniqueTimestamp = forceRefresh;
@@ -47,18 +36,19 @@ export const useStoreProducts = (userId: string | null, forceRefresh: number) =>
           return product;
         });
 
-        console.log(`Fetched ${updatedProducts.length} products successfully`);
         setProducts(updatedProducts);
-        setIsLoading(false);
       } catch (error: any) {
         console.error("Error fetching products:", error);
-        toast.error("خطأ في جلب المنتجات");
-        setIsLoading(false);
+        toast({
+          title: "خطأ في جلب المنتجات",
+          description: error.message,
+          variant: "destructive"
+        });
       }
     };
 
     fetchProducts();
-  }, [userId, forceRefresh, uiToast]);
+  }, [userId, forceRefresh, toast]);
 
-  return { products, isLoading };
+  return products;
 };

@@ -3,34 +3,23 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { CategoryImage } from "@/types/categoryImage";
-import { toast } from "sonner";
 
 export const useCategoryImages = (userId: string | null, forceRefresh: number) => {
   const [categoryImages, setCategoryImages] = useState<CategoryImage[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { toast: uiToast } = useToast();
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchCategoryImages = async () => {
-      try {
-        if (!userId) {
-          console.log("No userId provided to useCategoryImages, skipping fetch");
-          setIsLoading(false);
-          return;
-        }
+      if (!userId) return;
 
-        console.log("Fetching category images for userId:", userId);
-        
+      try {
         const { data, error } = await supabase
           .from("category_images")
           .select("*")
           .eq("user_id", userId);
 
         if (error) {
-          console.error("Error fetching category images:", error);
-          toast.error("خطأ في جلب صور التصنيفات");
-          setIsLoading(false);
-          return;
+          throw error;
         }
 
         const uniqueTimestamp = forceRefresh;
@@ -47,18 +36,19 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
           return img;
         });
 
-        console.log(`Fetched ${updatedImages.length} category images successfully`);
         setCategoryImages(updatedImages);
-        setIsLoading(false);
       } catch (error: any) {
         console.error("Error fetching category images:", error);
-        toast.error("خطأ في جلب صور التصنيفات");
-        setIsLoading(false);
+        toast({
+          title: "خطأ في جلب صور التصنيفات",
+          description: error.message,
+          variant: "destructive"
+        });
       }
     };
 
     fetchCategoryImages();
-  }, [userId, forceRefresh, uiToast]);
+  }, [userId, forceRefresh, toast]);
 
-  return { categoryImages, isLoading };
+  return categoryImages;
 };

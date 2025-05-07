@@ -2,7 +2,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { BarChart3 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
 
 interface DashboardStatsProps {
   stats: {
@@ -14,7 +13,7 @@ interface DashboardStatsProps {
 const DashboardStats = ({ stats, loading }: DashboardStatsProps) => {
   const statsItem = {
     title: "المشاهدات",
-    value: stats.totalViews || 0,
+    value: stats.totalViews,
     icon: BarChart3,
     color: "from-[#ff9178] to-[#ffbcad]", // Changed to match coral theme
     bgLight: "bg-[#fff5f2]", // Changed to match coral theme
@@ -22,16 +21,9 @@ const DashboardStats = ({ stats, loading }: DashboardStatsProps) => {
     iconColor: "text-[#ff9178] dark:text-[#ffbcad]", // Changed to match coral theme
   };
 
-  // إذا لم تكن هناك مشاهدات، سنضيف تلميحًا بسيطًا
-  const handleZeroViews = () => {
-    if (!loading && stats.totalViews === 0) {
-      toast.info("لم يتم تسجيل مشاهدات بعد. عندما يزور العملاء متجرك سيظهر العدد هنا.");
-    }
-  };
-
   return (
     <div className="flex justify-center">
-      <Card className="overflow-hidden border border-[#ffbcad]/50 w-full max-w-md" onClick={handleZeroViews}>
+      <Card className="overflow-hidden border border-[#ffbcad]/50 w-full max-w-md">
         <CardContent className="p-6">
           {loading ? (
             <div className="space-y-3">

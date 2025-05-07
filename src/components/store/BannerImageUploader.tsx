@@ -8,7 +8,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import ImageUploadButton from "./banner/ImageUploadButton";
 import ImagePreview from "./banner/ImagePreview";
 import { useBannerUpload } from "./banner/useBannerUpload";
-import { toast } from "sonner";
 
 interface BannerImageUploaderProps {
   bannerUrl: string | null;
@@ -38,7 +37,6 @@ const BannerImageUploader = ({
 
   useEffect(() => {
     if (bannerUrl) {
-      console.log("BannerImageUploader - Setting initial bannerUrl:", bannerUrl);
       handleUrlChange(bannerUrl);
     }
   }, [bannerUrl]);
@@ -62,15 +60,12 @@ const BannerImageUploader = ({
         return;
       }
       
-      console.log("BannerImageUploader - Saving banner image:", imageUrl);
-      
+      setBannerUrl(imageUrl || null);
       await handleSubmit();
-      toast.success("تم حفظ صورة الغلاف بنجاح");
       
     } catch (error: any) {
       console.error("Error saving banner image:", error);
       setError(error.message || "حدث خطأ أثناء حفظ صورة الغلاف");
-      toast.error("حدث خطأ أثناء حفظ صورة الغلاف");
     } finally {
       setIsSubmitting(false);
     }

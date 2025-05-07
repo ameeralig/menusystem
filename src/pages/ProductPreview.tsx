@@ -16,9 +16,7 @@ const ProductPreview = () => {
   const { forceRefresh, refreshData } = useRefreshData();
   const { storeData, isLoading, storeOwnerId } = useStoreData(slug, forceRefresh);
   const [isAutoRefresh, setIsAutoRefresh] = useState<boolean>(true);
-  const [isFetchAttempted, setIsFetchAttempted] = useState<boolean>(false);
 
-  // إضافة meta tags للتحكم في التخزين المؤقت
   useEffect(() => {
     const metaTags = [
       { name: 'Cache-Control', content: 'no-cache, no-store, must-revalidate' },
@@ -46,47 +44,11 @@ const ProductPreview = () => {
     };
   }, []);
 
-  // إضافة تتبع المشاهدات
-  useEffect(() => {
-    const incrementPageView = async () => {
-      if (storeOwnerId && !isFetchAttempted) {
-        setIsFetchAttempted(true);
-        try {
-          // استخدام النافذة الجديدة لتتبع المشاهدات الفريدة فقط
-          const viewKey = `view_${slug}_${new Date().toDateString()}`;
-          if (!sessionStorage.getItem(viewKey)) {
-            sessionStorage.setItem(viewKey, 'true');
-            
-            console.log("Incrementing page view for:", storeOwnerId);
-            
-            // استخدام وظيفة RPC مخصصة لزيادة عدد المشاهدات
-            const { error } = await supabase.rpc('increment_page_view', {
-              store_user_id: storeOwnerId
-            });
-
-            if (error) {
-              console.error("Error incrementing page view:", error);
-              // لا نُظهر خطأ للمستخدم في حالة فشل تتبع المشاهدات
-            } else {
-              console.log("Page view successfully incremented");
-            }
-          }
-        } catch (error) {
-          console.error("Error tracking page view:", error);
-        }
-      }
-    };
-
-    incrementPageView();
-  }, [storeOwnerId, slug, isFetchAttempted]);
-
   // تفعيل الاستماع للتحديثات المباشرة بشكل هادئ في الخلفية
   useEffect(() => {
     if (!storeOwnerId) {
       return;
     }
-    
-    console.log("Setting up realtime subscriptions for:", storeOwnerId);
     
     // اشتراك في تغييرات جدول المنتجات
     const productsChannel = supabase
@@ -95,15 +57,12 @@ const ProductPreview = () => {
         { event: '*', schema: 'public', table: 'products', filter: `user_id=eq.${storeOwnerId}` }, 
         (payload) => {
           if (isAutoRefresh) {
-            console.log("Products updated:", payload);
             toast.info("تم تحديث المنتجات");
             refreshData();
           }
         }
       )
-      .subscribe((status) => {
-        console.log("Products channel status:", status);
-      });
+      .subscribe();
     
     // اشتراك في تغييرات إعدادات المتجر
     const settingsChannel = supabase
@@ -112,15 +71,12 @@ const ProductPreview = () => {
         { event: '*', schema: 'public', table: 'store_settings', filter: `user_id=eq.${storeOwnerId}` }, 
         (payload) => {
           if (isAutoRefresh) {
-            console.log("Store settings updated:", payload);
             toast.info("تم تحديث إعدادات المتجر");
             refreshData();
           }
         }
       )
-      .subscribe((status) => {
-        console.log("Settings channel status:", status);
-      });
+      .subscribe();
 
     // اشتراك في تغييرات صور التصنيفات
     const categoryImagesChannel = supabase
@@ -129,19 +85,15 @@ const ProductPreview = () => {
         { event: '*', schema: 'public', table: 'category_images', filter: `user_id=eq.${storeOwnerId}` }, 
         (payload) => {
           if (isAutoRefresh) {
-            console.log("Category images updated:", payload);
             toast.info("تم تحديث التصنيفات");
             refreshData();
           }
         }
       )
-      .subscribe((status) => {
-        console.log("Category images channel status:", status);
-      });
+      .subscribe();
 
     // تنظيف عند إزالة المكون
     return () => {
-      console.log("Cleaning up realtime subscriptions");
       supabase.removeChannel(productsChannel);
       supabase.removeChannel(settingsChannel);
       supabase.removeChannel(categoryImagesChannel);

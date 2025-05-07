@@ -1,156 +1,115 @@
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
-import { Json } from "@/integrations/supabase/types";
-
-// دالة مساعدة للتحقق من أن البيانات هي كائن وليست مصفوفة
-const isJsonObject = (data: Json): data is { [key: string]: Json } => {
-  return typeof data === 'object' && data !== null && !Array.isArray(data);
-};
-
-interface StoreSettings {
-  storeOwnerId: string | null;
-  storeName: string | null;
-  slug: string | null;
-  colorTheme: string | null;
-  socialLinks: SocialLinks | null;
-  contactInfo: ContactInfo | null;
-  bannerUrl: string | null;
-  fontSettings: FontSettings | null;
-}
 
 export const useStoreSettings = (slug: string | undefined) => {
-  const [storeSettings, setStoreSettings] = useState<StoreSettings>({
-    storeOwnerId: null,
-    storeName: null,
-    slug: null,
-    colorTheme: null,
-    socialLinks: null,
-    contactInfo: null,
-    bannerUrl: null,
-    fontSettings: null
+  const [storeSettings, setStoreSettings] = useState({
+    storeName: null as string | null,
+    colorTheme: "default",
+    socialLinks: {} as SocialLinks,
+    contactInfo: {} as ContactInfo,
+    bannerUrl: null as string | null,
+    fontSettings: undefined as FontSettings | undefined,
+    storeOwnerId: null as string | null,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // الإعدادات الافتراضية للخطوط إذا لم تكن موجودة في قاعدة البيانات
+  const defaultFontSettings: FontSettings = {
+    storeName: {
+      family: "inherit",
+      isCustom: false,
+      customFontUrl: null,
+    },
+    categoryText: {
+      family: "inherit",
+      isCustom: false,
+      customFontUrl: null,
+    },
+    generalText: {
+      family: "inherit",
+      isCustom: false,
+      customFontUrl: null,
+    },
+  };
 
   useEffect(() => {
     const fetchStoreSettings = async () => {
       try {
         if (!slug) {
-          console.log("No slug provided to useStoreSettings, skipping fetch");
-          setIsLoading(false);
+          console.error("No slug provided");
+          navigate('/404');
           return;
         }
 
-        console.log("Fetching store settings for slug:", slug);
-        
-        const { data, error } = await supabase
+        const { data: settings, error } = await supabase
           .from("store_settings")
-          .select("*")
-          .eq("slug", slug)
-          .single();
+          .select("user_id, store_name, color_theme, social_links, banner_url, font_settings, contact_info")
+          .eq("slug", slug.trim())
+          .maybeSingle();
 
-        if (error) {
-          if (error.code === "PGRST116") {
-            console.log("No store settings found for slug:", slug);
-          } else {
-            console.error("Error fetching store settings:", error);
-            toast.error("خطأ في جلب إعدادات المتجر");
-          }
-          setIsLoading(false);
+        if (error || !settings) {
+          console.error("Error fetching store settings:", error);
+          navigate('/404');
           return;
         }
 
-        // إضافة معرف زمني للصورة لتجنب التخزين المؤقت
-        let bannerUrl = data.banner_url;
-        if (bannerUrl) {
-          const timestamp = new Date().getTime();
-          const baseUrl = bannerUrl.split('?')[0];
-          bannerUrl = `${baseUrl}?t=${timestamp}`;
-        }
-
-        console.log("Store settings fetched successfully:", {
-          ...data,
-          banner_url: bannerUrl
-        });
-
-        // تأمين التحويل بين الأنواع باستخدام فحوصات نوع البيانات
-        let safeSocialLinks: SocialLinks | null = null;
-        if (data.social_links && isJsonObject(data.social_links)) {
-          // التحقق من بنية الكائن
-          safeSocialLinks = {
-            instagram: data.social_links.instagram?.toString() || undefined,
-            facebook: data.social_links.facebook?.toString() || undefined,
-            telegram: data.social_links.telegram?.toString() || undefined
-          };
-        }
+        // تحويل بيانات الخطوط إلى النوع المطلوب بطريقة آمنة
+        let parsedFontSettings: FontSettings = defaultFontSettings;
         
-        let safeContactInfo: ContactInfo | null = null;
-        if (data.contact_info && isJsonObject(data.contact_info)) {
-          // التحقق من بنية الكائن
-          safeContactInfo = {
-            description: data.contact_info.description?.toString() || undefined,
-            address: data.contact_info.address?.toString() || undefined,
-            phone: data.contact_info.phone?.toString() || undefined,
-            wifi: data.contact_info.wifi?.toString() || undefined,
-            businessHours: data.contact_info.businessHours?.toString() || undefined
-          };
-        }
-        
-        // تحويل إعدادات الخط مع التحقق من البنية الصحيحة بشكل كامل
-        let safeFontSettings: FontSettings | null = null;
-        if (data.font_settings && isJsonObject(data.font_settings)) {
-          const fontSettings = data.font_settings;
+        if (settings.font_settings) {
+          const fontData = settings.font_settings as any;
           
-          // نتحقق من وجود الخصائص المطلوبة وأنها كائنات أيضًا
-          if (isJsonObject(fontSettings.storeName) && 
-              isJsonObject(fontSettings.categoryText) && 
-              isJsonObject(fontSettings.generalText)) {
-            
-            // إنشاء كائن FontSettings بشكل صريح للتأكد من بنيته الصحيحة
-            safeFontSettings = {
+          // التحقق من أن البيانات تحتوي على العناصر اللازمة
+          if (fontData.storeName && fontData.categoryText && fontData.generalText) {
+            parsedFontSettings = {
               storeName: {
-                family: fontSettings.storeName.family?.toString() || "inherit",
-                isCustom: !!fontSettings.storeName.isCustom,
-                customFontUrl: fontSettings.storeName.customFontUrl?.toString() || null
+                family: fontData.storeName.family || "inherit",
+                isCustom: fontData.storeName.isCustom || false,
+                customFontUrl: fontData.storeName.customFontUrl || null,
               },
               categoryText: {
-                family: fontSettings.categoryText.family?.toString() || "inherit",
-                isCustom: !!fontSettings.categoryText.isCustom,
-                customFontUrl: fontSettings.categoryText.customFontUrl?.toString() || null
+                family: fontData.categoryText.family || "inherit",
+                isCustom: fontData.categoryText.isCustom || false,
+                customFontUrl: fontData.categoryText.customFontUrl || null,
               },
               generalText: {
-                family: fontSettings.generalText.family?.toString() || "inherit",
-                isCustom: !!fontSettings.generalText.isCustom,
-                customFontUrl: fontSettings.generalText.customFontUrl?.toString() || null
+                family: fontData.generalText.family || "inherit",
+                isCustom: fontData.generalText.isCustom || false,
+                customFontUrl: fontData.generalText.customFontUrl || null,
               }
             };
           }
         }
 
-        // تعيين البيانات المحولة بشكل آمن
         setStoreSettings({
-          storeOwnerId: data.user_id,
-          storeName: data.store_name,
-          slug: data.slug,
-          colorTheme: data.color_theme,
-          socialLinks: safeSocialLinks,
-          contactInfo: safeContactInfo,
-          bannerUrl: bannerUrl,
-          fontSettings: safeFontSettings
+          storeName: settings.store_name,
+          colorTheme: settings.color_theme || "default",
+          socialLinks: settings.social_links as SocialLinks || {},
+          contactInfo: settings.contact_info as ContactInfo || {},
+          bannerUrl: settings.banner_url,
+          fontSettings: parsedFontSettings,
+          storeOwnerId: settings.user_id,
         });
 
-        setIsLoading(false);
       } catch (error: any) {
-        console.error("Error in useStoreSettings:", error);
-        toast.error("خطأ في جلب إعدادات المتجر");
-        setIsLoading(false);
+        console.error("Error fetching settings:", error);
+        toast({
+          title: "حدث خطأ",
+          description: error.message,
+          variant: "destructive",
+        });
+        navigate('/404');
       }
     };
 
     fetchStoreSettings();
-  }, [slug]);
+  }, [slug, toast, navigate]);
 
   return { storeSettings, isLoading };
 };
