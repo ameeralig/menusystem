@@ -52,7 +52,7 @@ const ProductFormContainer = ({ activeTab, onContinueToProduct }: ProductFormCon
         
         // تحميل صورة التصنيف إذا كانت موجودة
         if (imageUrl.startsWith("blob:") && selectedFile) {
-          const finalImageUrl = await uploadImage("category-images", selectedFile, user.id, category);
+          const finalImageUrl = await uploadImage('categories', selectedFile, user.id);
           
           // حفظ صورة التصنيف في قاعدة البيانات
           await supabase.from("category_images").insert({
@@ -96,7 +96,7 @@ const ProductFormContainer = ({ activeTab, onContinueToProduct }: ProductFormCon
       
       // تحميل صورة المنتج إذا تم اختيار ملف
       if (uploadMethod === "file" && selectedFile) {
-        finalImageUrl = await uploadImage("product-images", selectedFile, userData.user.id, "products");
+        finalImageUrl = await uploadImage('products', selectedFile, userData.user.id);
       }
 
       const { error } = await supabase.from("products").insert({

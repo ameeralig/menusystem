@@ -39,29 +39,30 @@ export const createUniqueFilePath = (userId: string, folder: string, file: File)
   const fileExt = file.name.split('.').pop();
   // استبدال الأحرف الخاصة والمسافات بشرطة سفلية
   const sanitizedFolder = folder.replace(/\s+/g, '_').replace(/[^\w.-]/g, '_');
-  const fileName = `${userId}_${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+  const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
   return `${sanitizedFolder}/${fileName}`;
 };
 
 /**
  * رفع صورة إلى مستودع Supabase
- * @param bucket اسم المستودع (مثل 'product-images' أو 'category-images')
+ * @param type نوع الملف ('banners', 'categories', 'products')
  * @param file ملف الصورة
  * @param userId معرف المستخدم
- * @param folder اسم المجلد (اختياري)
  * @returns رابط الصورة العام
  */
 export const uploadImage = async (
-  bucket: string,
+  type: string,
   file: File,
-  userId: string,
-  folder: string = ''
+  userId: string
 ): Promise<string> => {
   try {
-    const filePath = createUniqueFilePath(userId, folder, file);
+    // إنشاء المسار المناسب حسب نوع الملف
+    const userBasePath = `users/${userId}`;
+    const folderPath = `${userBasePath}/${type}`;
+    const filePath = createUniqueFilePath(userId, folderPath, file);
     
     const { error: uploadError, data } = await supabase.storage
-      .from(bucket)
+      .from('store-media')
       .upload(filePath, file);
 
     if (uploadError) {
@@ -70,7 +71,7 @@ export const uploadImage = async (
     }
 
     const { data: { publicUrl } } = supabase.storage
-      .from(bucket)
+      .from('store-media')
       .getPublicUrl(filePath);
 
     return publicUrl;

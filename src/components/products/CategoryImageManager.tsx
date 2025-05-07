@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +7,7 @@ import { CategoryImage } from "@/types/categoryImage";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import { deleteImage } from "@/utils/storageHelpers";
+import { deleteImage, uploadImage, createUniqueFilePath } from "@/utils/storageHelpers";
 
 interface CategoryImageManagerProps {
   categories: string[];
@@ -50,23 +49,8 @@ export const CategoryImageManager = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
 
-      const fileExt = file.name.split(".").pop();
-      // استخدام الدالة الجديدة لتنظيف اسم التصنيف
-      const sanitizedCategory = sanitizeFileName(category);
-      const fileName = `${user.id}_${sanitizedCategory}_${Date.now()}.${fileExt}`;
-      const filePath = `${fileName}`;
-
-      console.log("File path for upload:", filePath);
-
-      const { error: uploadError } = await supabase.storage
-        .from("category-images")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from("category-images")
-        .getPublicUrl(filePath);
+      // استخدام الدالة المحدثة لرفع الصور في المجلد الخاص بالمستخدم
+      const publicUrl = await uploadImage('categories', file, user.id);
 
       // إضافة أو تحديث صورة التصنيف في قاعدة البيانات
       const { error: dbError } = await supabase
@@ -116,10 +100,12 @@ export const CategoryImageManager = ({
 
       if (dbError) throw dbError;
 
-      // حذف الملف من التخزين إذا كان موجوداً
-      const fileName = imageToDelete.image_url.split("/").pop();
-      if (fileName) {
-        await deleteImage("category-images", fileName);
+      // استخراج المسار من الرابط للحذف
+      const urlPath = new URL(imageToDelete.image_url).pathname;
+      const filePath = urlPath.split('/').slice(2).join('/');
+      
+      if (filePath) {
+        await deleteImage("store-media", filePath);
       }
 
       const updatedImages = categoryImages.filter(img => img.category !== category);

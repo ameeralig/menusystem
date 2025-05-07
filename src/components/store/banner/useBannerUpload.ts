@@ -37,16 +37,18 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
 
-      const filePath = createUniqueFilePath(user.id, 'banners', file);
+      // إنشاء مسار الملف في مجلد المستخدم/banners
+      const userFolderPath = `users/${user.id}/banners`;
+      const filePath = createUniqueFilePath(user.id, userFolderPath, file);
       
       const { data, error: uploadError } = await supabase.storage
-        .from('banners')
+        .from('store-media')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('banners')
+        .from('store-media')
         .getPublicUrl(filePath);
 
       // إضافة معرف زمني للصورة لتجنب التخزين المؤقت
