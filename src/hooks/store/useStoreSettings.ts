@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
+import { toast } from "sonner";
 
 export const useStoreSettings = (slug: string | undefined) => {
   const [storeSettings, setStoreSettings] = useState({
@@ -17,7 +18,7 @@ export const useStoreSettings = (slug: string | undefined) => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
 
   // الإعدادات الافتراضية للخطوط إذا لم تكن موجودة في قاعدة البيانات
   const defaultFontSettings: FontSettings = {
@@ -43,9 +44,11 @@ export const useStoreSettings = (slug: string | undefined) => {
       try {
         if (!slug) {
           console.error("No slug provided");
-          navigate('/404');
+          setIsLoading(false);
           return;
         }
+
+        console.log("Fetching store settings for slug:", slug);
 
         const { data: settings, error } = await supabase
           .from("store_settings")
@@ -53,11 +56,21 @@ export const useStoreSettings = (slug: string | undefined) => {
           .eq("slug", slug.trim())
           .maybeSingle();
 
-        if (error || !settings) {
+        if (error) {
           console.error("Error fetching store settings:", error);
-          navigate('/404');
+          toast.error("حدث خطأ في استرجاع إعدادات المتجر");
+          setIsLoading(false);
           return;
         }
+
+        if (!settings) {
+          console.error("Store not found for slug:", slug);
+          toast.error("لم يتم العثور على المتجر");
+          setIsLoading(false);
+          return;
+        }
+
+        console.log("Store settings fetched successfully:", settings);
 
         // تحويل بيانات الخطوط إلى النوع المطلوب بطريقة آمنة
         let parsedFontSettings: FontSettings = defaultFontSettings;
@@ -97,19 +110,16 @@ export const useStoreSettings = (slug: string | undefined) => {
           storeOwnerId: settings.user_id,
         });
 
+        setIsLoading(false);
       } catch (error: any) {
         console.error("Error fetching settings:", error);
-        toast({
-          title: "حدث خطأ",
-          description: error.message,
-          variant: "destructive",
-        });
-        navigate('/404');
+        toast.error("حدث خطأ في جلب معلومات المتجر");
+        setIsLoading(false);
       }
     };
 
     fetchStoreSettings();
-  }, [slug, toast, navigate]);
+  }, [slug, navigate]);
 
   return { storeSettings, isLoading };
 };

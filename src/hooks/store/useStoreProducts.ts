@@ -3,23 +3,34 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
+import { toast } from "sonner";
 
 export const useStoreProducts = (userId: string | null, forceRefresh: number) => {
   const [products, setProducts] = useState<Product[]>([]);
-  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast: uiToast } = useToast();
 
   useEffect(() => {
     const fetchProducts = async () => {
-      if (!userId) return;
-
       try {
+        if (!userId) {
+          console.log("No userId provided to useStoreProducts, skipping fetch");
+          setIsLoading(false);
+          return;
+        }
+
+        console.log("Fetching products for userId:", userId);
+        
         const { data, error } = await supabase
           .from("products")
           .select("*")
           .eq("user_id", userId);
 
         if (error) {
-          throw error;
+          console.error("Error fetching products:", error);
+          toast.error("خطأ في جلب المنتجات");
+          setIsLoading(false);
+          return;
         }
 
         const uniqueTimestamp = forceRefresh;
@@ -36,19 +47,18 @@ export const useStoreProducts = (userId: string | null, forceRefresh: number) =>
           return product;
         });
 
+        console.log(`Fetched ${updatedProducts.length} products successfully`);
         setProducts(updatedProducts);
+        setIsLoading(false);
       } catch (error: any) {
         console.error("Error fetching products:", error);
-        toast({
-          title: "خطأ في جلب المنتجات",
-          description: error.message,
-          variant: "destructive"
-        });
+        toast.error("خطأ في جلب المنتجات");
+        setIsLoading(false);
       }
     };
 
     fetchProducts();
-  }, [userId, forceRefresh, toast]);
+  }, [userId, forceRefresh, uiToast]);
 
-  return products;
+  return { products, isLoading };
 };
