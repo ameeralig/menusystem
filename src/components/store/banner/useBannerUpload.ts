@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { createUniqueFilePath } from "@/utils/storageHelpers";
+import { toast } from "sonner";
 
 interface UseBannerUploadProps {
   setBannerUrl: (url: string | null) => void;
@@ -12,7 +13,7 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
   const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string>("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
 
   const handleImageUpload = async (file: File) => {
     try {
@@ -54,21 +55,21 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
       const baseUrl = publicUrl.split('?')[0];
       const cachedUrl = `${baseUrl}?t=${timestamp}`;
       
+      console.log("Banner uploaded successfully, URL:", cachedUrl);
+      
       // تحرير عنوان URL المؤقت
       URL.revokeObjectURL(tempPreviewUrl);
       
       setImageUrl(cachedUrl);
       setPreviewUrl(cachedUrl);
+      setBannerUrl(cachedUrl);
 
-      toast({
-        title: "تم رفع الصورة بنجاح",
-        description: "يمكنك الآن حفظ التغييرات",
-        duration: 3000,
-      });
+      toast.success("تم رفع الصورة بنجاح");
 
     } catch (error: any) {
       console.error("Error uploading image:", error);
       setError(error.message || "حدث خطأ أثناء رفع الصورة");
+      toast.error("حدث خطأ أثناء رفع الصورة");
     }
   };
 
@@ -85,6 +86,7 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
     
     setImageUrl(updatedUrl);
     setPreviewUrl(updatedUrl);
+    setBannerUrl(updatedUrl);
     setError(null);
   };
 

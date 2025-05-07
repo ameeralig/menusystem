@@ -39,6 +39,12 @@ const ProductPreviewContainer = ({
   const [fontFaceLoaded, setFontFaceLoaded] = useState(false);
   const [fontId, setFontId] = useState<string>("");
   
+  // تسجيل المعلومات للتصحيح
+  useEffect(() => {
+    console.log("ProductPreviewContainer - bannerUrl:", bannerUrl);
+    console.log("ProductPreviewContainer - colorTheme:", colorTheme);
+  }, [bannerUrl, colorTheme]);
+  
   useEffect(() => {
     if (fontSettings?.generalText?.isCustom && fontSettings?.generalText?.customFontUrl) {
       const uniqueId = `general-text-font-${Math.random().toString(36).substring(2, 9)}`;
@@ -94,6 +100,11 @@ const ProductPreviewContainer = ({
     return {};
   };
 
+  const handleImageError = () => {
+    console.error("Error loading banner image:", bannerUrl);
+    setImageError(true);
+  };
+
   return (
     <div className="flex flex-col" style={getContainerStyle()}>
       {bannerUrl && !imageError ? (
@@ -103,10 +114,8 @@ const ProductPreviewContainer = ({
               src={bannerUrl} 
               alt="صورة الغلاف" 
               className="w-full h-full object-cover"
-              onError={() => {
-                console.error("Error loading image:", bannerUrl);
-                setImageError(true);
-              }}
+              onError={handleImageError}
+              key={bannerUrl} // إعادة تحميل الصورة عند تغيير الرابط
             />
             <div className="absolute inset-0 bg-black bg-opacity-30"></div>
           </AspectRatio>

@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
 import { useStoreSettings } from "./store/useStoreSettings";
 import { useStoreProducts } from "./store/useStoreProducts";
 import { useCategoryImages } from "./store/useCategoryImages";
@@ -19,7 +18,8 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
     console.log("useStoreData - storeOwnerId:", storeSettings.storeOwnerId);
     console.log("useStoreData - forceRefresh:", forceRefresh);
     console.log("useStoreData - status:", { settingsLoading, productsLoading, categoriesLoading });
-  }, [storeSettings.storeOwnerId, forceRefresh, settingsLoading, productsLoading, categoriesLoading]);
+    console.log("useStoreData - bannerUrl:", storeSettings.bannerUrl);
+  }, [storeSettings.storeOwnerId, storeSettings.bannerUrl, forceRefresh, settingsLoading, productsLoading, categoriesLoading]);
 
   useEffect(() => {
     if (!slug) {
