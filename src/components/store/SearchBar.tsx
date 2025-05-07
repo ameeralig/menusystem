@@ -185,54 +185,40 @@ const SearchBar = ({
 
   return (
     <div className="relative max-w-md mx-auto mb-8">
-      <div className="search-container relative group">
-        <div className="flex items-center relative">
-          <Search className="absolute right-3 top-2.5 h-5 w-5 text-purple-400 group-hover:text-purple-600 transition-all animate-pulse" />
-          <Input
-            type="text"
-            placeholder="ماذا تريد أن تأكل اليوم؟"
-            className="w-full pl-20 pr-10 py-2 text-right bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-full shadow-lg transition-all duration-300 backdrop-blur-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-400 focus:ring-opacity-50 hover:shadow-purple-300/20 dark:hover:shadow-purple-500/30"
-            value={currentQuery}
-            onChange={handleChange}
-            onClick={() => {
-              if (products.length > 0) {
-                setSearchDialogOpen(true);
-              }
-            }}
-          />
-          <div className="absolute left-1 top-1 flex gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-1 h-8 w-8 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors hover:scale-110"
-              onClick={() => setSearchDialogOpen(true)}
-              title="بحث متقدم"
-            >
-              <SparklesIcon className="h-4 w-4 text-blue-500 animate-[pulse_3s_ease-in-out_infinite]" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-1 h-8 w-8 rounded-full hover:bg-green-100 dark:hover:bg-green-900 transition-colors hover:scale-110"
-              onClick={suggestRandomItem}
-              title="اقترح وجبة"
-            >
-              <Shuffle className="h-4 w-4 text-green-500 animate-[pulse_4s_ease-in-out_infinite]" />
-            </Button>
-          </div>
+      <div className="flex items-center relative">
+        <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+        <Input
+          type="text"
+          placeholder="ابحث عن طبق..."
+          className="w-full pl-20 pr-10 py-2 text-right"
+          value={currentQuery}
+          onChange={handleChange}
+          onClick={() => {
+            if (products.length > 0) {
+              setSearchDialogOpen(true);
+            }
+          }}
+        />
+        <div className="absolute left-1 top-1 flex gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="p-1 h-8 w-8 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
+            onClick={() => setSearchDialogOpen(true)}
+            title="بحث"
+          >
+            <SparklesIcon className="h-4 w-4 text-blue-500" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="p-1 h-8 w-8 rounded-full hover:bg-green-100 dark:hover:bg-green-900 transition-colors"
+            onClick={suggestRandomItem}
+            title="اقترح وجبة"
+          >
+            <Shuffle className="h-4 w-4 text-green-500" />
+          </Button>
         </div>
-      </div>
-
-      <div className="flex justify-center mt-3">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-1.5 text-sm hover:shadow-lg hover:shadow-purple-500/30 transform hover:scale-105 transition-all duration-300 animate-[pulse_6s_ease-in-out_infinite]"
-          onClick={suggestRandomItem}
-        >
-          <Shuffle className="h-4 w-4 mr-2" />
-          اقترح وجبة عشوائية
-        </Button>
       </div>
 
       <CommandDialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
@@ -240,9 +226,8 @@ const SearchBar = ({
           placeholder="ماذا تريد أن تأكل اليوم؟" 
           value={searchTerm}
           onValueChange={setSearchTerm}
-          className="border-b border-purple-200 dark:border-purple-800"
         />
-        <CommandList className="bg-purple-50 dark:bg-purple-900/50 backdrop-blur-lg">
+        <CommandList>
           <CommandEmpty>
             {isLoading ? (
               <p className="py-6 text-center text-sm">جارٍ البحث...</p>
@@ -256,7 +241,7 @@ const SearchBar = ({
               <CommandItem
                 key={product.id}
                 onSelect={() => selectProduct(product)}
-                className="flex items-center justify-between py-2 hover:bg-purple-100 dark:hover:bg-purple-800/50"
+                className="flex items-center justify-between py-2"
               >
                 <div className="flex items-center">
                   <span>{product.name}</span>
@@ -265,7 +250,7 @@ const SearchBar = ({
                   </span>
                 </div>
                 {product.category && (
-                  <span className="text-xs bg-purple-100 dark:bg-purple-800 px-2 py-1 rounded-full">
+                  <span className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
                     {product.category}
                   </span>
                 )}
@@ -273,12 +258,12 @@ const SearchBar = ({
             ))}
           </CommandGroup>
           
-          <CommandSeparator className="bg-purple-200 dark:bg-purple-700" />
+          <CommandSeparator />
           
           <CommandGroup heading="اقتراحات">
             <CommandItem
               onSelect={suggestRandomItem}
-              className="flex items-center justify-center py-3 text-green-600 hover:bg-purple-100 dark:hover:bg-purple-800/50"
+              className="flex items-center justify-center py-3 text-green-600"
             >
               <Shuffle className="h-4 w-4 mr-2" />
               <span>اقترح وجبة عشوائية</span>
