@@ -16,7 +16,9 @@ const ProductPreview = () => {
   const { forceRefresh, refreshData } = useRefreshData();
   const { storeData, isLoading, storeOwnerId } = useStoreData(slug, forceRefresh);
   const [isAutoRefresh, setIsAutoRefresh] = useState<boolean>(true);
+  const [lastManualRefresh, setLastManualRefresh] = useState<number>(Date.now());
 
+  // إعداد meta tags لتجنب التخزين المؤقت
   useEffect(() => {
     const metaTags = [
       { name: 'Cache-Control', content: 'no-cache, no-store, must-revalidate' },
@@ -44,6 +46,27 @@ const ProductPreview = () => {
     };
   }, []);
 
+  // تحديث تلقائي كل دقيقة للتحقق من التغييرات
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (isAutoRefresh) {
+        console.log("Auto refreshing data...");
+        refreshData();
+        setLastManualRefresh(Date.now());
+      }
+    }, 60000); // تحديث كل دقيقة
+    
+    return () => clearInterval(interval);
+  }, [isAutoRefresh, refreshData]);
+
+  // إجبار تحميل الصور حديثاً عند تحديث البيانات
+  useEffect(() => {
+    if (storeData?.bannerUrl) {
+      const preloadImage = new Image();
+      preloadImage.src = `${storeData.bannerUrl.split('?')[0]}?t=${Date.now()}`;
+    }
+  }, [storeData.bannerUrl, forceRefresh, lastManualRefresh]);
+
   // تفعيل الاستماع للتحديثات المباشرة بشكل هادئ في الخلفية
   useEffect(() => {
     if (!storeOwnerId) {
@@ -59,6 +82,7 @@ const ProductPreview = () => {
           if (isAutoRefresh) {
             toast.info("تم تحديث المنتجات");
             refreshData();
+            setLastManualRefresh(Date.now());
           }
         }
       )
@@ -73,6 +97,7 @@ const ProductPreview = () => {
           if (isAutoRefresh) {
             toast.info("تم تحديث إعدادات المتجر");
             refreshData();
+            setLastManualRefresh(Date.now());
           }
         }
       )
@@ -87,6 +112,7 @@ const ProductPreview = () => {
           if (isAutoRefresh) {
             toast.info("تم تحديث التصنيفات");
             refreshData();
+            setLastManualRefresh(Date.now());
           }
         }
       )

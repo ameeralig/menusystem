@@ -1,18 +1,30 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { createUniqueFilePath } from "@/utils/storageHelpers";
 
 interface UseBannerUploadProps {
   setBannerUrl: (url: string | null) => void;
+  initialUrl?: string | null;
 }
 
-export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
+export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadProps) => {
   const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string>("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // استعادة الصورة المحفوظة سابقاً
+  useEffect(() => {
+    if (initialUrl) {
+      const timestamp = new Date().getTime();
+      const baseUrl = initialUrl.split('?')[0];
+      const cachedUrl = `${baseUrl}?t=${timestamp}`;
+      setImageUrl(cachedUrl);
+      setPreviewUrl(cachedUrl);
+    }
+  }, [initialUrl]);
 
   const handleImageUpload = async (file: File) => {
     try {
@@ -38,21 +50,23 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
 
       const filePath = createUniqueFilePath(user.id, 'banners', file);
       
+      // إضافة رأسيات لتجنب التخزين المؤقت
       const { data, error: uploadError } = await supabase.storage
         .from('banners')
         .upload(filePath, file, {
-          cacheControl: 'no-cache, max-age=0'
+          cacheControl: '0',
+          upsert: true
         });
 
       if (uploadError) throw uploadError;
 
+      // الحصول على رابط العام
       const { data: { publicUrl } } = supabase.storage
         .from('banners')
         .getPublicUrl(filePath);
 
       // إضافة معرف زمني للصورة لتجنب التخزين المؤقت
       const timestamp = new Date().getTime();
-      // التأكد من أن العنوان لا يحتوي على معرف سابق
       const baseUrl = publicUrl.split('?')[0];
       const cachedUrl = `${baseUrl}?t=${timestamp}`;
       
@@ -81,15 +95,22 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
       return;
     }
     
-    // إضافة معرف زمني للصورة بعد إزالة أي معرفات موجودة
-    const timestamp = new Date().getTime();
-    const baseUrl = url.split('?')[0];
-    const updatedUrl = `${baseUrl}?t=${timestamp}`;
-    
-    setImageUrl(updatedUrl);
-    setPreviewUrl(updatedUrl);
-    setBannerUrl(updatedUrl); // تحديث الرابط مباشرة هنا
-    setError(null);
+    try {
+      // تأكد من أن URL صالح
+      new URL(url);
+      
+      // إضافة معرف زمني للصورة بعد إزالة أي معرفات موجودة
+      const timestamp = new Date().getTime();
+      const baseUrl = url.split('?')[0];
+      const updatedUrl = `${baseUrl}?t=${timestamp}`;
+      
+      setImageUrl(updatedUrl);
+      setPreviewUrl(updatedUrl);
+      setBannerUrl(updatedUrl); // تحديث الرابط مباشرة هنا
+      setError(null);
+    } catch (e) {
+      setError("الرجاء إدخال رابط صحيح للصورة");
+    }
   };
 
   const clearImage = () => {

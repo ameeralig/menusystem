@@ -30,7 +30,7 @@ const BannerImageUploader = ({
     handleImageUpload,
     handleUrlChange,
     clearImage
-  } = useBannerUpload({ setBannerUrl });
+  } = useBannerUpload({ setBannerUrl, initialUrl: bannerUrl });
   
   // محلي لتتبع حالة النموذج
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,8 +38,8 @@ const BannerImageUploader = ({
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
-    if (bannerUrl) {
-      // إضافة معرف زمني للتأكد من تحديث الصورة
+    if (bannerUrl && !previewUrl) {
+      // عند تحميل الصفحة لأول مرة وتوفر bannerUrl
       const timestamp = new Date().getTime();
       const baseUrl = bannerUrl.split('?')[0];
       const updatedUrl = `${baseUrl}?t=${timestamp}`;
@@ -49,9 +49,11 @@ const BannerImageUploader = ({
   }, [bannerUrl]);
 
   useEffect(() => {
-    // تتبع التغييرات
-    if (bannerUrl !== imageUrl) {
+    // تتبع التغييرات بين القيمة المخزنة والقيمة الحالية
+    if (bannerUrl !== imageUrl && imageUrl !== '') {
       setHasChanges(true);
+    } else {
+      setHasChanges(false);
     }
   }, [imageUrl, bannerUrl]);
 
@@ -72,12 +74,12 @@ const BannerImageUploader = ({
       
       if (imageUrl && !isValidUrl(imageUrl)) {
         setError("الرجاء إدخال رابط صحيح للصورة");
+        setIsSubmitting(false);
         return;
       }
       
       // تحديث الرابط فقط إذا كان هناك تغييرات
       if (hasChanges) {
-        setBannerUrl(imageUrl || null);
         await handleSubmit();
         setHasChanges(false);
       }

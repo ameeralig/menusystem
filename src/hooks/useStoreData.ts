@@ -12,6 +12,7 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
   const products = useStoreProducts(storeSettings.storeOwnerId, forceRefresh);
   const categoryImages = useCategoryImages(storeSettings.storeOwnerId, forceRefresh);
   const bannerUrlRef = useRef<string | null>(null);
+  const [lastRefresh, setLastRefresh] = useState<number>(Date.now());
 
   // تسجيل معلومات تصحيح الأخطاء
   useEffect(() => {
@@ -26,6 +27,16 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
     }
   }, [storeSettings, products, categoryImages]);
 
+  // تحديث الصفحة بشكل دوري لتحديث الصور
+  useEffect(() => {
+    // تحديث كل 5 دقائق
+    const refreshInterval = setInterval(() => {
+      setLastRefresh(Date.now());
+    }, 5 * 60 * 1000); // 5 دقائق
+    
+    return () => clearInterval(refreshInterval);
+  }, []);
+
   // معالجة صورة الغلاف لتجنب مشكلة التخزين المؤقت
   useEffect(() => {
     if (storeSettings.bannerUrl !== bannerUrlRef.current) {
@@ -37,9 +48,13 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
         const baseUrl = storeSettings.bannerUrl.split('?')[0];
         const updatedUrl = `${baseUrl}?t=${timestamp}`;
         storeSettings.bannerUrl = updatedUrl;
+        
+        // تحميل مسبق للصورة
+        const img = new Image();
+        img.src = updatedUrl;
       }
     }
-  }, [storeSettings.bannerUrl]);
+  }, [storeSettings.bannerUrl, lastRefresh]);
 
   return {
     storeData: {

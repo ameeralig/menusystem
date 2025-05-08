@@ -67,26 +67,43 @@ const ProductPreviewContainer = ({
   // هذا التأثير يتعامل مع تحميل الصور مع تجنب التخزين المؤقت
   useEffect(() => {
     if (bannerUrl) {
-      // إضافة معرف زمني لتجنب التخزين المؤقت
-      const timestamp = new Date().getTime();
-      const baseUrl = bannerUrl.split('?')[0];
-      const newUrl = `${baseUrl}?t=${timestamp}`;
-      
-      // إنشاء كائن صورة جديد للتحقق من تحميل الصورة
-      const img = new Image();
-      img.onload = () => {
-        setImgSrc(newUrl);
-        setImageError(false);
+      const loadImage = () => {
+        // إضافة معرف زمني لتجنب التخزين المؤقت
+        const timestamp = new Date().getTime();
+        const baseUrl = bannerUrl.split('?')[0];
+        const newUrl = `${baseUrl}?t=${timestamp}`;
+        
+        // إنشاء كائن صورة جديد للتحقق من تحميل الصورة
+        const img = new Image();
+        img.onload = () => {
+          console.log("Image loaded successfully:", newUrl);
+          setImgSrc(newUrl);
+          setImageError(false);
+        };
+        img.onerror = (e) => {
+          console.error("Error loading banner image:", newUrl, e);
+          setImageError(true);
+        };
+        
+        // تعيين خصائص إضافية للتحميل السريع
+        img.decoding = "async";
+        img.loading = "eager";
+        img.src = newUrl;
       };
-      img.onerror = () => {
-        console.error("Error loading banner image:", newUrl);
-        setImageError(true);
-      };
-      img.src = newUrl;
+
+      // تحميل الصورة مباشرة
+      loadImage();
+
+      // إعادة محاولة التحميل بعد فترة إذا كانت صورة جديدة تم رفعها حديثًا
+      const retryTimeout = setTimeout(() => {
+        if (imageError) {
+          console.log("Retrying image load after timeout");
+          loadImage();
+        }
+      }, 1500);
       
       return () => {
-        img.onload = null;
-        img.onerror = null;
+        clearTimeout(retryTimeout);
       };
     } else {
       setImgSrc(null);
@@ -139,7 +156,7 @@ const ProductPreviewContainer = ({
                 setImageError(true);
               }}
               loading="eager"
-              fetchpriority="high"
+              fetchPriority="high"
             />
             <div className="absolute inset-0 bg-black bg-opacity-30"></div>
           </AspectRatio>
