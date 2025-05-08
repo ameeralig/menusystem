@@ -34,17 +34,32 @@ const BannerImageUploader = ({
   
   // محلي لتتبع حالة النموذج
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // تتبع إذا تم تغيير الصورة
+  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     if (bannerUrl) {
-      handleUrlChange(bannerUrl);
+      // إضافة معرف زمني للتأكد من تحديث الصورة
+      const timestamp = new Date().getTime();
+      const baseUrl = bannerUrl.split('?')[0];
+      const updatedUrl = `${baseUrl}?t=${timestamp}`;
+      handleUrlChange(updatedUrl);
+      setHasChanges(false);
     }
   }, [bannerUrl]);
+
+  useEffect(() => {
+    // تتبع التغييرات
+    if (bannerUrl !== imageUrl) {
+      setHasChanges(true);
+    }
+  }, [imageUrl, bannerUrl]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       handleImageUpload(file);
+      setHasChanges(true);
     }
   };
 
@@ -60,8 +75,12 @@ const BannerImageUploader = ({
         return;
       }
       
-      setBannerUrl(imageUrl || null);
-      await handleSubmit();
+      // تحديث الرابط فقط إذا كان هناك تغييرات
+      if (hasChanges) {
+        setBannerUrl(imageUrl || null);
+        await handleSubmit();
+        setHasChanges(false);
+      }
       
     } catch (error: any) {
       console.error("Error saving banner image:", error);
@@ -99,7 +118,10 @@ const BannerImageUploader = ({
           {previewUrl && (
             <ImagePreview 
               previewUrl={previewUrl}
-              onClear={clearImage}
+              onClear={() => {
+                clearImage();
+                setHasChanges(true);
+              }}
               onError={() => {
                 setError("لم نتمكن من تحميل هذه الصورة، الرجاء التأكد من الرابط");
                 clearImage();
@@ -124,7 +146,10 @@ const BannerImageUploader = ({
                 type="text"
                 placeholder="أدخل رابط الصورة"
                 value={imageUrl}
-                onChange={(e) => handleUrlChange(e.target.value)}
+                onChange={(e) => {
+                  handleUrlChange(e.target.value);
+                  setHasChanges(true);
+                }}
                 className="text-right"
                 dir="rtl"
               />
@@ -134,7 +159,7 @@ const BannerImageUploader = ({
           <Button 
             type="submit" 
             className="w-full bg-[#ff9178] hover:bg-[#ff7d61] text-white"
-            disabled={isLoading || isSubmitting}
+            disabled={isLoading || isSubmitting || !hasChanges}
           >
             <Save className="ml-2 h-4 w-4" />
             {isLoading || isSubmitting ? "جاري الحفظ..." : "حفظ صورة الغلاف"}

@@ -38,7 +38,9 @@ const ProductPreviewContainer = ({
   const [imageError, setImageError] = useState(false);
   const [fontFaceLoaded, setFontFaceLoaded] = useState(false);
   const [fontId, setFontId] = useState<string>("");
+  const [imgSrc, setImgSrc] = useState<string | null>(null);
   
+  // هذا التأثير يتعامل مع تحميل الخطوط المخصصة
   useEffect(() => {
     if (fontSettings?.generalText?.isCustom && fontSettings?.generalText?.customFontUrl) {
       const uniqueId = `general-text-font-${Math.random().toString(36).substring(2, 9)}`;
@@ -61,6 +63,35 @@ const ProductPreviewContainer = ({
       };
     }
   }, [fontSettings?.generalText?.customFontUrl, fontSettings?.generalText?.isCustom]);
+  
+  // هذا التأثير يتعامل مع تحميل الصور مع تجنب التخزين المؤقت
+  useEffect(() => {
+    if (bannerUrl) {
+      // إضافة معرف زمني لتجنب التخزين المؤقت
+      const timestamp = new Date().getTime();
+      const baseUrl = bannerUrl.split('?')[0];
+      const newUrl = `${baseUrl}?t=${timestamp}`;
+      
+      // إنشاء كائن صورة جديد للتحقق من تحميل الصورة
+      const img = new Image();
+      img.onload = () => {
+        setImgSrc(newUrl);
+        setImageError(false);
+      };
+      img.onerror = () => {
+        console.error("Error loading banner image:", newUrl);
+        setImageError(true);
+      };
+      img.src = newUrl;
+      
+      return () => {
+        img.onload = null;
+        img.onerror = null;
+      };
+    } else {
+      setImgSrc(null);
+    }
+  }, [bannerUrl]);
   
   const getThemeClasses = (theme: string | null) => {
     switch (theme) {
@@ -96,28 +127,30 @@ const ProductPreviewContainer = ({
 
   return (
     <div className="flex flex-col" style={getContainerStyle()}>
-      {bannerUrl && !imageError ? (
+      {imgSrc && !imageError ? (
         <div className="relative w-full overflow-hidden">
           <AspectRatio ratio={16 / 5} className="w-full">
             <img 
-              src={bannerUrl} 
+              src={imgSrc} 
               alt="صورة الغلاف" 
               className="w-full h-full object-cover"
               onError={() => {
-                console.error("Error loading image:", bannerUrl);
+                console.error("Error displaying image:", imgSrc);
                 setImageError(true);
               }}
+              loading="eager"
+              fetchpriority="high"
             />
             <div className="absolute inset-0 bg-black bg-opacity-30"></div>
           </AspectRatio>
         </div>
       ) : null}
       <div className={`flex-1 ${getThemeClasses(colorTheme)} transition-colors duration-300 relative`}>
-        {bannerUrl && !imageError && (
+        {imgSrc && !imageError && (
           <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-black/20 to-transparent"></div>
         )}
         <div className="w-full relative">
-          <div className={`bg-white dark:bg-gray-800 rounded-tl-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-700 ${bannerUrl && !imageError ? 'mt-[-1rem]' : ''}`} style={{ minHeight: containerHeight }}>
+          <div className={`bg-white dark:bg-gray-800 rounded-tl-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-700 ${imgSrc && !imageError ? 'mt-[-1rem]' : ''}`} style={{ minHeight: containerHeight }}>
             <div className="p-4 sm:p-6">
               {children}
             </div>

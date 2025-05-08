@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useStoreSettings } from "./store/useStoreSettings";
@@ -11,6 +11,7 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
   const { storeSettings } = useStoreSettings(slug);
   const products = useStoreProducts(storeSettings.storeOwnerId, forceRefresh);
   const categoryImages = useCategoryImages(storeSettings.storeOwnerId, forceRefresh);
+  const bannerUrlRef = useRef<string | null>(null);
 
   // تسجيل معلومات تصحيح الأخطاء
   useEffect(() => {
@@ -24,6 +25,21 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
       setIsLoading(false);
     }
   }, [storeSettings, products, categoryImages]);
+
+  // معالجة صورة الغلاف لتجنب مشكلة التخزين المؤقت
+  useEffect(() => {
+    if (storeSettings.bannerUrl !== bannerUrlRef.current) {
+      bannerUrlRef.current = storeSettings.bannerUrl;
+      
+      if (storeSettings.bannerUrl) {
+        // إذا كانت الصورة موجودة، نضيف معرف زمني لتجنب التخزين المؤقت
+        const timestamp = new Date().getTime();
+        const baseUrl = storeSettings.bannerUrl.split('?')[0];
+        const updatedUrl = `${baseUrl}?t=${timestamp}`;
+        storeSettings.bannerUrl = updatedUrl;
+      }
+    }
+  }, [storeSettings.bannerUrl]);
 
   return {
     storeData: {

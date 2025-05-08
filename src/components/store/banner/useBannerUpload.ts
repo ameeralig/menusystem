@@ -40,7 +40,9 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
       
       const { data, error: uploadError } = await supabase.storage
         .from('banners')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: 'no-cache, max-age=0'
+        });
 
       if (uploadError) throw uploadError;
 
@@ -59,6 +61,7 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
       
       setImageUrl(cachedUrl);
       setPreviewUrl(cachedUrl);
+      setBannerUrl(cachedUrl); // تحديث الرابط مباشرة هنا
 
       toast({
         title: "تم رفع الصورة بنجاح",
@@ -85,6 +88,7 @@ export const useBannerUpload = ({ setBannerUrl }: UseBannerUploadProps) => {
     
     setImageUrl(updatedUrl);
     setPreviewUrl(updatedUrl);
+    setBannerUrl(updatedUrl); // تحديث الرابط مباشرة هنا
     setError(null);
   };
 
