@@ -9,6 +9,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { deleteImage } from "@/utils/storageHelpers";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface CategoryImageManagerProps {
   categories: string[];
@@ -60,13 +62,20 @@ export const CategoryImageManager = ({
 
       const { error: uploadError } = await supabase.storage
         .from("category-images")
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: 'no-cache',
+          upsert: true
+        });
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
         .from("category-images")
         .getPublicUrl(filePath);
+        
+      // إضافة معلمات لمنع التخزين المؤقت للصورة
+      const timestamp = Date.now();
+      const finalUrl = `${publicUrl}?t=${timestamp}`;
 
       // إضافة أو تحديث صورة التصنيف في قاعدة البيانات
       const { error: dbError } = await supabase
@@ -74,13 +83,13 @@ export const CategoryImageManager = ({
         .upsert({
           user_id: user.id,
           category,
-          image_url: publicUrl,
+          image_url: finalUrl,
         });
 
       if (dbError) throw dbError;
 
       const updatedImages = [...categoryImages.filter(img => img.category !== category), 
-        { category, image_url: publicUrl }
+        { category, image_url: finalUrl }
       ];
       onUpdateImages(updatedImages);
 
@@ -117,7 +126,7 @@ export const CategoryImageManager = ({
       if (dbError) throw dbError;
 
       // حذف الملف من التخزين إذا كان موجوداً
-      const fileName = imageToDelete.image_url.split("/").pop();
+      const fileName = imageToDelete.image_url.split("/").pop()?.split("?")[0];
       if (fileName) {
         await deleteImage("category-images", fileName);
       }
@@ -139,9 +148,31 @@ export const CategoryImageManager = ({
     }
   };
 
+  if (categories.length === 0) {
+    return (
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">إدارة صور التصنيفات</h3>
+        <Alert>
+          <AlertTitle>لا توجد تصنيفات</AlertTitle>
+          <AlertDescription>
+            أضف منتجات بتصنيفات مختلفة أولاً لإدارة صور التصنيفات
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">إدارة صور التصنيفات</h3>
+      <div className="flex flex-col space-y-2">
+        <h3 className="text-lg font-semibold">إدارة صور التصنيفات</h3>
+        <p className="text-sm text-muted-foreground">
+          يمكنك تخصيص صورة لكل تصنيف تظهر في صفحة المعاينة. صور التصنيفات منفصلة تماماً عن صور المنتجات.
+        </p>
+      </div>
+      
+      <Separator className="my-4" />
+      
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {categories.map((category) => {
           const categoryImage = categoryImages.find(img => img.category === category);

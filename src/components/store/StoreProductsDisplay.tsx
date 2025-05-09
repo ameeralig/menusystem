@@ -105,17 +105,6 @@ const StoreProductsDisplay = ({
     setSelectedCategory(category);
   }, []);
 
-  // دالة الحصول على صورة التصنيف الافتراضية من المنتجات
-  const getDefaultCategoryImage = useCallback(
-    (category: string) => {
-      const firstProductWithCategory = products.find(
-        (product) => product.category === category && product.image_url
-      );
-      return firstProductWithCategory?.image_url || "/placeholder.svg";
-    },
-    [products]
-  );
-
   const handleBackClick = useCallback(() => {
     setSelectedCategory(null);
     setSearchQuery("");
@@ -156,7 +145,6 @@ const StoreProductsDisplay = ({
       {!selectedCategory && categories.length > 0 && !searchQuery && (
         <CategoryGrid 
           categories={categories} 
-          getCategoryImage={getDefaultCategoryImage} 
           onCategorySelect={handleCategorySelect} 
           fontSettings={fontSettings}
           categoryImages={categoryImages}

@@ -18,7 +18,8 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
   useEffect(() => {
     console.log("useStoreData - storeOwnerId:", storeSettings.storeOwnerId);
     console.log("useStoreData - forceRefresh:", forceRefresh);
-  }, [storeSettings.storeOwnerId, forceRefresh]);
+    console.log("useStoreData - categoryImages:", categoryImages?.length || 0);
+  }, [storeSettings.storeOwnerId, forceRefresh, categoryImages?.length]);
 
   useEffect(() => {
     if (storeSettings && products && categoryImages) {
@@ -52,6 +53,7 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
         // تحميل مسبق للصورة
         const img = new Image();
         img.src = updatedUrl;
+        img.fetchPriority = "high";
       }
     }
   }, [storeSettings.bannerUrl, lastRefresh]);

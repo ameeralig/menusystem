@@ -56,12 +56,6 @@ const DemoProductsDisplay = ({
         p.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
 
-  // دالة للحصول على صورة التصنيف الافتراضية من المنتجات
-  const getDefaultCategoryImage = (category: string) => {
-    const categoryProduct = products.find(p => p.category === category);
-    return categoryProduct?.image_url || '/placeholder.svg';
-  };
-
   // سنطبع معلومات حول صور التصنيفات للمساعدة في التصحيح
   if (categoryImages && categoryImages.length > 0) {
     console.log("DemoProductsDisplay has", categoryImages.length, "category images");
@@ -75,7 +69,6 @@ const DemoProductsDisplay = ({
       {!selectedCategory ? (
         <CategoryGrid
           categories={categories}
-          getCategoryImage={getDefaultCategoryImage}
           onCategorySelect={setSelectedCategory}
           categoryImages={categoryImages}
           fontSettings={fontSettings}

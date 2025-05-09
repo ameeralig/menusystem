@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { CSSProperties, useEffect, useState } from "react";
 import { CategoryImage } from "@/types/categoryImage";
+import { Folder } from "lucide-react";
 
 interface FontSettings {
   categoryText?: {
@@ -13,7 +14,6 @@ interface FontSettings {
 
 interface CategoryGridProps {
   categories: string[];
-  getCategoryImage: (category: string) => string;
   onCategorySelect: (category: string) => void;
   fontSettings?: FontSettings;
   categoryImages?: CategoryImage[];
@@ -21,12 +21,12 @@ interface CategoryGridProps {
 
 const CategoryCard = ({ 
   category, 
-  image, 
+  imageUrl, 
   onClick,
   fontStyle 
 }: { 
   category: string; 
-  image: string; 
+  imageUrl: string | null; 
   onClick: () => void;
   fontStyle: CSSProperties;
 }) => (
@@ -36,11 +36,17 @@ const CategoryCard = ({
     onClick={onClick}
   >
     <div className="h-[140px] overflow-hidden">
-      <img 
-        src={image} 
-        alt={category}
-        className="w-full aspect-[16/9] object-cover transition-transform duration-300 group-hover:scale-110"
-      />
+      {imageUrl ? (
+        <img 
+          src={imageUrl} 
+          alt={category}
+          className="w-full aspect-[16/9] object-cover transition-transform duration-300 group-hover:scale-110"
+        />
+      ) : (
+        <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+          <Folder className="h-12 w-12 text-gray-400" />
+        </div>
+      )}
       <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
         <h3 
           className="text-white text-2xl font-bold tracking-wide"
@@ -55,7 +61,6 @@ const CategoryCard = ({
 
 const CategoryGrid = ({ 
   categories, 
-  getCategoryImage, 
   onCategorySelect,
   fontSettings,
   categoryImages = []
@@ -97,9 +102,9 @@ const CategoryGrid = ({
     return {};
   };
 
-  // تحسين دالة الحصول على صورة التصنيف
-  const getCategoryImageUrl = (category: string): string => {
-    // البحث أولاً عن صورة مخصصة للتصنيف من قائمة الصور المخصصة
+  // دالة الحصول على صورة التصنيف
+  const getCategoryImageUrl = (category: string): string | null => {
+    // البحث عن صورة مخصصة للتصنيف من قائمة الصور المخصصة
     const customImage = categoryImages?.find(img => img.category === category);
     
     // إذا وجدنا صورة مخصصة، نستخدمها
@@ -108,10 +113,8 @@ const CategoryGrid = ({
       return customImage.image_url;
     }
     
-    // إذا لم توجد صورة مخصصة، نستخدم الدالة الافتراضية للحصول على صورة
-    const defaultImage = getCategoryImage(category);
-    console.log(`Using default image for category ${category}:`, defaultImage);
-    return defaultImage;
+    // إذا لم نجد صورة مخصصة، نعيد null ليتم عرض الأيقونة الافتراضية
+    return null;
   };
 
   console.log("CategoryGrid rendering with", categoryImages?.length || 0, "custom category images");
@@ -126,7 +129,7 @@ const CategoryGrid = ({
           <CategoryCard
             key={category}
             category={category}
-            image={getCategoryImageUrl(category)}
+            imageUrl={getCategoryImageUrl(category)}
             onClick={() => onCategorySelect(category)}
             fontStyle={getCategoryTextStyle()}
           />
