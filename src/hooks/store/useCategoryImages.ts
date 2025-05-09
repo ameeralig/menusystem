@@ -13,6 +13,7 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
       if (!userId) return;
 
       try {
+        console.log("جاري جلب صور التصنيفات للمستخدم:", userId);
         const { data, error } = await supabase
           .from("category_images")
           .select("*")
@@ -22,15 +23,20 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
           throw error;
         }
 
-        const uniqueTimestamp = forceRefresh;
+        console.log("تم استلام صور التصنيفات:", data?.length || 0, "صورة");
+        
+        // إضافة طابع زمني لكسر التخزين المؤقت للصور
+        const uniqueTimestamp = Date.now(); // استخدام الوقت الحالي بدلاً من forceRefresh
         const cacheBreaker = `t=${uniqueTimestamp}&nocache=${Math.random()}`;
         
         const updatedImages = (data || []).map(img => {
           if (img.image_url) {
             const imageBaseUrl = img.image_url.split('?')[0];
+            const updatedUrl = `${imageBaseUrl}?${cacheBreaker}`;
+            console.log(`تحديث رابط الصورة للتصنيف ${img.category}: ${updatedUrl}`);
             return {
               ...img,
-              image_url: `${imageBaseUrl}?${cacheBreaker}`
+              image_url: updatedUrl
             };
           }
           return img;
@@ -38,7 +44,7 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
 
         setCategoryImages(updatedImages);
       } catch (error: any) {
-        console.error("Error fetching category images:", error);
+        console.error("خطأ في جلب صور التصنيفات:", error);
         toast({
           title: "خطأ في جلب صور التصنيفات",
           description: error.message,

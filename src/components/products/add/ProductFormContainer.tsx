@@ -44,26 +44,55 @@ const ProductFormContainer = ({ activeTab, onContinueToProduct }: ProductFormCon
   // معالجة اختيار التصنيف
   const handleCategorySelected = async (category: string, imageUrl?: string) => {
     setSelectedCategory(category);
+    console.log(`تم اختيار التصنيف: ${category}، صورة التصنيف: ${imageUrl || 'لا توجد'}`);
     
     if (imageUrl) {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error("يجب تسجيل الدخول أولاً");
         
+        console.log(`بدء عملية تحميل صورة التصنيف ${category}`);
+        
         // تحميل صورة التصنيف إذا كانت موجودة
-        if (imageUrl.startsWith("blob:") && selectedFile) {
-          const finalImageUrl = await uploadImage("category-images", selectedFile, user.id, category);
+        if ((imageUrl.startsWith("blob:") || imageUrl.startsWith("data:")) && selectedFile) {
+          console.log(`تحميل صورة التصنيف ${category} كملف`);
+          
+          // إنشاء اسم فريد للملف
+          const fileName = `${user.id}_${category.replace(/\s+/g, '_')}_${Date.now()}`;
+          const finalImageUrl = await uploadImage("category-images", selectedFile, user.id, fileName);
+          
+          console.log(`تم رفع صورة التصنيف بنجاح: ${finalImageUrl}`);
           
           // حفظ صورة التصنيف في قاعدة البيانات
-          await supabase.from("category_images").insert({
+          const { error } = await supabase.from("category_images").upsert({
             user_id: user.id,
             category: category,
             image_url: finalImageUrl
+          }, {
+            onConflict: 'user_id,category'
           });
           
+          if (error) {
+            throw error;
+          }
+          
+          console.log(`تم حفظ رابط صورة التصنيف ${category} في قاعدة البيانات`);
           setCategoryImageUrl(finalImageUrl);
-        } else {
+        } else if (imageUrl) {
+          console.log(`استخدام رابط الصورة مباشرة للتصنيف ${category}: ${imageUrl}`);
           // استخدام الرابط مباشرة
+          const { error } = await supabase.from("category_images").upsert({
+            user_id: user.id,
+            category: category,
+            image_url: imageUrl
+          }, {
+            onConflict: 'user_id,category'
+          });
+          
+          if (error) {
+            throw error;
+          }
+          
           setCategoryImageUrl(imageUrl);
         }
       } catch (error: any) {

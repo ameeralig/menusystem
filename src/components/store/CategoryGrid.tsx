@@ -41,6 +41,13 @@ const CategoryCard = ({
           src={imageUrl} 
           alt={category}
           className="w-full aspect-[16/9] object-cover transition-transform duration-300 group-hover:scale-110"
+          loading="eager"
+          onError={(e) => {
+            console.error(`خطأ في تحميل صورة التصنيف ${category}:`, e);
+            (e.target as HTMLImageElement).onerror = null;
+            (e.target as HTMLImageElement).src = ''; // إزالة المصدر للسماح بظهور العنصر الاحتياطي
+          }}
+          onLoad={() => console.log(`تم تحميل صورة التصنيف ${category} بنجاح`)}
         />
       ) : (
         <div className="w-full h-full bg-gray-100 flex items-center justify-center">
@@ -102,14 +109,14 @@ const CategoryGrid = ({
     return {};
   };
 
-  // دالة الحصول على صورة التصنيف
+  // دالة الحصول على صورة التصنيف - تم تعديلها للتصحيح
   const getCategoryImageUrl = (category: string): string | null => {
     // البحث عن صورة مخصصة للتصنيف من قائمة الصور المخصصة
     const customImage = categoryImages?.find(img => img.category === category);
     
     // إذا وجدنا صورة مخصصة، نستخدمها
     if (customImage && customImage.image_url) {
-      console.log(`Using custom image for category ${category}:`, customImage.image_url);
+      console.log(`استخدام صورة مخصصة للتصنيف ${category}:`, customImage.image_url);
       return customImage.image_url;
     }
     
@@ -119,7 +126,10 @@ const CategoryGrid = ({
 
   console.log("CategoryGrid rendering with", categoryImages?.length || 0, "custom category images");
   if (categoryImages?.length > 0) {
-    console.log("Available category images:", categoryImages.map(img => ({ category: img.category, url: img.image_url })));
+    console.log("Available category images:", categoryImages.map(img => ({ 
+      category: img.category, 
+      url: img.image_url 
+    })));
   }
 
   return (

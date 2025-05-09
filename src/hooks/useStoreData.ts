@@ -19,7 +19,14 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
     console.log("useStoreData - storeOwnerId:", storeSettings.storeOwnerId);
     console.log("useStoreData - forceRefresh:", forceRefresh);
     console.log("useStoreData - categoryImages:", categoryImages?.length || 0);
-  }, [storeSettings.storeOwnerId, forceRefresh, categoryImages?.length]);
+    
+    if (categoryImages && categoryImages.length > 0) {
+      console.log("تفاصيل صور التصنيفات:", categoryImages.map(img => ({ 
+        category: img.category, 
+        url: img.image_url 
+      })));
+    }
+  }, [storeSettings.storeOwnerId, forceRefresh, categoryImages]);
 
   useEffect(() => {
     if (storeSettings && products && categoryImages) {
@@ -54,6 +61,8 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
         const img = new Image();
         img.src = updatedUrl;
         img.fetchPriority = "high";
+        
+        console.log("تم تحديث صورة الغلاف:", updatedUrl);
       }
     }
   }, [storeSettings.bannerUrl, lastRefresh]);
