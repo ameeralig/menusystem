@@ -57,9 +57,8 @@ const ProductFormContainer = ({ activeTab, onContinueToProduct }: ProductFormCon
         if ((imageUrl.startsWith("blob:") || imageUrl.startsWith("data:")) && selectedFile) {
           console.log(`تحميل صورة التصنيف ${category} كملف`);
           
-          // إنشاء اسم فريد للملف
-          const fileName = `${user.id}_${category.replace(/\s+/g, '_')}_${Date.now()}`;
-          const finalImageUrl = await uploadImage("category-images", selectedFile, user.id, fileName);
+          // رفع الصورة إلى مجلد category-images
+          const finalImageUrl = await uploadImage("category-images", selectedFile, user.id, category);
           
           console.log(`تم رفع صورة التصنيف بنجاح: ${finalImageUrl}`);
           
@@ -90,6 +89,7 @@ const ProductFormContainer = ({ activeTab, onContinueToProduct }: ProductFormCon
           });
           
           if (error) {
+            console.error("خطأ في حفظ رابط صورة التصنيف:", error);
             throw error;
           }
           

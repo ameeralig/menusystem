@@ -6,14 +6,20 @@ import { CategoryImage } from "@/types/categoryImage";
 
 export const useCategoryImages = (userId: string | null, forceRefresh: number) => {
   const [categoryImages, setCategoryImages] = useState<CategoryImage[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchCategoryImages = async () => {
-      if (!userId) return;
+      if (!userId) {
+        setIsLoading(false);
+        return;
+      }
 
       try {
         console.log("جاري جلب صور التصنيفات للمستخدم:", userId);
+        setIsLoading(true);
+        
         const { data, error } = await supabase
           .from("category_images")
           .select("*")
@@ -24,25 +30,30 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
         }
 
         console.log("تم استلام صور التصنيفات:", data?.length || 0, "صورة");
+        console.log("البيانات المستلمة:", JSON.stringify(data));
         
-        // إضافة طابع زمني لكسر التخزين المؤقت للصور
-        const uniqueTimestamp = Date.now(); // استخدام الوقت الحالي بدلاً من forceRefresh
-        const cacheBreaker = `t=${uniqueTimestamp}&nocache=${Math.random()}`;
-        
-        const updatedImages = (data || []).map(img => {
-          if (img.image_url) {
-            const imageBaseUrl = img.image_url.split('?')[0];
-            const updatedUrl = `${imageBaseUrl}?${cacheBreaker}`;
-            console.log(`تحديث رابط الصورة للتصنيف ${img.category}: ${updatedUrl}`);
-            return {
-              ...img,
-              image_url: updatedUrl
-            };
-          }
-          return img;
-        });
+        if (data && data.length > 0) {
+          // إضافة طابع زمني لكسر التخزين المؤقت للصور
+          const timestamp = Date.now();
+          const updatedImages = data.map(img => {
+            if (img.image_url) {
+              // التأكد من إضافة معلمات كسر التخزين المؤقت لكل صورة
+              const imageBaseUrl = img.image_url.split('?')[0];
+              const updatedUrl = `${imageBaseUrl}?t=${timestamp}&nocache=${Math.random()}`;
+              console.log(`تحديث رابط الصورة للتصنيف ${img.category}: ${updatedUrl}`);
+              return {
+                ...img,
+                image_url: updatedUrl
+              };
+            }
+            return img;
+          });
 
-        setCategoryImages(updatedImages);
+          setCategoryImages(updatedImages);
+        } else {
+          console.log("لم يتم العثور على صور تصنيفات للمستخدم");
+          setCategoryImages([]);
+        }
       } catch (error: any) {
         console.error("خطأ في جلب صور التصنيفات:", error);
         toast({
@@ -50,11 +61,13 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
           description: error.message,
           variant: "destructive"
         });
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchCategoryImages();
   }, [userId, forceRefresh, toast]);
 
-  return categoryImages;
+  return { categoryImages, isLoading };
 };

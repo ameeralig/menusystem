@@ -10,7 +10,7 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
   const [isLoading, setIsLoading] = useState(true);
   const { storeSettings } = useStoreSettings(slug);
   const products = useStoreProducts(storeSettings.storeOwnerId, forceRefresh);
-  const categoryImages = useCategoryImages(storeSettings.storeOwnerId, forceRefresh);
+  const { categoryImages, isLoading: categoryImagesLoading } = useCategoryImages(storeSettings.storeOwnerId, forceRefresh);
   const bannerUrlRef = useRef<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<number>(Date.now());
 
@@ -29,11 +29,11 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
   }, [storeSettings.storeOwnerId, forceRefresh, categoryImages]);
 
   useEffect(() => {
-    if (storeSettings && products && categoryImages) {
+    if (storeSettings && products && !categoryImagesLoading) {
       console.log("Data loaded - stopping loading state");
       setIsLoading(false);
     }
-  }, [storeSettings, products, categoryImages]);
+  }, [storeSettings, products, categoryImagesLoading]);
 
   // تحديث الصفحة بشكل دوري لتحديث الصور
   useEffect(() => {

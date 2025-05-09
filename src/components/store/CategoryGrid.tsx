@@ -56,7 +56,7 @@ const CategoryCard = ({
       )}
       <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
         <h3 
-          className="text-white text-2xl font-bold tracking-wide"
+          className="text-white text-2xl font-bold tracking-wide px-3 text-center"
           style={fontStyle}
         >
           {category}
@@ -109,10 +109,15 @@ const CategoryGrid = ({
     return {};
   };
 
-  // دالة الحصول على صورة التصنيف - تم تعديلها للتصحيح
+  // دالة الحصول على صورة التصنيف - تم تعديلها للتعامل بشكل أفضل مع البيانات
   const getCategoryImageUrl = (category: string): string | null => {
+    if (!categoryImages || categoryImages.length === 0) {
+      console.log(`لا توجد صور تصنيفات متاحة للتصنيف ${category}`);
+      return null;
+    }
+    
     // البحث عن صورة مخصصة للتصنيف من قائمة الصور المخصصة
-    const customImage = categoryImages?.find(img => img.category === category);
+    const customImage = categoryImages.find(img => img.category === category);
     
     // إذا وجدنا صورة مخصصة، نستخدمها
     if (customImage && customImage.image_url) {
@@ -121,9 +126,11 @@ const CategoryGrid = ({
     }
     
     // إذا لم نجد صورة مخصصة، نعيد null ليتم عرض الأيقونة الافتراضية
+    console.log(`لم يتم العثور على صورة للتصنيف ${category}`);
     return null;
   };
 
+  // تسجيل معلومات التصحيح حول صور التصنيفات المتاحة
   console.log("CategoryGrid rendering with", categoryImages?.length || 0, "custom category images");
   if (categoryImages?.length > 0) {
     console.log("Available category images:", categoryImages.map(img => ({ 
