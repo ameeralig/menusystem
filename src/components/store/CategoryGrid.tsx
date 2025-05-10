@@ -1,6 +1,6 @@
 
 import { motion } from "framer-motion";
-import { CSSProperties, useEffect, useState, useRef } from "react";
+import { CSSProperties, useEffect, useState } from "react";
 import { CategoryImage } from "@/types/categoryImage";
 import { Folder } from "lucide-react";
 
@@ -31,24 +31,19 @@ const CategoryCard = ({
   fontStyle: CSSProperties;
 }) => {
   const [imgError, setImgError] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
   
-  // اختبار تحميل الصورة مسبقًا
+  // التحقق من وجود رابط صورة صالح
+  const hasValidImage = imageUrl && !imgError;
+  
+  // تسجيل معلومات التصحيح
   useEffect(() => {
-    if (!imageUrl) return;
-    
-    const preloadImage = new Image();
-    preloadImage.src = imageUrl;
-    preloadImage.onload = () => {
-      console.log(`تم تحميل الصورة مسبقًا للتصنيف ${category} بنجاح`);
-      setImgError(false);
-    };
-    preloadImage.onerror = () => {
-      console.error(`فشل تحميل الصورة للتصنيف ${category}`);
-      setImgError(true);
-    };
-  }, [imageUrl, category]);
-  
+    if (imageUrl) {
+      console.log(`التصنيف "${category}" له رابط صورة: ${imageUrl}`);
+    } else {
+      console.log(`التصنيف "${category}" ليس له صورة محددة`);
+    }
+  }, [category, imageUrl]);
+
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
@@ -56,16 +51,15 @@ const CategoryCard = ({
       onClick={onClick}
     >
       <div className="h-[140px] overflow-hidden">
-        {imageUrl && !imgError ? (
+        {hasValidImage ? (
           <img 
-            ref={imgRef}
             src={imageUrl} 
             alt={category}
-            className="w-full aspect-[16/9] object-cover transition-transform duration-300 group-hover:scale-110"
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
             loading="eager"
-            onLoad={() => console.log(`تم تحميل صورة التصنيف ${category} بنجاح`)}
+            onLoad={() => console.log(`تم تحميل صورة التصنيف "${category}" بنجاح`)}
             onError={() => {
-              console.error(`خطأ في تحميل صورة التصنيف ${category}`);
+              console.error(`فشل تحميل صورة التصنيف "${category}": ${imageUrl}`);
               setImgError(true);
             }}
           />
@@ -95,71 +89,25 @@ const CategoryGrid = ({
 }: CategoryGridProps) => {
   const [fontFaceLoaded, setFontFaceLoaded] = useState(false);
   const [fontId, setFontId] = useState<string>("");
-  const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({});
   
+  // معالجة الخط المخصص إذا كان متاحاً
   useEffect(() => {
     if (fontSettings?.categoryText?.isCustom && fontSettings?.categoryText?.customFontUrl) {
-      // Generate a unique ID for the font
       const uniqueId = `category-text-font-${Math.random().toString(36).substring(2, 9)}`;
       setFontId(uniqueId);
       
-      // Create a font face rule
       const fontFace = new FontFace(uniqueId, `url(${fontSettings.categoryText.customFontUrl})`);
       
-      // Load the font and add it to the document
       fontFace.load().then((loadedFontFace) => {
         document.fonts.add(loadedFontFace);
         setFontFaceLoaded(true);
       }).catch(err => {
-        console.error("Error loading custom font:", err);
+        console.error("خطأ في تحميل الخط المخصص:", err);
       });
-      
-      return () => {
-        // Clean up by removing the style element when the component unmounts
-        const styleElement = document.getElementById(`style-${uniqueId}`);
-        if (styleElement) {
-          styleElement.remove();
-        }
-      };
     }
   }, [fontSettings?.categoryText?.customFontUrl, fontSettings?.categoryText?.isCustom]);
   
-  useEffect(() => {
-    // تحميل الصور مسبقًا عند تغيير categoryImages
-    if (categoryImages && categoryImages.length > 0) {
-      const newLoadedState: Record<string, boolean> = {};
-      
-      categoryImages.forEach(img => {
-        if (img.image_url) {
-          const preloadImage = new Image();
-          const imageUrl = img.image_url.includes('?') 
-            ? img.image_url 
-            : `${img.image_url}?t=${Date.now()}`;
-            
-          preloadImage.src = imageUrl;
-          preloadImage.onload = () => {
-            setLoadedImages(prev => ({
-              ...prev,
-              [img.category]: true
-            }));
-            console.log(`تم تحميل صورة مسبقًا للتصنيف ${img.category} بنجاح`);
-          };
-          preloadImage.onerror = () => {
-            setLoadedImages(prev => ({
-              ...prev, 
-              [img.category]: false
-            }));
-            console.error(`فشل تحميل الصورة مسبقًا للتصنيف ${img.category}`);
-          };
-          
-          newLoadedState[img.category] = false;
-        }
-      });
-      
-      setLoadedImages(prev => ({ ...prev, ...newLoadedState }));
-    }
-  }, [categoryImages]);
-  
+  // إعداد نمط الخط
   const getCategoryTextStyle = (): CSSProperties => {
     if (fontSettings?.categoryText?.isCustom && fontId && fontFaceLoaded) {
       return { fontFamily: `"${fontId}", sans-serif` };
@@ -167,39 +115,49 @@ const CategoryGrid = ({
     return {};
   };
 
-  // دالة الحصول على صورة التصنيف - تم تحسينها
+  // وظيفة محسنة للحصول على صورة التصنيف
   const getCategoryImageUrl = (category: string): string | null => {
+    // تسجيل معلومات التصحيح
+    console.log(`البحث عن صورة للتصنيف "${category}" من بين ${categoryImages?.length || 0} صورة متاحة`);
+    
     if (!categoryImages || categoryImages.length === 0) {
-      console.log(`لا توجد صور تصنيفات متاحة للتصنيف ${category}`);
+      console.log(`لا توجد صور تصنيفات متاحة للتصنيف "${category}"`);
       return null;
     }
     
-    // البحث عن صورة مخصصة للتصنيف من قائمة الصور المخصصة
-    const customImage = categoryImages.find(img => img.category === category);
+    // البحث عن الصورة المطابقة للتصنيف
+    const imageData = categoryImages.find(img => img.category === category);
     
-    // إذا وجدنا صورة مخصصة، نستخدمها
-    if (customImage && customImage.image_url) {
-      const currentUrl = customImage.image_url;
-      const baseUrl = currentUrl.split('?')[0];
-      const finalUrl = `${baseUrl}?t=${Date.now()}`;
+    if (imageData && imageData.image_url) {
+      console.log(`تم العثور على صورة للتصنيف "${category}": ${imageData.image_url}`);
       
-      console.log(`استخدام صورة مخصصة للتصنيف ${category}:`, finalUrl);
+      // إضافة طابع زمني لكسر التخزين المؤقت
+      const timestamp = Date.now();
+      const baseUrl = imageData.image_url.split('?')[0];
+      const finalUrl = `${baseUrl}?t=${timestamp}`;
+      
       return finalUrl;
     }
     
-    // إذا لم نجد صورة مخصصة، نعيد null ليتم عرض الأيقونة الافتراضية
-    console.log(`لم يتم العثور على صورة للتصنيف ${category}`);
+    console.log(`لم يتم العثور على صورة للتصنيف "${category}"`);
     return null;
   };
 
-  // تسجيل معلومات التصحيح حول صور التصنيفات المتاحة
-  console.log("CategoryGrid rendering with", categoryImages?.length || 0, "custom category images");
-  if (categoryImages?.length > 0) {
-    console.log("Available category images:", categoryImages.map(img => ({ 
-      category: img.category, 
-      url: img.image_url 
-    })));
-  }
+  // عرض معلومات التصحيح عند تحميل المكون
+  useEffect(() => {
+    console.log(`تم تمرير ${categoryImages?.length || 0} صورة تصنيف إلى CategoryGrid`);
+    
+    if (categoryImages?.length > 0) {
+      console.log("صور التصنيفات المتاحة:", 
+        categoryImages.map(img => ({
+          category: img.category,
+          url: img.image_url
+        }))
+      );
+    }
+    
+    console.log(`عدد التصنيفات للعرض: ${categories.length}`);
+  }, [categories.length, categoryImages]);
 
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">

@@ -12,6 +12,7 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
   useEffect(() => {
     const fetchCategoryImages = async () => {
       if (!userId) {
+        console.log("لم يتم توفير معرف المستخدم");
         setIsLoading(false);
         return;
       }
@@ -19,6 +20,9 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
       try {
         console.log("جاري جلب صور التصنيفات للمستخدم:", userId);
         setIsLoading(true);
+        
+        // إضافة طابع زمني إلى الاستعلام لمنع التخزين المؤقت
+        const timestamp = Date.now();
         
         const { data, error } = await supabase
           .from("category_images")
@@ -29,21 +33,18 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
           throw error;
         }
 
-        console.log("تم استلام صور التصنيفات:", data?.length || 0, "صورة");
+        console.log(`تم استلام صور التصنيفات بنجاح، عددها: ${data?.length || 0}`);
+        if (data) {
+          console.log("بيانات صور التصنيفات:", JSON.stringify(data));
+        }
         
         if (data && data.length > 0) {
-          // إضافة طابع زمني لكسر التخزين المؤقت للصور
-          const timestamp = Date.now();
+          // معالجة روابط الصور لكسر التخزين المؤقت
           const updatedImages = data.map(img => {
             if (img.image_url) {
-              // تحديث الرابط بإضافة طابع زمني
               const imageBaseUrl = img.image_url.split('?')[0];
               const updatedUrl = `${imageBaseUrl}?t=${timestamp}`;
-              console.log(`تحديث رابط الصورة للتصنيف ${img.category}: ${updatedUrl}`);
-              
-              // التحقق من صحة الرابط
-              const imgTest = new Image();
-              imgTest.src = updatedUrl;
+              console.log(`تحديث رابط صورة التصنيف "${img.category}": ${updatedUrl}`);
               
               return {
                 ...img,
@@ -54,7 +55,7 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
           });
 
           setCategoryImages(updatedImages);
-          console.log("تم تحديث قائمة صور التصنيفات:", updatedImages.length);
+          console.log(`تم تحديث ${updatedImages.length} صورة تصنيف في الحالة المحلية`);
         } else {
           console.log("لم يتم العثور على صور تصنيفات للمستخدم");
           setCategoryImages([]);

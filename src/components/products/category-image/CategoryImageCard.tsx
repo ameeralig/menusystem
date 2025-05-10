@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,25 +23,52 @@ export const CategoryImageCard = ({
   uploading
 }: CategoryImageCardProps) => {
   const [imageError, setImageError] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-  // عندما يتم تحميل الصورة بنجاح
+  // تحديث عنوان URL للصورة مع طابع زمني لكسر التخزين المؤقت
+  useEffect(() => {
+    if (categoryImage?.image_url) {
+      const timestamp = Date.now();
+      const baseUrl = categoryImage.image_url.split('?')[0];
+      const url = `${baseUrl}?t=${timestamp}`;
+      setImageUrl(url);
+      console.log(`تم تحديث URL الصورة للتصنيف ${category}: ${url}`);
+      
+      // إعادة تعيين حالة الخطأ عند تغير رابط الصورة
+      setImageError(false);
+    } else {
+      setImageUrl(null);
+    }
+  }, [categoryImage, category]);
+
+  // معالجة تحميل الصورة بنجاح
   const handleImageLoad = () => {
     console.log(`تم تحميل صورة التصنيف ${category} بنجاح`);
     setImageError(false);
   };
 
-  // عندما يفشل تحميل الصورة
+  // معالجة فشل تحميل الصورة
   const handleImageError = () => {
     console.error(`خطأ في تحميل صورة التصنيف ${category}`);
     setImageError(true);
   };
+
+  // تحميل مسبق للصورة
+  useEffect(() => {
+    if (imageUrl) {
+      const img = new Image();
+      img.src = imageUrl;
+      img.onload = handleImageLoad;
+      img.onerror = handleImageError;
+    }
+  }, [imageUrl]);
 
   return (
     <Card className="overflow-hidden">
       <CardContent className="p-4 space-y-3">
         <div className="flex items-center justify-between">
           <Label className="text-base font-medium">{category}</Label>
-          {categoryImage && !imageError && (
+          {imageUrl && !imageError && (
             <Button
               variant="ghost"
               size="icon"
@@ -53,10 +80,10 @@ export const CategoryImageCard = ({
           )}
         </div>
 
-        {categoryImage && !imageError ? (
+        {imageUrl && !imageError ? (
           <div className="relative aspect-video rounded-md overflow-hidden">
             <img
-              src={`${categoryImage.image_url}?t=${new Date().getTime()}`}
+              src={imageUrl}
               alt={category}
               className="w-full h-full object-cover"
               onLoad={handleImageLoad}
