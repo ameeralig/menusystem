@@ -29,42 +29,62 @@ const CategoryCard = ({
   imageUrl: string | null; 
   onClick: () => void;
   fontStyle: CSSProperties;
-}) => (
-  <motion.div
-    whileHover={{ scale: 1.02 }}
-    className="relative overflow-hidden rounded-[30px] cursor-pointer shadow-md group"
-    onClick={onClick}
-  >
-    <div className="h-[140px] overflow-hidden">
-      {imageUrl ? (
-        <img 
-          src={imageUrl} 
-          alt={category}
-          className="w-full aspect-[16/9] object-cover transition-transform duration-300 group-hover:scale-110"
-          loading="eager"
-          onError={(e) => {
-            console.error(`خطأ في تحميل صورة التصنيف ${category}:`, e);
-            (e.target as HTMLImageElement).onerror = null;
-            (e.target as HTMLImageElement).src = ''; // إزالة المصدر للسماح بظهور العنصر الاحتياطي
-          }}
-          onLoad={() => console.log(`تم تحميل صورة التصنيف ${category} بنجاح`)}
-        />
-      ) : (
-        <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-          <Folder className="h-12 w-12 text-gray-400" />
+}) => {
+  const [imageLoaded, setImageLoaded] = useState<boolean>(false);
+  const [imageError, setImageError] = useState<boolean>(false);
+  
+  // إعادة تعيين حالات تحميل الصورة عند تغيير الرابط
+  useEffect(() => {
+    setImageLoaded(false);
+    setImageError(false);
+  }, [imageUrl]);
+  
+  return (
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      className="relative overflow-hidden rounded-[30px] cursor-pointer shadow-md group"
+      onClick={onClick}
+    >
+      <div className="h-[140px] overflow-hidden">
+        {imageUrl && !imageError ? (
+          <div className="relative w-full h-full">
+            {!imageLoaded && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            )}
+            <img 
+              src={imageUrl} 
+              alt={category}
+              className={`w-full aspect-[16/9] object-cover transition-transform duration-300 group-hover:scale-110 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+              loading="eager"
+              onLoad={() => {
+                console.log(`تم تحميل صورة التصنيف ${category} بنجاح من الرابط ${imageUrl}`);
+                setImageLoaded(true);
+              }}
+              onError={(e) => {
+                console.error(`خطأ في تحميل صورة التصنيف ${category}:`, e);
+                setImageError(true);
+              }}
+            />
+          </div>
+        ) : (
+          <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+            <Folder className="h-12 w-12 text-gray-400" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+          <h3 
+            className="text-white text-2xl font-bold tracking-wide px-3 text-center"
+            style={fontStyle}
+          >
+            {category}
+          </h3>
         </div>
-      )}
-      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-        <h3 
-          className="text-white text-2xl font-bold tracking-wide px-3 text-center"
-          style={fontStyle}
-        >
-          {category}
-        </h3>
       </div>
-    </div>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
 
 const CategoryGrid = ({ 
   categories, 
@@ -74,6 +94,17 @@ const CategoryGrid = ({
 }: CategoryGridProps) => {
   const [fontFaceLoaded, setFontFaceLoaded] = useState(false);
   const [fontId, setFontId] = useState<string>("");
+  
+  // طباعة معلومات للتصحيح عن صور التصنيفات المتاحة
+  useEffect(() => {
+    console.log("صور التصنيفات المتاحة في CategoryGrid:", categoryImages);
+    if (categoryImages?.length > 0) {
+      console.log("تفاصيل صور التصنيفات:", categoryImages.map(img => ({ 
+        category: img.category, 
+        url: img.image_url 
+      })));
+    }
+  }, [categoryImages]);
   
   useEffect(() => {
     if (fontSettings?.categoryText?.isCustom && fontSettings?.categoryText?.customFontUrl) {
@@ -109,7 +140,7 @@ const CategoryGrid = ({
     return {};
   };
 
-  // دالة الحصول على صورة التصنيف - تم تعديلها للتعامل بشكل أفضل مع البيانات
+  // دالة الحصول على صورة التصنيف - تحسين عملية البحث وإضافة طابع زمني لمنع التخزين المؤقت
   const getCategoryImageUrl = (category: string): string | null => {
     if (!categoryImages || categoryImages.length === 0) {
       console.log(`لا توجد صور تصنيفات متاحة للتصنيف ${category}`);
@@ -119,25 +150,25 @@ const CategoryGrid = ({
     // البحث عن صورة مخصصة للتصنيف من قائمة الصور المخصصة
     const customImage = categoryImages.find(img => img.category === category);
     
-    // إذا وجدنا صورة مخصصة، نستخدمها
+    // إذا وجدنا صورة مخصصة، نستخدمها مع إضافة طابع زمني لتجنب المشاكل
     if (customImage && customImage.image_url) {
-      console.log(`استخدام صورة مخصصة للتصنيف ${category}:`, customImage.image_url);
-      return customImage.image_url;
+      let finalUrl = customImage.image_url;
+      
+      // إضافة طابع زمني لمنع التخزين المؤقت إذا لم يكن موجوداً بالفعل
+      if (!finalUrl.includes('?')) {
+        finalUrl = `${finalUrl}?t=${Date.now()}`;
+      } else if (!finalUrl.includes('t=')) {
+        finalUrl = `${finalUrl}&t=${Date.now()}`;
+      }
+      
+      console.log(`استخدام صورة مخصصة للتصنيف ${category}:`, finalUrl);
+      return finalUrl;
     }
     
     // إذا لم نجد صورة مخصصة، نعيد null ليتم عرض الأيقونة الافتراضية
     console.log(`لم يتم العثور على صورة للتصنيف ${category}`);
     return null;
   };
-
-  // تسجيل معلومات التصحيح حول صور التصنيفات المتاحة
-  console.log("CategoryGrid rendering with", categoryImages?.length || 0, "custom category images");
-  if (categoryImages?.length > 0) {
-    console.log("Available category images:", categoryImages.map(img => ({ 
-      category: img.category, 
-      url: img.image_url 
-    })));
-  }
 
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
