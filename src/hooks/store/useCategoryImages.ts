@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { CategoryImage } from "@/types/categoryImage";
 
 export const useCategoryImages = (userId: string | null, forceRefresh: number) => {
@@ -30,17 +30,21 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
         }
 
         console.log("تم استلام صور التصنيفات:", data?.length || 0, "صورة");
-        console.log("البيانات المستلمة:", JSON.stringify(data));
         
         if (data && data.length > 0) {
           // إضافة طابع زمني لكسر التخزين المؤقت للصور
           const timestamp = Date.now();
           const updatedImages = data.map(img => {
             if (img.image_url) {
-              // التأكد من إضافة معلمات كسر التخزين المؤقت لكل صورة
+              // تحديث الرابط بإضافة طابع زمني
               const imageBaseUrl = img.image_url.split('?')[0];
-              const updatedUrl = `${imageBaseUrl}?t=${timestamp}&nocache=${Math.random()}`;
+              const updatedUrl = `${imageBaseUrl}?t=${timestamp}`;
               console.log(`تحديث رابط الصورة للتصنيف ${img.category}: ${updatedUrl}`);
+              
+              // التحقق من صحة الرابط
+              const imgTest = new Image();
+              imgTest.src = updatedUrl;
+              
               return {
                 ...img,
                 image_url: updatedUrl
@@ -50,6 +54,7 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
           });
 
           setCategoryImages(updatedImages);
+          console.log("تم تحديث قائمة صور التصنيفات:", updatedImages.length);
         } else {
           console.log("لم يتم العثور على صور تصنيفات للمستخدم");
           setCategoryImages([]);

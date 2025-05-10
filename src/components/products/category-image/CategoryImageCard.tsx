@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,12 +22,26 @@ export const CategoryImageCard = ({
   onRemoveImage,
   uploading
 }: CategoryImageCardProps) => {
+  const [imageError, setImageError] = useState(false);
+
+  // عندما يتم تحميل الصورة بنجاح
+  const handleImageLoad = () => {
+    console.log(`تم تحميل صورة التصنيف ${category} بنجاح`);
+    setImageError(false);
+  };
+
+  // عندما يفشل تحميل الصورة
+  const handleImageError = () => {
+    console.error(`خطأ في تحميل صورة التصنيف ${category}`);
+    setImageError(true);
+  };
+
   return (
     <Card className="overflow-hidden">
       <CardContent className="p-4 space-y-3">
         <div className="flex items-center justify-between">
           <Label className="text-base font-medium">{category}</Label>
-          {categoryImage && (
+          {categoryImage && !imageError && (
             <Button
               variant="ghost"
               size="icon"
@@ -39,12 +53,14 @@ export const CategoryImageCard = ({
           )}
         </div>
 
-        {categoryImage ? (
+        {categoryImage && !imageError ? (
           <div className="relative aspect-video rounded-md overflow-hidden">
             <img
-              src={categoryImage.image_url}
+              src={`${categoryImage.image_url}?t=${new Date().getTime()}`}
               alt={category}
               className="w-full h-full object-cover"
+              onLoad={handleImageLoad}
+              onError={handleImageError}
             />
           </div>
         ) : (

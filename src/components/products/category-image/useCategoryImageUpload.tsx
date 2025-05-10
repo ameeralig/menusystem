@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { CategoryImage } from "@/types/categoryImage";
 import { deleteImage } from "@/utils/storageHelpers";
 
@@ -19,7 +19,6 @@ export const useCategoryImageUpload = ({
   
   // تنظيف اسم التصنيف ليكون صالحاً للاستخدام في مسارات الملفات
   const sanitizeFileName = (fileName: string): string => {
-    // استبدال الأحرف الخاصة والمسافات بشرطة سفلية
     return fileName
       .replace(/\s+/g, '_')
       .replace(/[^\w.-]/g, '_');
@@ -44,29 +43,35 @@ export const useCategoryImageUpload = ({
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
 
       const fileExt = file.name.split(".").pop();
-      // استخدام الدالة لتنظيف اسم التصنيف
       const sanitizedCategory = sanitizeFileName(category);
       const fileName = `${user.id}_${sanitizedCategory}_${Date.now()}.${fileExt}`;
-      const filePath = `${fileName}`;
 
-      console.log("File path for upload:", filePath);
+      console.log(`بدء رفع صورة التصنيف ${category} إلى Supabase`);
 
-      const { error: uploadError } = await supabase.storage
+      // رفع الصورة إلى مجلد category-images
+      const { error: uploadError, data } = await supabase.storage
         .from("category-images")
-        .upload(filePath, file, {
-          cacheControl: 'no-cache',
-          upsert: true
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true,
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("خطأ في رفع الصورة:", uploadError);
+        throw uploadError;
+      }
 
+      console.log(`تم رفع الصورة بنجاح، جاري الحصول على الرابط العام`);
+
+      // الحصول على الرابط العام للصورة
       const { data: { publicUrl } } = supabase.storage
         .from("category-images")
-        .getPublicUrl(filePath);
+        .getPublicUrl(fileName);
         
-      // إضافة معلمات لمنع التخزين المؤقت للصورة
-      const timestamp = Date.now();
-      const finalUrl = `${publicUrl}?t=${timestamp}`;
+      // إضافة معلمة زمنية لمنع التخزين المؤقت
+      const finalUrl = `${publicUrl}?t=${Date.now()}`;
+
+      console.log(`تم الحصول على الرابط العام: ${finalUrl}`);
 
       // إضافة أو تحديث صورة التصنيف في قاعدة البيانات
       const { error: dbError } = await supabase
@@ -74,14 +79,21 @@ export const useCategoryImageUpload = ({
         .upsert({
           user_id: user.id,
           category,
-          image_url: finalUrl,
+          image_url: publicUrl, // استخدام الرابط الأصلي بدون معلمات إضافية
         });
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error("خطأ في حفظ بيانات الصورة في قاعدة البيانات:", dbError);
+        throw dbError;
+      }
 
+      console.log(`تم تحديث قاعدة البيانات بنجاح`);
+
+      // تحديث القائمة المحلية للصور
       const updatedImages = [...categoryImages.filter(img => img.category !== category), 
         { category, image_url: finalUrl }
       ];
+      
       onUpdateImages(updatedImages);
 
       toast({
@@ -108,6 +120,13 @@ export const useCategoryImageUpload = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
 
+      // استخراج اسم الملف من رابط الصورة
+      const pathParts = imageToDelete.image_url.split("/");
+      const fileNameWithParams = pathParts[pathParts.length - 1];
+      const fileName = fileNameWithParams.split("?")[0];
+
+      console.log(`محاولة حذف الملف: ${fileName}`);
+
       // حذف السجل من قاعدة البيانات
       const { error: dbError } = await supabase
         .from("category_images")
@@ -116,10 +135,15 @@ export const useCategoryImageUpload = ({
 
       if (dbError) throw dbError;
 
-      // حذف الملف من التخزين إذا كان موجوداً
-      const fileName = imageToDelete.image_url.split("/").pop()?.split("?")[0];
+      // حذف الملف من التخزين
       if (fileName) {
-        await deleteImage("category-images", fileName);
+        const { error: storageError } = await supabase.storage
+          .from("category-images")
+          .remove([fileName]);
+          
+        if (storageError) {
+          console.warn(`تحذير: فشل في حذف الملف من التخزين`, storageError);
+        }
       }
 
       const updatedImages = categoryImages.filter(img => img.category !== category);
