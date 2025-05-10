@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Image, X } from "lucide-react";
+import { ImageIcon, X } from "lucide-react";
 import { CategoryImage } from "@/types/categoryImage";
 
 interface CategoryImageCardProps {
@@ -56,10 +56,10 @@ export const CategoryImageCard = ({
   // تحميل مسبق للصورة
   useEffect(() => {
     if (imageUrl) {
-      const img = new Image();
-      img.src = imageUrl;
-      img.onload = handleImageLoad;
-      img.onerror = handleImageError;
+      const imgElement = document.createElement('img');
+      imgElement.src = imageUrl;
+      imgElement.onload = handleImageLoad;
+      imgElement.onerror = handleImageError;
     }
   }, [imageUrl]);
 
@@ -92,7 +92,7 @@ export const CategoryImageCard = ({
           </div>
         ) : (
           <div className="aspect-video rounded-md bg-muted flex items-center justify-center">
-            <Image className="h-8 w-8 text-muted-foreground" />
+            <ImageIcon className="h-8 w-8 text-muted-foreground" />
           </div>
         )}
 
