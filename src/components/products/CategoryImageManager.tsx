@@ -1,12 +1,9 @@
 
-import { useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { CategoryImage } from "@/types/categoryImage";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CategoryImageCard } from "./category-image/CategoryImageCard";
 import { useCategoryImageUpload } from "./category-image/useCategoryImageUpload";
-import { ensureBucketExists } from "@/utils/storageHelpers";
-import { supabase } from "@/integrations/supabase/client";
 
 interface CategoryImageManagerProps {
   categories: string[];
@@ -23,35 +20,6 @@ export const CategoryImageManager = ({
     categoryImages,
     onUpdateImages
   });
-
-  // التحقق من وجود مستودع صور التصنيفات عند تحميل المكون
-  useEffect(() => {
-    const checkBucket = async () => {
-      try {
-        // التحقق من تسجيل دخول المستخدم
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-        
-        // التأكد من وجود المستودع
-        const bucketExists = await ensureBucketExists("category-images");
-        if (bucketExists) {
-          console.log("تم التأكد من وجود مستودع صور التصنيفات");
-        } else {
-          console.error("فشل في إنشاء مستودع صور التصنيفات");
-        }
-      } catch (error) {
-        console.error("خطأ في التحقق من مستودع صور التصنيفات:", error);
-      }
-    };
-    
-    checkBucket();
-  }, []);
-
-  // طباعة معلومات للتصحيح
-  useEffect(() => {
-    console.log("CategoryImageManager: التصنيفات:", categories);
-    console.log("CategoryImageManager: صور التصنيفات:", categoryImages);
-  }, [categories, categoryImages]);
 
   if (categories.length === 0) {
     return (

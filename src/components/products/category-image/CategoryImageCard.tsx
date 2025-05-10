@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,27 +22,6 @@ export const CategoryImageCard = ({
   onRemoveImage,
   uploading
 }: CategoryImageCardProps) => {
-  const [imageError, setImageError] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
-
-  // إعادة تعيين حالة الصورة عند تغيير رابط الصورة
-  useEffect(() => {
-    if (categoryImage?.image_url) {
-      setImageError(false);
-      setImageLoaded(false);
-    }
-  }, [categoryImage?.image_url]);
-
-  const handleImageError = () => {
-    console.error(`خطأ في تحميل صورة التصنيف ${category}`);
-    setImageError(true);
-  };
-
-  const handleImageLoad = () => {
-    console.log(`تم تحميل صورة التصنيف ${category} بنجاح`);
-    setImageLoaded(true);
-  };
-
   return (
     <Card className="overflow-hidden">
       <CardContent className="p-4 space-y-3">
@@ -60,19 +39,12 @@ export const CategoryImageCard = ({
           )}
         </div>
 
-        {categoryImage?.image_url && !imageError ? (
+        {categoryImage ? (
           <div className="relative aspect-video rounded-md overflow-hidden">
-            {!imageLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            )}
             <img
               src={categoryImage.image_url}
               alt={category}
-              className={`w-full h-full object-cover ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-              onError={handleImageError}
-              onLoad={handleImageLoad}
+              className="w-full h-full object-cover"
             />
           </div>
         ) : (

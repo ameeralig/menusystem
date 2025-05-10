@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { CategoryImage } from "@/types/categoryImage";
@@ -25,7 +25,7 @@ export const useCategoryImageUpload = ({
       .replace(/[^\w.-]/g, '_');
   };
 
-  const handleFileUpload = useCallback(async (category: string, file: File) => {
+  const handleFileUpload = async (category: string, file: File) => {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
@@ -49,20 +49,9 @@ export const useCategoryImageUpload = ({
       const fileName = `${user.id}_${sanitizedCategory}_${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
-      console.log("مسار الملف للرفع:", filePath);
-      console.log("نوع الملف:", file.type);
-      console.log("حجم الملف:", file.size);
+      console.log("File path for upload:", filePath);
 
-      // التحقق من وجود المستودع قبل الرفع
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const categoryBucket = buckets?.find(b => b.name === "category-images");
-      
-      if (!categoryBucket) {
-        console.error("المستودع category-images غير موجود. يرجى التحقق من تكوين Supabase.");
-        throw new Error("مستودع صور التصنيفات غير موجود");
-      }
-
-      const { error: uploadError, data } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from("category-images")
         .upload(filePath, file, {
           cacheControl: 'no-cache',
@@ -70,8 +59,6 @@ export const useCategoryImageUpload = ({
         });
 
       if (uploadError) throw uploadError;
-
-      console.log("تم رفع الملف بنجاح:", data);
 
       const { data: { publicUrl } } = supabase.storage
         .from("category-images")
@@ -81,8 +68,6 @@ export const useCategoryImageUpload = ({
       const timestamp = Date.now();
       const finalUrl = `${publicUrl}?t=${timestamp}`;
 
-      console.log("الرابط العام للصورة:", finalUrl);
-
       // إضافة أو تحديث صورة التصنيف في قاعدة البيانات
       const { error: dbError } = await supabase
         .from("category_images")
@@ -90,13 +75,9 @@ export const useCategoryImageUpload = ({
           user_id: user.id,
           category,
           image_url: finalUrl,
-        }, {
-          onConflict: 'user_id,category' // تحديد العمود الذي يتم استخدامه للتحقق من التكرار
         });
 
       if (dbError) throw dbError;
-
-      console.log("تم تحديث قاعدة البيانات بنجاح");
 
       const updatedImages = [...categoryImages.filter(img => img.category !== category), 
         { category, image_url: finalUrl }
@@ -117,9 +98,9 @@ export const useCategoryImageUpload = ({
     } finally {
       setUploading(null);
     }
-  }, [categoryImages, toast, onUpdateImages]);
+  };
 
-  const removeImage = useCallback(async (category: string) => {
+  const removeImage = async (category: string) => {
     const imageToDelete = categoryImages.find(img => img.category === category);
     if (!imageToDelete) return;
 
@@ -131,18 +112,14 @@ export const useCategoryImageUpload = ({
       const { error: dbError } = await supabase
         .from("category_images")
         .delete()
-        .eq("user_id", user.id)
-        .eq("category", category);
+        .match({ user_id: user.id, category });
 
       if (dbError) throw dbError;
 
-      // محاولة حذف الملف من التخزين إذا تم استخراج اسم الملف بنجاح
-      const fullPath = imageToDelete.image_url.split("/").pop()?.split("?")[0];
-      if (fullPath) {
-        console.log("محاولة حذف الصورة من المستودع:", fullPath);
-        await supabase.storage
-          .from("category-images")
-          .remove([fullPath]);
+      // حذف الملف من التخزين إذا كان موجوداً
+      const fileName = imageToDelete.image_url.split("/").pop()?.split("?")[0];
+      if (fileName) {
+        await deleteImage("category-images", fileName);
       }
 
       const updatedImages = categoryImages.filter(img => img.category !== category);
@@ -160,7 +137,7 @@ export const useCategoryImageUpload = ({
         description: error.message,
       });
     }
-  }, [categoryImages, toast, onUpdateImages]);
+  };
 
   return {
     uploading,

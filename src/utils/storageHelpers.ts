@@ -12,27 +12,15 @@ export const deleteImage = async (
   path: string
 ): Promise<boolean> => {
   try {
-    console.log(`محاولة حذف صورة من ${bucket}: ${path}`);
-    
-    // التحقق من وجود المستودع أولاً
-    const { data: buckets } = await supabase.storage.listBuckets();
-    const bucketExists = buckets?.some(b => b.name === bucket);
-    
-    if (!bucketExists) {
-      console.error(`المستودع ${bucket} غير موجود`);
-      return false;
-    }
-    
-    const { error, data } = await supabase.storage
+    console.log(`Attempting to delete image from ${bucket}: ${path}`);
+    const { error } = await supabase.storage
       .from(bucket)
       .remove([path]);
     
     if (error) {
-      console.error("خطأ في حذف الصورة:", error);
+      console.error("Error deleting image:", error);
       throw error;
     }
-    
-    console.log("تم حذف الصورة بنجاح:", data);
     return true;
   } catch (error) {
     console.error("خطأ في حذف الصورة:", error);
@@ -70,24 +58,11 @@ export const uploadImage = async (
   folder: string = ''
 ): Promise<string> => {
   try {
-    // التحقق من وجود المستودع أولاً
-    const { data: buckets } = await supabase.storage.listBuckets();
-    const bucketExists = buckets?.some(b => b.name === bucket);
-    
-    if (!bucketExists) {
-      throw new Error(`المستودع ${bucket} غير موجود. يرجى التحقق من إعدادات Supabase.`);
-    }
-    
     const filePath = createUniqueFilePath(userId, folder, file);
-    
-    console.log(`رفع الملف ${file.name} إلى المستودع ${bucket}/${filePath}`);
     
     const { error: uploadError, data } = await supabase.storage
       .from(bucket)
-      .upload(filePath, file, {
-        cacheControl: 'no-cache',
-        upsert: true
-      });
+      .upload(filePath, file);
 
     if (uploadError) {
       console.error("خطأ في رفع الصورة:", uploadError);
@@ -98,13 +73,7 @@ export const uploadImage = async (
       .from(bucket)
       .getPublicUrl(filePath);
 
-    // إضافة طابع زمني لمنع التخزين المؤقت
-    const timestamp = Date.now();
-    const finalUrl = `${publicUrl}?t=${timestamp}`;
-    
-    console.log(`تم رفع الصورة بنجاح. الرابط العام: ${finalUrl}`);
-    
-    return finalUrl;
+    return publicUrl;
   } catch (error) {
     console.error("خطأ في رفع الصورة:", error);
     throw error;
@@ -121,39 +90,4 @@ export const urlToFile = async (url: string, filename: string): Promise<File> =>
   const response = await fetch(url);
   const blob = await response.blob();
   return new File([blob], filename, { type: blob.type });
-};
-
-/**
- * التحقق من وجود مستودع وإنشائه إذا كان غير موجود
- * @param bucket اسم المستودع
- * @returns نجاح أو فشل العملية
- */
-export const ensureBucketExists = async (bucket: string): Promise<boolean> => {
-  try {
-    // التحقق من وجود المستودع
-    const { data: buckets } = await supabase.storage.listBuckets();
-    const bucketExists = buckets?.some(b => b.name === bucket);
-    
-    if (bucketExists) {
-      console.log(`المستودع ${bucket} موجود بالفعل`);
-      return true;
-    }
-    
-    // إنشاء المستودع إذا لم يكن موجوداً
-    console.log(`محاولة إنشاء المستودع ${bucket}...`);
-    const { error } = await supabase.storage.createBucket(bucket, {
-      public: true
-    });
-    
-    if (error) {
-      console.error(`خطأ في إنشاء المستودع ${bucket}:`, error);
-      return false;
-    }
-    
-    console.log(`تم إنشاء المستودع ${bucket} بنجاح`);
-    return true;
-  } catch (error) {
-    console.error("خطأ في التحقق من وجود المستودع:", error);
-    return false;
-  }
 };
