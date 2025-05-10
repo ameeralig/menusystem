@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,7 +26,7 @@ export const CategoryImageCard = ({
   const [imageLoaded, setImageLoaded] = useState(false);
 
   // إعادة تعيين حالة الصورة عند تغيير رابط الصورة
-  React.useEffect(() => {
+  useEffect(() => {
     if (categoryImage?.image_url) {
       setImageError(false);
       setImageLoaded(false);
