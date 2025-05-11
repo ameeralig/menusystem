@@ -1,11 +1,12 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { ImageIcon, X, Loader2 } from "lucide-react";
 import { CategoryImage } from "@/types/categoryImage";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface CategoryImageCardProps {
   category: string;
@@ -24,6 +25,15 @@ export const CategoryImageCard = ({
 }: CategoryImageCardProps) => {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // عند تغيير صورة التصنيف، نعيد تعيين حالة التحميل والخطأ
+    if (categoryImage?.image_url) {
+      setIsLoading(true);
+      setImageError(false);
+    }
+  }, [categoryImage?.image_url]);
 
   const handleImageLoad = () => {
     console.log(`تم تحميل صورة التصنيف ${category} بنجاح`);
@@ -35,6 +45,23 @@ export const CategoryImageCard = ({
     console.error(`خطأ في تحميل صورة التصنيف ${category}`);
     setImageError(true);
     setIsLoading(false);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      onFileUpload(category, e.target.files[0]);
+      
+      // إعادة تعيين حقل الملف بعد الرفع
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
   };
 
   return (
@@ -55,7 +82,7 @@ export const CategoryImageCard = ({
         </div>
 
         {categoryImage?.image_url && !imageError ? (
-          <div className="relative aspect-video rounded-md overflow-hidden bg-muted">
+          <div className="relative aspect-video rounded-md overflow-hidden bg-muted cursor-pointer" onClick={triggerFileInput}>
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-10">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -72,21 +99,43 @@ export const CategoryImageCard = ({
             />
           </div>
         ) : (
-          <div className="aspect-video rounded-md bg-muted flex items-center justify-center">
-            <ImageIcon className="h-8 w-8 text-muted-foreground" />
+          <div 
+            className="aspect-video rounded-md bg-muted flex flex-col items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors"
+            onClick={triggerFileInput}
+          >
+            <ImageIcon className="h-8 w-8 text-muted-foreground mb-2" />
+            <span className="text-xs text-muted-foreground">انقر لاختيار صورة</span>
           </div>
         )}
 
-        <div className="flex items-center gap-2">
-          <Input
+        <div className="flex flex-col gap-2">
+          <input
+            ref={fileInputRef}
             type="file"
             accept="image/*"
-            onChange={(e) => e.target.files?.[0] && onFileUpload(category, e.target.files[0])}
-            className="text-xs"
+            onChange={handleFileChange}
+            className="hidden"
           />
-          {uploading && (
-            <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
-          )}
+          
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={triggerFileInput}
+              disabled={uploading}
+            >
+              {uploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  جاري الرفع...
+                </>
+              ) : (
+                <>اختيار صورة</>
+              )}
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

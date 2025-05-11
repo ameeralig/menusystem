@@ -4,6 +4,7 @@ import { CategoryImage } from "@/types/categoryImage";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CategoryImageCard } from "./category-image/CategoryImageCard";
 import { useCategoryImageUpload } from "./category-image/useCategoryImageUpload";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 interface CategoryImageManagerProps {
   categories: string[];
@@ -36,32 +37,34 @@ export const CategoryImageManager = ({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col space-y-2">
-        <h3 className="text-lg font-semibold">إدارة صور التصنيفات</h3>
-        <p className="text-sm text-muted-foreground">
-          يمكنك تخصيص صورة لكل تصنيف تظهر في صفحة المعاينة. صور التصنيفات منفصلة تماماً عن صور المنتجات.
-        </p>
+    <TooltipProvider>
+      <div className="space-y-4">
+        <div className="flex flex-col space-y-2">
+          <h3 className="text-lg font-semibold">إدارة صور التصنيفات</h3>
+          <p className="text-sm text-muted-foreground">
+            يمكنك تخصيص صورة لكل تصنيف تظهر في صفحة المعاينة. صور التصنيفات منفصلة تماماً عن صور المنتجات.
+          </p>
+        </div>
+        
+        <Separator className="my-4" />
+        
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {categories.map((category) => {
+            const categoryImage = categoryImages.find(img => img.category === category);
+            
+            return (
+              <CategoryImageCard
+                key={category}
+                category={category}
+                categoryImage={categoryImage}
+                onFileUpload={handleFileUpload}
+                onRemoveImage={removeImage}
+                uploading={uploading === category}
+              />
+            );
+          })}
+        </div>
       </div>
-      
-      <Separator className="my-4" />
-      
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {categories.map((category) => {
-          const categoryImage = categoryImages.find(img => img.category === category);
-          
-          return (
-            <CategoryImageCard
-              key={category}
-              category={category}
-              categoryImage={categoryImage}
-              onFileUpload={handleFileUpload}
-              onRemoveImage={removeImage}
-              uploading={uploading === category}
-            />
-          );
-        })}
-      </div>
-    </div>
+    </TooltipProvider>
   );
 };

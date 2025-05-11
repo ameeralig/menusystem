@@ -32,14 +32,14 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
 
         console.log(`تم استلام صور التصنيفات بنجاح، عددها: ${data?.length || 0}`);
         
-        // إضافة طابع زمني لجميع الصور لكسر التخزين المؤقت - بنفس طريقة المنتجات
+        // إضافة طابع زمني لجميع الصور لكسر التخزين المؤقت
         const uniqueTimestamp = forceRefresh || Date.now();
         const cacheBreaker = `t=${uniqueTimestamp}&nocache=${Math.random()}`;
         
         if (data && data.length > 0) {
           const updatedImages = data.map(img => {
             if (img.image_url) {
-              // تطبيق نفس أسلوب المنتجات: استخراج الرابط الأساسي وإضافة طابع زمني
+              // استخراج الرابط الأساسي وإضافة طابع زمني
               const imageBaseUrl = img.image_url.split('?')[0];
               return {
                 ...img,
