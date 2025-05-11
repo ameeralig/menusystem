@@ -25,36 +25,37 @@ export const CategoryImageCard = ({
   const [imageError, setImageError] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [uniqueId] = useState<string>(`${category}-${Math.random().toString(36).substring(2, 9)}`);
 
-  // تحديث عنوان URL للصورة مع طابع زمني جديد في كل مرة يتغير فيها categoryImage
+  // تحديث رابط الصورة مع معرّف فريد في كل مرة يتغير فيها categoryImage
   useEffect(() => {
     if (categoryImage?.image_url) {
       setIsLoading(true);
+      setImageError(false); // إعادة ضبط حالة الخطأ
+
+      // تأكد من تجديد رابط الصورة دائماً
       const timestamp = Date.now();
-      // تأكد من تطبيق طابع زمني جديد دائمًا
       const baseUrl = categoryImage.image_url.split('?')[0];
-      const url = `${baseUrl}?t=${timestamp}`;
-      setImageUrl(url);
-      console.log(`تم تحديث URL الصورة للتصنيف ${category}: ${url}`);
+      const url = `${baseUrl}?t=${timestamp}&uid=${uniqueId}&nocache=true`;
       
-      // إعادة تعيين حالة الخطأ عند تغير رابط الصورة
-      setImageError(false);
+      setImageUrl(url);
+      console.log(`[CategoryImageCard] تم تحديث URL الصورة للتصنيف ${category}: ${url}`);
     } else {
       setImageUrl(null);
       setIsLoading(false);
     }
-  }, [categoryImage, category]);
+  }, [categoryImage, category, uniqueId]);
 
   // معالجة تحميل الصورة بنجاح
   const handleImageLoad = () => {
-    console.log(`تم تحميل صورة التصنيف ${category} بنجاح`);
+    console.log(`✅ [CategoryImageCard] تم تحميل صورة التصنيف ${category} بنجاح`);
     setImageError(false);
     setIsLoading(false);
   };
 
   // معالجة فشل تحميل الصورة
   const handleImageError = () => {
-    console.error(`خطأ في تحميل صورة التصنيف ${category}`);
+    console.error(`❌ [CategoryImageCard] خطأ في تحميل صورة التصنيف ${category}`);
     setImageError(true);
     setIsLoading(false);
   };
@@ -90,7 +91,10 @@ export const CategoryImageCard = ({
               onLoad={handleImageLoad}
               onError={handleImageError}
               loading="eager"
-              style={{ display: isLoading ? 'none' : 'block' }}
+              style={{ 
+                display: isLoading ? 'none' : 'block',
+                maxWidth: '100%' 
+              }}
             />
           </div>
         ) : (
@@ -105,6 +109,7 @@ export const CategoryImageCard = ({
             accept="image/*"
             onChange={(e) => e.target.files?.[0] && onFileUpload(category, e.target.files[0])}
             className="text-xs"
+            disabled={uploading}
           />
           {uploading && (
             <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />

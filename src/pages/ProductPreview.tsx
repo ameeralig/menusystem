@@ -10,6 +10,8 @@ import { useStoreData } from "@/hooks/useStoreData";
 import { useRefreshData } from "@/hooks/useRefreshData";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 const ProductPreview = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -46,6 +48,18 @@ const ProductPreview = () => {
     };
   }, []);
 
+  // التحديث اليدوي الآن
+  const handleManualRefresh = () => {
+    console.log("تحديث يدوي للبيانات...");
+    refreshData();
+    
+    // تحديث الطابع الزمني
+    const newRefreshTime = Date.now();
+    setLastManualRefresh(newRefreshTime);
+    
+    toast.success("تم تحديث البيانات");
+  };
+
   // تحديث تلقائي كل دقيقة للتحقق من التغييرات
   useEffect(() => {
     const interval = setInterval(() => {
@@ -65,9 +79,21 @@ const ProductPreview = () => {
       const preloadImage = new Image();
       preloadImage.src = `${storeData.bannerUrl.split('?')[0]}?t=${Date.now()}`;
     }
-  }, [storeData.bannerUrl, forceRefresh, lastManualRefresh]);
+    
+    // تحميل مسبق لصور التصنيفات
+    if (storeData?.categoryImages && storeData.categoryImages.length > 0) {
+      console.log(`[ProductPreview] تحميل مسبق لـ ${storeData.categoryImages.length} صور تصنيفات`);
+      storeData.categoryImages.forEach(img => {
+        if (img.image_url) {
+          const preloadImage = new Image();
+          const timestamp = Date.now();
+          preloadImage.src = `${img.image_url.split('?')[0]}?t=${timestamp}`;
+        }
+      });
+    }
+  }, [storeData, forceRefresh, lastManualRefresh]);
 
-  // تفعيل الاستماع للتحديثات المباشرة بشكل هادئ في الخلفية
+  // تفعيل الاستماع للتحديثات المباشرة 
   useEffect(() => {
     if (!storeOwnerId) {
       return;
@@ -138,6 +164,18 @@ const ProductPreview = () => {
         fontSettings={storeData.fontSettings}
         containerHeight="auto"
       >
+        <div className="flex justify-end mb-2">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={handleManualRefresh}
+          >
+            <RefreshCw className="h-4 w-4" />
+            تحديث
+          </Button>
+        </div>
+        
         <StoreProductsDisplay 
           products={storeData.products} 
           storeName={storeData.storeName} 
@@ -145,6 +183,7 @@ const ProductPreview = () => {
           fontSettings={storeData.fontSettings}
           contactInfo={storeData.contactInfo}
           categoryImages={storeData.categoryImages}
+          key={`store-display-${lastManualRefresh}`}
         />
         <SocialIcons socialLinks={storeData.socialLinks} />
         {storeData.storeOwnerId && <FeedbackDialog userId={storeData.storeOwnerId} />}
