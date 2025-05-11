@@ -72,7 +72,7 @@ export const uploadImage = async (
     const { error: uploadError, data } = await supabase.storage
       .from(bucket)
       .upload(filePath, file, {
-        cacheControl: '0', // تعطيل التخزين المؤقت
+        cacheControl: '3600', // تعيين فترة التخزين المؤقت إلى ساعة واحدة
         upsert: true
       });
 
@@ -116,4 +116,21 @@ export const getUrlWithTimestamp = (url: string | null): string | null => {
   const timestamp = Date.now();
   const baseUrl = url.split('?')[0];
   return `${baseUrl}?t=${timestamp}`;
+};
+
+/**
+ * فحص ما إذا كان الرابط صالح للصورة
+ * @param url رابط الصورة
+ * @returns وعد يحل إلى صحة الرابط
+ */
+export const checkImageUrl = async (url: string | null): Promise<boolean> => {
+  if (!url) return false;
+  
+  try {
+    const response = await fetch(url, { method: 'HEAD' });
+    return response.ok && response.headers.get('Content-Type')?.startsWith('image/') === true;
+  } catch (error) {
+    console.error("خطأ في فحص رابط الصورة:", error);
+    return false;
+  }
 };

@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { CSSProperties, useEffect, useState } from "react";
 import { CategoryImage } from "@/types/categoryImage";
 import { Folder } from "lucide-react";
-import { getUrlWithTimestamp } from "@/utils/storageHelpers";
 
 interface FontSettings {
   categoryText?: {
@@ -37,15 +36,21 @@ const CategoryCard = ({
   // تحميل مسبق للصورة في خلفية آمنة
   useEffect(() => {
     if (imageUrl) {
+      // إضافة طابع زمني دائماً
+      const timestamp = Date.now();
+      const urlWithTimestamp = imageUrl.includes('?') 
+        ? `${imageUrl}&t=${timestamp}` 
+        : `${imageUrl}?t=${timestamp}`;
+      
       const img = document.createElement('img');
-      img.src = imageUrl;
+      img.src = urlWithTimestamp;
       img.onload = () => {
-        console.log(`تم التحميل المسبق لصورة التصنيف "${category}" بنجاح: ${imageUrl}`);
-        setLoadedImage(imageUrl);
+        console.log(`تم التحميل المسبق لصورة التصنيف "${category}" بنجاح: ${urlWithTimestamp}`);
+        setLoadedImage(urlWithTimestamp);
         setImgError(false);
       };
       img.onerror = () => {
-        console.error(`فشل التحميل المسبق لصورة التصنيف "${category}": ${imageUrl}`);
+        console.error(`فشل التحميل المسبق لصورة التصنيف "${category}": ${urlWithTimestamp}`);
         setImgError(true);
         setLoadedImage(null);
       };
@@ -67,7 +72,6 @@ const CategoryCard = ({
             alt={category}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
             loading="eager"
-            onLoad={() => console.log(`تم عرض صورة التصنيف "${category}" بنجاح`)}
             onError={() => {
               console.error(`فشل عرض صورة التصنيف "${category}": ${loadedImage}`);
               setImgError(true);
@@ -140,9 +144,7 @@ const CategoryGrid = ({
     
     if (imageData?.image_url) {
       console.log(`تم العثور على صورة للتصنيف "${category}": ${imageData.image_url}`);
-      
-      // إضافة طابع زمني إذا لم يكن موجودًا بالفعل
-      return getUrlWithTimestamp(imageData.image_url);
+      return imageData.image_url;
     }
     
     console.log(`لم يتم العثور على صورة للتصنيف "${category}"`);

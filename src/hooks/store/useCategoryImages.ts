@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { CategoryImage } from "@/types/categoryImage";
-import { getUrlWithTimestamp } from "@/utils/storageHelpers";
 
 export const useCategoryImages = (userId: string | null, forceRefresh: number) => {
   const [categoryImages, setCategoryImages] = useState<CategoryImage[]>([]);
@@ -38,14 +37,18 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
         
         if (data && data.length > 0) {
           // معالجة روابط الصور لكسر التخزين المؤقت
+          const timestamp = Date.now();
           const updatedImages = data.map(img => {
             if (img.image_url) {
-              const updatedUrl = getUrlWithTimestamp(img.image_url);
+              // تحديث الرابط بإضافة طابع زمني للتغلب على مشكلة التخزين المؤقت
+              const baseUrl = img.image_url.split('?')[0];
+              const updatedUrl = `${baseUrl}?t=${timestamp}`;
+              
               console.log(`تحديث رابط صورة التصنيف "${img.category}": ${updatedUrl}`);
               
               return {
                 ...img,
-                image_url: updatedUrl || img.image_url
+                image_url: updatedUrl
               };
             }
             return img;

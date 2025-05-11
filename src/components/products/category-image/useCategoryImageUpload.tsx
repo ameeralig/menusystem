@@ -28,18 +28,17 @@ export const useCategoryImageUpload = ({
   const extractFilePathFromUrl = (url: string): string | null => {
     try {
       // استخراج المسار من url
-      const urlObj = new URL(url);
-      const pathParts = urlObj.pathname.split('/');
+      const urlParts = url.split('/');
       
-      // البحث عن الأجزاء بعد اسم المجلد في المسار 
-      // /storage/v1/object/public/category-images/path/to/file.jpg
-      const bucketIndex = pathParts.findIndex(part => part === 'category-images');
-      
-      if (bucketIndex >= 0 && bucketIndex < pathParts.length - 1) {
-        // إرجاع المسار بدءًا من المجلد الأول بعد اسم الدلو
-        return pathParts.slice(bucketIndex + 1).join('/').split('?')[0];
+      // البحث عن جزء المجلد بعد اسم الـ bucket
+      for (let i = 0; i < urlParts.length; i++) {
+        if (urlParts[i] === 'category-images' && i + 1 < urlParts.length) {
+          // إرجاع المسار من بعد اسم الدلو
+          return urlParts.slice(i + 1).join('/').split('?')[0];
+        }
       }
       
+      console.log("لم يتم العثور على مسار الملف في الرابط:", url);
       return null;
     } catch (e) {
       console.error("خطأ في استخراج مسار الملف:", e);
