@@ -2,7 +2,7 @@
 import { motion } from "framer-motion";
 import { CSSProperties, useEffect, useState } from "react";
 import { CategoryImage } from "@/types/categoryImage";
-import { Folder } from "lucide-react";
+import { Folder, Loader2 } from "lucide-react";
 
 interface FontSettings {
   categoryText?: {
@@ -31,32 +31,34 @@ const CategoryCard = ({
   fontStyle: CSSProperties;
 }) => {
   const [imgError, setImgError] = useState(false);
-  const [loadedImage, setLoadedImage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // تحميل مسبق للصورة في خلفية آمنة
+  // تحميل مسبق للصورة قبل عرضها
   useEffect(() => {
-    if (imageUrl) {
-      // إضافة طابع زمني دائماً
-      const timestamp = Date.now();
-      const urlWithTimestamp = imageUrl.includes('?') 
-        ? `${imageUrl}&t=${timestamp}` 
-        : `${imageUrl}?t=${timestamp}`;
-      
-      const img = document.createElement('img');
-      img.src = urlWithTimestamp;
-      img.onload = () => {
-        console.log(`تم التحميل المسبق لصورة التصنيف "${category}" بنجاح: ${urlWithTimestamp}`);
-        setLoadedImage(urlWithTimestamp);
-        setImgError(false);
-      };
-      img.onerror = () => {
-        console.error(`فشل التحميل المسبق لصورة التصنيف "${category}": ${urlWithTimestamp}`);
-        setImgError(true);
-        setLoadedImage(null);
-      };
-    } else {
-      setLoadedImage(null);
+    if (!imageUrl) {
+      setIsLoading(false);
+      return;
     }
+    
+    setIsLoading(true);
+    
+    const img = new Image();
+    img.src = imageUrl;
+    img.onload = () => {
+      console.log(`✅ تم تحميل صورة التصنيف "${category}" بنجاح: ${imageUrl}`);
+      setImgError(false);
+      setIsLoading(false);
+    };
+    img.onerror = () => {
+      console.error(`❌ فشل تحميل صورة التصنيف "${category}": ${imageUrl}`);
+      setImgError(true);
+      setIsLoading(false);
+    };
+    
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
   }, [imageUrl, category]);
   
   return (
@@ -66,17 +68,22 @@ const CategoryCard = ({
       onClick={onClick}
     >
       <div className="h-[140px] overflow-hidden">
-        {loadedImage && !imgError ? (
-          <img 
-            src={loadedImage} 
-            alt={category}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-            loading="eager"
-            onError={() => {
-              console.error(`فشل عرض صورة التصنيف "${category}": ${loadedImage}`);
-              setImgError(true);
-            }}
-          />
+        {!imgError && imageUrl ? (
+          <div className="relative w-full h-full">
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+              </div>
+            )}
+            <img 
+              src={imageUrl} 
+              alt={category}
+              className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+              onError={() => setImgError(true)}
+              style={{ transition: "opacity 0.3s ease" }}
+              loading="eager"
+            />
+          </div>
         ) : (
           <div className="w-full h-full bg-gray-100 flex items-center justify-center">
             <Folder className="h-12 w-12 text-gray-400" />
@@ -129,43 +136,37 @@ const CategoryGrid = ({
     return {};
   };
 
-  // وظيفة محسنة للحصول على صورة التصنيف
+  // وظيفة محسنة للحصول على صورة التصنيف مع طابع زمني جديد
   const getCategoryImageUrl = (category: string): string | null => {
-    // تسجيل معلومات التصحيح
-    console.log(`البحث عن صورة للتصنيف "${category}" من بين ${categoryImages?.length || 0} صورة متاحة`);
-    
     if (!categoryImages || categoryImages.length === 0) {
-      console.log(`لا توجد صور تصنيفات متاحة للتصنيف "${category}"`);
       return null;
     }
     
-    // البحث عن الصورة المطابقة للتصنيف
     const imageData = categoryImages.find(img => img.category === category);
     
-    if (imageData?.image_url) {
-      console.log(`تم العثور على صورة للتصنيف "${category}": ${imageData.image_url}`);
-      return imageData.image_url;
+    if (!imageData?.image_url) {
+      return null;
     }
     
-    console.log(`لم يتم العثور على صورة للتصنيف "${category}"`);
-    return null;
+    // تأكد من أن الرابط يحتوي على طابع زمني حديث
+    const timestamp = Date.now();
+    const baseUrl = imageData.image_url.split('?')[0];
+    const updatedUrl = `${baseUrl}?t=${timestamp}`;
+    
+    console.log(`استخدام صورة للتصنيف "${category}": ${updatedUrl}`);
+    return updatedUrl;
   };
 
-  // عرض معلومات التصحيح عند تحميل المكون
+  // تسجيل معلومات التصحيح
   useEffect(() => {
-    console.log(`تم تمرير ${categoryImages?.length || 0} صورة تصنيف إلى CategoryGrid`);
-    
+    console.log(`عدد صور التصنيفات المتاحة: ${categoryImages?.length || 0}`);
     if (categoryImages?.length > 0) {
-      console.log("صور التصنيفات المتاحة:", 
-        categoryImages.map(img => ({
-          category: img.category,
-          url: img.image_url
-        }))
-      );
+      console.log("تفاصيل صور التصنيفات المتاحة:");
+      categoryImages.forEach(img => {
+        console.log(`- التصنيف: ${img.category}, الرابط: ${img.image_url || 'غير متوفر'}`);
+      });
     }
-    
-    console.log(`عدد التصنيفات للعرض: ${categories.length}`);
-  }, [categories.length, categoryImages]);
+  }, [categoryImages]);
 
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">

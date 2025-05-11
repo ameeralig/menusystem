@@ -1,5 +1,5 @@
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 
 /**
  * حذف صورة من مستودع Supabase
@@ -72,7 +72,7 @@ export const uploadImage = async (
     const { error: uploadError, data } = await supabase.storage
       .from(bucket)
       .upload(filePath, file, {
-        cacheControl: '3600', // تعيين فترة التخزين المؤقت إلى ساعة واحدة
+        cacheControl: '0', // تعطيل التخزين المؤقت تمامًا
         upsert: true
       });
 
@@ -127,10 +127,60 @@ export const checkImageUrl = async (url: string | null): Promise<boolean> => {
   if (!url) return false;
   
   try {
-    const response = await fetch(url, { method: 'HEAD' });
-    return response.ok && response.headers.get('Content-Type')?.startsWith('image/') === true;
+    // استخدام Image API بدلاً من fetch للتحقق من صلاحية الصورة
+    return new Promise((resolve) => {
+      const img = new Image();
+      
+      img.onload = () => {
+        console.log(`✅ تم التحقق من صلاحية الصورة: ${url}`);
+        resolve(true);
+      };
+      
+      img.onerror = () => {
+        console.error(`❌ الصورة غير صالحة: ${url}`);
+        resolve(false);
+      };
+      
+      // إضافة معامل عشوائي لتجنب التخزين المؤقت
+      img.src = url.includes('?') ? 
+        `${url}&random=${Math.random()}` : 
+        `${url}?random=${Math.random()}`;
+        
+      // تعيين مهلة زمنية للتحميل
+      setTimeout(() => {
+        if (!img.complete) {
+          console.error(`⏱️ انتهت مهلة تحميل الصورة: ${url}`);
+          resolve(false);
+        }
+      }, 5000); // 5 ثوان كمهلة زمنية
+    });
   } catch (error) {
     console.error("خطأ في فحص رابط الصورة:", error);
     return false;
+  }
+};
+
+/**
+ * استخراج مسار الملف من رابط Supabase العام
+ * @param url الرابط العام للصورة من Supabase
+ * @param bucket اسم المستودع للتحقق
+ * @returns مسار الملف (بدون اسم المستودع)
+ */
+export const extractFilePathFromUrl = (url: string, bucket: string): string | null => {
+  try {
+    // البحث عن نمط URL Supabase
+    const regex = new RegExp(`/storage/v1/object/public/${bucket}/(.+?)(?:\\?|$)`);
+    const match = url.match(regex);
+    
+    if (match && match[1]) {
+      console.log(`تم استخراج مسار الملف: ${match[1]} من ${url}`);
+      return decodeURIComponent(match[1]);
+    }
+    
+    console.log(`لم يتم العثور على مسار الملف في الرابط: ${url}`);
+    return null;
+  } catch (e) {
+    console.error("خطأ في استخراج مسار الملف:", e);
+    return null;
   }
 };

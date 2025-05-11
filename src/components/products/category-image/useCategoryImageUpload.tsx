@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { CategoryImage } from "@/types/categoryImage";
-import { uploadImage, deleteImage } from "@/utils/storageHelpers";
+import { uploadImage, deleteImage, extractFilePathFromUrl } from "@/utils/storageHelpers";
 
 interface UseCategoryImageUploadProps {
   categoryImages: CategoryImage[];
@@ -22,28 +22,6 @@ export const useCategoryImageUpload = ({
     return fileName
       .replace(/\s+/g, '_')
       .replace(/[^\w.-]/g, '_');
-  };
-
-  // استخراج اسم الملف من الرابط
-  const extractFilePathFromUrl = (url: string): string | null => {
-    try {
-      // استخراج المسار من url
-      const urlParts = url.split('/');
-      
-      // البحث عن جزء المجلد بعد اسم الـ bucket
-      for (let i = 0; i < urlParts.length; i++) {
-        if (urlParts[i] === 'category-images' && i + 1 < urlParts.length) {
-          // إرجاع المسار من بعد اسم الدلو
-          return urlParts.slice(i + 1).join('/').split('?')[0];
-        }
-      }
-      
-      console.log("لم يتم العثور على مسار الملف في الرابط:", url);
-      return null;
-    } catch (e) {
-      console.error("خطأ في استخراج مسار الملف:", e);
-      return null;
-    }
   };
 
   // رفع ملف صورة جديد
@@ -69,7 +47,7 @@ export const useCategoryImageUpload = ({
       // حذف الصورة القديمة من التخزين إذا وجدت
       const existingImage = categoryImages.find(img => img.category === category);
       if (existingImage?.image_url) {
-        const oldPath = extractFilePathFromUrl(existingImage.image_url);
+        const oldPath = extractFilePathFromUrl(existingImage.image_url, "category-images");
         if (oldPath) {
           console.log(`محاولة حذف الصورة القديمة: ${oldPath}`);
           await deleteImage("category-images", oldPath);
@@ -146,7 +124,7 @@ export const useCategoryImageUpload = ({
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
 
       // استخراج مسار الملف من الرابط
-      const filePath = extractFilePathFromUrl(imageToDelete.image_url);
+      const filePath = extractFilePathFromUrl(imageToDelete.image_url, "category-images");
 
       if (filePath) {
         console.log(`محاولة حذف الملف: ${filePath}`);

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { ImageIcon, X } from "lucide-react";
+import { ImageIcon, X, Loader2 } from "lucide-react";
 import { CategoryImage } from "@/types/categoryImage";
 
 interface CategoryImageCardProps {
@@ -24,12 +24,16 @@ export const CategoryImageCard = ({
 }: CategoryImageCardProps) => {
   const [imageError, setImageError] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // تحديث عنوان URL للصورة مع طابع زمني لكسر التخزين المؤقت
+  // تحديث عنوان URL للصورة مع طابع زمني جديد في كل مرة يتغير فيها categoryImage
   useEffect(() => {
     if (categoryImage?.image_url) {
+      setIsLoading(true);
       const timestamp = Date.now();
-      const url = `${categoryImage.image_url.split('?')[0]}?t=${timestamp}`;
+      // تأكد من تطبيق طابع زمني جديد دائمًا
+      const baseUrl = categoryImage.image_url.split('?')[0];
+      const url = `${baseUrl}?t=${timestamp}`;
       setImageUrl(url);
       console.log(`تم تحديث URL الصورة للتصنيف ${category}: ${url}`);
       
@@ -37,6 +41,7 @@ export const CategoryImageCard = ({
       setImageError(false);
     } else {
       setImageUrl(null);
+      setIsLoading(false);
     }
   }, [categoryImage, category]);
 
@@ -44,23 +49,15 @@ export const CategoryImageCard = ({
   const handleImageLoad = () => {
     console.log(`تم تحميل صورة التصنيف ${category} بنجاح`);
     setImageError(false);
+    setIsLoading(false);
   };
 
   // معالجة فشل تحميل الصورة
   const handleImageError = () => {
     console.error(`خطأ في تحميل صورة التصنيف ${category}`);
     setImageError(true);
+    setIsLoading(false);
   };
-
-  // تحميل مسبق للصورة
-  useEffect(() => {
-    if (imageUrl) {
-      const img = document.createElement('img');
-      img.src = imageUrl;
-      img.onload = handleImageLoad;
-      img.onerror = handleImageError;
-    }
-  }, [imageUrl]);
 
   return (
     <Card className="overflow-hidden">
@@ -80,13 +77,20 @@ export const CategoryImageCard = ({
         </div>
 
         {imageUrl && !imageError ? (
-          <div className="relative aspect-video rounded-md overflow-hidden">
+          <div className="relative aspect-video rounded-md overflow-hidden bg-muted">
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-10">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            )}
             <img
               src={imageUrl}
               alt={category}
               className="w-full h-full object-cover"
               onLoad={handleImageLoad}
               onError={handleImageError}
+              loading="eager"
+              style={{ display: isLoading ? 'none' : 'block' }}
             />
           </div>
         ) : (

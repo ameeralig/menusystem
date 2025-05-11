@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { CategoryImage } from "@/types/categoryImage";
+import { checkImageUrl } from "@/utils/storageHelpers";
 
 export const useCategoryImages = (userId: string | null, forceRefresh: number) => {
   const [categoryImages, setCategoryImages] = useState<CategoryImage[]>([]);
@@ -31,31 +32,32 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
         }
 
         console.log(`تم استلام صور التصنيفات بنجاح، عددها: ${data?.length || 0}`);
-        if (data) {
-          console.log("بيانات صور التصنيفات:", JSON.stringify(data));
-        }
         
         if (data && data.length > 0) {
-          // معالجة روابط الصور لكسر التخزين المؤقت
+          // تحميل مسبق وفحص الصور بشكل متوازي
           const timestamp = Date.now();
-          const updatedImages = data.map(img => {
-            if (img.image_url) {
-              // تحديث الرابط بإضافة طابع زمني للتغلب على مشكلة التخزين المؤقت
+          const validatedImages = await Promise.all(
+            data.map(async (img) => {
+              if (!img.image_url) return img;
+              
+              // إضافة طابع زمني لكسر التخزين المؤقت
               const baseUrl = img.image_url.split('?')[0];
               const updatedUrl = `${baseUrl}?t=${timestamp}`;
               
-              console.log(`تحديث رابط صورة التصنيف "${img.category}": ${updatedUrl}`);
+              // فحص صلاحية رابط الصورة
+              const isValid = await checkImageUrl(updatedUrl);
+              
+              console.log(`صورة التصنيف "${img.category}": ${updatedUrl} - ${isValid ? 'صالحة' : 'غير صالحة'}`);
               
               return {
                 ...img,
-                image_url: updatedUrl
+                image_url: isValid ? updatedUrl : null
               };
-            }
-            return img;
-          });
+            })
+          );
 
-          setCategoryImages(updatedImages);
-          console.log(`تم تحديث ${updatedImages.length} صورة تصنيف في الحالة المحلية`);
+          setCategoryImages(validatedImages);
+          console.log(`تم تحديث ${validatedImages.length} صورة تصنيف في الحالة المحلية`);
         } else {
           console.log("لم يتم العثور على صور تصنيفات للمستخدم");
           setCategoryImages([]);
