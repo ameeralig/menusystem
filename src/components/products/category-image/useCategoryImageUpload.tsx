@@ -21,8 +21,7 @@ export const useCategoryImageUpload = ({
   const sanitizeFileName = (fileName: string): string => {
     return fileName
       .replace(/\s+/g, '_')
-      .replace(/[^\w.-]/g, '_')
-      .toLowerCase();
+      .replace(/[^\w.-]/g, '_');
   };
 
   // رفع ملف صورة جديد
@@ -40,7 +39,7 @@ export const useCategoryImageUpload = ({
 
     try {
       setUploading(category);
-      console.log(`[useCategoryImageUpload] بدء رفع صورة للتصنيف "${category}"`);
+      console.log(`بدء رفع صورة للتصنيف "${category}"`);
       
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
@@ -50,21 +49,20 @@ export const useCategoryImageUpload = ({
       if (existingImage?.image_url) {
         const oldPath = extractFilePathFromUrl(existingImage.image_url, "category-images");
         if (oldPath) {
-          console.log(`[useCategoryImageUpload] محاولة حذف الصورة القديمة: ${oldPath}`);
+          console.log(`محاولة حذف الصورة القديمة: ${oldPath}`);
           await deleteImage("category-images", oldPath);
         }
       }
 
-      // رفع الصورة الجديدة
-      const sanitizedCategory = sanitizeFileName(category);
+      // رفع الصورة الجديدة باستخدام الوظيفة المساعدة
       const publicUrl = await uploadImage(
         "category-images",
         file,
         user.id,
-        sanitizedCategory
+        sanitizeFileName(category)
       );
         
-      console.log(`[useCategoryImageUpload] تم رفع الصورة بنجاح. الرابط العام: ${publicUrl}`);
+      console.log(`تم رفع الصورة بنجاح. الرابط العام: ${publicUrl}`);
 
       // تحديث أو إضافة سجل في قاعدة البيانات
       const { error: dbError } = await supabase
@@ -78,25 +76,24 @@ export const useCategoryImageUpload = ({
         });
 
       if (dbError) {
-        console.error("[useCategoryImageUpload] خطأ في تحديث قاعدة البيانات:", dbError);
+        console.error("خطأ في تحديث قاعدة البيانات:", dbError);
         throw dbError;
       }
 
-      // تحديث القائمة المحلية مع طابع زمني جديد
+      // تحديث القائمة المحلية مع طابع زمني
       const timestamp = Date.now();
-      const finalUrl = `${publicUrl}?t=${timestamp}&nocache=true`;
+      const finalUrl = `${publicUrl}?t=${timestamp}`;
       
       const updatedImages = [
         ...categoryImages.filter(img => img.category !== category),
         { 
           user_id: user.id,
           category, 
-          image_url: finalUrl,
-          created_at: new Date().toISOString()
+          image_url: finalUrl 
         }
       ];
       
-      console.log(`[useCategoryImageUpload] تم تحديث القائمة المحلية. عدد الصور: ${updatedImages.length}`);
+      console.log(`تم تحديث القائمة المحلية. عدد الصور: ${updatedImages.length}`);
       onUpdateImages(updatedImages);
 
       toast({
@@ -104,7 +101,7 @@ export const useCategoryImageUpload = ({
         description: `تم تحديث صورة تصنيف ${category}`,
       });
     } catch (error: any) {
-      console.error("[useCategoryImageUpload] خطأ في رفع الصورة:", error);
+      console.error("خطأ في رفع الصورة:", error);
       toast({
         variant: "destructive",
         title: "خطأ في رفع الصورة",
@@ -121,7 +118,7 @@ export const useCategoryImageUpload = ({
     if (!imageToDelete) return;
 
     try {
-      console.log(`[useCategoryImageUpload] بدء حذف صورة التصنيف "${category}"`);
+      console.log(`بدء حذف صورة التصنيف "${category}"`);
       
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
@@ -130,7 +127,7 @@ export const useCategoryImageUpload = ({
       const filePath = extractFilePathFromUrl(imageToDelete.image_url, "category-images");
 
       if (filePath) {
-        console.log(`[useCategoryImageUpload] محاولة حذف الملف: ${filePath}`);
+        console.log(`محاولة حذف الملف: ${filePath}`);
         
         // حذف الملف من التخزين
         await deleteImage("category-images", filePath);
@@ -148,14 +145,14 @@ export const useCategoryImageUpload = ({
       const updatedImages = categoryImages.filter(img => img.category !== category);
       onUpdateImages(updatedImages);
       
-      console.log(`[useCategoryImageUpload] تم حذف صورة التصنيف "${category}" بنجاح`);
+      console.log(`تم حذف صورة التصنيف "${category}" بنجاح`);
 
       toast({
         title: "تم حذف الصورة",
         description: `تم حذف صورة تصنيف ${category}`,
       });
     } catch (error: any) {
-      console.error("[useCategoryImageUpload] خطأ في حذف الصورة:", error);
+      console.error("خطأ في حذف الصورة:", error);
       toast({
         variant: "destructive",
         title: "خطأ في حذف الصورة",

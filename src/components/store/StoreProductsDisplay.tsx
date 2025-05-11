@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useMemo, useEffect } from "react";
+
+import React, { useState, useCallback, useMemo } from "react";
 import { Product } from "@/types/product";
 import ProductGrid from "@/components/store/ProductGrid";
 import CategoryGrid from "@/components/store/CategoryGrid";
@@ -55,13 +56,6 @@ const StoreProductsDisplay = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showSearch, setShowSearch] = useState(false);
-  const [displayTimestamp, setDisplayTimestamp] = useState<number>(Date.now());
-
-  // تحديث الطابع الزمني عند تغير صور التصنيفات
-  useEffect(() => {
-    setDisplayTimestamp(Date.now());
-    console.log("[StoreProductsDisplay] تم تحديث طابع زمني للعرض بسبب تغيير صور التصنيفات");
-  }, [categoryImages]);
 
   const categories = useMemo(() => {
     const categorySet = new Set<string>();
@@ -103,22 +97,6 @@ const StoreProductsDisplay = ({
     });
   }, [products, selectedCategory, searchQuery]);
 
-  // تسجيل معلومات تصحيح
-  useEffect(() => {
-    console.log(
-      `[StoreProductsDisplay] تحميل ${categoryImages?.length || 0} صور تصنيف، timestamp: ${displayTimestamp}`
-    );
-    
-    if (categoryImages?.length > 0) {
-      console.log("[StoreProductsDisplay] صور التصنيفات المتوفرة:", 
-        categoryImages.map(img => ({ 
-          category: img.category, 
-          url: (img.image_url || '').split('?')[0] // طباعة الرابط بدون معلمات
-        }))
-      );
-    }
-  }, [categoryImages, displayTimestamp]);
-
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
   }, []);
@@ -138,6 +116,13 @@ const StoreProductsDisplay = ({
       setSearchQuery("");
     }
   }, [showSearch]);
+
+  // سنطبع معلومات حول صور التصنيفات للمساعدة في التصحيح
+  console.log("StoreProductsDisplay rendering with", categoryImages?.length || 0, "category images");
+  if (categoryImages?.length > 0) {
+    console.log("Available category images in StoreProductsDisplay:", 
+      categoryImages.map(img => ({ category: img.category, url: img.image_url })));
+  }
 
   return (
     <div className="space-y-6">
@@ -163,7 +148,6 @@ const StoreProductsDisplay = ({
           onCategorySelect={handleCategorySelect} 
           fontSettings={fontSettings}
           categoryImages={categoryImages}
-          key={`categories-grid-${displayTimestamp}`}
         />
       )}
 

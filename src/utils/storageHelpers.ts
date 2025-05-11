@@ -38,10 +38,8 @@ export const deleteImage = async (
 export const createUniqueFilePath = (userId: string, folder: string = '', file: File): string => {
   const fileExt = file.name.split('.').pop();
   // استبدال الأحرف الخاصة والمسافات بشرطة سفلية
-  const sanitizedFolder = folder ? folder.replace(/\s+/g, '_').replace(/[^\w.-]/g, '_').toLowerCase() : '';
-  const timestamp = Date.now();
-  const random = Math.random().toString(36).substring(2, 10);
-  const fileName = `${timestamp}_${random}.${fileExt}`;
+  const sanitizedFolder = folder ? folder.replace(/\s+/g, '_').replace(/[^\w.-]/g, '_') : '';
+  const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
   
   // إنشاء مسار منظم: معرف_المستخدم/المجلد_الفرعي/اسم_الملف
   if (sanitizedFolder) {
@@ -71,12 +69,10 @@ export const uploadImage = async (
     const filePath = createUniqueFilePath(userId, folder, file);
     console.log(`مسار الملف: ${filePath}`);
     
-    // تعيين خيارات تخزين أكثر صرامة لمنع التخزين المؤقت
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError, data } = await supabase.storage
       .from(bucket)
       .upload(filePath, file, {
-        cacheControl: '0',  // تعطيل التخزين المؤقت تمامًا
-        contentType: file.type,  // تعيين نوع المحتوى بشكل صريح
+        cacheControl: '0', // تعطيل التخزين المؤقت تمامًا
         upsert: true
       });
 
@@ -85,16 +81,9 @@ export const uploadImage = async (
       throw uploadError;
     }
 
-    // جلب الرابط العام مع معلمات منع التخزين المؤقت
     const { data: { publicUrl } } = supabase.storage
       .from(bucket)
-      .getPublicUrl(filePath, {
-        download: false,
-        transform: {
-          width: 800,  // تعديل العرض للحصول على نسخة مختلفة
-          quality: 85  // جودة الصورة
-        }
-      });
+      .getPublicUrl(filePath);
       
     console.log(`تم رفع الصورة بنجاح. الرابط العام: ${publicUrl}`);
     return publicUrl;
@@ -126,7 +115,7 @@ export const getUrlWithTimestamp = (url: string | null): string | null => {
   
   const timestamp = Date.now();
   const baseUrl = url.split('?')[0];
-  return `${baseUrl}?t=${timestamp}&nocache=true`;
+  return `${baseUrl}?t=${timestamp}`;
 };
 
 /**
@@ -138,6 +127,7 @@ export const checkImageUrl = async (url: string | null): Promise<boolean> => {
   if (!url) return false;
   
   try {
+    // استخدام Image API بدلاً من fetch للتحقق من صلاحية الصورة
     return new Promise((resolve) => {
       const img = new Image();
       
@@ -151,11 +141,10 @@ export const checkImageUrl = async (url: string | null): Promise<boolean> => {
         resolve(false);
       };
       
-      // إضافة معلمات لتجاوز التخزين المؤقت بشكل كامل
-      const randomParam = Math.random().toString(36).substring(7);
+      // إضافة معامل عشوائي لتجنب التخزين المؤقت
       img.src = url.includes('?') ? 
-        `${url}&bypassCache=${randomParam}` : 
-        `${url}?bypassCache=${randomParam}`;
+        `${url}&random=${Math.random()}` : 
+        `${url}?random=${Math.random()}`;
         
       // تعيين مهلة زمنية للتحميل
       setTimeout(() => {
@@ -179,30 +168,19 @@ export const checkImageUrl = async (url: string | null): Promise<boolean> => {
  */
 export const extractFilePathFromUrl = (url: string, bucket: string): string | null => {
   try {
-    if (!url) return null;
-    
-    // تنظيف الرابط من معلمات الاستعلام
-    const cleanUrl = url.split('?')[0];
-    
     // البحث عن نمط URL Supabase
     const regex = new RegExp(`/storage/v1/object/public/${bucket}/(.+?)(?:\\?|$)`);
-    const match = cleanUrl.match(regex);
+    const match = url.match(regex);
     
     if (match && match[1]) {
-      console.log(`تم استخراج مسار الملف: ${match[1]} من ${cleanUrl}`);
+      console.log(`تم استخراج مسار الملف: ${match[1]} من ${url}`);
       return decodeURIComponent(match[1]);
     }
     
-    console.log(`لم يتم العثور على مسار الملف في الرابط: ${cleanUrl}`);
+    console.log(`لم يتم العثور على مسار الملف في الرابط: ${url}`);
     return null;
   } catch (e) {
     console.error("خطأ في استخراج مسار الملف:", e);
     return null;
   }
-};
-
-// إضافة دالة للتصحيح - تنظيف رابط من جميع معلمات التخزين المؤقت
-export const cleanImageUrl = (url: string | null): string | null => {
-  if (!url) return null;
-  return url.split('?')[0];
 };

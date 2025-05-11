@@ -33,27 +33,33 @@ const CategoryCard = ({
   const [imgError, setImgError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
-  // إعادة ضبط حالة الصورة عند تغير الرابط
+  // تحميل مسبق للصورة قبل عرضها
   useEffect(() => {
-    if (imageUrl) {
-      setImgError(false);
-      setIsLoading(true);
-      console.log(`[CategoryCard] تم تعيين صورة جديدة للتصنيف "${category}": ${imageUrl}`);
-    } else {
+    if (!imageUrl) {
       setIsLoading(false);
+      return;
     }
+    
+    setIsLoading(true);
+    
+    const img = new Image();
+    img.src = imageUrl;
+    img.onload = () => {
+      console.log(`✅ تم تحميل صورة التصنيف "${category}" بنجاح: ${imageUrl}`);
+      setImgError(false);
+      setIsLoading(false);
+    };
+    img.onerror = () => {
+      console.error(`❌ فشل تحميل صورة التصنيف "${category}": ${imageUrl}`);
+      setImgError(true);
+      setIsLoading(false);
+    };
+    
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
   }, [imageUrl, category]);
-  
-  const handleImageLoad = () => {
-    console.log(`✅ [CategoryCard] تم تحميل صورة التصنيف "${category}" بنجاح`);
-    setIsLoading(false);
-  };
-  
-  const handleImageError = () => {
-    console.error(`❌ [CategoryCard] فشل في تحميل صورة التصنيف "${category}": ${imageUrl}`);
-    setImgError(true);
-    setIsLoading(false);
-  };
   
   return (
     <motion.div
@@ -73,8 +79,7 @@ const CategoryCard = ({
               src={imageUrl} 
               alt={category}
               className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
-              onLoad={handleImageLoad}
-              onError={handleImageError}
+              onError={() => setImgError(true)}
               style={{ transition: "opacity 0.3s ease" }}
               loading="eager"
             />
@@ -105,7 +110,6 @@ const CategoryGrid = ({
 }: CategoryGridProps) => {
   const [fontFaceLoaded, setFontFaceLoaded] = useState(false);
   const [fontId, setFontId] = useState<string>("");
-  const [renderId, setRenderId] = useState<number>(Date.now());
   
   // معالجة الخط المخصص إذا كان متاحاً
   useEffect(() => {
@@ -123,12 +127,6 @@ const CategoryGrid = ({
       });
     }
   }, [fontSettings?.categoryText?.customFontUrl, fontSettings?.categoryText?.isCustom]);
-  
-  // تحديث معرّف التحميل عند تغير قائمة الصور
-  useEffect(() => {
-    setRenderId(Date.now());
-    console.log('[CategoryGrid] تم تحديث renderId بسبب تغيير categoryImages', categoryImages?.length);
-  }, [categoryImages]);
   
   // إعداد نمط الخط
   const getCategoryTextStyle = (): CSSProperties => {
@@ -151,30 +149,31 @@ const CategoryGrid = ({
     }
     
     // تأكد من أن الرابط يحتوي على طابع زمني حديث
+    const timestamp = Date.now();
     const baseUrl = imageData.image_url.split('?')[0];
-    const updatedUrl = `${baseUrl}?t=${renderId}`;
+    const updatedUrl = `${baseUrl}?t=${timestamp}`;
     
-    console.log(`[CategoryGrid] استخدام صورة للتصنيف "${category}": ${updatedUrl}`);
+    console.log(`استخدام صورة للتصنيف "${category}": ${updatedUrl}`);
     return updatedUrl;
   };
 
   // تسجيل معلومات التصحيح
   useEffect(() => {
-    console.log(`[CategoryGrid] عدد صور التصنيفات المتاحة: ${categoryImages?.length || 0}, renderId: ${renderId}`);
+    console.log(`عدد صور التصنيفات المتاحة: ${categoryImages?.length || 0}`);
     if (categoryImages?.length > 0) {
-      console.log("[CategoryGrid] تفاصيل صور التصنيفات المتاحة:");
+      console.log("تفاصيل صور التصنيفات المتاحة:");
       categoryImages.forEach(img => {
         console.log(`- التصنيف: ${img.category}, الرابط: ${img.image_url || 'غير متوفر'}`);
       });
     }
-  }, [categoryImages, renderId]);
+  }, [categoryImages]);
 
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
       {categories.map((category) => (
         category && (
           <CategoryCard
-            key={`${category}-${renderId}`}
+            key={category}
             category={category}
             imageUrl={getCategoryImageUrl(category)}
             onClick={() => onCategorySelect(category)}

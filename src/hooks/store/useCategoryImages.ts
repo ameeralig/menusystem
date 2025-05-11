@@ -22,14 +22,10 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
         console.log("جاري جلب صور التصنيفات للمستخدم:", userId);
         setIsLoading(true);
         
-        // إضافة معرف عشوائي للاستعلام لمنع التخزين المؤقت على مستوى Supabase
-        const randomId = Date.now().toString();
         const { data, error } = await supabase
           .from("category_images")
           .select("*")
-          .eq("user_id", userId)
-          .order('created_at', { ascending: false })
-          .limit(100, { foreignTable: 'limit_query_id_' + randomId });
+          .eq("user_id", userId);
 
         if (error) {
           throw error;
@@ -38,7 +34,7 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
         console.log(`تم استلام صور التصنيفات بنجاح، عددها: ${data?.length || 0}`);
         
         if (data && data.length > 0) {
-          // إعادة ضبط الصور وإضافة طابع زمني جديد
+          // تحميل مسبق وفحص الصور بشكل متوازي
           const timestamp = Date.now();
           const validatedImages = await Promise.all(
             data.map(async (img) => {
@@ -46,7 +42,7 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
               
               // إضافة طابع زمني لكسر التخزين المؤقت
               const baseUrl = img.image_url.split('?')[0];
-              const updatedUrl = `${baseUrl}?t=${timestamp}&nocache=true`;
+              const updatedUrl = `${baseUrl}?t=${timestamp}`;
               
               // فحص صلاحية رابط الصورة
               const isValid = await checkImageUrl(updatedUrl);
@@ -78,7 +74,6 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
       }
     };
 
-    // تنفيذ الاستعلام فورًا عند تغير المعرف أو رقم التحديث
     fetchCategoryImages();
   }, [userId, forceRefresh, toast]);
 
