@@ -2,7 +2,7 @@
 import { motion } from "framer-motion";
 import { CSSProperties, useEffect, useState } from "react";
 import { CategoryImage } from "@/types/categoryImage";
-import { Folder, Loader2 } from "lucide-react";
+import { Folder } from "lucide-react";
 
 interface FontSettings {
   categoryText?: {
@@ -31,35 +31,6 @@ const CategoryCard = ({
   fontStyle: CSSProperties;
 }) => {
   const [imgError, setImgError] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // تحميل مسبق للصورة قبل عرضها
-  useEffect(() => {
-    if (!imageUrl) {
-      setIsLoading(false);
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    const img = new Image();
-    img.src = imageUrl;
-    img.onload = () => {
-      console.log(`✅ تم تحميل صورة التصنيف "${category}" بنجاح: ${imageUrl}`);
-      setImgError(false);
-      setIsLoading(false);
-    };
-    img.onerror = () => {
-      console.error(`❌ فشل تحميل صورة التصنيف "${category}": ${imageUrl}`);
-      setImgError(true);
-      setIsLoading(false);
-    };
-    
-    return () => {
-      img.onload = null;
-      img.onerror = null;
-    };
-  }, [imageUrl, category]);
   
   return (
     <motion.div
@@ -69,21 +40,13 @@ const CategoryCard = ({
     >
       <div className="h-[140px] overflow-hidden">
         {!imgError && imageUrl ? (
-          <div className="relative w-full h-full">
-            {isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-              </div>
-            )}
-            <img 
-              src={imageUrl} 
-              alt={category}
-              className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
-              onError={() => setImgError(true)}
-              style={{ transition: "opacity 0.3s ease" }}
-              loading="eager"
-            />
-          </div>
+          <img 
+            src={imageUrl} 
+            alt={category}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+            onError={() => setImgError(true)}
+            loading="eager"
+          />
         ) : (
           <div className="w-full h-full bg-gray-100 flex items-center justify-center">
             <Folder className="h-12 w-12 text-gray-400" />
@@ -136,25 +99,10 @@ const CategoryGrid = ({
     return {};
   };
 
-  // وظيفة محسنة للحصول على صورة التصنيف مع طابع زمني جديد
+  // الحصول على رابط صورة التصنيف - أبسط وبنفس أسلوب المنتجات
   const getCategoryImageUrl = (category: string): string | null => {
-    if (!categoryImages || categoryImages.length === 0) {
-      return null;
-    }
-    
     const imageData = categoryImages.find(img => img.category === category);
-    
-    if (!imageData?.image_url) {
-      return null;
-    }
-    
-    // تأكد من أن الرابط يحتوي على طابع زمني حديث
-    const timestamp = Date.now();
-    const baseUrl = imageData.image_url.split('?')[0];
-    const updatedUrl = `${baseUrl}?t=${timestamp}`;
-    
-    console.log(`استخدام صورة للتصنيف "${category}": ${updatedUrl}`);
-    return updatedUrl;
+    return imageData?.image_url || null;
   };
 
   // تسجيل معلومات التصحيح

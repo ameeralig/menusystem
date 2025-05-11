@@ -64,13 +64,13 @@ export const useCategoryImageUpload = ({
         
       console.log(`تم رفع الصورة بنجاح. الرابط العام: ${publicUrl}`);
 
-      // تحديث أو إضافة سجل في قاعدة البيانات
+      // تحديث أو إضافة سجل في قاعدة البيانات - باستخدام الرابط الأساسي بدون طابع زمني
       const { error: dbError } = await supabase
         .from("category_images")
         .upsert({
           user_id: user.id,
           category,
-          image_url: publicUrl,
+          image_url: publicUrl, // تخزين الرابط الأساسي في قاعدة البيانات
         }, {
           onConflict: 'user_id,category'
         });
@@ -80,9 +80,11 @@ export const useCategoryImageUpload = ({
         throw dbError;
       }
 
-      // تحديث القائمة المحلية مع طابع زمني
+      // إضافة طابع زمني للصورة في الحالة المحلية - بنفس الأسلوب المستخدم في المنتجات
       const timestamp = Date.now();
-      const finalUrl = `${publicUrl}?t=${timestamp}`;
+      const cacheBreaker = `t=${timestamp}&nocache=${Math.random()}`;
+      const imageBaseUrl = publicUrl.split('?')[0];
+      const finalUrl = `${imageBaseUrl}?${cacheBreaker}`;
       
       const updatedImages = [
         ...categoryImages.filter(img => img.category !== category),

@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { CategoryImage } from "@/types/categoryImage";
-import { checkImageUrl } from "@/utils/storageHelpers";
 
 export const useCategoryImages = (userId: string | null, forceRefresh: number) => {
   const [categoryImages, setCategoryImages] = useState<CategoryImage[]>([]);
@@ -33,31 +32,25 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
 
         console.log(`تم استلام صور التصنيفات بنجاح، عددها: ${data?.length || 0}`);
         
+        // إضافة طابع زمني لجميع الصور لكسر التخزين المؤقت - بنفس طريقة المنتجات
+        const uniqueTimestamp = forceRefresh || Date.now();
+        const cacheBreaker = `t=${uniqueTimestamp}&nocache=${Math.random()}`;
+        
         if (data && data.length > 0) {
-          // تحميل مسبق وفحص الصور بشكل متوازي
-          const timestamp = Date.now();
-          const validatedImages = await Promise.all(
-            data.map(async (img) => {
-              if (!img.image_url) return img;
-              
-              // إضافة طابع زمني لكسر التخزين المؤقت
-              const baseUrl = img.image_url.split('?')[0];
-              const updatedUrl = `${baseUrl}?t=${timestamp}`;
-              
-              // فحص صلاحية رابط الصورة
-              const isValid = await checkImageUrl(updatedUrl);
-              
-              console.log(`صورة التصنيف "${img.category}": ${updatedUrl} - ${isValid ? 'صالحة' : 'غير صالحة'}`);
-              
+          const updatedImages = data.map(img => {
+            if (img.image_url) {
+              // تطبيق نفس أسلوب المنتجات: استخراج الرابط الأساسي وإضافة طابع زمني
+              const imageBaseUrl = img.image_url.split('?')[0];
               return {
                 ...img,
-                image_url: isValid ? updatedUrl : null
+                image_url: `${imageBaseUrl}?${cacheBreaker}`
               };
-            })
-          );
-
-          setCategoryImages(validatedImages);
-          console.log(`تم تحديث ${validatedImages.length} صورة تصنيف في الحالة المحلية`);
+            }
+            return img;
+          });
+          
+          console.log(`تم تحديث ${updatedImages.length} صورة تصنيف بطابع زمني جديد`);
+          setCategoryImages(updatedImages);
         } else {
           console.log("لم يتم العثور على صور تصنيفات للمستخدم");
           setCategoryImages([]);
