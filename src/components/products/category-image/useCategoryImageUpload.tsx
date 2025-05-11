@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { CategoryImage } from "@/types/categoryImage";
+import { uploadImage, deleteImage } from "@/utils/storageHelpers";
 
 interface UseCategoryImageUploadProps {
   categoryImages: CategoryImage[];
@@ -21,6 +22,29 @@ export const useCategoryImageUpload = ({
     return fileName
       .replace(/\s+/g, '_')
       .replace(/[^\w.-]/g, '_');
+  };
+
+  // استخراج اسم الملف من الرابط
+  const extractFilePathFromUrl = (url: string): string | null => {
+    try {
+      // استخراج المسار من url
+      const urlObj = new URL(url);
+      const pathParts = urlObj.pathname.split('/');
+      
+      // البحث عن الأجزاء بعد اسم المجلد في المسار 
+      // /storage/v1/object/public/category-images/path/to/file.jpg
+      const bucketIndex = pathParts.findIndex(part => part === 'category-images');
+      
+      if (bucketIndex >= 0 && bucketIndex < pathParts.length - 1) {
+        // إرجاع المسار بدءًا من المجلد الأول بعد اسم الدلو
+        return pathParts.slice(bucketIndex + 1).join('/').split('?')[0];
+      }
+      
+      return null;
+    } catch (e) {
+      console.error("خطأ في استخراج مسار الملف:", e);
+      return null;
+    }
   };
 
   // رفع ملف صورة جديد
@@ -43,43 +67,23 @@ export const useCategoryImageUpload = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
 
-      const fileExt = file.name.split(".").pop();
-      const sanitizedCategory = sanitizeFileName(category);
-      const fileName = `${user.id}_${sanitizedCategory}_${Date.now()}.${fileExt}`;
-      const filePath = fileName;
-
-      console.log(`رفع الملف "${fileName}" إلى مجلد "category-images"`);
-
       // حذف الصورة القديمة من التخزين إذا وجدت
       const existingImage = categoryImages.find(img => img.category === category);
       if (existingImage?.image_url) {
-        const oldPath = existingImage.image_url.split('/').pop()?.split('?')[0];
+        const oldPath = extractFilePathFromUrl(existingImage.image_url);
         if (oldPath) {
           console.log(`محاولة حذف الصورة القديمة: ${oldPath}`);
-          await supabase.storage
-            .from("category-images")
-            .remove([oldPath])
-            .catch(err => console.warn("تحذير عند حذف الصورة القديمة:", err));
+          await deleteImage("category-images", oldPath);
         }
       }
 
-      // رفع الصورة الجديدة
-      const { error: uploadError, data } = await supabase.storage
-        .from("category-images")
-        .upload(filePath, file, {
-          cacheControl: 'no-cache',
-          upsert: true,
-        });
-
-      if (uploadError) {
-        console.error("خطأ في رفع الصورة:", uploadError);
-        throw uploadError;
-      }
-
-      // الحصول على الرابط العام
-      const { data: { publicUrl } } = supabase.storage
-        .from("category-images")
-        .getPublicUrl(filePath);
+      // رفع الصورة الجديدة باستخدام الوظيفة المساعدة
+      const publicUrl = await uploadImage(
+        "category-images",
+        file,
+        user.id,
+        sanitizeFileName(category)
+      );
         
       console.log(`تم رفع الصورة بنجاح. الرابط العام: ${publicUrl}`);
 
@@ -99,7 +103,7 @@ export const useCategoryImageUpload = ({
         throw dbError;
       }
 
-      // تحديث القائمة المحلية
+      // تحديث القائمة المحلية مع طابع زمني
       const timestamp = Date.now();
       const finalUrl = `${publicUrl}?t=${timestamp}`;
       
@@ -142,21 +146,14 @@ export const useCategoryImageUpload = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
 
-      // استخراج اسم الملف من الرابط
-      const fileNameWithParams = imageToDelete.image_url.split('/').pop();
-      const fileName = fileNameWithParams?.split('?')[0];
+      // استخراج مسار الملف من الرابط
+      const filePath = extractFilePathFromUrl(imageToDelete.image_url);
 
-      if (fileName) {
-        console.log(`محاولة حذف الملف: ${fileName}`);
+      if (filePath) {
+        console.log(`محاولة حذف الملف: ${filePath}`);
         
         // حذف الملف من التخزين
-        const { error: storageError } = await supabase.storage
-          .from("category-images")
-          .remove([fileName]);
-          
-        if (storageError) {
-          console.warn(`تحذير: فشل في حذف الملف من التخزين:`, storageError);
-        }
+        await deleteImage("category-images", filePath);
       }
 
       // حذف السجل من قاعدة البيانات

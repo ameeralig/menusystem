@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { CategoryImage } from "@/types/categoryImage";
+import { getUrlWithTimestamp } from "@/utils/storageHelpers";
 
 export const useCategoryImages = (userId: string | null, forceRefresh: number) => {
   const [categoryImages, setCategoryImages] = useState<CategoryImage[]>([]);
@@ -20,9 +21,6 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
       try {
         console.log("جاري جلب صور التصنيفات للمستخدم:", userId);
         setIsLoading(true);
-        
-        // إضافة طابع زمني إلى الاستعلام لمنع التخزين المؤقت
-        const timestamp = Date.now();
         
         const { data, error } = await supabase
           .from("category_images")
@@ -42,13 +40,12 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
           // معالجة روابط الصور لكسر التخزين المؤقت
           const updatedImages = data.map(img => {
             if (img.image_url) {
-              const imageBaseUrl = img.image_url.split('?')[0];
-              const updatedUrl = `${imageBaseUrl}?t=${timestamp}`;
+              const updatedUrl = getUrlWithTimestamp(img.image_url);
               console.log(`تحديث رابط صورة التصنيف "${img.category}": ${updatedUrl}`);
               
               return {
                 ...img,
-                image_url: updatedUrl
+                image_url: updatedUrl || img.image_url
               };
             }
             return img;

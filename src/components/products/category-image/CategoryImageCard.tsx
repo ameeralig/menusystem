@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { ImageIcon, X } from "lucide-react";
 import { CategoryImage } from "@/types/categoryImage";
+import { getUrlWithTimestamp } from "@/utils/storageHelpers";
 
 interface CategoryImageCardProps {
   category: string;
@@ -28,9 +29,7 @@ export const CategoryImageCard = ({
   // تحديث عنوان URL للصورة مع طابع زمني لكسر التخزين المؤقت
   useEffect(() => {
     if (categoryImage?.image_url) {
-      const timestamp = Date.now();
-      const baseUrl = categoryImage.image_url.split('?')[0];
-      const url = `${baseUrl}?t=${timestamp}`;
+      const url = getUrlWithTimestamp(categoryImage.image_url);
       setImageUrl(url);
       console.log(`تم تحديث URL الصورة للتصنيف ${category}: ${url}`);
       

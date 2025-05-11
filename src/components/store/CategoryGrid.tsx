@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { CSSProperties, useEffect, useState } from "react";
 import { CategoryImage } from "@/types/categoryImage";
 import { Folder } from "lucide-react";
+import { getUrlWithTimestamp } from "@/utils/storageHelpers";
 
 interface FontSettings {
   categoryText?: {
@@ -31,19 +32,28 @@ const CategoryCard = ({
   fontStyle: CSSProperties;
 }) => {
   const [imgError, setImgError] = useState(false);
+  const [loadedImage, setLoadedImage] = useState<string | null>(null);
   
-  // التحقق من وجود رابط صورة صالح
-  const hasValidImage = imageUrl && !imgError;
-  
-  // تسجيل معلومات التصحيح
+  // تحميل مسبق للصورة في خلفية آمنة
   useEffect(() => {
     if (imageUrl) {
-      console.log(`التصنيف "${category}" له رابط صورة: ${imageUrl}`);
+      const img = document.createElement('img');
+      img.src = imageUrl;
+      img.onload = () => {
+        console.log(`تم التحميل المسبق لصورة التصنيف "${category}" بنجاح: ${imageUrl}`);
+        setLoadedImage(imageUrl);
+        setImgError(false);
+      };
+      img.onerror = () => {
+        console.error(`فشل التحميل المسبق لصورة التصنيف "${category}": ${imageUrl}`);
+        setImgError(true);
+        setLoadedImage(null);
+      };
     } else {
-      console.log(`التصنيف "${category}" ليس له صورة محددة`);
+      setLoadedImage(null);
     }
-  }, [category, imageUrl]);
-
+  }, [imageUrl, category]);
+  
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
@@ -51,15 +61,15 @@ const CategoryCard = ({
       onClick={onClick}
     >
       <div className="h-[140px] overflow-hidden">
-        {hasValidImage ? (
+        {loadedImage && !imgError ? (
           <img 
-            src={imageUrl} 
+            src={loadedImage} 
             alt={category}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
             loading="eager"
-            onLoad={() => console.log(`تم تحميل صورة التصنيف "${category}" بنجاح`)}
+            onLoad={() => console.log(`تم عرض صورة التصنيف "${category}" بنجاح`)}
             onError={() => {
-              console.error(`فشل تحميل صورة التصنيف "${category}": ${imageUrl}`);
+              console.error(`فشل عرض صورة التصنيف "${category}": ${loadedImage}`);
               setImgError(true);
             }}
           />
@@ -128,15 +138,11 @@ const CategoryGrid = ({
     // البحث عن الصورة المطابقة للتصنيف
     const imageData = categoryImages.find(img => img.category === category);
     
-    if (imageData && imageData.image_url) {
+    if (imageData?.image_url) {
       console.log(`تم العثور على صورة للتصنيف "${category}": ${imageData.image_url}`);
       
-      // إضافة طابع زمني لكسر التخزين المؤقت
-      const timestamp = Date.now();
-      const baseUrl = imageData.image_url.split('?')[0];
-      const finalUrl = `${baseUrl}?t=${timestamp}`;
-      
-      return finalUrl;
+      // إضافة طابع زمني إذا لم يكن موجودًا بالفعل
+      return getUrlWithTimestamp(imageData.image_url);
     }
     
     console.log(`لم يتم العثور على صورة للتصنيف "${category}"`);
