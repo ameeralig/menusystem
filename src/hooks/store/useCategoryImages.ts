@@ -51,6 +51,16 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
           
           console.log(`تم تحديث ${updatedImages.length} صورة تصنيف بطابع زمني جديد`);
 
+          // تحميل مسبق للصور (preload) لتحسين الأداء
+          updatedImages.forEach(img => {
+            if (img.image_url) {
+              const preloadImage = new Image();
+              preloadImage.src = img.image_url;
+              preloadImage.fetchPriority = "high";
+              console.log(`تحميل مسبق للصورة: ${img.category}`);
+            }
+          });
+
           // طباعة تفاصيل صور التصنيفات بعد المعالجة
           if (updatedImages.length > 0) {
             console.log("تفاصيل صور التصنيفات بعد المعالجة:");

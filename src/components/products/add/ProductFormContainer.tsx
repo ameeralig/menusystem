@@ -1,8 +1,8 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { TabsContent } from "@/components/ui/tabs";
 import { Product } from "@/types/product";
 import { CategoryImage } from "@/types/categoryImage";
@@ -42,68 +42,71 @@ const ProductFormContainer = ({ activeTab, onContinueToProduct }: ProductFormCon
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // معالجة اختيار التصنيف
-  const handleCategorySelected = async (category: string, imageUrl?: string) => {
+  const handleCategorySelected = async (category: string, imageUrl?: string, selectedFile?: File | null) => {
     setSelectedCategory(category);
     console.log(`تم اختيار التصنيف: ${category}، صورة التصنيف: ${imageUrl || 'لا توجد'}`);
     
-    if (imageUrl) {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error("يجب تسجيل الدخول أولاً");
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("يجب تسجيل الدخول أولاً");
+      
+      console.log(`بدء عملية تعامل مع صورة التصنيف ${category}`);
+      
+      // تحميل صورة التصنيف إذا كانت موجودة
+      if (imageUrl) {
+        let finalImageUrl = imageUrl;
         
-        console.log(`بدء عملية تحميل صورة التصنيف ${category}`);
-        
-        // تحميل صورة التصنيف إذا كانت موجودة
+        // إذا كان الملف محلي، نقوم برفعه إلى التخزين
         if ((imageUrl.startsWith("blob:") || imageUrl.startsWith("data:")) && selectedFile) {
-          console.log(`تحميل صورة التصنيف ${category} كملف`);
+          console.log(`تحميل صورة التصنيف ${category} كملف محلي`);
+          
+          // التأكد من اسم ملف آمن (إزالة المسافات والأحرف الخاصة)
+          const safeFileName = selectedFile.name
+            .toLowerCase()
+            .replace(/[^a-z0-9.]/g, '-')
+            .replace(/--+/g, '-');
+          
+          // إنشاء مسار فريد للملف
+          const timestamp = new Date().getTime();
+          const uniqueFilePath = `${category.replace(/\s+/g, '-')}-${timestamp}-${safeFileName}`;
           
           // رفع الصورة إلى مجلد category-images
-          const finalImageUrl = await uploadImage("category-images", selectedFile, user.id, category);
+          finalImageUrl = await uploadImage("category-images", selectedFile, user.id, uniqueFilePath);
           
           console.log(`تم رفع صورة التصنيف بنجاح: ${finalImageUrl}`);
-          
-          // حفظ صورة التصنيف في قاعدة البيانات
-          const { error } = await supabase.from("category_images").upsert({
-            user_id: user.id,
-            category: category,
-            image_url: finalImageUrl
-          }, {
-            onConflict: 'user_id,category'
-          });
-          
-          if (error) {
-            throw error;
-          }
-          
-          console.log(`تم حفظ رابط صورة التصنيف ${category} في قاعدة البيانات`);
-          setCategoryImageUrl(finalImageUrl);
-        } else if (imageUrl) {
-          console.log(`استخدام رابط الصورة مباشرة للتصنيف ${category}: ${imageUrl}`);
-          // استخدام الرابط مباشرة
-          const { error } = await supabase.from("category_images").upsert({
-            user_id: user.id,
-            category: category,
-            image_url: imageUrl
-          }, {
-            onConflict: 'user_id,category'
-          });
-          
-          if (error) {
-            console.error("خطأ في حفظ رابط صورة التصنيف:", error);
-            throw error;
-          }
-          
-          setCategoryImageUrl(imageUrl);
         }
-      } catch (error: any) {
-        console.error("Error uploading category image:", error);
-        toast({
-          variant: "destructive",
-          title: "خطأ في رفع صورة التصنيف",
-          description: error.message
-        });
-        return;
+        
+        // حفظ صورة التصنيف في قاعدة البيانات
+        const { data, error } = await supabase.from("category_images").upsert({
+          user_id: user.id,
+          category: category,
+          image_url: finalImageUrl
+        }, {
+          onConflict: 'user_id,category'
+        }).select("*");
+        
+        if (error) {
+          throw error;
+        }
+        
+        console.log(`تم حفظ صورة التصنيف ${category} في قاعدة البيانات`);
+        
+        if (data && data[0]) {
+          // إضافة طابع زمني للصورة لتجنب مشكلات التخزين المؤقت
+          const timestamp = new Date().getTime();
+          const baseUrl = data[0].image_url.split('?')[0];
+          const updatedUrl = `${baseUrl}?t=${timestamp}`;
+          
+          setCategoryImageUrl(updatedUrl);
+        }
       }
+    } catch (error: any) {
+      console.error("Error handling category image:", error);
+      toast({
+        variant: "destructive",
+        title: "خطأ في معالجة صورة التصنيف",
+        description: error.message
+      });
     }
     
     // تحديث بيانات المنتج بالتصنيف المختار
@@ -125,7 +128,17 @@ const ProductFormContainer = ({ activeTab, onContinueToProduct }: ProductFormCon
       
       // تحميل صورة المنتج إذا تم اختيار ملف
       if (uploadMethod === "file" && selectedFile) {
-        finalImageUrl = await uploadImage("product-images", selectedFile, userData.user.id, "products");
+        // التأكد من اسم ملف آمن
+        const safeFileName = selectedFile.name
+          .toLowerCase()
+          .replace(/[^a-z0-9.]/g, '-')
+          .replace(/--+/g, '-');
+          
+        // إنشاء مسار فريد للملف
+        const timestamp = new Date().getTime();
+        const uniqueFilePath = `${data.name?.replace(/\s+/g, '-')}-${timestamp}-${safeFileName}`;
+        
+        finalImageUrl = await uploadImage("product-images", selectedFile, userData.user.id, uniqueFilePath);
       }
 
       const { error } = await supabase.from("products").insert({

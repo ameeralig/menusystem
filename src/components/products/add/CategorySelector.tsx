@@ -6,13 +6,13 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { Folder, ImagePlus, Upload, Link as LinkIcon } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { urlToFile } from "@/utils/storageHelpers";
 
 interface CategorySelectorProps {
   existingCategories: string[];
   setExistingCategories: (categories: string[]) => void;
-  onCategorySelected: (category: string, imageUrl?: string) => void;
+  onCategorySelected: (category: string, imageUrl?: string, selectedFile?: File | null) => void;
 }
 
 const CategorySelector = ({ 
@@ -44,10 +44,32 @@ const CategorySelector = ({
 
       const uniqueCategories = Array.from(new Set(products?.map(p => p.category) || []));
       setExistingCategories(uniqueCategories.filter((cat): cat is string => !!cat));
+      
+      // جلب صور التصنيفات الحالية
+      await fetchCategoryImages(uniqueCategories as string[]);
     } catch (error) {
       console.error("Error fetching categories:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // جلب صور التصنيفات الحالية
+  const fetchCategoryImages = async (categories: string[]) => {
+    try {
+      if (categories.length === 0) return;
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      const { data: categoryImages } = await supabase
+        .from("category_images")
+        .select("*")
+        .eq("user_id", user.id);
+        
+      console.log("صور التصنيفات المتاحة:", categoryImages);
+    } catch (error) {
+      console.error("Error fetching category images:", error);
     }
   };
 
@@ -68,11 +90,15 @@ const CategorySelector = ({
       
       if (uploadMethod === "file" && previewUrl) {
         finalImageUrl = previewUrl;
+        // تمرير الملف المحلي للمعالجة
+        onCategorySelected(newCategory, finalImageUrl, selectedFile);
       } else if (uploadMethod === "url" && imageUrl) {
         finalImageUrl = imageUrl;
+        onCategorySelected(newCategory, finalImageUrl);
+      } else {
+        // بدون صورة
+        onCategorySelected(newCategory);
       }
-      
-      onCategorySelected(newCategory, finalImageUrl || undefined);
     }
   };
 
