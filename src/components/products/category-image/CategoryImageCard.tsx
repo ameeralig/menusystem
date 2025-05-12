@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { ImageIcon, X, Loader2 } from "lucide-react";
 import { CategoryImage } from "@/types/categoryImage";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface CategoryImageCardProps {
   category: string;
@@ -26,14 +26,34 @@ export const CategoryImageCard = ({
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [imageSrc, setImageSrc] = useState<string | undefined>(categoryImage?.image_url);
 
+  // عند تغيير صورة التصنيف أو إعادة التحميل، نستخدم القيمة الجديدة
   useEffect(() => {
-    // عند تغيير صورة التصنيف، نعيد تعيين حالة التحميل والخطأ
     if (categoryImage?.image_url) {
+      console.log(`تم تحديث صورة التصنيف ${category}:`, categoryImage.image_url);
+      
+      // إعادة تعيين حالات الخطأ والتحميل
       setIsLoading(true);
       setImageError(false);
+      
+      // تحديث رابط الصورة مع طابع زمني جديد لتجنب التخزين المؤقت
+      const timestamp = Date.now();
+      let newSrc = categoryImage.image_url;
+      
+      // إضافة طابع زمني جديد
+      if (newSrc.includes('?')) {
+        newSrc = `${newSrc.split('?')[0]}?t=${timestamp}`;
+      } else {
+        newSrc = `${newSrc}?t=${timestamp}`;
+      }
+      
+      setImageSrc(newSrc);
+    } else {
+      console.log(`لا توجد صورة للتصنيف ${category}`);
+      setImageSrc(undefined);
     }
-  }, [categoryImage?.image_url]);
+  }, [category, categoryImage?.image_url]);
 
   const handleImageLoad = () => {
     console.log(`تم تحميل صورة التصنيف ${category} بنجاح`);
@@ -69,19 +89,26 @@ export const CategoryImageCard = ({
       <CardContent className="p-4 space-y-3">
         <div className="flex items-center justify-between">
           <Label className="text-base font-medium">{category}</Label>
-          {categoryImage?.image_url && !imageError && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onRemoveImage(category)}
-              className="h-8 w-8"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+          {imageSrc && !imageError && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onRemoveImage(category)}
+                  className="h-8 w-8"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>إزالة الصورة</p>
+              </TooltipContent>
+            </Tooltip>
           )}
         </div>
 
-        {categoryImage?.image_url && !imageError ? (
+        {imageSrc && !imageError ? (
           <div className="relative aspect-video rounded-md overflow-hidden bg-muted cursor-pointer" onClick={triggerFileInput}>
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-10">
@@ -89,7 +116,7 @@ export const CategoryImageCard = ({
               </div>
             )}
             <img
-              src={categoryImage.image_url}
+              src={imageSrc}
               alt={category}
               className="w-full h-full object-cover"
               onLoad={handleImageLoad}

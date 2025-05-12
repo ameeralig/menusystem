@@ -5,6 +5,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CategoryImageCard } from "./category-image/CategoryImageCard";
 import { useCategoryImageUpload } from "./category-image/useCategoryImageUpload";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useEffect } from "react";
 
 interface CategoryImageManagerProps {
   categories: string[];
@@ -21,6 +22,17 @@ export const CategoryImageManager = ({
     categoryImages,
     onUpdateImages
   });
+  
+  // تسجيل معلومات حول صور التصنيفات عند تغيرها
+  useEffect(() => {
+    console.log("CategoryImageManager: تلقي", categoryImages.length, "صورة تصنيف");
+    if (categoryImages.length > 0) {
+      console.log("تفاصيل صور التصنيفات:");
+      categoryImages.forEach(img => {
+        console.log(`- التصنيف: ${img.category}, الرابط: ${img.image_url}`);
+      });
+    }
+  }, [categoryImages]);
 
   if (categories.length === 0) {
     return (

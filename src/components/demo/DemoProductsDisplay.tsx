@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Product } from "@/types/product";
 import StoreHeader from "@/components/store/StoreHeader";
 import SearchBar from "@/components/store/SearchBar";
@@ -44,6 +44,7 @@ const DemoProductsDisplay = ({
 }: DemoProductsDisplayProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [processedCategoryImages, setProcessedCategoryImages] = useState<CategoryImage[]>([]);
   
   const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
   
@@ -56,10 +57,37 @@ const DemoProductsDisplay = ({
         p.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
 
-  // سنطبع معلومات حول صور التصنيفات للمساعدة في التصحيح
-  if (categoryImages && categoryImages.length > 0) {
-    console.log("DemoProductsDisplay has", categoryImages.length, "category images");
-  }
+  // معالجة صور التصنيفات لإضافة طابع زمني
+  useEffect(() => {
+    if (categoryImages && categoryImages.length > 0) {
+      console.log("DemoProductsDisplay: معالجة", categoryImages.length, "صورة تصنيف");
+      
+      // إضافة طابع زمني جديد للصور
+      const timestamp = Date.now();
+      const processed = categoryImages.map(img => {
+        if (!img.image_url) return img;
+        
+        // تحليل الرابط للتأكد من عدم تكرار المعلمات
+        const url = new URL(img.image_url, window.location.origin);
+        url.searchParams.set('t', `${timestamp}`);
+        url.searchParams.set('demo', 'true');
+        
+        return {
+          ...img,
+          image_url: url.toString()
+        };
+      });
+      
+      setProcessedCategoryImages(processed);
+      
+      // تسجيل المعلومات للتصحيح
+      processed.forEach(img => {
+        console.log(`DemoProductsDisplay: صورة تصنيف ${img.category}: ${img.image_url}`);
+      });
+    } else {
+      setProcessedCategoryImages([]);
+    }
+  }, [categoryImages]);
 
   return (
     <>
@@ -70,7 +98,7 @@ const DemoProductsDisplay = ({
         <CategoryGrid
           categories={categories}
           onCategorySelect={setSelectedCategory}
-          categoryImages={categoryImages}
+          categoryImages={processedCategoryImages}
           fontSettings={fontSettings}
         />
       ) : (

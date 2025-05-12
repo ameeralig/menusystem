@@ -21,9 +21,10 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
     console.log("useStoreData - categoryImages:", categoryImages?.length || 0);
     
     if (categoryImages && categoryImages.length > 0) {
-      console.log("تفاصيل صور التصنيفات:", categoryImages.map(img => ({ 
+      console.log("تفاصيل صور التصنيفات في useStoreData:", categoryImages.map(img => ({ 
         category: img.category, 
-        url: img.image_url 
+        url: img.image_url,
+        id: img.id
       })));
     }
   }, [storeSettings.storeOwnerId, forceRefresh, categoryImages]);

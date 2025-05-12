@@ -14,153 +14,144 @@ export const useCategoryImageUpload = ({
   categoryImages,
   onUpdateImages
 }: UseCategoryImageUploadProps) => {
-  const { toast } = useToast();
   const [uploading, setUploading] = useState<string | null>(null);
-  
-  // تنظيف اسم الملف ليكون صالحاً للمسارات
-  const sanitizeFileName = (fileName: string): string => {
-    return fileName
-      .replace(/\s+/g, '_')
-      .replace(/[^\w.-]/g, '_');
-  };
+  const { toast } = useToast();
 
-  // رفع ملف صورة جديد
+  // رفع ملف صورة للتصنيف
   const handleFileUpload = async (category: string, file: File) => {
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      toast({
-        variant: "destructive",
-        title: "خطأ في رفع الصورة",
-        description: "الرجاء اختيار ملف صورة صالح",
-      });
-      return;
-    }
-
     try {
+      console.log(`بدء رفع صورة للتصنيف: ${category}`);
       setUploading(category);
-      console.log(`بدء رفع صورة للتصنيف "${category}"`);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("يجب تسجيل الدخول أولاً");
 
-      // حذف الصورة القديمة من التخزين إذا وجدت
+      // التأكد من وجود مستخدم
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) {
+        throw new Error("يجب تسجيل الدخول أولاً");
+      }
+
+      const userId = userData.user.id;
+      
+      // الحصول على الصورة الحالية إن وجدت
       const existingImage = categoryImages.find(img => img.category === category);
+      
+      // إذا كانت هناك صورة موجودة، نحذفها أولاً
       if (existingImage?.image_url) {
-        const oldPath = extractFilePathFromUrl(existingImage.image_url, "category-images");
-        if (oldPath) {
-          console.log(`محاولة حذف الصورة القديمة: ${oldPath}`);
-          await deleteImage("category-images", oldPath);
+        console.log(`حذف الصورة السابقة للتصنيف: ${category}`);
+        const filePath = extractFilePathFromUrl(existingImage.image_url, "category-images");
+        if (filePath) {
+          await deleteImage("category-images", filePath);
         }
       }
 
-      // رفع الصورة الجديدة باستخدام الوظيفة المساعدة
-      const publicUrl = await uploadImage(
-        "category-images",
-        file,
-        user.id,
-        sanitizeFileName(category)
-      );
-        
-      console.log(`تم رفع الصورة بنجاح. الرابط العام: ${publicUrl}`);
+      // رفع الصورة الجديدة
+      console.log(`رفع صورة جديدة للتصنيف: ${category}`);
+      const imageUrl = await uploadImage("category-images", file, userId, category);
 
-      // تحديث أو إضافة سجل في قاعدة البيانات
-      const { error: dbError } = await supabase
-        .from("category_images")
-        .upsert({
-          user_id: user.id,
-          category,
-          image_url: publicUrl,
-        }, {
-          onConflict: 'user_id,category'
-        });
+      // تحديث أو إنشاء سجل لصورة التصنيف
+      if (existingImage) {
+        console.log(`تحديث صورة التصنيف: ${category}`);
+        const { data, error } = await supabase
+          .from("category_images")
+          .update({ image_url: imageUrl })
+          .eq("id", existingImage.id)
+          .select("*");
 
-      if (dbError) {
-        console.error("خطأ في تحديث قاعدة البيانات:", dbError);
-        throw dbError;
+        if (error) {
+          throw error;
+        }
+
+        if (data?.[0]) {
+          const updatedImages = categoryImages.map(img => 
+            img.id === existingImage.id ? data[0] : img
+          );
+          onUpdateImages(updatedImages);
+        }
+      } else {
+        console.log(`إنشاء صورة جديدة للتصنيف: ${category}`);
+        const { data, error } = await supabase
+          .from("category_images")
+          .insert({
+            user_id: userId,
+            category: category,
+            image_url: imageUrl,
+          })
+          .select("*");
+
+        if (error) {
+          throw error;
+        }
+
+        if (data?.[0]) {
+          onUpdateImages([...categoryImages, data[0]]);
+        }
       }
 
-      // إضافة طابع زمني للصورة في الحالة المحلية
-      const timestamp = Date.now();
-      const cacheBreaker = `t=${timestamp}&nocache=${Math.random()}`;
-      const imageBaseUrl = publicUrl.split('?')[0];
-      const finalUrl = `${imageBaseUrl}?${cacheBreaker}`;
+      console.log(`تم رفع الصورة للتصنيف ${category} بنجاح`);
       
-      // إنشاء نسخة جديدة من قائمة الصور مع تحديث الصورة الجديدة
-      const updatedImages = [
-        ...categoryImages.filter(img => img.category !== category),
-        { 
-          user_id: user.id,
-          category, 
-          image_url: finalUrl 
-        }
-      ];
-      
-      console.log(`تم تحديث القائمة المحلية. عدد الصور: ${updatedImages.length}`);
-      onUpdateImages(updatedImages);
-
       toast({
         title: "تم رفع الصورة بنجاح",
-        description: `تم تحديث صورة تصنيف ${category}`,
+        description: `تم تحديث صورة التصنيف ${category}`,
       });
+
     } catch (error: any) {
-      console.error("خطأ في رفع الصورة:", error);
+      console.error(`خطأ في رفع صورة التصنيف ${category}:`, error);
       toast({
-        variant: "destructive",
-        title: "خطأ في رفع الصورة",
+        title: "فشل رفع الصورة",
         description: error.message,
+        variant: "destructive"
       });
     } finally {
       setUploading(null);
     }
   };
 
-  // حذف صورة تصنيف
+  // حذف صورة التصنيف
   const removeImage = async (category: string) => {
-    const imageToDelete = categoryImages.find(img => img.category === category);
-    if (!imageToDelete) return;
-
     try {
-      console.log(`بدء حذف صورة التصنيف "${category}"`);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("يجب تسجيل الدخول أولاً");
+      console.log(`بدء عملية حذف صورة التصنيف: ${category}`);
+      setUploading(category);
 
-      // استخراج مسار الملف من الرابط
-      const filePath = extractFilePathFromUrl(imageToDelete.image_url, "category-images");
+      const imageToRemove = categoryImages.find(img => img.category === category);
+      if (!imageToRemove) {
+        throw new Error(`لم يتم العثور على صورة للتصنيف: ${category}`);
+      }
 
-      if (filePath) {
-        console.log(`محاولة حذف الملف: ${filePath}`);
-        
-        // حذف الملف من التخزين
-        await deleteImage("category-images", filePath);
+      // حذف الملف من التخزين
+      if (imageToRemove.image_url) {
+        const filePath = extractFilePathFromUrl(imageToRemove.image_url, "category-images");
+        if (filePath) {
+          await deleteImage("category-images", filePath);
+        }
       }
 
       // حذف السجل من قاعدة البيانات
-      const { error: dbError } = await supabase
+      const { error } = await supabase
         .from("category_images")
         .delete()
-        .match({ user_id: user.id, category });
+        .eq("id", imageToRemove.id);
 
-      if (dbError) throw dbError;
+      if (error) {
+        throw error;
+      }
 
-      // تحديث القائمة المحلية
-      const updatedImages = categoryImages.filter(img => img.category !== category);
+      // تحديث القائمة
+      const updatedImages = categoryImages.filter(img => img.id !== imageToRemove.id);
       onUpdateImages(updatedImages);
-      
-      console.log(`تم حذف صورة التصنيف "${category}" بنجاح`);
 
       toast({
         title: "تم حذف الصورة",
-        description: `تم حذف صورة تصنيف ${category}`,
+        description: `تم حذف صورة التصنيف ${category}`,
       });
+
     } catch (error: any) {
-      console.error("خطأ في حذف الصورة:", error);
+      console.error(`خطأ في حذف صورة التصنيف ${category}:`, error);
       toast({
-        variant: "destructive",
-        title: "خطأ في حذف الصورة",
+        title: "فشل حذف الصورة",
         description: error.message,
+        variant: "destructive"
       });
+    } finally {
+      setUploading(null);
     }
   };
 

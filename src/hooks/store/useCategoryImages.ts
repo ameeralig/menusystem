@@ -40,16 +40,25 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
           const updatedImages = data.map(img => {
             if (img.image_url) {
               // استخراج الرابط الأساسي وإضافة طابع زمني
-              const imageBaseUrl = img.image_url.split('?')[0];
+              const baseUrl = img.image_url.split('?')[0];
               return {
                 ...img,
-                image_url: `${imageBaseUrl}?${cacheBreaker}`
+                image_url: `${baseUrl}?${cacheBreaker}`
               };
             }
             return img;
           });
           
           console.log(`تم تحديث ${updatedImages.length} صورة تصنيف بطابع زمني جديد`);
+
+          // طباعة تفاصيل صور التصنيفات بعد المعالجة
+          if (updatedImages.length > 0) {
+            console.log("تفاصيل صور التصنيفات بعد المعالجة:");
+            updatedImages.forEach(img => {
+              console.log(`- التصنيف: ${img.category}, الرابط: ${img.image_url || 'غير متوفر'}`);
+            });
+          }
+          
           setCategoryImages(updatedImages);
         } else {
           console.log("لم يتم العثور على صور تصنيفات للمستخدم");

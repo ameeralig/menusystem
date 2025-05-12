@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { Product } from "@/types/product";
 import ProductGrid from "@/components/store/ProductGrid";
 import CategoryGrid from "@/components/store/CategoryGrid";
@@ -56,6 +56,35 @@ const StoreProductsDisplay = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showSearch, setShowSearch] = useState(false);
+  const [processedCategoryImages, setProcessedCategoryImages] = useState<CategoryImage[]>([]);
+
+  // معالجة صور التصنيفات للتأكد من استخدام أحدث روابط الصور
+  useEffect(() => {
+    if (categoryImages && categoryImages.length > 0) {
+      console.log("StoreProductsDisplay: معالجة صور التصنيفات...", categoryImages.length);
+      
+      // إضافة طابع زمني جديد للتأكد من عدم استخدام الصور المخزنة مؤقتًا
+      const timestamp = Date.now();
+      const processed = categoryImages.map(img => {
+        if (!img.image_url) return img;
+        
+        // تحليل الرابط للتأكد من عدم تكرار المعلمات
+        const url = new URL(img.image_url, window.location.origin);
+        url.searchParams.set('t', `${timestamp}`);
+        
+        return {
+          ...img,
+          image_url: url.toString()
+        };
+      });
+      
+      setProcessedCategoryImages(processed);
+      
+      console.log("StoreProductsDisplay: تمت معالجة صور التصنيفات:", processed.length);
+    } else {
+      setProcessedCategoryImages([]);
+    }
+  }, [categoryImages]);
 
   const categories = useMemo(() => {
     const categorySet = new Set<string>();
@@ -118,11 +147,18 @@ const StoreProductsDisplay = ({
   }, [showSearch]);
 
   // سنطبع معلومات حول صور التصنيفات للمساعدة في التصحيح
-  console.log("StoreProductsDisplay rendering with", categoryImages?.length || 0, "category images");
-  if (categoryImages?.length > 0) {
-    console.log("Available category images in StoreProductsDisplay:", 
-      categoryImages.map(img => ({ category: img.category, url: img.image_url })));
-  }
+  useEffect(() => {
+    console.log("StoreProductsDisplay: تم استلام", categoryImages?.length || 0, "صورة تصنيف");
+    console.log("StoreProductsDisplay: التصنيفات المعروضة:", categories);
+    
+    if (processedCategoryImages?.length > 0) {
+      console.log("StoreProductsDisplay: صور التصنيفات المعالجة:", 
+        processedCategoryImages.map(img => ({ 
+          category: img.category, 
+          url: img.image_url 
+        })));
+    }
+  }, [categoryImages, categories, processedCategoryImages]);
 
   return (
     <div className="space-y-6">
@@ -147,7 +183,7 @@ const StoreProductsDisplay = ({
           categories={categories} 
           onCategorySelect={handleCategorySelect} 
           fontSettings={fontSettings}
-          categoryImages={categoryImages}
+          categoryImages={processedCategoryImages}
         />
       )}
 
