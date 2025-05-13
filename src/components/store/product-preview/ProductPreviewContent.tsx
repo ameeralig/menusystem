@@ -21,36 +21,37 @@ const ProductPreviewContent = ({ storeOwnerId }: ProductPreviewContentProps) => 
   useEffect(() => {
     const fetchProductData = async () => {
       try {
-        if (!storeOwnerId) return;
+        if (!storeOwnerId) {
+          setIsLoadingProduct(false);
+          return;
+        }
 
-        // البحث عن المنتج بناءً على الرابط المخصص
+        // البحث عن المنتج بناءً على معرّف المالك
         const { data, error } = await supabase
           .from("products")
           .select("*")
           .eq("user_id", storeOwnerId)
-          .eq("published", true)
           .order("created_at", { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error("Error fetching product:", error);
+          setIsLoadingProduct(false);
           return;
         }
 
-        setProduct(data as Product);
+        setProduct(data as Product | null);
 
         // استدعاء وظيفة زيادة عداد المشاهدات
-        if (storeOwnerId) {
-          try {
-            const response = await supabase.functions.invoke('increment-page-view', {
-              body: { userId: storeOwnerId }
-            });
-            
-            console.log('تم تحديث عداد المشاهدات:', response);
-          } catch (viewError) {
-            console.error('خطأ في تحديث عداد المشاهدات:', viewError);
-          }
+        try {
+          const response = await supabase.functions.invoke('increment-page-view', {
+            body: { userId: storeOwnerId }
+          });
+          
+          console.log('تم تحديث عداد المشاهدات:', response);
+        } catch (viewError) {
+          console.error('خطأ في تحديث عداد المشاهدات:', viewError);
         }
 
       } catch (error) {
@@ -62,6 +63,8 @@ const ProductPreviewContent = ({ storeOwnerId }: ProductPreviewContentProps) => 
 
     if (storeOwnerId) {
       fetchProductData();
+    } else {
+      setIsLoadingProduct(false);
     }
   }, [storeOwnerId]);
 
