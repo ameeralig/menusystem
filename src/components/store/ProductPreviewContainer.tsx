@@ -23,9 +23,9 @@ const ProductPreviewContainer = (props?: ProductPreviewContainerProps) => {
   const { storeData, isLoading } = useStoreData(slug || "", 0);
 
   // استخدم القيم من props إذا تم تمريرها، وإلا استخدم القيم من storeData
-  const colorTheme = props?.colorTheme || storeData.colorTheme;
-  const bannerUrl = props?.bannerUrl || storeData.bannerUrl;
-  const fontSettings = props?.fontSettings || storeData.fontSettings;
+  const colorTheme = props?.colorTheme || storeData?.colorTheme;
+  const bannerUrl = props?.bannerUrl || storeData?.bannerUrl;
+  const fontSettings = props?.fontSettings || storeData?.fontSettings;
   const containerHeight = props?.containerHeight || "auto";
 
   // إذا تم تمرير children استخدمهم بدلاً من عرض المنتج
@@ -59,7 +59,7 @@ const ProductPreviewContainer = (props?: ProductPreviewContainerProps) => {
       {hasCustomContent ? (
         props?.children
       ) : (
-        <ProductPreviewContent storeOwnerId={storeData.storeOwnerId} />
+        <ProductPreviewContent storeOwnerId={storeData?.storeOwnerId} />
       )}
     </div>
   );
