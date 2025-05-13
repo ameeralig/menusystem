@@ -8,6 +8,8 @@ import { useCategoryImages } from "./store/useCategoryImages";
 
 export const useStoreData = (slug: string | undefined, forceRefresh: number) => {
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const { storeSettings } = useStoreSettings(slug);
   const products = useStoreProducts(storeSettings.storeOwnerId, forceRefresh);
   const { categoryImages, isLoading: categoryImagesLoading } = useCategoryImages(storeSettings.storeOwnerId, forceRefresh);
@@ -28,6 +30,13 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
       })));
     }
   }, [storeSettings.storeOwnerId, forceRefresh, categoryImages]);
+
+  useEffect(() => {
+    if (!isLoading && !storeSettings.storeOwnerId && slug && slug.trim() !== "") {
+      console.log("المتجر غير موجود، التوجيه إلى صفحة 404");
+      navigate('/404');
+    }
+  }, [isLoading, storeSettings.storeOwnerId, slug, navigate]);
 
   useEffect(() => {
     if (storeSettings && products && !categoryImagesLoading) {

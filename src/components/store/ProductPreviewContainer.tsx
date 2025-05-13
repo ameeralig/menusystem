@@ -24,7 +24,7 @@ const ProductPreviewContainer = (props?: ProductPreviewContainerProps) => {
 
   // استخدم القيم من props إذا تم تمريرها، وإلا استخدم القيم من storeData
   const colorTheme = props?.colorTheme || storeData?.colorTheme;
-  const bannerUrl = props?.bannerUrl || storeData?.bannerUrl;
+  const bannerUrl = props?.bannerUrl !== undefined ? props?.bannerUrl : storeData?.bannerUrl;
   const fontSettings = props?.fontSettings || storeData?.fontSettings;
   const containerHeight = props?.containerHeight || "auto";
 
@@ -51,7 +51,7 @@ const ProductPreviewContainer = (props?: ProductPreviewContainerProps) => {
       }}
     >
       <StoreHeader 
-        storeName={storeData?.storeName || props?.colorTheme || ''} 
+        storeName={storeData?.storeName || ''} 
         colorTheme={colorTheme} 
         fontSettings={fontSettings}
       />
