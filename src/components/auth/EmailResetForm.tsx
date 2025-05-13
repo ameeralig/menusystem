@@ -1,6 +1,8 @@
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Mail } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface EmailResetFormProps {
   email: string;
@@ -18,28 +20,49 @@ export const EmailResetForm = ({
   isResetting
 }: EmailResetFormProps) => {
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <div>
+    <form onSubmit={onSubmit} className="space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+      >
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
           البريد الإلكتروني
         </label>
-        <Input
-          type="email"
-          value={email}
-          onChange={(e) => onEmailChange(e.target.value)}
-          required
-          className="mt-1 text-right"
-          dir="rtl"
-        />
-      </div>
-      <div className="flex justify-end gap-2">
+        <div className="relative mt-1">
+          <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+            <Mail className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <Input
+            type="email"
+            value={email}
+            onChange={(e) => onEmailChange(e.target.value)}
+            required
+            className="ps-10 mt-1 text-right"
+            dir="rtl"
+            placeholder="أدخل بريدك الإلكتروني"
+          />
+        </div>
+      </motion.div>
+      
+      <motion.div 
+        className="flex justify-end gap-2"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.3 }}
+      >
         <Button variant="outline" onClick={onBack}>
           إلغاء
         </Button>
         <Button type="submit" disabled={isResetting}>
-          {isResetting ? "جاري إرسال الرمز..." : "إرسال رمز التحقق"}
+          {isResetting ? (
+            <>
+              <span className="mr-2">جاري إرسال الرمز...</span>
+              <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+            </>
+          ) : "إرسال رمز التحقق"}
         </Button>
-      </div>
+      </motion.div>
     </form>
   );
 };
