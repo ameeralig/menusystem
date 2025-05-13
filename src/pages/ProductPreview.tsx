@@ -2,9 +2,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import ProductPreviewContainer from "@/components/store/ProductPreviewContainer";
-import StoreProductsDisplay from "@/components/store/StoreProductsDisplay";
-import SocialIcons from "@/components/store/SocialIcons";
-import FeedbackDialog from "@/components/store/FeedbackDialog";
 import LoadingState from "@/components/store/LoadingState";
 import { useStoreData } from "@/hooks/useStoreData";
 import { useRefreshData } from "@/hooks/useRefreshData";
@@ -131,25 +128,7 @@ const ProductPreview = () => {
   }
 
   return (
-    <>
-      <ProductPreviewContainer 
-        colorTheme={storeData.colorTheme} 
-        bannerUrl={storeData.bannerUrl}
-        fontSettings={storeData.fontSettings}
-        containerHeight="auto"
-      >
-        <StoreProductsDisplay 
-          products={storeData.products} 
-          storeName={storeData.storeName} 
-          colorTheme={storeData.colorTheme}
-          fontSettings={storeData.fontSettings}
-          contactInfo={storeData.contactInfo}
-          categoryImages={storeData.categoryImages}
-        />
-        <SocialIcons socialLinks={storeData.socialLinks} />
-        {storeData.storeOwnerId && <FeedbackDialog userId={storeData.storeOwnerId} />}
-      </ProductPreviewContainer>
-    </>
+    <ProductPreviewContainer />
   );
 };
 

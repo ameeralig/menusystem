@@ -1,114 +1,58 @@
 
-import { useState, useEffect } from "react";
+import React from "react";
 import { Product } from "@/types/product";
-import StoreHeader from "@/components/store/StoreHeader";
-import SearchBar from "@/components/store/SearchBar";
-import CategoryGrid from "@/components/store/CategoryGrid";
-import ProductGrid from "@/components/store/ProductGrid";
-import BackButton from "@/components/store/BackButton";
-import EmptyCategoryMessage from "@/components/store/EmptyCategoryMessage";
 import { CategoryImage } from "@/types/categoryImage";
-
-type FontSettings = {
-  storeName?: {
-    family: string;
-    isCustom: boolean;
-    customFontUrl: string | null;
-  };
-  categoryText?: {
-    family: string;
-    isCustom: boolean;
-    customFontUrl: string | null;
-  };
-  generalText?: {
-    family: string;
-    isCustom: boolean;
-    customFontUrl: string | null;
-  };
-};
+import { FontSettings, ContactInfo } from "@/types/store";
 
 interface DemoProductsDisplayProps {
   products: Product[];
   storeName: string;
   colorTheme: string;
-  categoryImages?: CategoryImage[];
   fontSettings?: FontSettings;
+  contactInfo?: ContactInfo;
+  categoryImages: CategoryImage[];
 }
 
-const DemoProductsDisplay = ({ 
-  products, 
-  storeName, 
+const DemoProductsDisplay: React.FC<DemoProductsDisplayProps> = ({
+  products,
+  storeName,
   colorTheme,
-  categoryImages = [],
-  fontSettings
-}: DemoProductsDisplayProps) => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [processedCategoryImages, setProcessedCategoryImages] = useState<CategoryImage[]>([]);
-  
-  const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
-  
-  const filteredProducts = selectedCategory
-    ? products.filter(p => 
-        p.category === selectedCategory && 
-        p.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : products.filter(p => 
-        p.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-
-  // معالجة صور التصنيفات لإضافة طابع زمني
-  useEffect(() => {
-    if (categoryImages && categoryImages.length > 0) {
-      console.log("DemoProductsDisplay: معالجة", categoryImages.length, "صورة تصنيف");
-      
-      // إضافة طابع زمني جديد للصور
-      const timestamp = Date.now();
-      const processed = categoryImages.map(img => {
-        if (!img.image_url) return img;
-        
-        // تحليل الرابط للتأكد من عدم تكرار المعلمات
-        const url = new URL(img.image_url, window.location.origin);
-        url.searchParams.set('t', `${timestamp}`);
-        url.searchParams.set('demo', 'true');
-        
-        return {
-          ...img,
-          image_url: url.toString()
-        };
-      });
-      
-      setProcessedCategoryImages(processed);
-      
-      // تسجيل المعلومات للتصحيح
-      processed.forEach(img => {
-        console.log(`DemoProductsDisplay: صورة تصنيف ${img.category}: ${img.image_url}`);
-      });
-    } else {
-      setProcessedCategoryImages([]);
-    }
-  }, [categoryImages]);
-
+  fontSettings,
+  categoryImages
+}) => {
   return (
-    <>
-      <StoreHeader storeName={storeName} colorTheme={colorTheme} fontSettings={fontSettings} />
-      <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
-
-      {!selectedCategory ? (
-        <CategoryGrid
-          categories={categories}
-          onCategorySelect={setSelectedCategory}
-          categoryImages={processedCategoryImages}
-          fontSettings={fontSettings}
-        />
-      ) : (
-        <>
-          <BackButton onClick={() => setSelectedCategory(null)} />
-          <ProductGrid products={filteredProducts} />
-          {selectedCategory && filteredProducts.length === 0 && <EmptyCategoryMessage />}
-        </>
-      )}
-    </>
+    <div className="py-6 space-y-8">
+      <h2 className="text-2xl font-semibold text-right">منتجات تجريبية</h2>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {products.map((product, index) => (
+          <div 
+            key={index}
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden"
+          >
+            {product.image_url && (
+              <img 
+                src={product.image_url} 
+                alt={product.name} 
+                className="w-full h-48 object-cover"
+              />
+            )}
+            <div className="p-4">
+              <h3 className="font-semibold text-lg">{product.name}</h3>
+              <p className="text-muted-foreground text-sm mt-2">{product.description}</p>
+              <div className="flex justify-between items-center mt-4">
+                <span className="font-bold text-lg">{product.price.toLocaleString()} د.ع</span>
+                {product.category && (
+                  <span className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700">
+                    {product.category}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };
 
