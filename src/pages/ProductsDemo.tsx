@@ -3,7 +3,6 @@ import DemoContainer from "@/components/demo/DemoContainer";
 import DemoProductsDisplay from "@/components/demo/DemoProductsDisplay";
 import DemoSocialIcons from "@/components/demo/DemoSocialIcons";
 import { sampleProducts } from "@/components/demo/SampleProductsData";
-import { CategoryImage } from "@/types/categoryImage";
 
 const ProductsDemo = () => {
   const socialLinks = {
@@ -12,16 +11,12 @@ const ProductsDemo = () => {
     telegram: "https://t.me"
   };
 
-  // إضافة مصفوفة فارغة لصور التصنيفات
-  const categoryImages: CategoryImage[] = [];
-
   return (
     <DemoContainer>
       <DemoProductsDisplay 
         products={sampleProducts} 
         storeName="مطعم نموذجي" 
-        colorTheme="default"
-        categoryImages={categoryImages}
+        colorTheme="default" 
       />
       <DemoSocialIcons socialLinks={socialLinks} />
     </DemoContainer>

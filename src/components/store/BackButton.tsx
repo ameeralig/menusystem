@@ -1,30 +1,17 @@
 
-import { ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-
 interface BackButtonProps {
-  onClick?: () => void;
+  onClick: () => void;
+  colorTheme?: string | null;
 }
 
-const BackButton = ({ onClick }: BackButtonProps) => {
-  const handleClick = () => {
-    if (onClick) {
-      onClick();
-    } else {
-      window.history.back();
-    }
-  };
-
+const BackButton = ({ onClick, colorTheme }: BackButtonProps) => {
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      className="flex items-center text-muted-foreground hover:text-foreground"
-      onClick={handleClick}
+    <button
+      onClick={onClick}
+      className="mb-6 flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
     >
-      <ChevronRight className="mr-1 h-4 w-4" />
-      العودة
-    </Button>
+      <span>← رجوع إلى التصنيفات</span>
+    </button>
   );
 };
 

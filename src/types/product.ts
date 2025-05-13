@@ -13,5 +13,4 @@ export interface Product {
   category_id?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
-  // ملاحظة: لم نعد بحاجة لخاصية features لأننا نستخدم وصف متعدد الأسطر بدلاً منها
 }

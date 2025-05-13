@@ -8,21 +8,16 @@ import { useCategoryImages } from "./store/useCategoryImages";
 
 export const useStoreData = (slug: string | undefined, forceRefresh: number) => {
   const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const { storeSettings, isLoading: settingsLoading } = useStoreSettings(slug);
+  const { storeSettings } = useStoreSettings(slug);
   const products = useStoreProducts(storeSettings.storeOwnerId, forceRefresh);
   const { categoryImages, isLoading: categoryImagesLoading } = useCategoryImages(storeSettings.storeOwnerId, forceRefresh);
   const bannerUrlRef = useRef<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<number>(Date.now());
-  const [redirectChecked, setRedirectChecked] = useState(false);
 
   // تسجيل معلومات تصحيح الأخطاء
   useEffect(() => {
     console.log("useStoreData - storeOwnerId:", storeSettings.storeOwnerId);
     console.log("useStoreData - forceRefresh:", forceRefresh);
-    console.log("useStoreData - settingsLoading:", settingsLoading);
-    console.log("useStoreData - slug:", slug);
     console.log("useStoreData - categoryImages:", categoryImages?.length || 0);
     
     if (categoryImages && categoryImages.length > 0) {
@@ -32,27 +27,14 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
         id: img.id
       })));
     }
-  }, [storeSettings.storeOwnerId, forceRefresh, categoryImages, settingsLoading, slug]);
-
-  // التحقق من وجود المتجر والتوجيه إذا لزم الأمر
-  useEffect(() => {
-    if (!settingsLoading && !redirectChecked) {
-      setRedirectChecked(true);
-      
-      if (!storeSettings.storeOwnerId && slug && slug.trim() !== "") {
-        console.log("المتجر غير موجود، التوجيه إلى صفحة 404");
-        navigate('/404');
-        return;
-      }
-    }
-  }, [settingsLoading, storeSettings.storeOwnerId, slug, navigate, redirectChecked]);
+  }, [storeSettings.storeOwnerId, forceRefresh, categoryImages]);
 
   useEffect(() => {
-    if (!settingsLoading && products && !categoryImagesLoading) {
-      console.log("تم تحميل البيانات - إيقاف حالة التحميل");
+    if (storeSettings && products && !categoryImagesLoading) {
+      console.log("Data loaded - stopping loading state");
       setIsLoading(false);
     }
-  }, [settingsLoading, products, categoryImagesLoading]);
+  }, [storeSettings, products, categoryImagesLoading]);
 
   // تحديث الصفحة بشكل دوري لتحديث الصور
   useEffect(() => {
@@ -92,7 +74,7 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
       products,
       categoryImages,
     },
-    isLoading: isLoading || settingsLoading,
+    isLoading,
     storeOwnerId: storeSettings.storeOwnerId
   };
 };

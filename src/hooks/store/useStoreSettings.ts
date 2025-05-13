@@ -41,11 +41,9 @@ export const useStoreSettings = (slug: string | undefined) => {
   useEffect(() => {
     const fetchStoreSettings = async () => {
       try {
-        setIsLoading(true);
-        
-        if (!slug || slug.trim() === "") {
-          console.log("لا يوجد slug للبحث عنه");
-          setIsLoading(false);
+        if (!slug) {
+          console.error("No slug provided");
+          navigate('/404');
           return;
         }
 
@@ -55,15 +53,9 @@ export const useStoreSettings = (slug: string | undefined) => {
           .eq("slug", slug.trim())
           .maybeSingle();
 
-        if (error) {
-          console.error("خطأ في جلب إعدادات المتجر:", error);
-          setIsLoading(false);
-          return;
-        }
-
-        if (!settings) {
-          console.log(`لم يتم العثور على متجر بـ slug: ${slug}`);
-          setIsLoading(false);
+        if (error || !settings) {
+          console.error("Error fetching store settings:", error);
+          navigate('/404');
           return;
         }
 
@@ -106,14 +98,18 @@ export const useStoreSettings = (slug: string | undefined) => {
         });
 
       } catch (error: any) {
-        console.error("خطأ في جلب الإعدادات:", error);
-      } finally {
-        setIsLoading(false);
+        console.error("Error fetching settings:", error);
+        toast({
+          title: "حدث خطأ",
+          description: error.message,
+          variant: "destructive",
+        });
+        navigate('/404');
       }
     };
 
     fetchStoreSettings();
-  }, [slug]);
+  }, [slug, toast, navigate]);
 
   return { storeSettings, isLoading };
 };
