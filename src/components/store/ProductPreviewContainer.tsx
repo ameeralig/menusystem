@@ -21,7 +21,8 @@ interface ProductPreviewContainerProps {
 
 const ProductPreviewContainer = (props?: ProductPreviewContainerProps) => {
   const { slug } = useParams<{ slug: string }>();
-  const { storeData, isLoading } = useStoreData(slug || "");
+  // تحديث استدعاء useStoreData بتمرير 0 كقيمة افتراضية لـ forceRefresh
+  const { storeData, isLoading } = useStoreData(slug || "", 0);
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoadingProduct, setIsLoadingProduct] = useState(true);
 
