@@ -8,7 +8,6 @@ import DashboardStats from "@/components/dashboard/DashboardStats";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts";
 
 interface DailyViewData {
@@ -29,56 +28,73 @@ const Dashboard = () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         
-        if (user) {
-          // Get total views
-          const { data: viewsData, error: viewsError } = await supabase
-            .from("page_views")
-            .select("view_count")
-            .eq("user_id", user.id);
-          
-          if (viewsError) {
-            console.error("Error fetching view count:", viewsError);
-            throw new Error("فشل في تحميل إحصائيات المشاهدات");
-          }
-          
-          // Calculate total views by summing all view_count values
-          const totalViews = viewsData?.reduce((sum, item) => sum + (item.view_count || 0), 0) || 0;
-          
-          setStats({
-            totalViews: totalViews,
+        if (!user) {
+          toast({
+            title: "غير مصرح",
+            description: "يجب تسجيل الدخول لعرض لوحة التحكم",
+            variant: "destructive",
           });
-
-          // Generate sample data for the last 7 days
-          const today = new Date();
-          const last7Days = Array.from({ length: 7 }, (_, i) => {
-            const date = new Date(today);
-            date.setDate(today.getDate() - (6 - i));
-            return date;
-          });
-
-          // Format to daily view data - in a real app, you'd fetch this from the database
-          // For now we'll simulate some random values
-          const dailyData = last7Days.map(date => {
-            // Format the date as "DD/MM"
-            const formattedDate = `${date.getDate()}/${date.getMonth() + 1}`;
-            
-            // Generate a random view count based on total views to make it realistic
-            // Using Math.floor(totalViews * 0.1 * Math.random()) + 1 to get a value between 1 and 10% of total views
-            const randomViews = Math.min(
-              Math.floor(totalViews * 0.2 * Math.random()) + 1,
-              Math.max(1, Math.floor(totalViews / 10))
-            );
-            
-            return {
-              date: formattedDate,
-              views: randomViews,
-            };
-          });
-          
-          setDailyViewsData(dailyData);
+          setLoading(false);
+          return;
         }
+        
+        // جلب عدد المشاهدات من جدول page_views
+        const { data: viewsData, error: viewsError } = await supabase
+          .from("page_views")
+          .select("*")
+          .eq("user_id", user.id)
+          .single();
+        
+        if (viewsError && viewsError.code !== "PGRST116") { // PGRST116 هو كود "لم يتم العثور على نتائج"
+          console.error("خطأ في جلب عدد المشاهدات:", viewsError);
+          throw new Error("فشل في تحميل إحصائيات المشاهدات");
+        }
+        
+        const totalViews = viewsData?.view_count || 0;
+        
+        setStats({
+          totalViews: totalViews,
+        });
+
+        // جلب بيانات المشاهدات اليومية من سجل المشاهدات
+        // في تطبيق حقيقي، يفضل أن يكون لديك جدول للمشاهدات اليومية
+        // حاليًا سنقوم بإنشاء بيانات تقريبية استنادًا إلى إجمالي المشاهدات
+        
+        const today = new Date();
+        const last7Days = Array.from({ length: 7 }, (_, i) => {
+          const date = new Date(today);
+          date.setDate(today.getDate() - (6 - i));
+          return date;
+        });
+
+        // إنشاء توزيع تقريبي للمشاهدات على الأيام السبعة الماضية
+        let remainingViews = totalViews;
+        const dailyData: DailyViewData[] = [];
+        
+        for (let i = 0; i < last7Days.length; i++) {
+          const date = last7Days[i];
+          const formattedDate = `${date.getDate()}/${date.getMonth() + 1}`;
+          
+          // توزيع المشاهدات بشكل متصاعد مع بعض العشوائية
+          // اليوم الأخير (اليوم الحالي) يحصل على معظم المشاهدات
+          const viewPercentage = (i + 1) / 15 + (i === last7Days.length - 1 ? 0.3 : 0);
+          const viewsForDay = Math.min(Math.floor(totalViews * viewPercentage), remainingViews);
+          remainingViews -= viewsForDay;
+          
+          dailyData.push({
+            date: formattedDate,
+            views: viewsForDay
+          });
+        }
+        
+        // إذا كانت هناك مشاهدات متبقية، أضفها لليوم الأخير
+        if (remainingViews > 0 && dailyData.length > 0) {
+          dailyData[dailyData.length - 1].views += remainingViews;
+        }
+        
+        setDailyViewsData(dailyData);
       } catch (error) {
-        console.error("Error fetching dashboard data:", error);
+        console.error("خطأ في جلب بيانات لوحة التحكم:", error);
         toast({
           title: "حدث خطأ",
           description: "لم نتمكن من تحميل بيانات لوحة التحكم",

@@ -38,7 +38,7 @@ const DashboardStats = ({ stats, loading }: DashboardStatsProps) => {
               </div>
               <span className="text-sm text-muted-foreground font-medium">{statsItem.title}</span>
               <span className={`text-2xl font-bold bg-gradient-to-r bg-clip-text text-transparent transition-all duration-300 ease-in-out group-hover:opacity-100 group-hover:scale-105 tracking-tight ${statsItem.color}`}>
-                {statsItem.value}
+                {statsItem.value.toLocaleString('ar-EG')}
               </span>
             </div>
           )}

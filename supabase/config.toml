@@ -1,23 +1,33 @@
 
-zqlckixwpyrwdwrsuhsg
+project_id = "zqlckixwpyrwdwrsuhsg"
 
-[functions."get-service-key"]
-verify_jwt = true
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
 
-[functions."manage-user"]
-verify_jwt = true
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
 
-[functions."create-system-stats"]
-verify_jwt = true
+[studio]
+port = 54323
 
-[functions."update-system-stats"]
-verify_jwt = true
+[inbucket]
+port = 54324
+smtp_port = 54325
+pop3_port = 54326
 
-[functions."check-notifications-table"]
-verify_jwt = true
+[storage]
+enabled = true
 
-[functions."handle-password-reset"]
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+
+[realtime]
+enabled = true
+
+[functions.increment-page-view]
 verify_jwt = false
-
-[functions."setup-notifications-rpcs"]
-verify_jwt = true
