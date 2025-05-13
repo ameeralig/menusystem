@@ -11,7 +11,7 @@ import { toast } from "sonner";
 const ProductPreview = () => {
   const { slug } = useParams<{ slug: string }>();
   const { forceRefresh, refreshData } = useRefreshData();
-  const { storeData, isLoading, storeOwnerId } = useStoreData(slug, forceRefresh);
+  const { storeData, isLoading } = useStoreData(slug, forceRefresh);
   const [isAutoRefresh, setIsAutoRefresh] = useState<boolean>(true);
   const [lastManualRefresh, setLastManualRefresh] = useState<number>(Date.now());
 
@@ -66,7 +66,7 @@ const ProductPreview = () => {
 
   // تفعيل الاستماع للتحديثات المباشرة بشكل هادئ في الخلفية
   useEffect(() => {
-    if (!storeOwnerId) {
+    if (!storeData.storeOwnerId) {
       return;
     }
     
@@ -74,7 +74,7 @@ const ProductPreview = () => {
     const productsChannel = supabase
       .channel('products-changes')
       .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'products', filter: `user_id=eq.${storeOwnerId}` }, 
+        { event: '*', schema: 'public', table: 'products', filter: `user_id=eq.${storeData.storeOwnerId}` }, 
         (payload) => {
           if (isAutoRefresh) {
             toast.info("تم تحديث المنتجات");
@@ -89,7 +89,7 @@ const ProductPreview = () => {
     const settingsChannel = supabase
       .channel('settings-changes')
       .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'store_settings', filter: `user_id=eq.${storeOwnerId}` }, 
+        { event: '*', schema: 'public', table: 'store_settings', filter: `user_id=eq.${storeData.storeOwnerId}` }, 
         (payload) => {
           if (isAutoRefresh) {
             toast.info("تم تحديث إعدادات المتجر");
@@ -104,7 +104,7 @@ const ProductPreview = () => {
     const categoryImagesChannel = supabase
       .channel('categories-changes')
       .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'category_images', filter: `user_id=eq.${storeOwnerId}` }, 
+        { event: '*', schema: 'public', table: 'category_images', filter: `user_id=eq.${storeData.storeOwnerId}` }, 
         (payload) => {
           if (isAutoRefresh) {
             toast.info("تم تحديث التصنيفات");
@@ -121,7 +121,7 @@ const ProductPreview = () => {
       supabase.removeChannel(settingsChannel);
       supabase.removeChannel(categoryImagesChannel);
     };
-  }, [storeOwnerId, refreshData, isAutoRefresh]);
+  }, [storeData.storeOwnerId, refreshData, isAutoRefresh]);
 
   if (isLoading) {
     return <LoadingState />;

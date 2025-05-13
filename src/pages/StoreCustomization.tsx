@@ -12,6 +12,7 @@ import AppearanceSection from "@/components/store/customization/AppearanceSectio
 import SocialLinksSection from "@/components/store/customization/SocialLinksSection";
 import ProductPreviewContainer from "@/components/store/ProductPreviewContainer";
 import DemoProductsDisplay from "@/components/demo/DemoProductsDisplay";
+import { toast as sonnerToast } from "sonner";
 
 type SocialLinks = {
   instagram: string;
@@ -96,7 +97,12 @@ const StoreCustomization = () => {
   const fetchStoreSettings = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        // التوجيه إلى صفحة تسجيل الدخول إذا لم يكن المستخدم مسجلاً
+        sonnerToast.error("يجب تسجيل الدخول أولاً");
+        navigate('/auth/login');
+        return;
+      }
 
       const { data: storeSettings, error } = await supabase
         .from("store_settings")
@@ -106,6 +112,7 @@ const StoreCustomization = () => {
 
       if (error) {
         console.error("Error fetching store settings:", error);
+        sonnerToast.error("حدث خطأ أثناء جلب إعدادات المتجر");
         return;
       }
 
@@ -139,6 +146,7 @@ const StoreCustomization = () => {
       }
     } catch (error) {
       console.error("Error fetching store settings:", error);
+      sonnerToast.error("حدث خطأ أثناء جلب إعدادات المتجر");
     }
   };
 

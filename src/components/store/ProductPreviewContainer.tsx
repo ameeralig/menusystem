@@ -35,7 +35,7 @@ const ProductPreviewContainer = (props?: ProductPreviewContainerProps) => {
     return <LoadingState />;
   }
 
-  if (!storeData && !hasCustomContent) {
+  if (!storeData?.storeOwnerId && !hasCustomContent) {
     return <StoreNotFound />;
   }
 

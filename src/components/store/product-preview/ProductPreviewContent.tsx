@@ -44,14 +44,16 @@ const ProductPreviewContent = ({ storeOwnerId }: ProductPreviewContentProps) => 
         setProduct(data as Product | null);
 
         // استدعاء وظيفة زيادة عداد المشاهدات
-        try {
-          const response = await supabase.functions.invoke('increment-page-view', {
-            body: { userId: storeOwnerId }
-          });
-          
-          console.log('تم تحديث عداد المشاهدات:', response);
-        } catch (viewError) {
-          console.error('خطأ في تحديث عداد المشاهدات:', viewError);
+        if (storeOwnerId) {
+          try {
+            const response = await supabase.functions.invoke('increment-page-view', {
+              body: { userId: storeOwnerId }
+            });
+            
+            console.log('تم تحديث عداد المشاهدات:', response);
+          } catch (viewError) {
+            console.error('خطأ في تحديث عداد المشاهدات:', viewError);
+          }
         }
 
       } catch (error) {
