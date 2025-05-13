@@ -14,11 +14,11 @@ interface DemoProductsDisplayProps {
 }
 
 const DemoProductsDisplay: React.FC<DemoProductsDisplayProps> = ({
-  products,
-  storeName,
+  products, 
+  storeName, 
   colorTheme,
   fontSettings,
-  categoryImages
+  categoryImages = [] // تعيين قيمة افتراضية لتجنب أخطاء
 }) => {
   return (
     <div className="py-6 space-y-8">
