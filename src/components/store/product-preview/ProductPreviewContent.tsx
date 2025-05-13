@@ -22,9 +22,12 @@ const ProductPreviewContent = ({ storeOwnerId }: ProductPreviewContentProps) => 
     const fetchProductData = async () => {
       try {
         if (!storeOwnerId) {
+          console.log("لا يوجد معرف المالك، لا يمكن جلب المنتج");
           setIsLoadingProduct(false);
           return;
         }
+
+        console.log("جلب بيانات المنتج للمالك:", storeOwnerId);
 
         // البحث عن المنتج بناءً على معرّف المالك
         const { data, error } = await supabase
@@ -36,11 +39,12 @@ const ProductPreviewContent = ({ storeOwnerId }: ProductPreviewContentProps) => 
           .maybeSingle();
 
         if (error) {
-          console.error("Error fetching product:", error);
+          console.error("خطأ في جلب المنتج:", error);
           setIsLoadingProduct(false);
           return;
         }
 
+        console.log("تم العثور على المنتج:", data);
         setProduct(data as Product | null);
 
         // استدعاء وظيفة زيادة عداد المشاهدات
@@ -57,7 +61,7 @@ const ProductPreviewContent = ({ storeOwnerId }: ProductPreviewContentProps) => 
         }
 
       } catch (error) {
-        console.error("Error:", error);
+        console.error("خطأ:", error);
       } finally {
         setIsLoadingProduct(false);
       }
