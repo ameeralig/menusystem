@@ -16,7 +16,7 @@ interface ProductPreviewContainerProps {
   bannerUrl?: string | null;
   fontSettings?: FontSettings;
   containerHeight?: string;
-  children?: ReactNode;
+  children?: ReactNode; // استخدام نوع ReactNode بدلاً من ReactNode
 }
 
 const ProductPreviewContainer = (props?: ProductPreviewContainerProps) => {
