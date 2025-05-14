@@ -1,4 +1,3 @@
-
 import { supabase } from "@/lib/supabase";
 
 /**
@@ -211,5 +210,33 @@ export const checkImageUrl = async (url: string | null): Promise<boolean> => {
   } catch (error) {
     console.error("خطأ في فحص رابط الصورة:", error);
     return false;
+  }
+};
+
+/**
+ * تحويل رابط URL إلى ملف File
+ * @param url رابط URL للصورة
+ * @param filename اسم الملف الافتراضي
+ * @param mimeType نوع الملف
+ * @returns وعد يحل إلى كائن File
+ */
+export const urlToFile = async (
+  url: string,
+  filename: string = 'image.jpg',
+  mimeType: string = 'image/jpeg'
+): Promise<File> => {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    // إنشاء اسم ملف آمن
+    const safeFileName = filename
+      .toLowerCase()
+      .replace(/[^a-z0-9.]/g, '-')
+      .replace(/--+/g, '-');
+    
+    return new File([blob], safeFileName, { type: mimeType || blob.type });
+  } catch (error) {
+    console.error('خطأ في تحويل URL إلى ملف:', error);
+    throw error;
   }
 };

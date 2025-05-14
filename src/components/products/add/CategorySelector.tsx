@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +6,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { Folder, ImagePlus, Upload, Link as LinkIcon } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { urlToFile } from "@/utils/storageHelpers";
 
 interface CategorySelectorProps {
   existingCategories: string[];
