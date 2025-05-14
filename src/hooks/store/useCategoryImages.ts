@@ -32,44 +32,41 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
 
         console.log(`تم استلام صور التصنيفات بنجاح، عددها: ${data?.length || 0}`);
         
-        // إضافة طابع زمني لجميع الصور لكسر التخزين المؤقت
-        const uniqueTimestamp = forceRefresh || Date.now();
-        const cacheBreaker = `t=${uniqueTimestamp}&nocache=${Math.random()}`;
-        
         if (data && data.length > 0) {
-          const updatedImages = data.map(img => {
+          // تحقق من أن روابط الصور تبدأ بـ "https://" أو "http://"
+          const processedImages = data.map(img => {
             if (img.image_url) {
-              // استخراج الرابط الأساسي وإضافة طابع زمني
-              const baseUrl = img.image_url.split('?')[0];
-              return {
-                ...img,
-                image_url: `${baseUrl}?${cacheBreaker}`
-              };
+              if (!img.image_url.startsWith('http')) {
+                // إضافة بروتوكول https إذا كان مفقودًا
+                if (img.image_url.startsWith('//')) {
+                  return {
+                    ...img,
+                    image_url: `https:${img.image_url}`
+                  };
+                } else {
+                  return {
+                    ...img,
+                    image_url: `https://${img.image_url}`
+                  };
+                }
+              }
             }
             return img;
           });
           
-          console.log(`تم تحديث ${updatedImages.length} صورة تصنيف بطابع زمني جديد`);
-
+          console.log(`تمت معالجة ${processedImages.length} صورة تصنيف للتأكد من صحة الروابط`);
+          setCategoryImages(processedImages);
+          
           // تحميل مسبق للصور (preload) لتحسين الأداء
-          updatedImages.forEach(img => {
+          processedImages.forEach(img => {
             if (img.image_url) {
               const preloadImage = new Image();
               preloadImage.src = img.image_url;
+              preloadImage.crossOrigin = "anonymous";
               preloadImage.fetchPriority = "high";
               console.log(`تحميل مسبق للصورة: ${img.category}`);
             }
           });
-
-          // طباعة تفاصيل صور التصنيفات بعد المعالجة
-          if (updatedImages.length > 0) {
-            console.log("تفاصيل صور التصنيفات بعد المعالجة:");
-            updatedImages.forEach(img => {
-              console.log(`- التصنيف: ${img.category}, الرابط: ${img.image_url || 'غير متوفر'}`);
-            });
-          }
-          
-          setCategoryImages(updatedImages);
         } else {
           console.log("لم يتم العثور على صور تصنيفات للمستخدم");
           setCategoryImages([]);

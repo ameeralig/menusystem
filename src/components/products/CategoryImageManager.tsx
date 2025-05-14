@@ -6,6 +6,7 @@ import { CategoryImageCard } from "./category-image/CategoryImageCard";
 import { useCategoryImageUpload } from "./category-image/useCategoryImageUpload";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect } from "react";
+import { getUrlWithTimestamp } from "@/utils/storageHelpers";
 
 interface CategoryImageManagerProps {
   categories: string[];
@@ -48,6 +49,18 @@ export const CategoryImageManager = ({
     );
   }
 
+  // إعداد الصور مع روابط تحتوي على طوابع زمنية
+  const getProcessedImage = (category: string): CategoryImage | undefined => {
+    const categoryImage = categoryImages.find(img => img.category === category);
+    if (categoryImage && categoryImage.image_url) {
+      return {
+        ...categoryImage,
+        image_url: getUrlWithTimestamp(categoryImage.image_url) || categoryImage.image_url
+      };
+    }
+    return categoryImage;
+  };
+
   return (
     <TooltipProvider>
       <div className="space-y-4">
@@ -62,13 +75,13 @@ export const CategoryImageManager = ({
         
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {categories.map((category) => {
-            const categoryImage = categoryImages.find(img => img.category === category);
+            const processedImage = getProcessedImage(category);
             
             return (
               <CategoryImageCard
                 key={category}
                 category={category}
-                categoryImage={categoryImage}
+                categoryImage={processedImage}
                 onFileUpload={handleFileUpload}
                 onRemoveImage={removeImage}
                 uploading={uploading === category}

@@ -69,10 +69,28 @@ export const uploadImage = async (
     const filePath = createUniqueFilePath(userId, folder, file);
     console.log(`مسار الملف: ${filePath}`);
     
+    // التأكد أولاً من وجود الدلو (Bucket)، وإنشائه إذا لم يكن موجوداً
+    try {
+      const { data: bucketData, error: bucketError } = await supabase.storage
+        .getBucket(bucket);
+        
+      if (bucketError && bucketError.message.includes("does not exist")) {
+        console.log(`إنشاء دلو جديد: ${bucket}`);
+        await supabase.storage.createBucket(bucket, {
+          public: true,
+          fileSizeLimit: 10485760, // 10MB
+          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
+        });
+      }
+    } catch (bucketCheckError) {
+      console.error("خطأ في التحقق من دلو التخزين:", bucketCheckError);
+      // نستمر في المحاولة للرفع حتى لو فشل فحص الدلو
+    }
+    
     const { error: uploadError, data } = await supabase.storage
       .from(bucket)
       .upload(filePath, file, {
-        cacheControl: '0', // تعطيل التخزين المؤقت تمامًا
+        cacheControl: '3600',
         upsert: true
       });
 
@@ -81,12 +99,20 @@ export const uploadImage = async (
       throw uploadError;
     }
 
+    // الحصول على الرابط العام للصورة
     const { data: { publicUrl } } = supabase.storage
       .from(bucket)
       .getPublicUrl(filePath);
       
     console.log(`تم رفع الصورة بنجاح. الرابط العام: ${publicUrl}`);
-    return publicUrl;
+    
+    // ضمان أن الرابط العام يحتوي على بروتوكول HTTPS
+    let finalUrl = publicUrl;
+    if (!finalUrl.startsWith('http')) {
+      finalUrl = `https:${finalUrl}`;
+    }
+    
+    return finalUrl;
   } catch (error) {
     console.error("خطأ في رفع الصورة:", error);
     throw error;
@@ -94,15 +120,39 @@ export const uploadImage = async (
 };
 
 /**
- * تحويل URL الصورة (مثل blob) إلى كائن File
- * @param url رابط الصورة
- * @param filename اسم الملف
- * @returns كائن File
+ * استخراج مسار الملف من رابط Supabase العام
+ * @param url الرابط العام للصورة من Supabase
+ * @param bucket اسم المستودع للتحقق
+ * @returns مسار الملف (بدون اسم المستودع)
  */
-export const urlToFile = async (url: string, filename: string): Promise<File> => {
-  const response = await fetch(url);
-  const blob = await response.blob();
-  return new File([blob], filename, { type: blob.type });
+export const extractFilePathFromUrl = (url: string, bucket: string): string | null => {
+  try {
+    if (!url) return null;
+    
+    // تجربة النمط الرئيسي لعناوين Supabase
+    const mainRegex = new RegExp(`/storage/v1/object/public/${bucket}/(.+?)(?:\\?|$)`);
+    const mainMatch = url.match(mainRegex);
+    
+    if (mainMatch && mainMatch[1]) {
+      console.log(`تم استخراج مسار الملف: ${mainMatch[1]} من ${url}`);
+      return decodeURIComponent(mainMatch[1]);
+    }
+    
+    // تجربة نمط بديل
+    const altRegex = new RegExp(`/${bucket}/(.+?)(?:\\?|$)`);
+    const altMatch = url.match(altRegex);
+    
+    if (altMatch && altMatch[1]) {
+      console.log(`تم استخراج مسار الملف (نمط بديل): ${altMatch[1]} من ${url}`);
+      return decodeURIComponent(altMatch[1]);
+    }
+    
+    console.log(`لم يتم العثور على مسار الملف في الرابط: ${url}`);
+    return null;
+  } catch (e) {
+    console.error("خطأ في استخراج مسار الملف:", e);
+    return null;
+  }
 };
 
 /**
@@ -114,8 +164,12 @@ export const getUrlWithTimestamp = (url: string | null): string | null => {
   if (!url) return null;
   
   const timestamp = Date.now();
-  const baseUrl = url.split('?')[0];
-  return `${baseUrl}?t=${timestamp}`;
+  // تحقق مما إذا كان الرابط يحتوي بالفعل على علامات استفهام
+  if (url.includes('?')) {
+    return `${url}&t=${timestamp}`;
+  } else {
+    return `${url}?t=${timestamp}`;
+  }
 };
 
 /**
@@ -157,30 +211,5 @@ export const checkImageUrl = async (url: string | null): Promise<boolean> => {
   } catch (error) {
     console.error("خطأ في فحص رابط الصورة:", error);
     return false;
-  }
-};
-
-/**
- * استخراج مسار الملف من رابط Supabase العام
- * @param url الرابط العام للصورة من Supabase
- * @param bucket اسم المستودع للتحقق
- * @returns مسار الملف (بدون اسم المستودع)
- */
-export const extractFilePathFromUrl = (url: string, bucket: string): string | null => {
-  try {
-    // البحث عن نمط URL Supabase
-    const regex = new RegExp(`/storage/v1/object/public/${bucket}/(.+?)(?:\\?|$)`);
-    const match = url.match(regex);
-    
-    if (match && match[1]) {
-      console.log(`تم استخراج مسار الملف: ${match[1]} من ${url}`);
-      return decodeURIComponent(match[1]);
-    }
-    
-    console.log(`لم يتم العثور على مسار الملف في الرابط: ${url}`);
-    return null;
-  } catch (e) {
-    console.error("خطأ في استخراج مسار الملف:", e);
-    return null;
   }
 };
