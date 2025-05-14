@@ -1,8 +1,6 @@
 
 import { createRoot } from 'react-dom/client'
-import { injectSpeedInsights } from '@vercel/speed-insights';
-
-injectSpeedInsights();
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import App from './App.tsx'
 import './index.css'
 
