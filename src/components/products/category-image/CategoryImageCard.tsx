@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { ImageIcon, X, Loader2 } from "lucide-react";
 import { CategoryImage } from "@/types/categoryImage";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { getUrlWithTimestamp } from "@/utils/storageHelpers";
 
 interface CategoryImageCardProps {
   category: string;
@@ -26,7 +26,7 @@ export const CategoryImageCard = ({
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const [imageSrc, setImageSrc] = useState<string | undefined>();
+  const [imageSrc, setImageSrc] = useState<string | undefined>(categoryImage?.image_url);
 
   // عند تغيير صورة التصنيف أو إعادة التحميل، نستخدم القيمة الجديدة
   useEffect(() => {
@@ -37,8 +37,17 @@ export const CategoryImageCard = ({
       setIsLoading(true);
       setImageError(false);
       
-      // تحديث الرابط مع طابع زمني جديد لتجنب التخزين المؤقت
-      const newSrc = getUrlWithTimestamp(categoryImage.image_url);
+      // تحديث رابط الصورة مع طابع زمني جديد لتجنب التخزين المؤقت
+      const timestamp = Date.now();
+      let newSrc = categoryImage.image_url;
+      
+      // إضافة طابع زمني جديد
+      if (newSrc.includes('?')) {
+        newSrc = `${newSrc.split('?')[0]}?t=${timestamp}`;
+      } else {
+        newSrc = `${newSrc}?t=${timestamp}`;
+      }
+      
       setImageSrc(newSrc);
     } else {
       console.log(`لا توجد صورة للتصنيف ${category}`);
@@ -114,7 +123,6 @@ export const CategoryImageCard = ({
               onError={handleImageError}
               loading="eager"
               style={{ display: isLoading ? 'none' : 'block' }}
-              crossOrigin="anonymous"
             />
           </div>
         ) : (

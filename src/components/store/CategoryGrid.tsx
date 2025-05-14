@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { CSSProperties, useEffect, useState } from "react";
 import { CategoryImage } from "@/types/categoryImage";
 import { Folder } from "lucide-react";
-import { getUrlWithTimestamp } from "@/utils/storageHelpers";
 
 interface FontSettings {
   categoryText?: {
@@ -34,19 +33,6 @@ const CategoryCard = ({
   const [imgError, setImgError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
-  // تعامل مع أخطاء تحميل الصورة
-  const handleImageError = () => {
-    console.error(`خطأ في تحميل صورة التصنيف: ${category}`);
-    setImgError(true);
-    setIsLoading(false);
-  };
-
-  // عرض رسالة عند نجاح تحميل الصورة
-  const handleImageLoad = () => {
-    console.log(`تم تحميل صورة التصنيف بنجاح: ${category}`);
-    setIsLoading(false);
-  };
-  
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
@@ -65,10 +51,16 @@ const CategoryCard = ({
               src={imageUrl} 
               alt={category}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-              onError={handleImageError}
-              onLoad={handleImageLoad}
+              onError={() => {
+                console.error(`خطأ في تحميل صورة التصنيف: ${category}`);
+                setImgError(true);
+                setIsLoading(false);
+              }}
+              onLoad={() => {
+                console.log(`تم تحميل صورة التصنيف بنجاح: ${category}`);
+                setIsLoading(false);
+              }}
               loading="eager"
-              crossOrigin="anonymous"
             />
           </>
         ) : (
@@ -97,7 +89,6 @@ const CategoryGrid = ({
 }: CategoryGridProps) => {
   const [fontFaceLoaded, setFontFaceLoaded] = useState(false);
   const [fontId, setFontId] = useState<string>("");
-  const [processedImages, setProcessedImages] = useState<Record<string, string | null>>({});
   
   // معالجة الخط المخصص إذا كان متاحاً
   useEffect(() => {
@@ -124,26 +115,20 @@ const CategoryGrid = ({
     return {};
   };
 
-  // معالجة صور التصنيفات وإضافة طوابع زمنية للتأكد من عدم استخدام الذاكرة المؤقتة
-  useEffect(() => {
-    if (categoryImages && categoryImages.length > 0) {
-      console.log("CategoryGrid: معالجة صور التصنيفات...", categoryImages.length);
-      
-      const newProcessedImages: Record<string, string | null> = {};
-      
-      categoryImages.forEach(img => {
-        if (img.category && img.image_url) {
-          const timestampedUrl = getUrlWithTimestamp(img.image_url);
-          newProcessedImages[img.category] = timestampedUrl;
-          console.log(`تم معالجة صورة للتصنيف ${img.category}: ${timestampedUrl}`);
-        }
-      });
-      
-      setProcessedImages(newProcessedImages);
-    }
-  }, [categoryImages]);
+  // الحصول على رابط صورة التصنيف مع التحقق من وجودها
+  const getCategoryImageUrl = (category: string): string | null => {
+    if (!categoryImages || categoryImages.length === 0) return null;
+    
+    const imageData = categoryImages.find(img => img.category === category);
+    if (!imageData?.image_url) return null;
+    
+    // تسجيل معلومات التصحيح
+    console.log(`استخدام صورة للتصنيف: ${category} - الرابط: ${imageData.image_url}`);
+    
+    return imageData.image_url;
+  };
 
-  // تسجيل المعلومات لأغراض التصحيح
+  // تسجيل معلومات للتصحيح
   useEffect(() => {
     console.log(`CategoryGrid: تلقي ${categoryImages?.length || 0} صورة تصنيف`);
     if (categoryImages?.length > 0) {
@@ -163,7 +148,7 @@ const CategoryGrid = ({
           <CategoryCard
             key={category}
             category={category}
-            imageUrl={processedImages[category] || null}
+            imageUrl={getCategoryImageUrl(category)}
             onClick={() => onCategorySelect(category)}
             fontStyle={getCategoryTextStyle()}
           />
