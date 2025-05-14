@@ -1,8 +1,13 @@
+
 # Welcome to your Lovable project
 
 ## Project info
 
 **URL**: https://lovable.dev/projects/dc061dfc-e9a3-4f63-a9f9-f09256216c83
+
+## Performance Monitoring
+
+هذا المشروع يستخدم **Vercel Speed Insights** لتتبع أداء الموقع ومراقبة تجربة المستخدم الفعلية. يتم جمع بيانات الأداء تلقائياً وعرضها في لوحة تحكم Vercel للتحليل.
 
 ## How can I edit this code?
 
