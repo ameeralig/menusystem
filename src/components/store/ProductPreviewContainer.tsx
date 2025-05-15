@@ -1,6 +1,7 @@
 
 import { ReactNode, useState, useEffect, CSSProperties } from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface FontSettings {
   generalText?: {
@@ -36,6 +37,7 @@ const ProductPreviewContainer = ({
   containerHeight = "auto"
 }: ProductPreviewContainerProps) => {
   const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const [fontFaceLoaded, setFontFaceLoaded] = useState(false);
   const [fontId, setFontId] = useState<string>("");
   const [imgSrc, setImgSrc] = useState<string | null>(null);
@@ -71,7 +73,13 @@ const ProductPreviewContainer = ({
         // إضافة معرف زمني لتجنب التخزين المؤقت
         const timestamp = new Date().getTime();
         const baseUrl = bannerUrl.split('?')[0];
-        const newUrl = `${baseUrl}?t=${timestamp}`;
+        
+        // تحسين URL الصورة لاستخدام WebP إذا كان ذلك متاحًا
+        // يمكن استبدال هذا بخدمة CDN لاحقًا
+        const shouldUseWebP = baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app');
+        const newUrl = shouldUseWebP 
+          ? `${baseUrl}?t=${timestamp}&format=webp&quality=80` 
+          : `${baseUrl}?t=${timestamp}`;
         
         // إنشاء كائن صورة جديد للتحقق من تحميل الصورة
         const img = new Image();
@@ -79,6 +87,7 @@ const ProductPreviewContainer = ({
           console.log("Image loaded successfully:", newUrl);
           setImgSrc(newUrl);
           setImageError(false);
+          setImageLoaded(true);
         };
         img.onerror = (e) => {
           console.error("Error loading banner image:", newUrl, e);
@@ -87,7 +96,7 @@ const ProductPreviewContainer = ({
         
         // تعيين خصائص إضافية للتحميل السريع
         img.decoding = "async";
-        img.loading = "eager";
+        img.loading = "eager"; // تحميل فوري للصور المهمة مثل البانر
         img.src = newUrl;
       };
 
@@ -144,24 +153,30 @@ const ProductPreviewContainer = ({
 
   return (
     <div className="flex flex-col" style={getContainerStyle()}>
-      {imgSrc && !imageError ? (
+      {bannerUrl && (
         <div className="relative w-full overflow-hidden">
           <AspectRatio ratio={16 / 5} className="w-full">
-            <img 
-              src={imgSrc} 
-              alt="صورة الغلاف" 
-              className="w-full h-full object-cover"
-              onError={() => {
-                console.error("Error displaying image:", imgSrc);
-                setImageError(true);
-              }}
-              loading="eager"
-              fetchPriority="high"
-            />
+            {!imageLoaded && !imageError && (
+              <Skeleton className="w-full h-full absolute inset-0" />
+            )}
+            {imgSrc && !imageError ? (
+              <img 
+                src={imgSrc} 
+                alt="صورة الغلاف" 
+                className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                onError={() => {
+                  console.error("Error displaying image:", imgSrc);
+                  setImageError(true);
+                }}
+                onLoad={() => setImageLoaded(true)}
+                loading="eager" // البانر يجب أن يتحمل فوريًا لأنه جزء مهم من واجهة المستخدم
+                fetchPriority="high"
+              />
+            ) : null}
             <div className="absolute inset-0 bg-black bg-opacity-30"></div>
           </AspectRatio>
         </div>
-      ) : null}
+      )}
       <div className={`flex-1 ${getThemeClasses(colorTheme)} transition-colors duration-300 relative`}>
         {imgSrc && !imageError && (
           <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-black/20 to-transparent"></div>

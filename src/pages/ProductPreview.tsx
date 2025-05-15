@@ -1,15 +1,17 @@
 
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import ProductPreviewContainer from "@/components/store/ProductPreviewContainer";
-import StoreProductsDisplay from "@/components/store/StoreProductsDisplay";
-import SocialIcons from "@/components/store/SocialIcons";
-import FeedbackDialog from "@/components/store/FeedbackDialog";
 import LoadingState from "@/components/store/LoadingState";
 import { useStoreData } from "@/hooks/useStoreData";
 import { useRefreshData } from "@/hooks/useRefreshData";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+
+// استخدام التحميل البطيء للمكونات غير الأساسية
+const ProductPreviewContainer = lazy(() => import("@/components/store/ProductPreviewContainer"));
+const StoreProductsDisplay = lazy(() => import("@/components/store/StoreProductsDisplay"));
+const SocialIcons = lazy(() => import("@/components/store/SocialIcons"));
+const FeedbackDialog = lazy(() => import("@/components/store/FeedbackDialog"));
 
 const ProductPreview = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -36,6 +38,12 @@ const ProductPreview = () => {
       metaTag.setAttribute('content', tag.content);
     });
 
+    // إضافة رؤوس للتخزين المؤقت للصور والملفات الثابتة
+    const cacheControlHeaders = document.createElement('meta');
+    cacheControlHeaders.setAttribute('http-equiv', 'Cache-Control');
+    cacheControlHeaders.setAttribute('content', 'max-age=86400, public'); // تخزين مؤقت لمدة 24 ساعة للأصول الثابتة
+    document.head.appendChild(cacheControlHeaders);
+
     return () => {
       metaTags.forEach(tag => {
         const metaTag = document.querySelector(`meta[name="${tag.name}"]`);
@@ -43,6 +51,7 @@ const ProductPreview = () => {
           metaTag.remove();
         }
       });
+      cacheControlHeaders.remove();
     };
   }, []);
 
@@ -64,6 +73,7 @@ const ProductPreview = () => {
     if (storeData?.bannerUrl) {
       const preloadImage = new Image();
       preloadImage.src = `${storeData.bannerUrl.split('?')[0]}?t=${Date.now()}`;
+      preloadImage.loading = "eager"; // تحميل الصورة الرئيسية بشكل فوري
     }
   }, [storeData.bannerUrl, forceRefresh, lastManualRefresh]);
 
@@ -132,23 +142,33 @@ const ProductPreview = () => {
 
   return (
     <>
-      <ProductPreviewContainer 
-        colorTheme={storeData.colorTheme} 
-        bannerUrl={storeData.bannerUrl}
-        fontSettings={storeData.fontSettings}
-        containerHeight="auto"
-      >
-        <StoreProductsDisplay 
-          products={storeData.products} 
-          storeName={storeData.storeName} 
-          colorTheme={storeData.colorTheme}
+      <Suspense fallback={<LoadingState />}>
+        <ProductPreviewContainer 
+          colorTheme={storeData.colorTheme} 
+          bannerUrl={storeData.bannerUrl}
           fontSettings={storeData.fontSettings}
-          contactInfo={storeData.contactInfo}
-          categoryImages={storeData.categoryImages}
-        />
-        <SocialIcons socialLinks={storeData.socialLinks} />
-        {storeData.storeOwnerId && <FeedbackDialog userId={storeData.storeOwnerId} />}
-      </ProductPreviewContainer>
+          containerHeight="auto"
+        >
+          <Suspense fallback={<div className="animate-pulse bg-gray-200 h-64 rounded-md w-full" />}>
+            <StoreProductsDisplay 
+              products={storeData.products} 
+              storeName={storeData.storeName} 
+              colorTheme={storeData.colorTheme}
+              fontSettings={storeData.fontSettings}
+              contactInfo={storeData.contactInfo}
+              categoryImages={storeData.categoryImages}
+            />
+          </Suspense>
+          <Suspense fallback={<div className="animate-pulse bg-gray-200 h-12 rounded-md w-full mt-4" />}>
+            <SocialIcons socialLinks={storeData.socialLinks} />
+          </Suspense>
+          {storeData.storeOwnerId && (
+            <Suspense fallback={<div className="animate-pulse bg-gray-200 h-10 rounded-md w-40 mt-4" />}>
+              <FeedbackDialog userId={storeData.storeOwnerId} />
+            </Suspense>
+          )}
+        </ProductPreviewContainer>
+      </Suspense>
     </>
   );
 };
