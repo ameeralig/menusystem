@@ -56,12 +56,12 @@ export const useStoreProducts = (
           setTotalProducts(count);
         }
         
-        // استعلام صفحات المنتجات
+        // استعلام صفحات المنتجات - تم تحديث هذه السطور لإصلاح الخطأ
         const { data, error } = await supabase
           .from("products")
           .select("*")
           .eq("user_id", userId)
-          .order('display_order', { ascending: true, nullsLast: true })
+          .order('display_order', { ascending: true, nullsFirst: false })
           .range((page - 1) * limit, page * limit - 1);
 
         if (error) {
