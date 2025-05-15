@@ -1,17 +1,14 @@
 
-import React, { useState, useCallback, useMemo, useEffect, lazy, Suspense } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { Product } from "@/types/product";
+import ProductGrid from "@/components/store/ProductGrid";
+import CategoryGrid from "@/components/store/CategoryGrid";
 import SearchBar from "@/components/store/SearchBar";
 import EmptyCategoryMessage from "@/components/store/EmptyCategoryMessage";
 import BackButton from "@/components/store/BackButton";
 import StoreHeader from "@/components/store/StoreHeader";
 import StoreInfo from "@/components/store/StoreInfo";
 import { CategoryImage } from "@/types/categoryImage";
-import { Skeleton } from "@/components/ui/skeleton";
-
-// تحميل المكونات الثقيلة بشكل بطئ
-const ProductGrid = lazy(() => import("@/components/store/ProductGrid"));
-const CategoryGrid = lazy(() => import("@/components/store/CategoryGrid"));
 
 type FontSettings = {
   storeName?: {
@@ -60,9 +57,6 @@ const StoreProductsDisplay = ({
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showSearch, setShowSearch] = useState(false);
   const [processedCategoryImages, setProcessedCategoryImages] = useState<CategoryImage[]>([]);
-  const [visibleProducts, setVisibleProducts] = useState<Product[]>([]);
-  const [page, setPage] = useState(1);
-  const PRODUCTS_PER_PAGE = 12;
 
   // معالجة صور التصنيفات للتأكد من استخدام أحدث روابط الصور
   useEffect(() => {
@@ -74,24 +68,18 @@ const StoreProductsDisplay = ({
       const processed = categoryImages.map(img => {
         if (!img.image_url) return img;
         
-        const baseUrl = img.image_url.split('?')[0];
+        // تحليل الرابط للتأكد من عدم تكرار المعلمات
+        const url = new URL(img.image_url, window.location.origin);
+        url.searchParams.set('t', `${timestamp}`);
         
-        // تحسين URL الصورة لاستخدام WebP إذا كان متاحًا
-        if (baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')) {
-          return {
-            ...img,
-            image_url: `${baseUrl}?format=webp&quality=80&t=${timestamp}`
-          };
-        }
-        
-        // إضافة طابع زمني فقط
         return {
           ...img,
-          image_url: `${baseUrl}?t=${timestamp}`
+          image_url: url.toString()
         };
       });
       
       setProcessedCategoryImages(processed);
+      
       console.log("StoreProductsDisplay: تمت معالجة صور التصنيفات:", processed.length);
     } else {
       setProcessedCategoryImages([]);
@@ -138,45 +126,17 @@ const StoreProductsDisplay = ({
     });
   }, [products, selectedCategory, searchQuery]);
 
-  // تحميل المنتجات بالتدريج كلما نزل المستخدم للأسفل
-  useEffect(() => {
-    setPage(1);
-    setVisibleProducts(filteredProducts.slice(0, PRODUCTS_PER_PAGE));
-  }, [filteredProducts]);
-
-  // مراقبة التمرير لتحميل المزيد من المنتجات
-  useEffect(() => {
-    const handleScroll = () => {
-      // إذا كان المستخدم قريبًا من أسفل الصفحة ولدينا المزيد من المنتجات للتحميل
-      if (
-        window.innerHeight + document.documentElement.scrollTop >= 
-        document.documentElement.offsetHeight - 500 &&
-        visibleProducts.length < filteredProducts.length
-      ) {
-        const nextPage = page + 1;
-        const nextProducts = filteredProducts.slice(0, nextPage * PRODUCTS_PER_PAGE);
-        setVisibleProducts(nextProducts);
-        setPage(nextPage);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [page, visibleProducts.length, filteredProducts]);
-
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
   }, []);
 
   const handleCategorySelect = useCallback((category: string) => {
     setSelectedCategory(category);
-    setPage(1); // إعادة ضبط الصفحة عند تغيير الفئة
   }, []);
 
   const handleBackClick = useCallback(() => {
     setSelectedCategory(null);
     setSearchQuery("");
-    setPage(1); // إعادة ضبط الصفحة عند العودة
   }, []);
 
   const toggleSearch = useCallback(() => {
@@ -185,6 +145,20 @@ const StoreProductsDisplay = ({
       setSearchQuery("");
     }
   }, [showSearch]);
+
+  // سنطبع معلومات حول صور التصنيفات للمساعدة في التصحيح
+  useEffect(() => {
+    console.log("StoreProductsDisplay: تم استلام", categoryImages?.length || 0, "صورة تصنيف");
+    console.log("StoreProductsDisplay: التصنيفات المعروضة:", categories);
+    
+    if (processedCategoryImages?.length > 0) {
+      console.log("StoreProductsDisplay: صور التصنيفات المعالجة:", 
+        processedCategoryImages.map(img => ({ 
+          category: img.category, 
+          url: img.image_url 
+        })));
+    }
+  }, [categoryImages, categories, processedCategoryImages]);
 
   return (
     <div className="space-y-6">
@@ -205,38 +179,21 @@ const StoreProductsDisplay = ({
       />
 
       {!selectedCategory && categories.length > 0 && !searchQuery && (
-        <Suspense fallback={<div className="grid grid-cols-2 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-32 w-full rounded-xl" />
-          ))}
-        </div>}>
-          <CategoryGrid 
-            categories={categories} 
-            onCategorySelect={handleCategorySelect} 
-            fontSettings={fontSettings}
-            categoryImages={processedCategoryImages}
-          />
-        </Suspense>
+        <CategoryGrid 
+          categories={categories} 
+          onCategorySelect={handleCategorySelect} 
+          fontSettings={fontSettings}
+          categoryImages={processedCategoryImages}
+        />
       )}
 
       {(selectedCategory || searchQuery || categories.length === 0) && (
         <>
           {filteredProducts.length > 0 ? (
-            <Suspense fallback={<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[...Array(6)].map((_, i) => (
-                <Skeleton key={i} className="h-64 w-full rounded-xl" />
-              ))}
-            </div>}>
-              <ProductGrid
-                products={visibleProducts}
-                colorTheme={colorTheme}
-              />
-              {visibleProducts.length < filteredProducts.length && (
-                <div className="flex justify-center my-8">
-                  <Skeleton className="h-8 w-24 rounded-md" />
-                </div>
-              )}
-            </Suspense>
+            <ProductGrid
+              products={filteredProducts}
+              colorTheme={colorTheme}
+            />
           ) : (
             <EmptyCategoryMessage
               searchQuery={searchQuery}

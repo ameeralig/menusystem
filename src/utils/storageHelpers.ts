@@ -50,96 +50,6 @@ export const createUniqueFilePath = (userId: string, folder: string = '', file: 
 };
 
 /**
- * تحسين الصورة قبل الرفع لتقليل الحجم
- * @param file ملف الصورة الأصلي
- * @returns وعد بملف الصورة المحسن
- */
-export const optimizeImage = async (file: File): Promise<File> => {
-  // تحقق ما إذا كان الملف صورة
-  if (!file.type.startsWith('image/')) {
-    return file;
-  }
-  
-  try {
-    // إذا كانت الصورة كبيرة جدًا، قم بضغطها
-    if (file.size > 1024 * 1024) { // أكبر من 1 ميجابايت
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-      
-      // إنشاء وعد لتحميل الصورة
-      await new Promise((resolve) => {
-        img.onload = resolve;
-        img.src = URL.createObjectURL(file);
-      });
-      
-      // تحديد أبعاد الصورة المضغوطة (الحد الأقصى 1200 بكسل)
-      const maxWidth = 1200;
-      const maxHeight = 1200;
-      let width = img.width;
-      let height = img.height;
-      
-      // تقليص الأبعاد إذا تجاوزت الحد الأقصى
-      if (width > maxWidth || height > maxHeight) {
-        if (width > height) {
-          height *= maxWidth / width;
-          width = maxWidth;
-        } else {
-          width *= maxHeight / height;
-          height = maxHeight;
-        }
-      }
-      
-      // ضبط أبعاد Canvas
-      canvas.width = width;
-      canvas.height = height;
-      
-      // رسم الصورة على Canvas بالأبعاد الجديدة
-      ctx?.drawImage(img, 0, 0, width, height);
-      
-      // تحويل Canvas إلى Blob بصيغة WebP إذا كانت مدعومة
-      const supportWebP = !!HTMLCanvasElement.prototype.toBlob;
-      const quality = 0.8; // جودة 80%
-      
-      if (supportWebP) {
-        // محاولة استخدام صيغة WebP
-        const blob = await new Promise<Blob | null>((resolve) => 
-          canvas.toBlob(resolve, 'image/webp', quality)
-        );
-        
-        if (blob) {
-          // إنشاء ملف جديد بصيغة WebP
-          const optimizedFile = new File(
-            [blob], 
-            file.name.replace(/\.[^.]+$/, '.webp'), 
-            { type: 'image/webp' }
-          );
-          
-          // إذا كان الملف المحسن أصغر، استخدمه
-          return optimizedFile.size < file.size ? optimizedFile : file;
-        }
-      }
-      
-      // إذا لم يكن WebP مدعومًا، استخدم نفس صيغة الملف الأصلي
-      const blob = await new Promise<Blob | null>((resolve) => 
-        canvas.toBlob(resolve, file.type, quality)
-      );
-      
-      if (blob) {
-        const optimizedFile = new File([blob], file.name, { type: file.type });
-        return optimizedFile.size < file.size ? optimizedFile : file;
-      }
-    }
-    
-    // إذا كانت الصورة صغيرة بالفعل أو فشلت عملية التحسين، أرجع الملف الأصلي
-    return file;
-  } catch (error) {
-    console.error("خطأ أثناء تحسين الصورة:", error);
-    return file; // إرجاع الملف الأصلي في حالة حدوث خطأ
-  }
-};
-
-/**
  * رفع صورة إلى مستودع Supabase
  * @param bucket اسم المستودع (مثل 'product-images' أو 'category-images')
  * @param file ملف الصورة
@@ -156,29 +66,21 @@ export const uploadImage = async (
   try {
     console.log(`بدء رفع صورة إلى دلو ${bucket} للمستخدم ${userId}`);
     
-    // تحسين الصورة قبل الرفع
-    const optimizedFile = await optimizeImage(file);
-    
-    const filePath = createUniqueFilePath(userId, folder, optimizedFile);
+    const filePath = createUniqueFilePath(userId, folder, file);
     console.log(`مسار الملف: ${filePath}`);
-    
-    // تعيين خيارات CORS وتحديث رؤوس التخزين المؤقت
-    const options = {
-      cacheControl: 'max-age=31536000', // تخزين مؤقت لمدة سنة
-      upsert: true,
-      contentType: optimizedFile.type
-    };
     
     const { error: uploadError, data } = await supabase.storage
       .from(bucket)
-      .upload(filePath, optimizedFile, options);
+      .upload(filePath, file, {
+        cacheControl: '0', // تعطيل التخزين المؤقت تمامًا
+        upsert: true
+      });
 
     if (uploadError) {
       console.error("خطأ في رفع الصورة:", uploadError);
       throw uploadError;
     }
 
-    // الحصول على الرابط العام
     const { data: { publicUrl } } = supabase.storage
       .from(bucket)
       .getPublicUrl(filePath);
@@ -213,12 +115,6 @@ export const getUrlWithTimestamp = (url: string | null): string | null => {
   
   const timestamp = Date.now();
   const baseUrl = url.split('?')[0];
-  
-  // تحسين URL الصورة لاستخدام WebP إذا كان متاحًا
-  if (baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')) {
-    return `${baseUrl}?format=webp&quality=80&t=${timestamp}`;
-  }
-  
   return `${baseUrl}?t=${timestamp}`;
 };
 
