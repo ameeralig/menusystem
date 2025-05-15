@@ -62,7 +62,7 @@ export const optimizeImage = async (file: File): Promise<File> => {
   
   try {
     // إذا كانت الصورة كبيرة جدًا، قم بضغطها
-    if (file.size > 500 * 1024) { // أكبر من 500 كيلوبايت (تم تخفيض الحد)
+    if (file.size > 1024 * 1024) { // أكبر من 1 ميجابايت
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const img = new Image();
@@ -73,9 +73,9 @@ export const optimizeImage = async (file: File): Promise<File> => {
         img.src = URL.createObjectURL(file);
       });
       
-      // تحديد أبعاد الصورة المضغوطة (الحد الأقصى 1000 بكسل بدلاً من 1200)
-      const maxWidth = 1000;
-      const maxHeight = 1000;
+      // تحديد أبعاد الصورة المضغوطة (الحد الأقصى 1200 بكسل)
+      const maxWidth = 1200;
+      const maxHeight = 1200;
       let width = img.width;
       let height = img.height;
       
@@ -97,9 +97,9 @@ export const optimizeImage = async (file: File): Promise<File> => {
       // رسم الصورة على Canvas بالأبعاد الجديدة
       ctx?.drawImage(img, 0, 0, width, height);
       
-      // تحويل Canvas إلى Blob بصيغة WebP لتحسين الحجم
+      // تحويل Canvas إلى Blob بصيغة WebP إذا كانت مدعومة
       const supportWebP = !!HTMLCanvasElement.prototype.toBlob;
-      const quality = 0.75; // تقليل الجودة قليلاً من 0.8 إلى 0.75 للتحسين
+      const quality = 0.8; // جودة 80%
       
       if (supportWebP) {
         // محاولة استخدام صيغة WebP
@@ -115,7 +115,6 @@ export const optimizeImage = async (file: File): Promise<File> => {
             { type: 'image/webp' }
           );
           
-          console.log(`✅ تم تحسين الصورة: ${file.size / 1024}KB -> ${optimizedFile.size / 1024}KB`);
           // إذا كان الملف المحسن أصغر، استخدمه
           return optimizedFile.size < file.size ? optimizedFile : file;
         }
@@ -128,7 +127,6 @@ export const optimizeImage = async (file: File): Promise<File> => {
       
       if (blob) {
         const optimizedFile = new File([blob], file.name, { type: file.type });
-        console.log(`✅ تم تحسين الصورة: ${file.size / 1024}KB -> ${optimizedFile.size / 1024}KB`);
         return optimizedFile.size < file.size ? optimizedFile : file;
       }
     }
@@ -158,51 +156,35 @@ export const uploadImage = async (
   try {
     console.log(`بدء رفع صورة إلى دلو ${bucket} للمستخدم ${userId}`);
     
-    // تحسين الصورة قبل الرفع - تم تحسين هذا الجزء
-    console.log(`📊 حجم الصورة قبل التحسين: ${(file.size / 1024).toFixed(2)}KB`);
+    // تحسين الصورة قبل الرفع
     const optimizedFile = await optimizeImage(file);
-    console.log(`📊 حجم الصورة بعد التحسين: ${(optimizedFile.size / 1024).toFixed(2)}KB`);
     
     const filePath = createUniqueFilePath(userId, folder, optimizedFile);
     console.log(`مسار الملف: ${filePath}`);
     
-    // تحسين خيارات الرفع
+    // تعيين خيارات CORS وتحديث رؤوس التخزين المؤقت
     const options = {
-      cacheControl: '3600', // تقليل مدة التخزين المؤقت من سنة إلى ساعة واحدة لتحديث الصور بشكل أسرع
+      cacheControl: 'max-age=31536000', // تخزين مؤقت لمدة سنة
       upsert: true,
-      contentType: optimizedFile.type,
-      duplex: 'half' // إضافة لتحسين سرعة الرفع
+      contentType: optimizedFile.type
     };
     
-    const startTime = Date.now();
     const { error: uploadError, data } = await supabase.storage
       .from(bucket)
       .upload(filePath, optimizedFile, options);
-
-    const uploadTime = Date.now() - startTime;
-    console.log(`⏱️ استغرق رفع الصورة: ${uploadTime}ms`);
 
     if (uploadError) {
       console.error("خطأ في رفع الصورة:", uploadError);
       throw uploadError;
     }
 
-    // الحصول على الرابط العام مع تحسين الصورة
+    // الحصول على الرابط العام
     const { data: { publicUrl } } = supabase.storage
       .from(bucket)
       .getPublicUrl(filePath);
       
-    // إضافة معلمات تحسين للرابط
-    const urlObj = new URL(publicUrl);
-    // إضافة معلمة الصيغة WebP وجودة الصورة ومنع التخزين المؤقت
-    urlObj.searchParams.append('format', 'webp');
-    urlObj.searchParams.append('quality', '85');
-    urlObj.searchParams.append('t', Date.now().toString());
-    
-    const optimizedUrl = urlObj.toString();
-      
-    console.log(`تم رفع الصورة بنجاح. الرابط المحسن: ${optimizedUrl}`);
-    return optimizedUrl;
+    console.log(`تم رفع الصورة بنجاح. الرابط العام: ${publicUrl}`);
+    return publicUrl;
   } catch (error) {
     console.error("خطأ في رفع الصورة:", error);
     throw error;
@@ -234,7 +216,7 @@ export const getUrlWithTimestamp = (url: string | null): string | null => {
   
   // تحسين URL الصورة لاستخدام WebP إذا كان متاحًا
   if (baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')) {
-    return `${baseUrl}?format=webp&quality=85&t=${timestamp}`;
+    return `${baseUrl}?format=webp&quality=80&t=${timestamp}`;
   }
   
   return `${baseUrl}?t=${timestamp}`;
@@ -304,54 +286,5 @@ export const extractFilePathFromUrl = (url: string, bucket: string): string | nu
   } catch (e) {
     console.error("خطأ في استخراج مسار الملف:", e);
     return null;
-  }
-};
-
-/**
- * تحويل الصورة المرفوعة من URL إلى WebP بجودة عالية
- * @param originalUrl رابط الصورة الأصلي
- * @returns رابط الصورة بصيغة WebP
- */
-export const convertToWebP = async (originalUrl: string): Promise<string> => {
-  if (!originalUrl) return originalUrl;
-  
-  try {
-    // تحميل الصورة من الرابط الأصلي
-    const img = new Image();
-    await new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = reject;
-      img.src = originalUrl;
-    });
-    
-    // إنشاء canvas بنفس أبعاد الصورة
-    const canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    
-    // رسم الصورة على canvas
-    const ctx = canvas.getContext('2d');
-    ctx?.drawImage(img, 0, 0);
-    
-    // تحويل إلى WebP
-    const webPBlob = await new Promise<Blob | null>((resolve) => 
-      canvas.toBlob(resolve, 'image/webp', 0.85)
-    );
-    
-    if (!webPBlob) {
-      console.log("تعذر تحويل الصورة إلى WebP، إرجاع الرابط الأصلي");
-      return originalUrl;
-    }
-    
-    // إنشاء رابط محلي للصورة المحولة
-    const webPUrl = URL.createObjectURL(webPBlob);
-    console.log(`تم تحويل الصورة إلى WebP: ${originalUrl} -> ${webPUrl}`);
-    
-    // في حالة الاستخدام المباشر، يمكنك استخدام الرابط المحلي
-    // لكن في حالة الحفظ، يجب تحميل الصورة إلى الخادم
-    return webPUrl;
-  } catch (error) {
-    console.error("خطأ في تحويل الصورة إلى WebP:", error);
-    return originalUrl;
   }
 };

@@ -8,22 +8,16 @@ import { Product } from "@/types/product";
 const optimizeImageUrl = (url: string, forceRefresh: number): string => {
   if (!url) return url;
   
-  try {
-    const baseUrl = url.split('?')[0];
-    const uniqueTimestamp = `${forceRefresh}_${Date.now()}`;
-    const cacheBreaker = `t=${uniqueTimestamp}&nocache=${Math.random()}`;
-    
-    // إذا كانت الصور مخزنة في Supabase أو أي CDN آخر يدعم تنسيقات الصور
-    // استخدام صيغة WebP بجودة مناسبة
-    if (baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')) {
-      return `${baseUrl}?format=webp&quality=85&${cacheBreaker}`;
-    }
-    
-    return `${baseUrl}?${cacheBreaker}`;
-  } catch (error) {
-    console.error("خطأ في تحسين URL الصورة:", error);
-    return url; // إرجاع الرابط الأصلي في حالة الخطأ
+  const baseUrl = url.split('?')[0];
+  const uniqueTimestamp = `${forceRefresh}_${Date.now()}`;
+  const cacheBreaker = `t=${uniqueTimestamp}&nocache=${Math.random()}`;
+  
+  // إذا كانت الصور مخزنة في Supabase أو أي CDN آخر يدعم تنسيقات الصور
+  if (baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')) {
+    return `${baseUrl}?format=webp&quality=80&${cacheBreaker}`;
   }
+  
+  return `${baseUrl}?${cacheBreaker}`;
 };
 
 // وظيفة معدلة للتحكم في عدد المنتجات المستردة
@@ -74,8 +68,7 @@ export const useStoreProducts = (
           throw error;
         }
 
-        // تحسين روابط الصور وقياس سرعة المعالجة
-        console.time('تحسين روابط الصور');
+        // تحسين روابط الصور
         const updatedProducts = (data || []).map(product => {
           if (product.image_url) {
             return {
@@ -85,7 +78,6 @@ export const useStoreProducts = (
           }
           return product;
         });
-        console.timeEnd('تحسين روابط الصور');
 
         setProducts(updatedProducts);
       } catch (error: any) {
