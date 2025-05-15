@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Image, Save } from "lucide-react";
+import { Image, Save, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import ImageUploadButton from "./banner/ImageUploadButton";
 import ImagePreview from "./banner/ImagePreview";
@@ -27,6 +27,7 @@ const BannerImageUploader = ({
     setError,
     imageUrl,
     previewUrl,
+    isProcessing,
     handleImageUpload,
     handleUrlChange,
     clearImage
@@ -42,7 +43,7 @@ const BannerImageUploader = ({
       // عند تحميل الصفحة لأول مرة وتوفر bannerUrl
       const timestamp = new Date().getTime();
       const baseUrl = bannerUrl.split('?')[0];
-      const updatedUrl = `${baseUrl}?t=${timestamp}`;
+      const updatedUrl = `${baseUrl}?format=webp&quality=85&t=${timestamp}`;
       handleUrlChange(updatedUrl);
       setHasChanges(false);
     }
@@ -133,7 +134,10 @@ const BannerImageUploader = ({
           
           <div className="space-y-4">
             <div>
-              <ImageUploadButton onFileSelect={handleFileSelect} />
+              <ImageUploadButton 
+                onFileSelect={handleFileSelect}
+                isLoading={isProcessing}
+              />
               
               <div className="my-2 flex items-center">
                 <div className="flex-grow h-px bg-gray-200 dark:bg-gray-700"></div>
@@ -154,6 +158,7 @@ const BannerImageUploader = ({
                 }}
                 className="text-right"
                 dir="rtl"
+                disabled={isProcessing}
               />
             </div>
           </div>
@@ -161,10 +166,19 @@ const BannerImageUploader = ({
           <Button 
             type="submit" 
             className="w-full bg-[#ff9178] hover:bg-[#ff7d61] text-white"
-            disabled={isLoading || isSubmitting || !hasChanges}
+            disabled={isLoading || isSubmitting || !hasChanges || isProcessing}
           >
-            <Save className="ml-2 h-4 w-4" />
-            {isLoading || isSubmitting ? "جاري الحفظ..." : "حفظ صورة الغلاف"}
+            {(isLoading || isSubmitting || isProcessing) ? (
+              <>
+                <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                {isProcessing ? "جاري معالجة الصورة..." : "جاري الحفظ..."}
+              </>
+            ) : (
+              <>
+                <Save className="ml-2 h-4 w-4" />
+                حفظ صورة الغلاف
+              </>
+            )}
           </Button>
         </form>
       </CardContent>
