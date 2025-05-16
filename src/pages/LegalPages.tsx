@@ -1,24 +1,37 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense, lazy } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { AnimatedBackground } from "@/components/auth/AnimatedBackground";
-import { FileText, Shield, Mail, Send } from "lucide-react";
+import { FileText, Shield, Mail, Loader2 } from "lucide-react";
+import { Helmet } from "react-helmet";
+import SeoHelmet from "@/components/legal/SeoHelmet";
+import { useIsMobile } from "@/hooks/use-mobile";
+
+// استخدام التحميل الكسول للمكونات
+const TermsSection = lazy(() => import("@/components/legal/TermsSection"));
+const PrivacySection = lazy(() => import("@/components/legal/PrivacySection"));
+const ContactSection = lazy(() => import("@/components/legal/ContactSection"));
+
+// مكون التحميل
+const LoadingSuspense = () => (
+  <div className="flex justify-center items-center py-16 w-full">
+    <div className="flex flex-col items-center gap-4">
+      <Loader2 className="h-10 w-10 text-white animate-spin" />
+      <p className="text-white font-medium">جاري التحميل...</p>
+    </div>
+  </div>
+);
 
 const LegalPages = () => {
   const [activeTab, setActiveTab] = useState("terms");
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    message: ""
-  });
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   // قراءة معلمة tab من عنوان URL عند تحميل الصفحة
   useEffect(() => {
@@ -29,27 +42,6 @@ const LegalPages = () => {
     }
   }, [location]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast({
-      title: "تم إرسال رسالتك بنجاح",
-      description: "سنقوم بالرد عليك في أقرب وقت ممكن.",
-    });
-    setFormData({
-      name: "",
-      email: "",
-      message: ""
-    });
-  };
-
   // تغيير عنوان URL عند تغيير التبويب النشط بدون إعادة تحميل الصفحة
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -58,6 +50,34 @@ const LegalPages = () => {
   };
 
   const currentYear = new Date().getFullYear();
+
+  // تحديد العنوان والوصف بناءً على التبويب النشط
+  const getSeoData = () => {
+    switch (activeTab) {
+      case 'terms':
+        return {
+          title: "الشروط والأحكام | متجرك الرقمي",
+          description: "اقرأ الشروط والأحكام الخاصة بمنصة متجرك الرقمي، وتعرف على قواعد استخدام الخدمة"
+        };
+      case 'privacy':
+        return {
+          title: "سياسة الخصوصية | متجرك الرقمي",
+          description: "تعرف على كيفية جمع واستخدام وحماية بياناتك الشخصية على منصة متجرك الرقمي"
+        };
+      case 'contact':
+        return {
+          title: "اتصل بنا | متجرك الرقمي",
+          description: "تواصل مع فريق دعم متجرك الرقمي للاستفسارات والمساعدة"
+        };
+      default:
+        return {
+          title: "متجرك الرقمي | المعلومات القانونية",
+          description: "معلومات قانونية وتواصل مع متجرك الرقمي"
+        };
+    }
+  };
+
+  const seoData = getSeoData();
 
   // تكوينات الأزرار وتأثيراتها
   const tabButtons = [
@@ -78,14 +98,29 @@ const LegalPages = () => {
     }
   ];
 
-  // تكوين تأثيرات الانتقال
-  const contentVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
+  // تكوين تأثيرات الانتقال الرئيسية
+  const pageVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.15 } }
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      transition: { duration: 0.6, ease: "easeOut" } 
+    }
   };
 
   return (
     <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center">
+      {/* SEO */}
+      <SeoHelmet 
+        title={seoData.title}
+        description={seoData.description}
+      />
+      
       {/* خلفية متحركة */}
       <AnimatedBackground />
       
@@ -96,15 +131,13 @@ const LegalPages = () => {
       {/* البطاقة الرئيسية */}
       <motion.div
         className="auth-container z-10"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        initial="hidden"
+        animate="visible"
+        variants={pageVariants}
       >
         <motion.div 
           className="auth-card backdrop-blur-xl bg-white/10 dark:bg-black/10 border border-white/20 dark:border-white/10 min-w-[350px] max-w-3xl w-[90%] mx-auto"
-          initial={{ scale: 0.95 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
+          variants={cardVariants}
           whileHover={{ boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)" }}
         >
           {/* زر العودة للصفحة الرئيسية */}
@@ -122,271 +155,59 @@ const LegalPages = () => {
             معلومات المنصة
           </h2>
 
-          {/* أزرار التنقل ثلاثية الأبعاد */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-            {tabButtons.map((button) => (
-              <motion.button
-                key={button.id}
-                onClick={() => handleTabChange(button.id)}
-                className={`relative flex flex-col items-center justify-center p-6 rounded-xl overflow-hidden transition-all duration-300 ${
-                  activeTab === button.id
-                    ? "text-white shadow-lg"
-                    : "text-white/80 hover:text-white"
-                }`}
-                whileHover={{ 
-                  scale: 1.05, 
-                  boxShadow: "0 10px 25px rgba(0, 0, 0, 0.2)" 
-                }}
-                whileTap={{ scale: 0.98 }}
-                style={{
-                  transformStyle: "preserve-3d",
-                  transform: activeTab === button.id ? "translateY(-5px)" : "none",
-                  textShadow: activeTab === button.id ? "0 0 10px rgba(255, 255, 255, 0.5)" : "none"
-                }}
-              >
-                {/* خلفية الزر */}
-                <motion.div 
-                  className="absolute inset-0 rounded-xl z-0"
-                  animate={{
-                    background: activeTab === button.id 
-                      ? "linear-gradient(135deg, rgba(255,145,120,0.9), rgba(255,99,55,0.8))" 
-                      : "rgba(255, 255, 255, 0.1)"
+          {/* أزرار التنقل باستخدام مكون Tabs */}
+          <Tabs 
+            defaultValue="terms" 
+            value={activeTab} 
+            onValueChange={handleTabChange}
+            className="w-full mb-10"
+          >
+            {/* أزرار التنقل ثلاثية الأبعاد */}
+            <TabsList className={`grid ${isMobile ? "grid-cols-1 gap-2" : "grid-cols-3 gap-4"} w-full bg-transparent p-0`}>
+              {tabButtons.map((button) => (
+                <TabsTrigger
+                  key={button.id}
+                  value={button.id}
+                  className={`flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 
+                    data-[state=active]:text-white data-[state=active]:shadow-lg
+                    data-[state=active]:translate-y-[-5px] data-[state=active]:bg-gradient-to-r 
+                    data-[state=active]:from-[rgba(255,145,120,0.9)] data-[state=active]:to-[rgba(255,99,55,0.8)]
+                    data-[state=inactive]:text-white/80 data-[state=inactive]:hover:text-white
+                    data-[state=inactive]:bg-white/10 data-[state=inactive]:hover:bg-white/20
+                    tab-3d ${activeTab === button.id ? 'active' : ''}`}
+                  style={{
+                    transformStyle: "preserve-3d",
+                    textShadow: activeTab === button.id ? "0 0 10px rgba(255, 255, 255, 0.5)" : "none",
+                    backdropFilter: "blur(8px)"
                   }}
-                  transition={{ duration: 0.3 }}
-                  style={{ backdropFilter: "blur(8px)" }}
-                />
-                
-                {/* أيقونة وعنوان الزر */}
-                <div className="relative z-10 flex flex-col items-center">
+                >
                   {button.icon}
                   <span className="mt-2 font-semibold text-lg">{button.label}</span>
-                </div>
-                
-                {/* تأثير الضوء عند التحويم */}
-                <motion.div
-                  className="absolute inset-0 bg-white/20 z-0 opacity-0 rounded-xl"
-                  whileHover={{ opacity: 0.15 }}
-                  transition={{ duration: 0.2 }}
-                />
-              </motion.button>
-            ))}
-          </div>
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
-          {/* محتوى التبويبات مع تحسين الخطوط والتباعد */}
-          <div className="max-h-[60vh] overflow-y-auto custom-scrollbar px-2">
-            <AnimatePresence mode="wait">
-              {activeTab === "terms" && (
-                <motion.div
-                  key="terms-content"
-                  variants={contentVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="hidden"
-                  className="space-y-6 text-right p-6 bg-white/5 backdrop-blur-sm rounded-xl"
-                >
-                  <h2 className="text-2xl font-bold mb-4 text-white" style={{ textShadow: "0 0 10px rgba(255, 255, 255, 0.3)" }}>
-                    الشروط والأحكام
-                  </h2>
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-xl font-bold mb-3 text-white" style={{ textShadow: "0 0 8px rgba(255, 255, 255, 0.3)" }}>
-                        1. مقدمة
-                      </h3>
-                      <p className="mb-4 text-white text-lg leading-relaxed">
-                        مرحبًا بك في منصة متجرك الرقمي. باستخدامك لخدماتنا، فإنك توافق على الالتزام بهذه الشروط والأحكام. يرجى قراءتها بعناية.
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 className="text-xl font-bold mb-3 text-white" style={{ textShadow: "0 0 8px rgba(255, 255, 255, 0.3)" }}>
-                        2. استخدام الخدمة
-                      </h3>
-                      <p className="mb-4 text-white text-lg leading-relaxed">
-                        تتيح لك منصتنا إنشاء وإدارة متجر رقمي خاص بك باستخدام تقنية رمز QR. يجب استخدام الخدمة وفقًا للقوانين المعمول بها وبطريقة لا تنتهك حقوق الآخرين.
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 className="text-xl font-bold mb-3 text-white" style={{ textShadow: "0 0 8px rgba(255, 255, 255, 0.3)" }}>
-                        3. الحسابات
-                      </h3>
-                      <p className="mb-4 text-white text-lg leading-relaxed">
-                        عند إنشاء حساب، يجب عليك تقديم معلومات دقيقة وكاملة. أنت مسؤول عن الحفاظ على سرية كلمة المرور الخاصة بك وعن جميع الأنشطة التي تحدث تحت حسابك.
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 className="text-xl font-bold mb-3 text-white" style={{ textShadow: "0 0 8px rgba(255, 255, 255, 0.3)" }}>
-                        4. المحتوى
-                      </h3>
-                      <p className="mb-4 text-white text-lg leading-relaxed">
-                        أنت تحتفظ بجميع حقوق الملكية للمحتوى الذي تقوم بتحميله إلى المنصة. ومع ذلك، فإنك تمنحنا ترخيصًا عالميًا لاستخدام هذا المحتوى فيما يتعلق بخدماتنا.
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 className="text-xl font-bold mb-3 text-white" style={{ textShadow: "0 0 8px rgba(255, 255, 255, 0.3)" }}>
-                        5. الإلغاء والإنهاء
-                      </h3>
-                      <p className="mb-4 text-white text-lg leading-relaxed">
-                        يمكنك إلغاء اشتراكك في أي وقت. نحتفظ بالحق في إنهاء أو تعليق حسابك في حالة انتهاك هذه الشروط.
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 className="text-xl font-bold mb-3 text-white" style={{ textShadow: "0 0 8px rgba(255, 255, 255, 0.3)" }}>
-                        6. التغييرات في الشروط
-                      </h3>
-                      <p className="mb-4 text-white text-lg leading-relaxed">
-                        قد نقوم بتحديث هذه الشروط من وقت لآخر. سنخطرك بأي تغييرات جوهرية عبر البريد الإلكتروني أو من خلال إشعار بارز على موقعنا.
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {activeTab === "privacy" && (
-                <motion.div
-                  key="privacy-content"
-                  variants={contentVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="hidden"
-                  className="space-y-6 text-right p-6 bg-white/5 backdrop-blur-sm rounded-xl"
-                >
-                  <h2 className="text-2xl font-bold mb-4 text-white" style={{ textShadow: "0 0 10px rgba(255, 255, 255, 0.3)" }}>
-                    سياسة الخصوصية
-                  </h2>
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-xl font-bold mb-3 text-white" style={{ textShadow: "0 0 8px rgba(255, 255, 255, 0.3)" }}>
-                        1. جمع المعلومات
-                      </h3>
-                      <p className="mb-4 text-white text-lg leading-relaxed">
-                        نحن نجمع معلومات عندما تسجل في موقعنا، تقوم بإنشاء متجر، أو تستخدم خدماتنا. المعلومات المجمعة تشمل اسمك، عنوان بريدك الإلكتروني، رقم الهاتف، وبيانات متجرك.
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 className="text-xl font-bold mb-3 text-white" style={{ textShadow: "0 0 8px rgba(255, 255, 255, 0.3)" }}>
-                        2. استخدام المعلومات
-                      </h3>
-                      <p className="mb-4 text-white text-lg leading-relaxed">
-                        أي معلومات نجمعها منك قد تستخدم لتخصيص تجربتك، تحسين موقعنا، تحسين خدمة العملاء، معالجة المعاملات، وإرسال رسائل بريد إلكتروني دورية.
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 className="text-xl font-bold mb-3 text-white" style={{ textShadow: "0 0 8px rgba(255, 255, 255, 0.3)" }}>
-                        3. حماية المعلومات
-                      </h3>
-                      <p className="mb-4 text-white text-lg leading-relaxed">
-                        نحن نستخدم مجموعة متنوعة من إجراءات الأمان للحفاظ على سلامة معلوماتك الشخصية. نحن نستخدم تقنيات التشفير المتقدمة لحماية المعلومات الحساسة المرسلة عبر الإنترنت.
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 className="text-xl font-bold mb-3 text-white" style={{ textShadow: "0 0 8px rgba(255, 255, 255, 0.3)" }}>
-                        4. ملفات تعريف الارتباط
-                      </h3>
-                      <p className="mb-4 text-white text-lg leading-relaxed">
-                        نحن نستخدم ملفات تعريف الارتباط لفهم وحفظ تفضيلاتك لزيارات مستقبلية، وتجميع بيانات مجمعة حول حركة الموقع والتفاعل حتى نتمكن من تقديم تجارب وأدوات موقع أفضل في المستقبل.
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 className="text-xl font-bold mb-3 text-white" style={{ textShadow: "0 0 8px rgba(255, 255, 255, 0.3)" }}>
-                        5. الإفصاح لأطراف ثالثة
-                      </h3>
-                      <p className="mb-4 text-white text-lg leading-relaxed">
-                        نحن لا نبيع أو نتاجر أو ننقل معلوماتك الشخصية إلى أطراف خارجية. هذا لا يشمل الأطراف الثالثة الموثوقة التي تساعدنا في تشغيل موقعنا، إدارة أعمالنا، أو خدمتك، طالما أن تلك الأطراف توافق على الحفاظ على سرية هذه المعلومات.
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {activeTab === "contact" && (
-                <motion.div
-                  key="contact-content"
-                  variants={contentVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="hidden"
-                  className="p-6 bg-white/5 backdrop-blur-sm rounded-xl"
-                >
-                  <h2 className="text-2xl font-bold mb-4 text-white text-center" style={{ textShadow: "0 0 10px rgba(255, 255, 255, 0.3)" }}>
-                    اتصل بنا
-                  </h2>
-                  <p className="text-white text-lg mb-6 text-center">
-                    نحن هنا للإجابة على أسئلتك واستفساراتك. يرجى ملء النموذج أدناه وسنعود إليك في أقرب وقت ممكن.
-                  </p>
-                  
-                  <form onSubmit={handleSubmit} className="space-y-6 text-right">
-                    <div className="space-y-2">
-                      <label htmlFor="name" className="block text-lg font-medium text-white mb-2" style={{ textShadow: "0 0 5px rgba(255, 255, 255, 0.3)" }}>
-                        الاسم
-                      </label>
-                      <Input
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
-                        className="w-full bg-white/10 border-white/20 text-white text-lg placeholder:text-white/50 h-12 rounded-lg"
-                        placeholder="أدخل اسمك الكامل"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label htmlFor="email" className="block text-lg font-medium text-white mb-2" style={{ textShadow: "0 0 5px rgba(255, 255, 255, 0.3)" }}>
-                        البريد الإلكتروني
-                      </label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        className="w-full bg-white/10 border-white/20 text-white text-lg placeholder:text-white/50 h-12 rounded-lg"
-                        placeholder="أدخل بريدك الإلكتروني"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label htmlFor="message" className="block text-lg font-medium text-white mb-2" style={{ textShadow: "0 0 5px rgba(255, 255, 255, 0.3)" }}>
-                        الرسالة
-                      </label>
-                      <Textarea
-                        id="message"
-                        name="message"
-                        value={formData.message}
-                        onChange={handleChange}
-                        required
-                        className="w-full min-h-[150px] bg-white/10 border-white/20 text-white text-lg placeholder:text-white/50 rounded-lg"
-                        placeholder="أدخل رسالتك هنا..."
-                      />
-                    </div>
-                    
-                    <motion.div
-                      whileHover={{ scale: 1.03, boxShadow: "0 8px 20px rgba(0, 0, 0, 0.2)" }}
-                      whileTap={{ scale: 0.97 }}
-                      className="mt-4"
-                    >
-                      <Button 
-                        type="submit" 
-                        className="w-full h-14 flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-white py-3 text-xl font-bold rounded-lg transition-all duration-300"
-                      >
-                        <span>إرسال الرسالة</span>
-                        <Send className="size-5" />
-                      </Button>
-                    </motion.div>
-                  </form>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+            {/* محتوى التبويبات */}
+            <div className="max-h-[60vh] overflow-y-auto custom-scrollbar px-2 mt-8">
+              <TabsContent value="terms" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                <Suspense fallback={<LoadingSuspense />}>
+                  <TermsSection />
+                </Suspense>
+              </TabsContent>
+              
+              <TabsContent value="privacy" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                <Suspense fallback={<LoadingSuspense />}>
+                  <PrivacySection />
+                </Suspense>
+              </TabsContent>
+              
+              <TabsContent value="contact" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                <Suspense fallback={<LoadingSuspense />}>
+                  <ContactSection />
+                </Suspense>
+              </TabsContent>
+            </div>
+          </Tabs>
           
           <div className="mt-8 text-center text-white text-base">
             &copy; {currentYear} متجرك الرقمي. جميع الحقوق محفوظة.
