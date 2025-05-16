@@ -84,7 +84,7 @@ const Index = () => {
             <div className="relative aspect-[3/4] max-w-xs sm:max-w-sm md:max-w-md mx-auto">
               <img 
                 src="/lovable-uploads/e78cce88-ead6-4a09-ba47-8f8b59485cbb.png" 
-                alt="تطبيق متجر QR نموذج" 
+                alt="تطبي�� متجر QR نموذج" 
                 className="w-full h-full object-contain"
               />
             </div>
@@ -196,17 +196,20 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Footer */}
+      {/* Footer - تم تعديل هذا القسم */}
       <footer className="bg-white py-8 mt-16">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0">
               <h2 className="text-xl font-bold text-gray-800">متجرك الرقمي</h2>
             </div>
-            <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
-              <a href="/terms" className="text-gray-600 hover:text-gray-900 text-sm sm:text-base">الشروط والأحكام</a>
-              <a href="/privacy" className="text-gray-600 hover:text-gray-900 text-sm sm:text-base">سياسة الخصوصية</a>
-              <a href="/contact" className="text-gray-600 hover:text-gray-900 text-sm sm:text-base">تواصل معنا</a>
+            <div className="flex justify-center">
+              <a 
+                href="/legal" 
+                className="text-gray-600 hover:text-gray-900 text-sm sm:text-base hover-scale transition-all"
+              >
+                معلومات المنصة
+              </a>
             </div>
           </div>
           <div className="mt-8 text-center text-gray-500 text-sm">
