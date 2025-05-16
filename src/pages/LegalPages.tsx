@@ -1,3 +1,4 @@
+
 import { useState, useEffect, Suspense, lazy } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,8 +20,8 @@ const ContactSection = lazy(() => import("@/components/legal/ContactSection"));
 const LoadingSuspense = () => (
   <div className="flex justify-center items-center py-16 w-full">
     <div className="flex flex-col items-center gap-4">
-      <Loader2 className="h-10 w-10 text-white animate-spin" />
-      <p className="text-white font-medium">جاري التحميل...</p>
+      <Loader2 className="h-10 w-10 text-gray-800 animate-spin" />
+      <p className="text-gray-800 font-medium">جاري التحميل...</p>
     </div>
   </div>
 );
@@ -130,7 +131,7 @@ const LegalPages = () => {
         
         {/* البطاقة الرئيسية */}
         <motion.div
-          className="auth-container z-10"
+          className="auth-container z-10 px-4 w-full max-w-4xl"
           initial="hidden"
           animate="visible"
           variants={pageVariants}
@@ -140,13 +141,13 @@ const LegalPages = () => {
             <Button
               variant="outline"
               onClick={() => navigate("/")}
-              className="text-white backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 font-medium text-base"
+              className="text-gray-800 backdrop-blur-sm bg-white/80 border border-white/50 hover:bg-white/90 font-medium text-base"
             >
               العودة للرئيسية
             </Button>
           </div>
           
-          <h2 className="text-3xl font-bold text-white mb-8 text-center" style={{ textShadow: "0 0 15px rgba(255, 255, 255, 0.5)" }}>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 text-center" style={{ textShadow: "0 0 15px rgba(255, 255, 255, 0.5)" }}>
             معلومات المنصة
           </h2>
 
@@ -155,7 +156,7 @@ const LegalPages = () => {
             defaultValue="terms" 
             value={activeTab} 
             onValueChange={handleTabChange}
-            className="w-full mb-10"
+            className="w-full mb-6 sm:mb-10"
           >
             {/* أزرار التنقل ثلاثية الأبعاد */}
             <TabsList className={`grid ${isMobile ? "grid-cols-1 gap-2" : "grid-cols-3 gap-4"} w-full bg-transparent p-0`}>
@@ -163,12 +164,12 @@ const LegalPages = () => {
                 <TabsTrigger
                   key={button.id}
                   value={button.id}
-                  className={`flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 
+                  className={`flex flex-col items-center justify-center p-4 sm:p-6 rounded-xl transition-all duration-300 
                     data-[state=active]:text-white data-[state=active]:shadow-lg
                     data-[state=active]:translate-y-[-5px] data-[state=active]:bg-gradient-to-r 
                     data-[state=active]:from-[rgba(255,145,120,0.9)] data-[state=active]:to-[rgba(255,99,55,0.8)]
-                    data-[state=inactive]:text-white/80 data-[state=inactive]:hover:text-white
-                    data-[state=inactive]:bg-white/10 data-[state=inactive]:hover:bg-white/20
+                    data-[state=inactive]:text-gray-800 data-[state=inactive]:hover:text-gray-900
+                    data-[state=inactive]:bg-white/80 data-[state=inactive]:hover:bg-white/90
                     tab-3d ${activeTab === button.id ? 'active' : ''}`}
                   style={{
                     transformStyle: "preserve-3d",
@@ -177,13 +178,13 @@ const LegalPages = () => {
                   }}
                 >
                   {button.icon}
-                  <span className="mt-2 font-semibold text-lg">{button.label}</span>
+                  <span className="mt-2 font-semibold text-base sm:text-lg">{button.label}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
 
             {/* محتوى التبويبات */}
-            <div className="max-h-[60vh] overflow-y-auto custom-scrollbar px-2 mt-8">
+            <div className="max-h-[60vh] overflow-y-auto custom-scrollbar px-2 mt-6 sm:mt-8">
               <TabsContent value="terms" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
                 <Suspense fallback={<LoadingSuspense />}>
                   <TermsSection />
@@ -204,7 +205,7 @@ const LegalPages = () => {
             </div>
           </Tabs>
           
-          <div className="mt-8 text-center text-white text-base">
+          <div className="mt-6 sm:mt-8 text-center text-gray-800 text-base">
             &copy; {currentYear} متجرك الرقمي. جميع الحقوق محفوظة.
           </div>
         </motion.div>

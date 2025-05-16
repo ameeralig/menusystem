@@ -51,12 +51,12 @@ const ContactSection = () => {
       initial="hidden"
       animate="visible"
       exit="hidden"
-      className="p-6 bg-white/5 backdrop-blur-sm rounded-xl"
+      className="p-6 bg-white/90 backdrop-blur-sm rounded-xl shadow-md"
     >
-      <h2 className="text-2xl font-bold mb-4 text-white text-center" style={{ textShadow: "0 0 10px rgba(255, 255, 255, 0.3)" }}>
+      <h2 className="text-2xl font-bold mb-4 text-gray-900 text-center">
         اتصل بنا
       </h2>
-      <p className="text-white text-lg mb-6 text-center">
+      <p className="text-gray-700 text-lg mb-6 text-center">
         نحن هنا للإجابة على أسئلتك واستفساراتك. يرجى ملء النموذج أدناه وسنعود إليك في أقرب وقت ممكن.
       </p>
       
@@ -67,17 +67,17 @@ const ContactSection = () => {
             name="name"
             render={({ field }) => (
               <FormItem className="space-y-2">
-                <FormLabel className="block text-lg font-medium text-white mb-2" style={{ textShadow: "0 0 5px rgba(255, 255, 255, 0.3)" }}>
+                <FormLabel className="block text-lg font-medium text-gray-800 mb-2">
                   الاسم
                 </FormLabel>
                 <FormControl>
                   <Input
                     {...field}
-                    className="w-full bg-white/10 border-white/20 text-white text-lg placeholder:text-white/50 h-12 rounded-lg"
+                    className="w-full bg-white/50 border-gray-300 text-gray-800 text-lg placeholder:text-gray-500 h-12 rounded-lg"
                     placeholder="أدخل اسمك الكامل"
                   />
                 </FormControl>
-                <FormMessage className="text-red-400 font-medium text-sm" />
+                <FormMessage className="text-red-500 font-medium text-sm" />
               </FormItem>
             )}
           />
@@ -87,18 +87,18 @@ const ContactSection = () => {
             name="email"
             render={({ field }) => (
               <FormItem className="space-y-2">
-                <FormLabel className="block text-lg font-medium text-white mb-2" style={{ textShadow: "0 0 5px rgba(255, 255, 255, 0.3)" }}>
+                <FormLabel className="block text-lg font-medium text-gray-800 mb-2">
                   البريد الإلكتروني
                 </FormLabel>
                 <FormControl>
                   <Input
                     {...field}
                     type="email"
-                    className="w-full bg-white/10 border-white/20 text-white text-lg placeholder:text-white/50 h-12 rounded-lg"
+                    className="w-full bg-white/50 border-gray-300 text-gray-800 text-lg placeholder:text-gray-500 h-12 rounded-lg"
                     placeholder="أدخل بريدك الإلكتروني"
                   />
                 </FormControl>
-                <FormMessage className="text-red-400 font-medium text-sm" />
+                <FormMessage className="text-red-500 font-medium text-sm" />
               </FormItem>
             )}
           />
@@ -108,17 +108,17 @@ const ContactSection = () => {
             name="message"
             render={({ field }) => (
               <FormItem className="space-y-2">
-                <FormLabel className="block text-lg font-medium text-white mb-2" style={{ textShadow: "0 0 5px rgba(255, 255, 255, 0.3)" }}>
+                <FormLabel className="block text-lg font-medium text-gray-800 mb-2">
                   الرسالة
                 </FormLabel>
                 <FormControl>
                   <Textarea
                     {...field}
-                    className="w-full min-h-[150px] bg-white/10 border-white/20 text-white text-lg placeholder:text-white/50 rounded-lg"
+                    className="w-full min-h-[150px] bg-white/50 border-gray-300 text-gray-800 text-lg placeholder:text-gray-500 rounded-lg"
                     placeholder="أدخل رسالتك هنا..."
                   />
                 </FormControl>
-                <FormMessage className="text-red-400 font-medium text-sm" />
+                <FormMessage className="text-red-500 font-medium text-sm" />
               </FormItem>
             )}
           />
