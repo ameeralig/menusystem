@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -120,6 +121,25 @@
     box-shadow: 0 8px 32px 0 rgba(31, 18, 38, 0.47);
     transform: scale(1.05);
   }
+  
+  /* تنسيق مخصص للسكرولبار */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+  }
 }
 
 @layer base {
@@ -143,5 +163,28 @@
 
   .auth-title {
     @apply text-3xl font-bold bg-gradient-to-br from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent mb-8;
+  }
+}
+
+/* تنسيقات جديدة للأزرار ثلاثية الأبعاد */
+@layer components {
+  .tab-3d {
+    @apply relative overflow-hidden transition-all duration-300;
+    transform-style: preserve-3d;
+  }
+  
+  .tab-3d:before {
+    content: '';
+    @apply absolute inset-0 bg-primary/20 -z-10 opacity-0 transition-opacity duration-300;
+    transform: translateZ(-1px);
+  }
+  
+  .tab-3d:hover:before {
+    @apply opacity-100;
+  }
+  
+  .tab-3d.active {
+    transform: translateZ(5px);
+    @apply shadow-lg;
   }
 }

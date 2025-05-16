@@ -16,9 +16,7 @@ import EditProduct from "./pages/EditProduct";
 import StoreCustomization from "./pages/StoreCustomization";
 import Profile from "./pages/Profile";
 import Feedback from "./pages/Feedback";
-import Terms from "./pages/Terms";
-import Privacy from "./pages/Privacy";
-import Contact from "./pages/Contact";
+import LegalPages from "./pages/LegalPages";
 import NotFound from "./pages/NotFound";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -46,9 +44,14 @@ const App = () => (
           <Route path="/store-customization" element={<StoreCustomization />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/feedback" element={<Feedback />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/contact" element={<Contact />} />
+          
+          {/* صفحة موحدة للشروط والأحكام وسياسة الخصوصية والاتصال */}
+          <Route path="/legal" element={<LegalPages />} />
+          
+          {/* تحويل المسارات القديمة إلى المسار الجديد مع التبويب المناسب */}
+          <Route path="/terms" element={<Navigate to="/legal?tab=terms" replace />} />
+          <Route path="/privacy" element={<Navigate to="/legal?tab=privacy" replace />} />
+          <Route path="/contact" element={<Navigate to="/legal?tab=contact" replace />} />
           
           {/* لوحة التحكم الخاصة بالمسؤول */}
           <Route path="/admin" element={<AdminLogin />} />
