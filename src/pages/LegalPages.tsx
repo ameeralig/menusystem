@@ -1,4 +1,3 @@
-
 import { useState, useEffect, Suspense, lazy } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -7,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { AnimatedBackground } from "@/components/auth/AnimatedBackground";
 import { FileText, Shield, Mail, Loader2 } from "lucide-react";
-import { Helmet } from "react-helmet";
+import { HelmetProvider } from "react-helmet-async";
 import SeoHelmet from "@/components/legal/SeoHelmet";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -114,31 +113,27 @@ const LegalPages = () => {
   };
 
   return (
-    <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center">
-      {/* SEO */}
-      <SeoHelmet 
-        title={seoData.title}
-        description={seoData.description}
-      />
-      
-      {/* خلفية متحركة */}
-      <AnimatedBackground />
-      
-      {/* تأثيرات النيون في الخلفية */}
-      <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/30 blur-[100px] rounded-full"></div>
-      <div className="absolute bottom-1/3 right-1/3 w-96 h-96 bg-primary/20 blur-[120px] rounded-full"></div>
-      
-      {/* البطاقة الرئيسية */}
-      <motion.div
-        className="auth-container z-10"
-        initial="hidden"
-        animate="visible"
-        variants={pageVariants}
-      >
-        <motion.div 
-          className="auth-card backdrop-blur-xl bg-white/10 dark:bg-black/10 border border-white/20 dark:border-white/10 min-w-[350px] max-w-3xl w-[90%] mx-auto"
-          variants={cardVariants}
-          whileHover={{ boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)" }}
+    <HelmetProvider>
+      <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center">
+        {/* SEO */}
+        <SeoHelmet 
+          title={seoData.title}
+          description={seoData.description}
+        />
+        
+        {/* خلفية متحركة */}
+        <AnimatedBackground />
+        
+        {/* تأثيرات النيون في الخلفية */}
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/30 blur-[100px] rounded-full"></div>
+        <div className="absolute bottom-1/3 right-1/3 w-96 h-96 bg-primary/20 blur-[120px] rounded-full"></div>
+        
+        {/* البطاقة الرئيسية */}
+        <motion.div
+          className="auth-container z-10"
+          initial="hidden"
+          animate="visible"
+          variants={pageVariants}
         >
           {/* زر العودة للصفحة الرئيسية */}
           <div className="flex justify-end mb-4">
@@ -213,8 +208,8 @@ const LegalPages = () => {
             &copy; {currentYear} متجرك الرقمي. جميع الحقوق محفوظة.
           </div>
         </motion.div>
-      </motion.div>
-    </div>
+      </div>
+    </HelmetProvider>
   );
 };
 
