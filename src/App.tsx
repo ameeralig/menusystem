@@ -20,7 +20,6 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
-import Engineering from "./pages/Engineering";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminGuard from "./components/admin/AdminGuard";
@@ -50,7 +49,6 @@ const App = () => (
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/engineering" element={<Engineering />} />
           
           {/* لوحة التحكم الخاصة بالمسؤول */}
           <Route path="/admin" element={<AdminLogin />} />
