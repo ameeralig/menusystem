@@ -127,12 +127,12 @@ const LegalPages = () => {
               onValueChange={handleTabChange}
               className="w-full"
             >
-              {/* أزرار التبويب - تحسين للموبايل */}
-              <TabsList className="grid w-full bg-transparent p-0 mb-8 gap-2 grid-cols-1 sm:grid-cols-3">
+              {/* تعديل هنا: تحسين تباعد وهوامش أزرار التبويب للموبايل */}
+              <TabsList className="grid w-full bg-transparent p-0 mb-4 sm:mb-8 gap-1 sm:gap-2 grid-cols-1 sm:grid-cols-3">
                 {/* تبويب الشروط والأحكام */}
                 <TabsTrigger
                   value="terms"
-                  className={`flex items-center gap-2 p-3 sm:p-4 text-center rounded-lg transition-all duration-300 
+                  className={`flex items-center gap-2 py-2 px-3 sm:p-4 text-center rounded-lg transition-all duration-300 text-sm sm:text-base 
                     ${activeTab === "terms" 
                       ? "bg-primary text-white shadow-md" 
                       : "bg-white text-gray-800 border border-gray-200 hover:border-primary/50"}`}
@@ -144,7 +144,7 @@ const LegalPages = () => {
                 {/* تبويب سياسة الخصوصية */}
                 <TabsTrigger
                   value="privacy"
-                  className={`flex items-center gap-2 p-3 sm:p-4 text-center rounded-lg transition-all duration-300 
+                  className={`flex items-center gap-2 py-2 px-3 sm:p-4 text-center rounded-lg transition-all duration-300 text-sm sm:text-base 
                     ${activeTab === "privacy" 
                       ? "bg-primary text-white shadow-md" 
                       : "bg-white text-gray-800 border border-gray-200 hover:border-primary/50"}`}
@@ -156,7 +156,7 @@ const LegalPages = () => {
                 {/* تبويب اتصل بنا */}
                 <TabsTrigger
                   value="contact"
-                  className={`flex items-center gap-2 p-3 sm:p-4 text-center rounded-lg transition-all duration-300 
+                  className={`flex items-center gap-2 py-2 px-3 sm:p-4 text-center rounded-lg transition-all duration-300 text-sm sm:text-base 
                     ${activeTab === "contact" 
                       ? "bg-primary text-white shadow-md" 
                       : "bg-white text-gray-800 border border-gray-200 hover:border-primary/50"}`}
