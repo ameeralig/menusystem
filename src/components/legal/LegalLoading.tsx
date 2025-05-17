@@ -3,13 +3,14 @@ import { Loader2 } from "lucide-react";
 
 /**
  * مكون عرض حالة التحميل
+ * محسن للتجاوب مع جميع أحجام الشاشات
  */
 const LegalLoading = () => {
   return (
-    <div className="flex justify-center items-center py-8 sm:py-10 md:py-12 w-full">
-      <div className="flex flex-col items-center gap-2 sm:gap-3">
-        <Loader2 className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-gray-700 animate-spin" />
-        <p className="text-xs sm:text-sm md:text-base text-gray-700 font-medium">جاري التحميل...</p>
+    <div className="flex justify-center items-center py-6 sm:py-8 md:py-10 w-full">
+      <div className="flex flex-col items-center gap-1.5 sm:gap-2">
+        <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7 text-gray-700 animate-spin" />
+        <p className="text-xs sm:text-sm text-gray-700 font-medium">جاري التحميل...</p>
       </div>
     </div>
   );

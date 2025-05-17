@@ -11,6 +11,7 @@ interface SeoHelmetProps {
 
 /**
  * مكون لإضافة معلومات SEO للصفحة
+ * محسن للتجاوب مع جميع أحجام الشاشات
  */
 const SeoHelmet: FC<SeoHelmetProps> = ({ 
   title, 
@@ -25,12 +26,15 @@ const SeoHelmet: FC<SeoHelmetProps> = ({
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:type" content={type} />
+      
+      {/* تحسين العرض على الجوال والأجهزة المختلفة */}
       <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
       <meta name="theme-color" content="#FFF8F3" />
-      {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
       <meta name="format-detection" content="telephone=no" />
       <meta name="mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-capable" content="yes" />
+      
+      {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
     </Helmet>
   );
 };
