@@ -110,7 +110,7 @@ const LegalPages = () => {
           </div>
           
           {/* عنوان الصفحة */}
-          <div className="text-center mb-6">
+          <div className="text-center mb-5">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
               معلومات المنصة
             </h1>
@@ -120,54 +120,54 @@ const LegalPages = () => {
           </div>
 
           {/* أزرار التنقل بين الأقسام */}
-          <div className="w-full max-w-4xl mb-6">
+          <div className="w-full max-w-4xl mb-3">
             <Tabs 
               defaultValue="terms" 
               value={activeTab} 
               onValueChange={handleTabChange}
               className="w-full"
             >
-              {/* تعديل هنا: تحسين تباعد وهوامش أزرار التبويب للموبايل */}
-              <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 bg-transparent p-0 mb-6 gap-2 sm:gap-3">
+              {/* هنا تم تعديل أزرار التبويب لحل مشكلة التداخل على الجوال */}
+              <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 bg-transparent p-0 mb-3 gap-1.5 sm:gap-2">
                 {/* تبويب الشروط والأحكام */}
                 <TabsTrigger
                   value="terms"
-                  className={`flex items-center justify-center gap-2 py-2 px-3 sm:p-4 text-center rounded-lg transition-all duration-300 text-sm sm:text-base 
+                  className={`flex items-center justify-center h-10 gap-1.5 px-3 text-center rounded-lg transition-all duration-300 text-xs sm:text-sm
                     ${activeTab === "terms" 
                       ? "bg-primary text-white shadow-md" 
                       : "bg-white/90 text-gray-800 border border-gray-200 hover:border-primary/50"}`}
                 >
-                  <FileText className="size-4 sm:size-5 flex-shrink-0" />
-                  <span className="font-medium">الشروط والأحكام</span>
+                  <FileText className="size-3.5 sm:size-4 flex-shrink-0" />
+                  <span className="font-medium whitespace-nowrap">الشروط والأحكام</span>
                 </TabsTrigger>
                 
                 {/* تبويب سياسة الخصوصية */}
                 <TabsTrigger
                   value="privacy"
-                  className={`flex items-center justify-center gap-2 py-2 px-3 sm:p-4 text-center rounded-lg transition-all duration-300 text-sm sm:text-base 
+                  className={`flex items-center justify-center h-10 gap-1.5 px-3 text-center rounded-lg transition-all duration-300 text-xs sm:text-sm
                     ${activeTab === "privacy" 
                       ? "bg-primary text-white shadow-md" 
                       : "bg-white/90 text-gray-800 border border-gray-200 hover:border-primary/50"}`}
                 >
-                  <Shield className="size-4 sm:size-5 flex-shrink-0" />
-                  <span className="font-medium">سياسة الخصوصية</span>
+                  <Shield className="size-3.5 sm:size-4 flex-shrink-0" />
+                  <span className="font-medium whitespace-nowrap">سياسة الخصوصية</span>
                 </TabsTrigger>
                 
                 {/* تبويب اتصل بنا */}
                 <TabsTrigger
                   value="contact"
-                  className={`flex items-center justify-center gap-2 py-2 px-3 sm:p-4 text-center rounded-lg transition-all duration-300 text-sm sm:text-base 
+                  className={`flex items-center justify-center h-10 gap-1.5 px-3 text-center rounded-lg transition-all duration-300 text-xs sm:text-sm
                     ${activeTab === "contact" 
                       ? "bg-primary text-white shadow-md" 
                       : "bg-white/90 text-gray-800 border border-gray-200 hover:border-primary/50"}`}
                 >
-                  <Mail className="size-4 sm:size-5 flex-shrink-0" />
-                  <span className="font-medium">اتصل بنا</span>
+                  <Mail className="size-3.5 sm:size-4 flex-shrink-0" />
+                  <span className="font-medium whitespace-nowrap">اتصل بنا</span>
                 </TabsTrigger>
               </TabsList>
 
-              {/* محتوى التبويبات */}
-              <div className="w-full max-w-4xl mx-auto mt-6 md:mt-8">
+              {/* محتوى التبويبات - زيادة المسافة بين الأزرار والمحتوى */}
+              <div className="w-full max-w-4xl mx-auto mt-8">
                 <AnimatePresence mode="wait">
                   <TabsContent value="terms" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
                     <Suspense fallback={<LoadingSuspense />}>

@@ -51,7 +51,7 @@ const ContactSection = () => {
       initial="hidden"
       animate="visible"
       exit="hidden"
-      className="bg-white rounded-lg shadow-lg overflow-hidden"
+      className="bg-white rounded-lg shadow-lg overflow-hidden mt-2" // تم إضافة mt-2 لزيادة المسافة
     >
       {/* عنوان القسم */}
       <div className="p-3 sm:p-4 bg-gradient-to-l from-primary/90 to-primary text-white text-center">
