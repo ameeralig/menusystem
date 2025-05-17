@@ -1,7 +1,7 @@
 
 import { useState, useEffect, Suspense, lazy } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { HelmetProvider } from "react-helmet-async";
 
@@ -16,6 +16,13 @@ import LegalFooter from "@/components/legal/LegalFooter";
 const TermsSection = lazy(() => import("@/components/legal/TermsSection"));
 const PrivacySection = lazy(() => import("@/components/legal/PrivacySection"));
 const ContactSection = lazy(() => import("@/components/legal/ContactSection"));
+
+// تأثيرات الانتقال بين الصفحات
+const pageVariants = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  exit: { opacity: 0, y: -20, transition: { duration: 0.3 } }
+};
 
 /**
  * صفحة المعلومات القانونية - محسنة للتجاوب مع جميع أحجام الشاشات
@@ -72,7 +79,12 @@ const LegalPages = () => {
 
   return (
     <HelmetProvider>
-      <div className="min-h-screen w-full bg-[#FFF8F3] overflow-x-hidden relative">
+      <motion.div 
+        initial="initial"
+        animate="animate"
+        variants={pageVariants}
+        className="min-h-screen w-full bg-[#FFF8F3] overflow-x-hidden relative"
+      >
         {/* SEO */}
         <SeoHelmet 
           title={seoData.title}
@@ -87,8 +99,8 @@ const LegalPages = () => {
                       bg-primary/10 blur-[70px] sm:blur-[100px] md:blur-[120px] rounded-full"></div>
         
         {/* المحتوى الرئيسي */}
-        <div className="container mx-auto flex flex-col items-center justify-center py-3 sm:py-5 md:py-8 
-                      px-2 sm:px-3 md:px-4 relative z-10">
+        <div className="container mx-auto flex flex-col items-center justify-center py-4 sm:py-6 md:py-8 
+                      px-3 sm:px-4 md:px-5 relative z-10">
           {/* الترويسة وأزرار التنقل */}
           <div className="w-full max-w-xl sm:max-w-2xl md:max-w-3xl lg:max-w-4xl">
             <LegalHeader />
@@ -100,28 +112,49 @@ const LegalPages = () => {
               onValueChange={handleTabChange}
               className="w-full"
             >
-              {/* أزرار التبويب - محسنة للموبايل */}
+              {/* أزرار التبويب */}
               <LegalTabs activeTab={activeTab} />
 
-              {/* محتوى التبويبات */}
+              {/* محتوى التبويبات مع تأثيرات الانتقال */}
               <div className="w-full mx-auto">
                 <AnimatePresence mode="wait">
                   <TabsContent key="terms" value="terms" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                    <Suspense fallback={<LegalLoading />}>
-                      <TermsSection />
-                    </Suspense>
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.4 }}
+                    >
+                      <Suspense fallback={<LegalLoading />}>
+                        <TermsSection />
+                      </Suspense>
+                    </motion.div>
                   </TabsContent>
                   
                   <TabsContent key="privacy" value="privacy" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                    <Suspense fallback={<LegalLoading />}>
-                      <PrivacySection />
-                    </Suspense>
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.4 }}
+                    >
+                      <Suspense fallback={<LegalLoading />}>
+                        <PrivacySection />
+                      </Suspense>
+                    </motion.div>
                   </TabsContent>
                   
                   <TabsContent key="contact" value="contact" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                    <Suspense fallback={<LegalLoading />}>
-                      <ContactSection />
-                    </Suspense>
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.4 }}
+                    >
+                      <Suspense fallback={<LegalLoading />}>
+                        <ContactSection />
+                      </Suspense>
+                    </motion.div>
                   </TabsContent>
                 </AnimatePresence>
               </div>
@@ -133,7 +166,7 @@ const LegalPages = () => {
             <LegalFooter />
           </div>
         </div>
-      </div>
+      </motion.div>
     </HelmetProvider>
   );
 };
