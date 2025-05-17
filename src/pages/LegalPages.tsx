@@ -1,7 +1,7 @@
 
 import { useState, useEffect, Suspense, lazy } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { HelmetProvider } from "react-helmet-async";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -83,16 +83,16 @@ const LegalPages = () => {
         />
         
         {/* خلفية وديكورات */}
-        <div className="absolute top-1/4 left-1/4 w-48 h-48 sm:w-64 sm:h-64 bg-primary/10 blur-[80px] sm:blur-[100px] rounded-full"></div>
-        <div className="absolute bottom-1/3 right-1/3 w-64 h-64 sm:w-96 sm:h-96 bg-primary/10 blur-[100px] sm:blur-[120px] rounded-full"></div>
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/10 blur-[100px] rounded-full"></div>
+        <div className="absolute bottom-1/3 right-1/3 w-96 h-96 bg-primary/10 blur-[120px] rounded-full"></div>
         
         {/* المحتوى الرئيسي */}
-        <div className="container mx-auto flex flex-col items-center justify-center py-4 sm:py-6 md:py-10 px-3 sm:px-4 relative z-10">
+        <div className="container mx-auto flex flex-col items-center justify-center py-6 px-4 sm:py-10 relative z-10">
           {/* الترويسة وأزرار التنقل */}
           <LegalHeader />
           
           {/* أزرار التنقل بين الأقسام */}
-          <div className="w-full max-w-4xl mb-4 sm:mb-6 md:mb-8">
+          <div className="w-full max-w-4xl mb-8">
             <Tabs 
               defaultValue="terms" 
               value={activeTab} 
@@ -105,19 +105,19 @@ const LegalPages = () => {
               {/* محتوى التبويبات */}
               <div className="w-full max-w-4xl mx-auto">
                 <AnimatePresence mode="wait">
-                  <TabsContent key="terms" value="terms" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                  <TabsContent value="terms" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
                     <Suspense fallback={<LegalLoading />}>
                       <TermsSection />
                     </Suspense>
                   </TabsContent>
                   
-                  <TabsContent key="privacy" value="privacy" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                  <TabsContent value="privacy" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
                     <Suspense fallback={<LegalLoading />}>
                       <PrivacySection />
                     </Suspense>
                   </TabsContent>
                   
-                  <TabsContent key="contact" value="contact" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                  <TabsContent value="contact" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
                     <Suspense fallback={<LegalLoading />}>
                       <ContactSection />
                     </Suspense>
