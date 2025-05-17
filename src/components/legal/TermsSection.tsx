@@ -1,28 +1,28 @@
-
 import { motion } from "framer-motion";
-
 const TermsSection = () => {
   // تكوين تأثيرات الانتقال
   const contentVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
+    hidden: {
+      opacity: 0,
+      y: 20
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.4,
+        ease: "easeOut"
+      }
+    }
   };
-
-  return (
-    <motion.div
-      variants={contentVariants}
-      initial="hidden"
-      animate="visible"
-      exit="hidden"
-      className="bg-white rounded-lg shadow-lg overflow-hidden"
-    >
+  return <motion.div variants={contentVariants} initial="hidden" animate="visible" exit="hidden" className="bg-white rounded-lg shadow-lg overflow-hidden my-[120px] py-0">
       {/* عنوان القسم */}
       <div className="p-3 sm:p-4 bg-gradient-to-l from-primary/90 to-primary text-white text-center">
         <h2 className="text-xl sm:text-2xl font-bold">الشروط والأحكام</h2>
       </div>
 
       {/* المحتوى */}
-      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 text-right">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 text-right py-0">
         <div className="space-y-2">
           <h3 className="text-lg sm:text-xl font-bold text-gray-800">1. مقدمة</h3>
           <p className="text-gray-800 text-sm sm:text-base leading-relaxed">
@@ -65,8 +65,6 @@ const TermsSection = () => {
           </p>
         </div>
       </div>
-    </motion.div>
-  );
+    </motion.div>;
 };
-
 export default TermsSection;
