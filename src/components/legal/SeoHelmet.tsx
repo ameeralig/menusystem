@@ -16,6 +16,7 @@ const SeoHelmet: FC<SeoHelmetProps> = ({ title, description, type = "website" })
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:type" content={type} />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
     </Helmet>
   );
 };
