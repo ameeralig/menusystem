@@ -6,9 +6,18 @@ interface SeoHelmetProps {
   title: string;
   description: string;
   type?: string;
+  canonicalUrl?: string;
 }
 
-const SeoHelmet: FC<SeoHelmetProps> = ({ title, description, type = "website" }) => {
+/**
+ * مكون لإضافة معلومات SEO للصفحة
+ */
+const SeoHelmet: FC<SeoHelmetProps> = ({ 
+  title, 
+  description, 
+  type = "website",
+  canonicalUrl 
+}) => {
   return (
     <Helmet>
       <title>{title}</title>
@@ -16,7 +25,9 @@ const SeoHelmet: FC<SeoHelmetProps> = ({ title, description, type = "website" })
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:type" content={type} />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+      <meta name="theme-color" content="#FFF8F3" />
+      {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
     </Helmet>
   );
 };
