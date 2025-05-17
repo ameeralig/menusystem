@@ -1,30 +1,36 @@
 
 import { useState, useEffect, Suspense, lazy } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
+import { AnimatedBackground } from "@/components/auth/AnimatedBackground";
+import { FileText, Shield, Mail, Loader2, ArrowRight } from "lucide-react";
 import { HelmetProvider } from "react-helmet-async";
-import { useIsMobile } from "@/hooks/use-mobile";
-
-// استيراد المكونات المقسمة
 import SeoHelmet from "@/components/legal/SeoHelmet";
-import LegalHeader from "@/components/legal/LegalHeader";
-import LegalTabs from "@/components/legal/LegalTabs";
-import LegalLoading from "@/components/legal/LegalLoading";
-import LegalFooter from "@/components/legal/LegalFooter";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // استخدام التحميل الكسول للمكونات
 const TermsSection = lazy(() => import("@/components/legal/TermsSection"));
 const PrivacySection = lazy(() => import("@/components/legal/PrivacySection"));
 const ContactSection = lazy(() => import("@/components/legal/ContactSection"));
 
-/**
- * صفحة المعلومات القانونية - الشروط والخصوصية والاتصال
- */
+// مكون التحميل
+const LoadingSuspense = () => (
+  <div className="flex justify-center items-center py-12 w-full">
+    <div className="flex flex-col items-center gap-3">
+      <Loader2 className="h-8 w-8 text-gray-800 animate-spin" />
+      <p className="text-gray-800 font-medium">جاري التحميل...</p>
+    </div>
+  </div>
+);
+
 const LegalPages = () => {
   const [activeTab, setActiveTab] = useState("terms");
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
   const isMobile = useIsMobile();
 
   // قراءة معلمة tab من عنوان URL عند تحميل الصفحة
@@ -42,6 +48,8 @@ const LegalPages = () => {
     // استخدام replace: true لتجنب إضافة إدخالات متعددة في تاريخ التصفح
     navigate(`/legal?tab=${value}`, { replace: true });
   };
+
+  const currentYear = new Date().getFullYear();
 
   // تحديد العنوان والوصف بناءً على التبويب النشط
   const getSeoData = () => {
@@ -70,7 +78,6 @@ const LegalPages = () => {
   };
 
   const seoData = getSeoData();
-  const currentUrl = window.location.href;
 
   return (
     <HelmetProvider>
@@ -79,20 +86,41 @@ const LegalPages = () => {
         <SeoHelmet 
           title={seoData.title}
           description={seoData.description}
-          canonicalUrl={currentUrl}
         />
         
-        {/* خلفية وديكورات */}
-        <div className="absolute top-1/4 left-1/4 w-48 h-48 sm:w-64 sm:h-64 bg-primary/10 blur-[80px] sm:blur-[100px] rounded-full"></div>
-        <div className="absolute bottom-1/3 right-1/3 w-64 h-64 sm:w-96 sm:h-96 bg-primary/10 blur-[100px] sm:blur-[120px] rounded-full"></div>
+        {/* خلفية متحركة */}
+        <AnimatedBackground />
+        
+        {/* الديكورات */}
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/10 blur-[100px] rounded-full"></div>
+        <div className="absolute bottom-1/3 right-1/3 w-96 h-96 bg-primary/10 blur-[120px] rounded-full"></div>
         
         {/* المحتوى الرئيسي */}
-        <div className="container mx-auto flex flex-col items-center justify-center py-4 sm:py-6 md:py-10 px-3 sm:px-4 relative z-10">
-          {/* الترويسة وأزرار التنقل */}
-          <LegalHeader />
+        <div className="container mx-auto flex flex-col items-center justify-center py-6 px-4 sm:py-10 relative z-10">
+          {/* زر العودة للصفحة الرئيسية */}
+          <div className="w-full flex justify-end mb-4">
+            <Button
+              variant="outline"
+              onClick={() => navigate("/")}
+              className="text-gray-800 flex items-center gap-2 bg-white/90 border border-gray-200 hover:bg-white shadow-sm"
+            >
+              <span>العودة للرئيسية</span>
+              <ArrowRight className="size-4 rtl:rotate-180" />
+            </Button>
+          </div>
           
+          {/* عنوان الصفحة */}
+          <div className="text-center mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              معلومات المنصة
+            </h1>
+            <p className="text-gray-600 mt-2">
+              كل ما تحتاج معرفته حول استخدام منصة متجرك الرقمي
+            </p>
+          </div>
+
           {/* أزرار التنقل بين الأقسام */}
-          <div className="w-full max-w-4xl mb-4 sm:mb-6 md:mb-8">
+          <div className="w-full max-w-4xl mb-8">
             <Tabs 
               defaultValue="terms" 
               value={activeTab} 
@@ -100,25 +128,61 @@ const LegalPages = () => {
               className="w-full"
             >
               {/* أزرار التبويب - تحسين للموبايل */}
-              <LegalTabs activeTab={activeTab} />
+              <TabsList className="grid w-full bg-transparent p-0 mb-8 gap-2 grid-cols-1 sm:grid-cols-3">
+                {/* تبويب الشروط والأحكام */}
+                <TabsTrigger
+                  value="terms"
+                  className={`flex items-center gap-2 p-3 sm:p-4 text-center rounded-lg transition-all duration-300 
+                    ${activeTab === "terms" 
+                      ? "bg-primary text-white shadow-md" 
+                      : "bg-white text-gray-800 border border-gray-200 hover:border-primary/50"}`}
+                >
+                  <FileText className="size-4 sm:size-5" />
+                  <span className="font-medium">الشروط والأحكام</span>
+                </TabsTrigger>
+                
+                {/* تبويب سياسة الخصوصية */}
+                <TabsTrigger
+                  value="privacy"
+                  className={`flex items-center gap-2 p-3 sm:p-4 text-center rounded-lg transition-all duration-300 
+                    ${activeTab === "privacy" 
+                      ? "bg-primary text-white shadow-md" 
+                      : "bg-white text-gray-800 border border-gray-200 hover:border-primary/50"}`}
+                >
+                  <Shield className="size-4 sm:size-5" />
+                  <span className="font-medium">سياسة الخصوصية</span>
+                </TabsTrigger>
+                
+                {/* تبويب اتصل بنا */}
+                <TabsTrigger
+                  value="contact"
+                  className={`flex items-center gap-2 p-3 sm:p-4 text-center rounded-lg transition-all duration-300 
+                    ${activeTab === "contact" 
+                      ? "bg-primary text-white shadow-md" 
+                      : "bg-white text-gray-800 border border-gray-200 hover:border-primary/50"}`}
+                >
+                  <Mail className="size-4 sm:size-5" />
+                  <span className="font-medium">اتصل بنا</span>
+                </TabsTrigger>
+              </TabsList>
 
               {/* محتوى التبويبات */}
               <div className="w-full max-w-4xl mx-auto">
                 <AnimatePresence mode="wait">
-                  <TabsContent key="terms" value="terms" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                    <Suspense fallback={<LegalLoading />}>
+                  <TabsContent value="terms" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <Suspense fallback={<LoadingSuspense />}>
                       <TermsSection />
                     </Suspense>
                   </TabsContent>
                   
-                  <TabsContent key="privacy" value="privacy" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                    <Suspense fallback={<LegalLoading />}>
+                  <TabsContent value="privacy" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <Suspense fallback={<LoadingSuspense />}>
                       <PrivacySection />
                     </Suspense>
                   </TabsContent>
                   
-                  <TabsContent key="contact" value="contact" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                    <Suspense fallback={<LegalLoading />}>
+                  <TabsContent value="contact" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <Suspense fallback={<LoadingSuspense />}>
                       <ContactSection />
                     </Suspense>
                   </TabsContent>
@@ -127,8 +191,10 @@ const LegalPages = () => {
             </Tabs>
           </div>
           
-          {/* تذييل الصفحة */}
-          <LegalFooter />
+          {/* حقوق النشر */}
+          <div className="mt-8 text-center text-gray-700">
+            &copy; {currentYear} متجرك الرقمي. جميع الحقوق محفوظة.
+          </div>
         </div>
       </div>
     </HelmetProvider>
