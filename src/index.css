@@ -94,13 +94,6 @@
     @apply bg-background text-foreground transition-colors duration-300;
   }
 
-  /* تحسين التنسيق للشاشات الصغيرة */
-  @media (max-width: 480px) {
-    html {
-      font-size: 14px;
-    }
-  }
-
   .glass-morphism {
     @apply backdrop-blur-xl bg-white/5 border-2 border-[#9b87f5]/30;
   }
@@ -110,11 +103,11 @@
   }
   
   .coral-button {
-    @apply bg-[#ff9178] hover:bg-[#ff7d61] text-white rounded-full px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 font-medium transition-all;
+    @apply bg-[#ff9178] hover:bg-[#ff7d61] text-white rounded-full px-6 py-3 font-medium transition-all;
   }
   
   .coral-button-outline {
-    @apply bg-[#fff5f2] hover:bg-[#ffeee9] text-[#ff9178] rounded-full px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 font-medium transition-all;
+    @apply bg-[#fff5f2] hover:bg-[#ffeee9] text-[#ff9178] rounded-full px-6 py-3 font-medium transition-all;
   }
 }
 
@@ -129,9 +122,9 @@
     transform: scale(1.05);
   }
   
-  /* تحسين تنسيق مخصص للسكرولبار */
+  /* تنسيق مخصص للسكرولبار */
   .custom-scrollbar::-webkit-scrollbar {
-    width: 3px;
+    width: 4px;
   }
   
   .custom-scrollbar::-webkit-scrollbar-track {
@@ -147,25 +140,6 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.5);
   }
-
-  /* إضافة فئة خاصة بحجم الشاشة الصغير جدًا للهواتف */
-  @media (max-width: 360px) {
-    .xs\:text-xs {
-      font-size: 0.75rem;
-      line-height: 1rem;
-    }
-    .xs\:p-1 {
-      padding: 0.25rem;
-    }
-    .xs\:px-1 {
-      padding-left: 0.25rem;
-      padding-right: 0.25rem;
-    }
-    .xs\:py-1 {
-      padding-top: 0.25rem;
-      padding-bottom: 0.25rem;
-    }
-  }
 }
 
 @layer base {
@@ -179,7 +153,7 @@
   }
 
   .auth-card {
-    @apply w-full max-w-md p-4 sm:p-6 md:p-8 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300;
+    @apply w-full max-w-md p-8 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300;
     @apply backdrop-blur-lg bg-white/10 dark:bg-black/10 border border-white/20 dark:border-white/10;
   }
   
@@ -188,7 +162,7 @@
   }
 
   .auth-title {
-    @apply text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-br from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent mb-4 sm:mb-6 md:mb-8;
+    @apply text-3xl font-bold bg-gradient-to-br from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent mb-8;
   }
 }
 
