@@ -14,18 +14,11 @@ const ProductCard = memo(({ product }: { product: Product }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  // تحويل الصورة إلى صيغة WebP عندما يكون ذلك ممكنًا
+  // تحسين URL الصورة عبر إضافة طابع زمني
   const getOptimizedImageUrl = (url: string | null | undefined) => {
     if (!url) return null;
     
     const baseUrl = url.split('?')[0];
-    
-    // تحسين URL الصورة لاستخدام WebP إذا كان متاحًا عبر خدمة تخزين Supabase أو عبر CDN
-    if (baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')) {
-      return `${baseUrl}?format=webp&quality=80&t=${Date.now()}`;
-    }
-    
-    // إضافة طابع زمني للتأكد من تحميل أحدث إصدار من الصورة
     return `${baseUrl}?t=${Date.now()}`;
   };
 

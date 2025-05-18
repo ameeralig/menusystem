@@ -81,15 +81,9 @@ const ProductPreviewContainer = memo(({
         // إضافة معرف زمني لتجنب التخزين المؤقت
         const timestamp = new Date().getTime();
         const baseUrl = bannerUrl.split('?')[0];
-        
-        // تحسين URL الصورة لاستخدام WebP إذا كان متاحًا
-        const shouldUseWebP = baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app');
-        const newUrl = shouldUseWebP 
-          ? `${baseUrl}?t=${timestamp}&format=webp&quality=80` 
-          : `${baseUrl}?t=${timestamp}`;
+        const newUrl = `${baseUrl}?t=${timestamp}`;
         
         preloadImage.onload = () => {
-          console.log("تم تحميل صورة البانر بنجاح:", newUrl);
           setImgSrc(newUrl);
           setImageError(false);
           setImageLoaded(true);
@@ -127,7 +121,7 @@ const ProductPreviewContainer = memo(({
     } else {
       setImgSrc(null);
     }
-  }, [bannerUrl]);
+  }, [bannerUrl, imageError]);
   
   // استخدام useMemo لحساب فئات نمط الألوان مرة واحدة فقط
   const themeClasses = useMemo(() => getThemeClasses(colorTheme), [colorTheme]);

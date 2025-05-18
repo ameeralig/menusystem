@@ -75,16 +75,6 @@ const StoreProductsDisplay = ({
         if (!img.image_url) return img;
         
         const baseUrl = img.image_url.split('?')[0];
-        
-        // تحسين URL الصورة لاستخدام WebP إذا كان متاحًا
-        if (baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')) {
-          return {
-            ...img,
-            image_url: `${baseUrl}?format=webp&quality=80&t=${timestamp}`
-          };
-        }
-        
-        // إضافة طابع زمني فقط
         return {
           ...img,
           image_url: `${baseUrl}?t=${timestamp}`
