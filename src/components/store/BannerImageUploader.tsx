@@ -36,6 +36,10 @@ const BannerImageUploader = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   // تتبع إذا تم تغيير الصورة
   const [hasChanges, setHasChanges] = useState(false);
+  
+  // تعيين أبعاد ثابتة للصورة
+  const previewWidth = 1600; // عرض المعاينة
+  const previewHeight = 320;  // ارتفاع المعاينة
 
   useEffect(() => {
     if (bannerUrl && !previewUrl) {
@@ -85,7 +89,7 @@ const BannerImageUploader = ({
       }
       
     } catch (error: any) {
-      console.error("Error saving banner image:", error);
+      console.error("خطأ في حفظ صورة البانر:", error);
       setError(error.message || "حدث خطأ أثناء حفظ صورة الغلاف");
     } finally {
       setIsSubmitting(false);
@@ -117,19 +121,33 @@ const BannerImageUploader = ({
             </Alert>
           )}
           
-          {previewUrl && (
-            <ImagePreview 
-              previewUrl={previewUrl}
-              onClear={() => {
-                clearImage();
-                setHasChanges(true);
-              }}
-              onError={() => {
-                setError("لم نتمكن من تحميل هذه الصورة، الرجاء التأكد من الرابط");
-                clearImage();
-              }}
-            />
-          )}
+          {/* حاوية المعاينة مع أبعاد ثابتة */}
+          <div className="min-h-[200px]" style={{ aspectRatio: '16/5' }}>
+            {previewUrl ? (
+              <ImagePreview 
+                previewUrl={previewUrl}
+                previewWidth={previewWidth}
+                previewHeight={previewHeight}
+                onClear={() => {
+                  clearImage();
+                  setHasChanges(true);
+                }}
+                onError={() => {
+                  setError("لم نتمكن من تحميل هذه الصورة، الرجاء التأكد من الرابط");
+                  clearImage();
+                }}
+              />
+            ) : (
+              <div 
+                className="w-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-md" 
+                style={{ aspectRatio: '16/5', minHeight: '200px' }}
+              >
+                <span className="text-gray-500 dark:text-gray-400">
+                  اختر صورة للبانر
+                </span>
+              </div>
+            )}
+          </div>
           
           <div className="space-y-4">
             <div>

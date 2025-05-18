@@ -7,11 +7,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 interface ImagePreviewProps {
   previewUrl: string;
+  previewWidth?: number;
+  previewHeight?: number;
   onClear: () => void;
   onError: () => void;
 }
 
-const ImagePreview = ({ previewUrl, onClear, onError }: ImagePreviewProps) => {
+const ImagePreview = ({
+  previewUrl,
+  previewWidth = 1600,
+  previewHeight = 320,
+  onClear,
+  onError
+}: ImagePreviewProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [imageUrl, setImageUrl] = useState<string>(previewUrl);
   
@@ -40,10 +48,16 @@ const ImagePreview = ({ previewUrl, onClear, onError }: ImagePreviewProps) => {
           src={imageUrl} 
           alt="معاينة صورة الغلاف" 
           className="w-full h-full object-cover"
+          width={previewWidth}
+          height={previewHeight}
           onError={onError}
           onLoad={() => setIsLoading(false)}
           loading="eager"
           fetchPriority="high"
+          style={{ 
+            aspectRatio: '16/5',
+            objectFit: 'cover'
+          }}
         />
         <Button 
           type="button" 

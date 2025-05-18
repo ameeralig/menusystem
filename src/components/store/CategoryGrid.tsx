@@ -1,8 +1,9 @@
 
 import { motion } from "framer-motion";
-import { CSSProperties, useEffect, useState } from "react";
+import { CSSProperties, useEffect, useState, memo } from "react";
 import { CategoryImage } from "@/types/categoryImage";
 import { Folder } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface FontSettings {
   categoryText?: {
@@ -19,7 +20,8 @@ interface CategoryGridProps {
   categoryImages?: CategoryImage[];
 }
 
-const CategoryCard = ({ 
+// استخدام memo للحد من إعادة الرسم غير الضرورية
+const CategoryCard = memo(({ 
   category, 
   imageUrl, 
   onClick,
@@ -38,18 +40,19 @@ const CategoryCard = ({
       whileHover={{ scale: 1.02 }}
       className="relative overflow-hidden rounded-[30px] cursor-pointer shadow-md group"
       onClick={onClick}
+      style={{ minHeight: "140px" }} // تثبيت ارتفاع أدنى
     >
-      <div className="h-[140px] overflow-hidden">
+      <div className="h-[140px] overflow-hidden" style={{ aspectRatio: "16/9" }}>
         {!imgError && imageUrl ? (
           <>
             {isLoading && (
-              <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-              </div>
+              <Skeleton className="absolute inset-0 bg-gray-100 w-full h-full" />
             )}
             <img 
               src={imageUrl} 
               alt={category}
+              width={320} // تحديد عرض ثابت
+              height={140} // تحديد ارتفاع ثابت
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               onError={() => {
                 console.error(`خطأ في تحميل صورة التصنيف: ${category}`);
@@ -60,7 +63,11 @@ const CategoryCard = ({
                 console.log(`تم تحميل صورة التصنيف بنجاح: ${category}`);
                 setIsLoading(false);
               }}
-              loading="eager"
+              loading="eager" // تحميل الصور الأساسية فورًا
+              style={{ 
+                aspectRatio: '16/9',
+                objectFit: 'cover' 
+              }}
             />
           </>
         ) : (
@@ -71,7 +78,7 @@ const CategoryCard = ({
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
           <h3 
             className="text-white text-2xl font-bold tracking-wide px-3 text-center"
-            style={fontStyle}
+            style={{...fontStyle, maxWidth: '100%'}}
           >
             {category}
           </h3>
@@ -79,7 +86,9 @@ const CategoryCard = ({
       </div>
     </motion.div>
   );
-};
+});
+
+CategoryCard.displayName = 'CategoryCard'; // تعيين اسم للمكون لتسهيل التصحيح
 
 const CategoryGrid = ({ 
   categories, 
@@ -122,24 +131,8 @@ const CategoryGrid = ({
     const imageData = categoryImages.find(img => img.category === category);
     if (!imageData?.image_url) return null;
     
-    // تسجيل معلومات التصحيح
-    console.log(`استخدام صورة للتصنيف: ${category} - الرابط: ${imageData.image_url}`);
-    
     return imageData.image_url;
   };
-
-  // تسجيل معلومات للتصحيح
-  useEffect(() => {
-    console.log(`CategoryGrid: تلقي ${categoryImages?.length || 0} صورة تصنيف`);
-    if (categoryImages?.length > 0) {
-      console.log("تفاصيل صور التصنيفات المتاحة في CategoryGrid:");
-      categoryImages.forEach(img => {
-        console.log(`- التصنيف: ${img.category}, الرابط: ${img.image_url || 'غير متوفر'}`);
-      });
-    }
-    
-    console.log("التصنيفات المتاحة:", categories);
-  }, [categoryImages, categories]);
 
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
@@ -154,6 +147,11 @@ const CategoryGrid = ({
           />
         )
       ))}
+      
+      {/* إذا كان عدد التصنيفات قليلًا، أضف بطاقات نائبة لتجنب تغيير تخطيط الصفحة */}
+      {categories.length === 1 && (
+        <div className="h-[140px] rounded-[30px] bg-transparent" />
+      )}
     </div>
   );
 };
