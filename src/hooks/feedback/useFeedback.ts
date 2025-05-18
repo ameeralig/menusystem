@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 interface FeedbackItem {
   id: string;
   visitor_name: string;
-  visitor_phone: string; // إضافة حقل جديد لرقم الهاتف
+  visitor_phone: string | null; // تعديل النوع ليتوافق مع قاعدة البيانات
   type: string;
   description: string;
   created_at: string;
@@ -41,7 +41,7 @@ export const useFeedback = () => {
         // تحويل البيانات ووضع قيمة افتراضية لحقل رقم الهاتف إذا كان غير موجود
         const processedData = data?.map(item => ({
           ...item,
-          visitor_phone: item.visitor_phone || "" // القيمة الافتراضية إذا كان الحقل غير موجود
+          visitor_phone: item.visitor_phone || null // القيمة الافتراضية إذا كان الحقل غير موجود
         })) || [];
         
         setFeedback(processedData);
