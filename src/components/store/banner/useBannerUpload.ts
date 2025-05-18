@@ -26,6 +26,24 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
     }
   }, [initialUrl]);
 
+  // تحويل ملف الصورة إلى رابط URL مباشرة
+  const fileToDataUrl = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result);
+        } else {
+          reject(new Error("تعذر تحويل الملف إلى URL"));
+        }
+      };
+      
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleImageUpload = async (file: File) => {
     try {
       setError(null);
@@ -41,9 +59,9 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
         return;
       }
 
-      // إنشاء عنوان URL مؤقت للمعاينة قبل الرفع
-      const tempPreviewUrl = URL.createObjectURL(file);
-      setPreviewUrl(tempPreviewUrl);
+      // تحويل الملف إلى رابط URL مباشرة للمعاينة السريعة
+      const directDataUrl = await fileToDataUrl(file);
+      setPreviewUrl(directDataUrl);
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
@@ -74,9 +92,6 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
       const timestamp = new Date().getTime();
       const baseUrl = publicUrl.split('?')[0];
       const cachedUrl = `${baseUrl}?t=${timestamp}&optimized=true`;
-      
-      // تحرير عنوان URL المؤقت
-      URL.revokeObjectURL(tempPreviewUrl);
       
       setImageUrl(cachedUrl);
       setPreviewUrl(cachedUrl);
@@ -132,6 +147,7 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
     previewUrl,
     handleImageUpload,
     handleUrlChange,
-    clearImage
+    clearImage,
+    fileToDataUrl  // إضافة الوظيفة الجديدة للمكونات الأخرى لاستخدامها
   };
 };

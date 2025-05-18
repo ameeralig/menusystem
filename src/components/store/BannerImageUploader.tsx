@@ -29,7 +29,8 @@ const BannerImageUploader = ({
     previewUrl,
     handleImageUpload,
     handleUrlChange,
-    clearImage
+    clearImage,
+    fileToDataUrl
   } = useBannerUpload({ setBannerUrl, initialUrl: bannerUrl });
   
   // محلي لتتبع حالة النموذج
@@ -60,8 +61,20 @@ const BannerImageUploader = ({
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      await handleImageUpload(file);
-      setHasChanges(true);
+      try {
+        // تحويل الملف إلى URL مباشرة للمعاينة الفورية
+        const directUrl = await fileToDataUrl(file);
+        // عرض المعاينة مباشرة قبل رفع الصورة
+        setPreviewUrl(directUrl);
+        setHasChanges(true);
+        
+        // بدء عملية الرفع بالتوازي
+        await handleImageUpload(file);
+      } catch (error) {
+        console.error("خطأ في تحويل الملف:", error);
+        // استمرار الرفع العادي إذا فشل التحويل المباشر
+        await handleImageUpload(file);
+      }
     }
   };
 

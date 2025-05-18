@@ -2,20 +2,24 @@
 import { motion } from "framer-motion";
 import { Product } from "@/types/product";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from "react";
+import { useState, memo } from "react";
 
 interface ProductGridProps {
   products: Product[];
   colorTheme?: string | null;
 }
 
-const ProductCard = ({ product }: { product: Product }) => {
+// ترميز مكون ProductCard للحماية من إعادة العرض غير الضرورية
+const ProductCard = memo(({ product }: { product: Product }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
   // تحويل الصورة إلى صيغة WebP عندما يكون ذلك ممكنًا
   const getOptimizedImageUrl = (url: string | null | undefined) => {
     if (!url) return null;
+    
+    // تجنب تكرار التحويل إذا كانت الصورة تحتوي بالفعل على معلمات التنسيق
+    if (url.includes('format=webp')) return url;
     
     const baseUrl = url.split('?')[0];
     
@@ -73,7 +77,9 @@ const ProductCard = ({ product }: { product: Product }) => {
       </div>
     </motion.div>
   );
-};
+});
+
+ProductCard.displayName = "ProductCard";
 
 const ProductGrid = ({ products, colorTheme }: ProductGridProps) => {
   return (
