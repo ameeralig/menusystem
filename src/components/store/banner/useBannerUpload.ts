@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { createUniqueFilePath, optimizeImage } from "@/utils/storageHelpers";
+import { createUniqueFilePath } from "@/utils/storageHelpers";
 
 interface UseBannerUploadProps {
   setBannerUrl: (url: string | null) => void;
@@ -26,24 +26,6 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
     }
   }, [initialUrl]);
 
-  // تحويل ملف الصورة إلى رابط URL مباشرة
-  const fileToDataUrl = async (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          resolve(reader.result);
-        } else {
-          reject(new Error("تعذر تحويل الملف إلى URL"));
-        }
-      };
-      
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(file);
-    });
-  };
-
   const handleImageUpload = async (file: File) => {
     try {
       setError(null);
@@ -59,26 +41,21 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
         return;
       }
 
-      // تحويل الملف إلى رابط URL مباشرة للمعاينة السريعة
-      const directDataUrl = await fileToDataUrl(file);
-      setPreviewUrl(directDataUrl);
+      // إنشاء عنوان URL مؤقت للمعاينة قبل الرفع
+      const tempPreviewUrl = URL.createObjectURL(file);
+      setPreviewUrl(tempPreviewUrl);
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
 
-      // تحسين الصورة وضغطها قبل الرفع
-      const optimizedFile = await optimizeImage(file);
-      console.log(`تم ضغط الصورة من ${file.size} إلى ${optimizedFile.size} بايت`);
-      
-      const filePath = createUniqueFilePath(user.id, 'banners', optimizedFile);
+      const filePath = createUniqueFilePath(user.id, 'banners', file);
       
       // إضافة رأسيات لتجنب التخزين المؤقت
       const { data, error: uploadError } = await supabase.storage
         .from('banners')
-        .upload(filePath, optimizedFile, {
+        .upload(filePath, file, {
           cacheControl: '0',
-          upsert: true,
-          contentType: optimizedFile.type
+          upsert: true
         });
 
       if (uploadError) throw uploadError;
@@ -91,7 +68,10 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
       // إضافة معرف زمني للصورة لتجنب التخزين المؤقت
       const timestamp = new Date().getTime();
       const baseUrl = publicUrl.split('?')[0];
-      const cachedUrl = `${baseUrl}?t=${timestamp}&optimized=true`;
+      const cachedUrl = `${baseUrl}?t=${timestamp}`;
+      
+      // تحرير عنوان URL المؤقت
+      URL.revokeObjectURL(tempPreviewUrl);
       
       setImageUrl(cachedUrl);
       setPreviewUrl(cachedUrl);
@@ -122,7 +102,7 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
       // إضافة معرف زمني للصورة بعد إزالة أي معرفات موجودة
       const timestamp = new Date().getTime();
       const baseUrl = url.split('?')[0];
-      const updatedUrl = `${baseUrl}?t=${timestamp}&optimized=true`;
+      const updatedUrl = `${baseUrl}?t=${timestamp}`;
       
       setImageUrl(updatedUrl);
       setPreviewUrl(updatedUrl);
@@ -147,7 +127,6 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
     previewUrl,
     handleImageUpload,
     handleUrlChange,
-    clearImage,
-    fileToDataUrl  // إضافة الوظيفة الجديدة للمكونات الأخرى لاستخدامها
+    clearImage
   };
 };

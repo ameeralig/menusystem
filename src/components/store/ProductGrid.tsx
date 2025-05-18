@@ -2,24 +2,20 @@
 import { motion } from "framer-motion";
 import { Product } from "@/types/product";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState, memo } from "react";
+import { useState } from "react";
 
 interface ProductGridProps {
   products: Product[];
   colorTheme?: string | null;
 }
 
-// ترميز مكون ProductCard للحماية من إعادة العرض غير الضرورية
-const ProductCard = memo(({ product }: { product: Product }) => {
+const ProductCard = ({ product }: { product: Product }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
   // تحويل الصورة إلى صيغة WebP عندما يكون ذلك ممكنًا
   const getOptimizedImageUrl = (url: string | null | undefined) => {
     if (!url) return null;
-    
-    // تجنب تكرار التحويل إذا كانت الصورة تحتوي بالفعل على معلمات التنسيق
-    if (url.includes('format=webp')) return url;
     
     const baseUrl = url.split('?')[0];
     
@@ -44,24 +40,17 @@ const ProductCard = memo(({ product }: { product: Product }) => {
           {!imageLoaded && !imageError && (
             <Skeleton className="absolute inset-0 w-full h-full" />
           )}
-          {imageError ? (
-            <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500">
-              <span className="text-sm">لا يمكن تحميل الصورة</span>
-            </div>
-          ) : (
-            <img
-              src={getOptimizedImageUrl(product.image_url)}
-              alt={product.name}
-              className={`w-full h-full object-cover transition-all duration-300 ${
-                imageLoaded ? "opacity-100 hover:scale-105" : "opacity-0"
-              }`}
-              loading="lazy"
-              onLoad={() => setImageLoaded(true)}
-              onError={() => setImageError(true)}
-              decoding="async"
-              fetchPriority="low"
-            />
-          )}
+          <img
+            src={getOptimizedImageUrl(product.image_url)}
+            alt={product.name}
+            className={`w-full h-full object-cover transition-all duration-300 ${
+              imageLoaded ? "opacity-100 hover:scale-105" : "opacity-0"
+            }`}
+            loading="lazy"
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageError(true)}
+            decoding="async"
+          />
         </div>
       )}
       <div className="p-4">
@@ -77,9 +66,7 @@ const ProductCard = memo(({ product }: { product: Product }) => {
       </div>
     </motion.div>
   );
-});
-
-ProductCard.displayName = "ProductCard";
+};
 
 const ProductGrid = ({ products, colorTheme }: ProductGridProps) => {
   return (

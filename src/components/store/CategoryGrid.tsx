@@ -1,9 +1,8 @@
 
 import { motion } from "framer-motion";
-import { CSSProperties, useEffect, useState, memo } from "react";
+import { CSSProperties, useEffect, useState } from "react";
 import { CategoryImage } from "@/types/categoryImage";
 import { Folder } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface FontSettings {
   categoryText?: {
@@ -20,8 +19,7 @@ interface CategoryGridProps {
   categoryImages?: CategoryImage[];
 }
 
-// ترميز مكون CategoryCard للحماية من إعادة العرض غير الضرورية
-const CategoryCard = memo(({ 
+const CategoryCard = ({ 
   category, 
   imageUrl, 
   onClick,
@@ -35,22 +33,6 @@ const CategoryCard = memo(({
   const [imgError, setImgError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
-  const getOptimizedImageUrl = (url: string | null) => {
-    if (!url) return null;
-    
-    // تجنب تكرار التحويل إذا كانت الصورة تحتوي بالفعل على معلمات التنسيق
-    if (url.includes('format=webp')) return url;
-    
-    const baseUrl = url.split('?')[0];
-    
-    // تحسين URL الصورة لاستخدام WebP إذا كان متاحًا
-    if (baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')) {
-      return `${baseUrl}?format=webp&quality=80&t=${Date.now()}`;
-    }
-    
-    return `${baseUrl}?t=${Date.now()}`;
-  };
-  
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
@@ -61,10 +43,12 @@ const CategoryCard = memo(({
         {!imgError && imageUrl ? (
           <>
             {isLoading && (
-              <Skeleton className="absolute inset-0 w-full h-full" />
+              <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+              </div>
             )}
             <img 
-              src={getOptimizedImageUrl(imageUrl)} 
+              src={imageUrl} 
               alt={category}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               onError={() => {
@@ -76,9 +60,7 @@ const CategoryCard = memo(({
                 console.log(`تم تحميل صورة التصنيف بنجاح: ${category}`);
                 setIsLoading(false);
               }}
-              loading="lazy"
-              decoding="async"
-              fetchPriority="low"
+              loading="eager"
             />
           </>
         ) : (
@@ -97,9 +79,7 @@ const CategoryCard = memo(({
       </div>
     </motion.div>
   );
-});
-
-CategoryCard.displayName = "CategoryCard";
+};
 
 const CategoryGrid = ({ 
   categories, 
@@ -135,22 +115,6 @@ const CategoryGrid = ({
     return {};
   };
 
-  // تحويل الصورة المحلية إلى رابط URL مباشرة
-  const fileToDataUrl = async (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          resolve(reader.result);
-        } else {
-          reject(new Error("تعذر تحويل الملف إلى URL"));
-        }
-      };
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(file);
-    });
-  };
-
   // الحصول على رابط صورة التصنيف مع التحقق من وجودها
   const getCategoryImageUrl = (category: string): string | null => {
     if (!categoryImages || categoryImages.length === 0) return null;
@@ -158,8 +122,24 @@ const CategoryGrid = ({
     const imageData = categoryImages.find(img => img.category === category);
     if (!imageData?.image_url) return null;
     
+    // تسجيل معلومات التصحيح
+    console.log(`استخدام صورة للتصنيف: ${category} - الرابط: ${imageData.image_url}`);
+    
     return imageData.image_url;
   };
+
+  // تسجيل معلومات للتصحيح
+  useEffect(() => {
+    console.log(`CategoryGrid: تلقي ${categoryImages?.length || 0} صورة تصنيف`);
+    if (categoryImages?.length > 0) {
+      console.log("تفاصيل صور التصنيفات المتاحة في CategoryGrid:");
+      categoryImages.forEach(img => {
+        console.log(`- التصنيف: ${img.category}, الرابط: ${img.image_url || 'غير متوفر'}`);
+      });
+    }
+    
+    console.log("التصنيفات المتاحة:", categories);
+  }, [categoryImages, categories]);
 
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">

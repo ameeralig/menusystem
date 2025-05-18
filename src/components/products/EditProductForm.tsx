@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Star, TrendingUp, Loader2, Image } from "lucide-react";
+import { Star, TrendingUp, Loader2 } from "lucide-react";
 import { Product } from "@/types/product";
 import {
   Card,
@@ -54,22 +54,6 @@ const EditProductForm = ({
   isLoading = false,
 }: EditProductFormProps) => {
   if (!product) return null;
-  
-  // إضافة معالج للصورة وعرض محسن
-  const getOptimizedImageUrl = (url: string | null | undefined) => {
-    if (!url) return null;
-    
-    const baseUrl = url.split('?')[0];
-    
-    // تحسين URL الصورة لاستخدام WebP إذا كان متاحًا
-    if (baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')) {
-      return `${baseUrl}?format=webp&quality=80&t=${Date.now()}`;
-    }
-    
-    return url;
-  };
-  
-  const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
     <form onSubmit={onSubmit} className="max-w-2xl mx-auto space-y-6">
@@ -79,30 +63,6 @@ const EditProductForm = ({
           <CardDescription>قم بتحديث معلومات المنتج من هنا</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* عرض صورة المنتج إذا وجدت */}
-          {product.image_url && (
-            <div className="mb-4">
-              <Label className="mb-2 block">صورة المنتج</Label>
-              <div className="relative rounded-md overflow-hidden aspect-video w-full max-w-sm mx-auto">
-                {!imageLoaded && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
-                    <Image className="h-8 w-8 text-gray-400 animate-pulse" />
-                  </div>
-                )}
-                <img
-                  src={getOptimizedImageUrl(product.image_url)}
-                  alt={product.name}
-                  className={`w-full h-full object-contain transition-opacity duration-300 ${
-                    imageLoaded ? 'opacity-100' : 'opacity-0'
-                  }`}
-                  onLoad={() => setImageLoaded(true)}
-                  loading="lazy"
-                  decoding="async"
-                />
-              </div>
-            </div>
-          )}
-
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">اسم المنتج</Label>

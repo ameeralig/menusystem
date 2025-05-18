@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Upload, ImagePlus, Link as LinkIcon, Star, TrendingUp, Loader2 } from "lucide-react";
+import { Upload, ImagePlus, Link as LinkIcon, Star, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AddProductFormProps {
@@ -39,8 +38,6 @@ const AddProductForm = ({
   previewUrl,
   handleFileSelect,
 }: AddProductFormProps) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
-
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
@@ -162,23 +159,11 @@ const AddProductForm = ({
               onClick={() => document.getElementById('file-upload')?.click()}
             >
               {previewUrl ? (
-                <div className="relative max-h-48 w-full">
-                  {!imageLoaded && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
-                      <Loader2 className="h-8 w-8 text-gray-400 animate-spin" />
-                    </div>
-                  )}
-                  <img 
-                    src={previewUrl} 
-                    alt="معاينة" 
-                    className={`max-h-48 rounded-lg mx-auto transition-opacity duration-300 ${
-                      imageLoaded ? 'opacity-100' : 'opacity-0'
-                    }`}
-                    onLoad={() => setImageLoaded(true)}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </div>
+                <img 
+                  src={previewUrl} 
+                  alt="Preview" 
+                  className="max-h-48 rounded-lg"
+                />
               ) : (
                 <>
                   <ImagePlus className="w-12 h-12 text-muted-foreground" />
@@ -202,12 +187,7 @@ const AddProductForm = ({
         className="w-full"
         disabled={loading}
       >
-        {loading ? (
-          <>
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" /> 
-            جاري الحفظ...
-          </>
-        ) : "حفظ المنتج"}
+        {loading ? "جاري الحفظ..." : "حفظ المنتج"}
       </Button>
     </form>
   );
