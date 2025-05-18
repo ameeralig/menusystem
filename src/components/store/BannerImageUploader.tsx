@@ -42,7 +42,7 @@ const BannerImageUploader = ({
       // عند تحميل الصفحة لأول مرة وتوفر bannerUrl
       const timestamp = new Date().getTime();
       const baseUrl = bannerUrl.split('?')[0];
-      const updatedUrl = `${baseUrl}?t=${timestamp}`;
+      const updatedUrl = `${baseUrl}?t=${timestamp}&format=webp&quality=80`;
       handleUrlChange(updatedUrl);
       setHasChanges(false);
     }
@@ -57,10 +57,10 @@ const BannerImageUploader = ({
     }
   }, [imageUrl, bannerUrl]);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      handleImageUpload(file);
+      await handleImageUpload(file);
       setHasChanges(true);
     }
   };
@@ -101,6 +101,20 @@ const BannerImageUploader = ({
     }
   };
 
+  // تحسين عرض الصورة باستخدام WebP وجودة أقل للتحميل السريع
+  const getOptimizedBannerUrl = (url: string): string => {
+    if (!url) return url;
+    
+    const baseUrl = url.split('?')[0];
+    
+    // إضافة معلمات التحسين للصورة
+    if (baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')) {
+      return `${baseUrl}?format=webp&quality=80&t=${Date.now()}`;
+    }
+    
+    return `${baseUrl}?t=${Date.now()}`;
+  };
+
   return (
     <Card className="border-2 border-[#ffbcad] dark:border-[#ff9178]/40">
       <CardHeader>
@@ -119,7 +133,7 @@ const BannerImageUploader = ({
           
           {previewUrl && (
             <ImagePreview 
-              previewUrl={previewUrl}
+              previewUrl={previewUrl.includes('?format=webp') ? previewUrl : getOptimizedBannerUrl(previewUrl)}
               onClear={() => {
                 clearImage();
                 setHasChanges(true);

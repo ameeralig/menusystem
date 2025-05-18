@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { createUniqueFilePath } from "@/utils/storageHelpers";
+import { createUniqueFilePath, optimizeImage } from "@/utils/storageHelpers";
 
 interface UseBannerUploadProps {
   setBannerUrl: (url: string | null) => void;
@@ -48,14 +48,19 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
 
-      const filePath = createUniqueFilePath(user.id, 'banners', file);
+      // تحسين الصورة وضغطها قبل الرفع
+      const optimizedFile = await optimizeImage(file);
+      console.log(`تم ضغط الصورة من ${file.size} إلى ${optimizedFile.size} بايت`);
+      
+      const filePath = createUniqueFilePath(user.id, 'banners', optimizedFile);
       
       // إضافة رأسيات لتجنب التخزين المؤقت
       const { data, error: uploadError } = await supabase.storage
         .from('banners')
-        .upload(filePath, file, {
+        .upload(filePath, optimizedFile, {
           cacheControl: '0',
-          upsert: true
+          upsert: true,
+          contentType: optimizedFile.type
         });
 
       if (uploadError) throw uploadError;
@@ -68,7 +73,7 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
       // إضافة معرف زمني للصورة لتجنب التخزين المؤقت
       const timestamp = new Date().getTime();
       const baseUrl = publicUrl.split('?')[0];
-      const cachedUrl = `${baseUrl}?t=${timestamp}`;
+      const cachedUrl = `${baseUrl}?t=${timestamp}&optimized=true`;
       
       // تحرير عنوان URL المؤقت
       URL.revokeObjectURL(tempPreviewUrl);
@@ -102,7 +107,7 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
       // إضافة معرف زمني للصورة بعد إزالة أي معرفات موجودة
       const timestamp = new Date().getTime();
       const baseUrl = url.split('?')[0];
-      const updatedUrl = `${baseUrl}?t=${timestamp}`;
+      const updatedUrl = `${baseUrl}?t=${timestamp}&optimized=true`;
       
       setImageUrl(updatedUrl);
       setPreviewUrl(updatedUrl);

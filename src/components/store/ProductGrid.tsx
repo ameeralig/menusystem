@@ -40,17 +40,24 @@ const ProductCard = ({ product }: { product: Product }) => {
           {!imageLoaded && !imageError && (
             <Skeleton className="absolute inset-0 w-full h-full" />
           )}
-          <img
-            src={getOptimizedImageUrl(product.image_url)}
-            alt={product.name}
-            className={`w-full h-full object-cover transition-all duration-300 ${
-              imageLoaded ? "opacity-100 hover:scale-105" : "opacity-0"
-            }`}
-            loading="lazy"
-            onLoad={() => setImageLoaded(true)}
-            onError={() => setImageError(true)}
-            decoding="async"
-          />
+          {imageError ? (
+            <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500">
+              <span className="text-sm">لا يمكن تحميل الصورة</span>
+            </div>
+          ) : (
+            <img
+              src={getOptimizedImageUrl(product.image_url)}
+              alt={product.name}
+              className={`w-full h-full object-cover transition-all duration-300 ${
+                imageLoaded ? "opacity-100 hover:scale-105" : "opacity-0"
+              }`}
+              loading="lazy"
+              onLoad={() => setImageLoaded(true)}
+              onError={() => setImageError(true)}
+              decoding="async"
+              fetchPriority="low"
+            />
+          )}
         </div>
       )}
       <div className="p-4">

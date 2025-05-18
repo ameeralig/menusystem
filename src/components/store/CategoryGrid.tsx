@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { CSSProperties, useEffect, useState } from "react";
 import { CategoryImage } from "@/types/categoryImage";
 import { Folder } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface FontSettings {
   categoryText?: {
@@ -33,6 +34,19 @@ const CategoryCard = ({
   const [imgError, setImgError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
+  const getOptimizedImageUrl = (url: string | null) => {
+    if (!url) return null;
+    
+    const baseUrl = url.split('?')[0];
+    
+    // تحسين URL الصورة لاستخدام WebP إذا كان متاحًا
+    if (baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')) {
+      return `${baseUrl}?format=webp&quality=80&t=${Date.now()}`;
+    }
+    
+    return `${baseUrl}?t=${Date.now()}`;
+  };
+  
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
@@ -43,12 +57,10 @@ const CategoryCard = ({
         {!imgError && imageUrl ? (
           <>
             {isLoading && (
-              <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-              </div>
+              <Skeleton className="absolute inset-0 w-full h-full" />
             )}
             <img 
-              src={imageUrl} 
+              src={getOptimizedImageUrl(imageUrl)} 
               alt={category}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               onError={() => {
@@ -60,7 +72,9 @@ const CategoryCard = ({
                 console.log(`تم تحميل صورة التصنيف بنجاح: ${category}`);
                 setIsLoading(false);
               }}
-              loading="eager"
+              loading="lazy"
+              decoding="async"
+              fetchPriority="low"
             />
           </>
         ) : (
@@ -122,24 +136,13 @@ const CategoryGrid = ({
     const imageData = categoryImages.find(img => img.category === category);
     if (!imageData?.image_url) return null;
     
-    // تسجيل معلومات التصحيح
-    console.log(`استخدام صورة للتصنيف: ${category} - الرابط: ${imageData.image_url}`);
-    
     return imageData.image_url;
   };
 
   // تسجيل معلومات للتصحيح
   useEffect(() => {
     console.log(`CategoryGrid: تلقي ${categoryImages?.length || 0} صورة تصنيف`);
-    if (categoryImages?.length > 0) {
-      console.log("تفاصيل صور التصنيفات المتاحة في CategoryGrid:");
-      categoryImages.forEach(img => {
-        console.log(`- التصنيف: ${img.category}, الرابط: ${img.image_url || 'غير متوفر'}`);
-      });
-    }
-    
-    console.log("التصنيفات المتاحة:", categories);
-  }, [categoryImages, categories]);
+  }, [categoryImages]);
 
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
