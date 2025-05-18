@@ -40,12 +40,6 @@ export const ProductCard = ({ product, layout }: ProductCardProps) => {
               src={product.image_url}
               alt={product.name}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-              width={300}
-              height={225}
-              style={{
-                aspectRatio: '4/3',
-                objectFit: 'cover'
-              }}
             />
             <div className="absolute top-2 right-2 flex flex-col gap-2">
               {product.is_new && (
