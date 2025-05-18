@@ -2,10 +2,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Phone } from "lucide-react";
 
 interface FeedbackItem {
   id: string;
   visitor_name: string;
+  visitor_phone: string; // إضافة حقل رقم الهاتف
   type: string;
   description: string;
   created_at: string;
@@ -79,6 +81,20 @@ const FeedbackCard = ({ item, onResolve }: FeedbackCardProps) => {
           {getStatusText(item.status)}
         </span>
       </div>
+      
+      {/* إضافة عرض رقم الهاتف إذا كان متوفراً */}
+      {item.visitor_phone && (
+        <div className="mb-2 flex items-center text-primary">
+          <Phone size={14} className="mr-1" />
+          <a 
+            href={`tel:${item.visitor_phone}`} 
+            className="text-sm hover:underline"
+          >
+            {item.visitor_phone}
+          </a>
+        </div>
+      )}
+      
       <div className="mb-2">
         <span className="text-primary font-medium">
           {getFeedbackTypeText(item.type)}

@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 interface FeedbackItem {
   id: string;
   visitor_name: string;
+  visitor_phone: string; // إضافة حقل جديد لرقم الهاتف
   type: string;
   description: string;
   created_at: string;
@@ -37,9 +38,15 @@ export const useFeedback = () => {
 
         if (error) throw error;
         
-        setFeedback(data || []);
+        // تحويل البيانات ووضع قيمة افتراضية لحقل رقم الهاتف إذا كان غير موجود
+        const processedData = data?.map(item => ({
+          ...item,
+          visitor_phone: item.visitor_phone || "" // القيمة الافتراضية إذا كان الحقل غير موجود
+        })) || [];
         
-        // Mark all pending feedback as reviewed
+        setFeedback(processedData);
+        
+        // تحديث حالة الشكاوى من pending إلى reviewed عند فتح الصفحة
         const pendingIds = data
           ?.filter(item => item.status === 'pending')
           .map(item => item.id) || [];
@@ -51,11 +58,18 @@ export const useFeedback = () => {
             .in('id', pendingIds);
             
           if (updateError) {
-            console.error("Error updating feedback status:", updateError);
+            console.error("خطأ في تحديث حالة الشكاوى:", updateError);
+          } else {
+            // تحديث الحالة محلياً أيضاً
+            setFeedback(prev => 
+              prev.map(item => 
+                pendingIds.includes(item.id) ? {...item, status: 'reviewed'} : item
+              )
+            );
           }
         }
       } catch (error) {
-        console.error("Error fetching feedback:", error);
+        console.error("خطأ في جلب الشكاوى والاقتراحات:", error);
         toast({
           title: "خطأ",
           description: "حدث خطأ أثناء جلب الشكاوى والاقتراحات",
@@ -91,7 +105,7 @@ export const useFeedback = () => {
 
       return Promise.resolve();
     } catch (error) {
-      console.error("Error updating feedback status:", error);
+      console.error("خطأ في تحديث حالة الشكوى/الاقتراح:", error);
       toast({
         title: "خطأ",
         description: "حدث خطأ أثناء تحديث حالة الشكوى/الاقتراح",

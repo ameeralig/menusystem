@@ -6,6 +6,7 @@ import EmptyFeedback from "./EmptyFeedback";
 interface FeedbackItem {
   id: string;
   visitor_name: string;
+  visitor_phone: string; // إضافة حقل رقم الهاتف
   type: string;
   description: string;
   created_at: string;
