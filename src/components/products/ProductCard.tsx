@@ -4,6 +4,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Star, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Product as ProductType } from "@/types/product";
+import { useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { optimizeImageUrl } from "@/utils/imageOptimizer";
 
 interface Product {
   id: string;
@@ -22,6 +25,18 @@ interface ProductCardProps {
 }
 
 export const ProductCard = ({ product, layout }: ProductCardProps) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
+  // تحسين رابط الصورة باستخدام أداة التحسين الجديدة
+  const optimizedImageUrl = product.image_url 
+    ? optimizeImageUrl(product.image_url, {
+        format: 'webp',
+        quality: 80,
+        bustCache: true
+      }) 
+    : null;
+
   return (
     <motion.div
       layout
@@ -35,11 +50,20 @@ export const ProductCard = ({ product, layout }: ProductCardProps) => {
       <Card className="group overflow-hidden h-full hover:shadow-lg transition-all duration-300 dark:bg-gray-800">
         {product.image_url && (
           <div className="relative aspect-[4/3] overflow-hidden">
+            {!imageLoaded && !imageError && (
+              <Skeleton className="absolute inset-0 w-full h-full" />
+            )}
             <motion.img
               loading="lazy"
-              src={product.image_url}
+              fetchPriority="auto"
+              decoding="async"
+              src={optimizedImageUrl || product.image_url}
               alt={product.name}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 ${
+                imageLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
+              onLoad={() => setImageLoaded(true)}
+              onError={() => setImageError(true)}
             />
             <div className="absolute top-2 right-2 flex flex-col gap-2">
               {product.is_new && (

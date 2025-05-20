@@ -3,22 +3,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
-
-// تحسين URL الصور باستخدام WebP و تقليل الجودة للتحميل السريع
-const optimizeImageUrl = (url: string, forceRefresh: number): string => {
-  if (!url) return url;
-  
-  const baseUrl = url.split('?')[0];
-  const uniqueTimestamp = `${forceRefresh}_${Date.now()}`;
-  const cacheBreaker = `t=${uniqueTimestamp}&nocache=${Math.random()}`;
-  
-  // إذا كانت الصور مخزنة في Supabase أو أي CDN آخر يدعم تنسيقات الصور
-  if (baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')) {
-    return `${baseUrl}?format=webp&quality=80&${cacheBreaker}`;
-  }
-  
-  return `${baseUrl}?${cacheBreaker}`;
-};
+import { optimizeImageUrl } from "@/utils/imageOptimizer";
 
 // وظيفة معدلة للتحكم في عدد المنتجات المستردة
 export const useStoreProducts = (
@@ -56,7 +41,7 @@ export const useStoreProducts = (
           setTotalProducts(count);
         }
         
-        // استعلام صفحات المنتجات - تم تحديث هذه السطور لإصلاح الخطأ
+        // استعلام صفحات المنتجات
         const { data, error } = await supabase
           .from("products")
           .select("*")
@@ -68,12 +53,16 @@ export const useStoreProducts = (
           throw error;
         }
 
-        // تحسين روابط الصور
+        // تحسين روابط الصور باستخدام أداة التحسين الجديدة
         const updatedProducts = (data || []).map(product => {
           if (product.image_url) {
             return {
               ...product,
-              image_url: optimizeImageUrl(product.image_url, forceRefresh)
+              image_url: optimizeImageUrl(product.image_url, {
+                format: 'webp',
+                quality: 80,
+                bustCache: true
+              })
             };
           }
           return product;

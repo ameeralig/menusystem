@@ -1,7 +1,7 @@
-
 import { ReactNode, useState, useEffect, CSSProperties } from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Skeleton } from "@/components/ui/skeleton";
+import { optimizeImageUrl } from "@/utils/imageOptimizer";
 
 interface FontSettings {
   generalText?: {
@@ -66,48 +66,51 @@ const ProductPreviewContainer = ({
     }
   }, [fontSettings?.generalText?.customFontUrl, fontSettings?.generalText?.isCustom]);
   
-  // هذا التأثير يتعامل مع تحميل الصور مع تجنب التخزين المؤقت
+  // هذا التأثير يتعامل مع تحميل الصور مع استخدام أداة التحسين الجديدة
   useEffect(() => {
     if (bannerUrl) {
-      const loadImage = () => {
-        // إضافة معرف زمني لتجنب التخزين المؤقت
-        const timestamp = new Date().getTime();
-        const baseUrl = bannerUrl.split('?')[0];
-        
-        // تحسين URL الصورة لاستخدام WebP إذا كان ذلك متاحًا
-        // يمكن استبدال هذا بخدمة CDN لاحقًا
-        const shouldUseWebP = baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app');
-        const newUrl = shouldUseWebP 
-          ? `${baseUrl}?t=${timestamp}&format=webp&quality=80` 
-          : `${baseUrl}?t=${timestamp}`;
-        
+      // استخدام أداة تحسين الصور
+      const optimizedUrl = optimizeImageUrl(bannerUrl, {
+        isImportant: true,
+        bustCache: true,
+        format: 'webp',
+        quality: 80
+      });
+      
+      if (optimizedUrl) {
         // إنشاء كائن صورة جديد للتحقق من تحميل الصورة
         const img = new Image();
         img.onload = () => {
-          console.log("Image loaded successfully:", newUrl);
-          setImgSrc(newUrl);
+          console.log("تم تحميل صورة الغلاف بنجاح:", optimizedUrl);
+          setImgSrc(optimizedUrl);
           setImageError(false);
           setImageLoaded(true);
         };
         img.onerror = (e) => {
-          console.error("Error loading banner image:", newUrl, e);
+          console.error("خطأ في تحميل صورة الغلاف:", optimizedUrl, e);
           setImageError(true);
+          setImageLoaded(false);
         };
         
         // تعيين خصائص إضافية للتحميل السريع
         img.decoding = "async";
-        img.loading = "eager"; // تحميل فوري للصور المهمة مثل البانر
-        img.src = newUrl;
-      };
-
-      // تحميل الصورة مباشرة
-      loadImage();
+        img.fetchPriority = "high"; // تحميل فوري للصور المهمة مثل البانر
+        img.src = optimizedUrl;
+      } else {
+        setImgSrc(null);
+      }
 
       // إعادة محاولة التحميل بعد فترة إذا كانت صورة جديدة تم رفعها حديثًا
       const retryTimeout = setTimeout(() => {
-        if (imageError) {
-          console.log("Retrying image load after timeout");
-          loadImage();
+        if (imageError && bannerUrl) {
+          console.log("إعادة محاولة تحميل الصورة بعد فترة انتظار");
+          const retryUrl = optimizeImageUrl(bannerUrl, {
+            isImportant: true,
+            bustCache: true,
+            format: 'webp',
+            quality: 80
+          });
+          if (retryUrl) setImgSrc(retryUrl);
         }
       }, 1500);
       
@@ -117,7 +120,7 @@ const ProductPreviewContainer = ({
     } else {
       setImgSrc(null);
     }
-  }, [bannerUrl]);
+  }, [bannerUrl, imageError]);
   
   const getThemeClasses = (theme: string | null) => {
     switch (theme) {
@@ -157,20 +160,23 @@ const ProductPreviewContainer = ({
         <div className="relative w-full overflow-hidden">
           <AspectRatio ratio={16 / 5} className="w-full">
             {!imageLoaded && !imageError && (
-              <Skeleton className="w-full h-full absolute inset-0" />
+              <Skeleton className="absolute inset-0 w-full h-full" />
             )}
             {imgSrc && !imageError ? (
               <img 
                 src={imgSrc} 
                 alt="صورة الغلاف" 
-                className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                className={`w-full h-full object-cover transition-opacity duration-300 ${
+                  imageLoaded ? 'opacity-100' : 'opacity-0'
+                }`}
                 onError={() => {
-                  console.error("Error displaying image:", imgSrc);
+                  console.error("خطأ في عرض الصورة:", imgSrc);
                   setImageError(true);
                 }}
                 onLoad={() => setImageLoaded(true)}
-                loading="eager" // البانر يجب أن يتحمل فوريًا لأنه جزء مهم من واجهة المستخدم
-                fetchPriority="high"
+                loading="eager"
+                fetchpriority="high"
+                decoding="async"
               />
             ) : null}
             <div className="absolute inset-0 bg-black bg-opacity-30"></div>

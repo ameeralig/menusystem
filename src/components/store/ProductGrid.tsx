@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Product } from "@/types/product";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
+import { optimizeImageUrl } from "@/utils/imageOptimizer";
 
 interface ProductGridProps {
   products: Product[];
@@ -13,20 +14,14 @@ const ProductCard = ({ product }: { product: Product }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  // تحويل الصورة إلى صيغة WebP عندما يكون ذلك ممكنًا
-  const getOptimizedImageUrl = (url: string | null | undefined) => {
-    if (!url) return null;
-    
-    const baseUrl = url.split('?')[0];
-    
-    // تحسين URL الصورة لاستخدام WebP إذا كان متاحًا عبر خدمة تخزين Supabase أو عبر CDN
-    if (baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')) {
-      return `${baseUrl}?format=webp&quality=80&t=${Date.now()}`;
-    }
-    
-    // إضافة طابع زمني للتأكد من تحميل أحدث إصدار من الصورة
-    return `${baseUrl}?t=${Date.now()}`;
-  };
+  // تحويل الصورة إلى صيغة محسنة باستخدام أداة التحسين الجديدة
+  const optimizedImageUrl = product.image_url 
+    ? optimizeImageUrl(product.image_url, { 
+        format: 'webp',
+        quality: 80,
+        bustCache: true
+      })
+    : null;
 
   return (
     <motion.div
@@ -35,21 +30,22 @@ const ProductCard = ({ product }: { product: Product }) => {
       exit={{ opacity: 0, y: -20 }}
       className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300"
     >
-      {product.image_url && (
+      {optimizedImageUrl && (
         <div className="aspect-[16/9] overflow-hidden relative">
           {!imageLoaded && !imageError && (
             <Skeleton className="absolute inset-0 w-full h-full" />
           )}
           <img
-            src={getOptimizedImageUrl(product.image_url)}
+            src={optimizedImageUrl}
             alt={product.name}
             className={`w-full h-full object-cover transition-all duration-300 ${
               imageLoaded ? "opacity-100 hover:scale-105" : "opacity-0"
             }`}
             loading="lazy"
+            fetchpriority="auto"
+            decoding="async"
             onLoad={() => setImageLoaded(true)}
             onError={() => setImageError(true)}
-            decoding="async"
           />
         </div>
       )}

@@ -9,6 +9,7 @@ import BackButton from "@/components/store/BackButton";
 import EmptyCategoryMessage from "@/components/store/EmptyCategoryMessage";
 import { CategoryImage } from "@/types/categoryImage";
 import StoreInfo from "@/components/store/StoreInfo";
+import { optimizeImageUrl } from "@/utils/imageOptimizer";
 
 type FontSettings = {
   storeName?: {
@@ -68,24 +69,25 @@ const DemoProductsDisplay = ({
         p.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
 
-  // معالجة صور التصنيفات لإضافة طابع زمني
+  // معالجة صور التصنيفات وتحسينها باستخدام أداة التحسين الجديدة
   useEffect(() => {
     if (categoryImages && categoryImages.length > 0) {
       console.log("DemoProductsDisplay: معالجة", categoryImages.length, "صورة تصنيف");
       
-      // إضافة طابع زمني جديد للصور
-      const timestamp = Date.now();
       const processed = categoryImages.map(img => {
         if (!img.image_url) return img;
         
-        // تحليل الرابط للتأكد من عدم تكرار المعلمات
-        const url = new URL(img.image_url, window.location.origin);
-        url.searchParams.set('t', `${timestamp}`);
-        url.searchParams.set('demo', 'true');
+        // تحسين الصورة باستخدام أداة التحسين الجديدة
+        const optimizedUrl = optimizeImageUrl(img.image_url, {
+          format: 'webp',
+          quality: 80,
+          bustCache: true,
+          isImportant: true
+        });
         
         return {
           ...img,
-          image_url: url.toString()
+          image_url: optimizedUrl
         };
       });
       

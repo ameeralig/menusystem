@@ -4,6 +4,7 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { optimizeImageUrl } from "@/utils/imageOptimizer";
 
 interface ImagePreviewProps {
   previewUrl: string;
@@ -13,21 +14,22 @@ interface ImagePreviewProps {
 
 const ImagePreview = ({ previewUrl, onClear, onError }: ImagePreviewProps) => {
   const [isLoading, setIsLoading] = useState(true);
-  const [imageUrl, setImageUrl] = useState<string>(previewUrl);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   
-  // تحديث URL الصورة مع معرف زمني عند تغيير previewUrl
+  // تحديث URL الصورة مع تحسينات
   useEffect(() => {
-    try {
-      const url = new URL(previewUrl);
-      url.searchParams.set('t', Date.now().toString());
-      setImageUrl(url.toString());
-      
-      // إعادة تعيين حالة التحميل
-      setIsLoading(true);
-    } catch (e) {
-      // إذا كان URL غير صالح، استخدم previewUrl كما هو
-      setImageUrl(previewUrl);
-    }
+    // استخدام أداة تحسين الصور
+    const optimizedUrl = optimizeImageUrl(previewUrl, {
+      format: 'webp',
+      quality: 80,
+      bustCache: true,
+      isImportant: true
+    });
+    
+    setImageUrl(optimizedUrl);
+    
+    // إعادة تعيين حالة التحميل
+    setIsLoading(true);
   }, [previewUrl]);
 
   return (
@@ -36,15 +38,18 @@ const ImagePreview = ({ previewUrl, onClear, onError }: ImagePreviewProps) => {
         {isLoading && (
           <Skeleton className="w-full h-full absolute inset-0" />
         )}
-        <img 
-          src={imageUrl} 
-          alt="معاينة صورة الغلاف" 
-          className="w-full h-full object-cover"
-          onError={onError}
-          onLoad={() => setIsLoading(false)}
-          loading="eager"
-          fetchPriority="high"
-        />
+        {imageUrl && (
+          <img 
+            src={imageUrl} 
+            alt="معاينة صورة الغلاف" 
+            className="w-full h-full object-cover"
+            onError={onError}
+            onLoad={() => setIsLoading(false)}
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
+          />
+        )}
         <Button 
           type="button" 
           variant="destructive" 

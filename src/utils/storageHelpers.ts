@@ -1,4 +1,3 @@
-
 import { supabase } from "@/lib/supabase";
 
 /**
@@ -286,5 +285,114 @@ export const extractFilePathFromUrl = (url: string, bucket: string): string | nu
   } catch (e) {
     console.error("خطأ في استخراج مسار الملف:", e);
     return null;
+  }
+};
+
+/**
+ * تحسين رابط الصورة لاستخدام API تحسين الصور من Supabase
+ * @param url رابط الصورة الأصلي
+ * @param options خيارات التحسين
+ */
+export const getOptimizedImageUrl = (
+  url: string | null | undefined,
+  options: {
+    width?: number;
+    height?: number;
+    quality?: number;
+    format?: 'webp' | 'auto' | 'jpeg';
+    bustCache?: boolean;
+  } = {}
+): string | null => {
+  if (!url) return null;
+  
+  try {
+    // التحقق ما إذا كان الرابط من Supabase Storage
+    const isSupabaseUrl = url.includes('supabase.co') || 
+                         url.includes('supabase.in') || 
+                         url.includes('lovable-app');
+    
+    const urlObj = new URL(url);
+    
+    // التعامل مع صور Supabase
+    if (isSupabaseUrl) {
+      // إضافة معلمات التحسين
+      if (options.format) {
+        urlObj.searchParams.set('format', options.format);
+      }
+      
+      if (options.quality) {
+        urlObj.searchParams.set('quality', options.quality.toString());
+      }
+      
+      // إضافة طابع زمني لكسر التخزين المؤقت إذا طلب ذلك
+      if (options.bustCache) {
+        urlObj.searchParams.set('t', Date.now().toString());
+      }
+      
+      // للحفاظ على تنسيق الصورة الأصلي، لا نضيف width أو height
+      return urlObj.toString();
+    }
+    
+    // لروابط الصور الخارجية، أعد الرابط كما هو مع إضافة طابع زمني فقط إذا تم طلبه
+    if (options.bustCache) {
+      urlObj.searchParams.set('t', Date.now().toString());
+      return urlObj.toString();
+    }
+    
+    return url;
+  } catch (error) {
+    console.error("خطأ في تحسين رابط الصورة:", error);
+    return url;
+  }
+};
+
+/**
+ * تعزيز HTTP Caching عند تحميل الصور إلى Supabase Storage
+ * @param bucket اسم المستودع
+ * @param file ملف الصورة
+ * @param userId معرّف المستخدم
+ * @param folder مجلد الحفظ (اختياري)
+ */
+export const uploadImageWithCaching = async (
+  bucket: string,
+  file: File,
+  userId: string,
+  folder: string = ''
+): Promise<string> => {
+  try {
+    // تحسين الصورة قبل الرفع
+    const optimizedFile = await optimizeImage(file);
+    
+    const filePath = createUniqueFilePath(userId, folder, optimizedFile);
+    
+    // تعزيز إعدادات HTTP Caching
+    const options = {
+      cacheControl: 'public, max-age=31536000, immutable', // تخزين مؤقت لمدة سنة
+      upsert: true,
+      contentType: optimizedFile.type
+    };
+    
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(filePath, optimizedFile, options);
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    // الحصول على الرابط العام
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(filePath, {
+        transform: {
+          format: 'webp',
+          quality: 80
+        }
+      });
+      
+    return publicUrl;
+  } catch (error) {
+    console.error("خطأ في رفع الصورة:", error);
+    throw error;
   }
 };
