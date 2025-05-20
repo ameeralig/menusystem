@@ -72,44 +72,37 @@ export const optimizeImageUrl = (
 };
 
 /**
- * إنشاء عنصر صورة محسن مع خصائص مناسبة للأداء
+ * دالة مساعدة لإنشاء خصائص عنصر img المحسن
+ * بدلاً من استخدام JSX، سنقوم بإرجاع كائن يحتوي على الخصائص
  */
-export const OptimizedImage = ({
-  src,
-  alt,
-  className,
-  isImportant = false,
-  onClick,
-  onLoad,
-  onError,
-}: {
-  src: string | null | undefined;
-  alt: string;
-  className?: string;
-  isImportant?: boolean;
-  onClick?: () => void;
-  onLoad?: () => void;
-  onError?: () => void;
-}): JSX.Element => {
+export const createOptimizedImageProps = (
+  src: string | null | undefined,
+  alt: string,
+  options: {
+    className?: string;
+    isImportant?: boolean;
+    onClick?: () => void;
+    onLoad?: () => void;
+    onError?: () => void;
+  } = {}
+) => {
   // تحسين رابط الصورة
   const optimizedSrc = optimizeImageUrl(src, {
-    isImportant,
+    isImportant: options.isImportant,
     bustCache: true,
     format: 'webp',
     quality: 80,
   });
 
-  return (
-    <img
-      src={optimizedSrc || ''}
-      alt={alt}
-      className={className}
-      loading={isImportant ? "eager" : "lazy"}
-      fetchpriority={isImportant ? "high" : "auto"}
-      decoding="async"
-      onClick={onClick}
-      onLoad={onLoad}
-      onError={onError}
-    />
-  );
+  return {
+    src: optimizedSrc || '',
+    alt,
+    className: options.className,
+    loading: options.isImportant ? "eager" : "lazy",
+    fetchPriority: options.isImportant ? "high" : "auto",
+    decoding: "async",
+    onClick: options.onClick,
+    onLoad: options.onLoad,
+    onError: options.onError,
+  };
 };
