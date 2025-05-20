@@ -380,15 +380,10 @@ export const uploadImageWithCaching = async (
       throw uploadError;
     }
 
-    // الحصول على الرابط العام
+    // الحصول على الرابط العام - تم تعديله لإزالة خيار transform
     const { data: { publicUrl } } = supabase.storage
       .from(bucket)
-      .getPublicUrl(filePath, {
-        transform: {
-          format: 'webp',
-          quality: 80
-        }
-      });
+      .getPublicUrl(filePath);
       
     return publicUrl;
   } catch (error) {

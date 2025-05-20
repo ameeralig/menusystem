@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { CSSProperties, useEffect, useState } from "react";
 import { CategoryImage } from "@/types/categoryImage";
@@ -71,7 +72,7 @@ const CategoryCard = ({
                 setIsLoading(false);
               }}
               loading="eager"
-              fetchpriority="high"
+              fetchPriority="high"
               decoding="async"
             />
           </>

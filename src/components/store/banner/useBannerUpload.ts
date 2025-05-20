@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -70,13 +69,7 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
       // الحصول على رابط العام
       const { data: { publicUrl } } = supabase.storage
         .from('banners')
-        .getPublicUrl(filePath, {
-          // استخدام معلمات التحويل للحصول على WebP
-          transform: {
-            format: 'webp',
-            quality: 80
-          }
-        });
+        .getPublicUrl(filePath);
       
       // تحرير عنوان URL المؤقت
       URL.revokeObjectURL(tempPreviewUrl);

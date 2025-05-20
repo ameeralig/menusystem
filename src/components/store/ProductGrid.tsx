@@ -42,7 +42,7 @@ const ProductCard = ({ product }: { product: Product }) => {
               imageLoaded ? "opacity-100 hover:scale-105" : "opacity-0"
             }`}
             loading="lazy"
-            fetchpriority="auto"
+            fetchPriority="auto"
             decoding="async"
             onLoad={() => setImageLoaded(true)}
             onError={() => setImageError(true)}

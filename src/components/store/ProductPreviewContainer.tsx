@@ -175,7 +175,7 @@ const ProductPreviewContainer = ({
                 }}
                 onLoad={() => setImageLoaded(true)}
                 loading="eager"
-                fetchpriority="high"
+                fetchPriority="high"
                 decoding="async"
               />
             ) : null}
