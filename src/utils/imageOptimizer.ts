@@ -34,36 +34,58 @@ export const optimizeImageUrl = (
     baseUrl.includes('lovable-app') || 
     baseUrl.includes('zqlckixwpyrwdwrsuhsg.supabase');
   
-  // إذا كان الرابط ليس من Supabase، نعيد الرابط كما هو مع طابع زمني فقط
-  if (!isSupabaseUrl) {
-    return options.bustCache 
-      ? `${baseUrl}?t=${Date.now()}`
-      : url;
-  }
+  // تحديد نوع الصورة لتحسين الأداء
+  const isUploadedImage = baseUrl.includes('/product-images') || 
+                          baseUrl.includes('/category-images') || 
+                          baseUrl.includes('/banners');
   
   try {
     // إنشاء كائن URL جديد من الرابط الأساسي
     const optimizedUrl = new URL(baseUrl);
     const searchParams = optimizedUrl.searchParams;
 
-    // إضافة معلمات تحسين الصورة
-    
-    // تعيين الصيغة (WebP أو auto)
-    searchParams.set('format', options.format || 'webp');
-    
-    // تعيين الجودة
-    searchParams.set('quality', (options.quality || 80).toString());
-    
-    // كسر التخزين المؤقت إذا لزم الأمر
-    if (options.bustCache) {
-      searchParams.set('t', Date.now().toString());
+    // إذا كانت الصورة مرفوعة من المستخدم، نقوم بتطبيق تحسينات إضافية
+    if (isSupabaseUrl && isUploadedImage) {
+      // تعيين الصيغة (WebP أو auto)
+      searchParams.set('format', options.format || 'webp');
+      
+      // تعيين الجودة - زيادة الجودة قليلاً للصور المرفوعة
+      searchParams.set('quality', (options.quality || 85).toString());
+      
+      // إضافة إعدادات التخزين المؤقت الأمثل
+      searchParams.set('cache-control', 'public, max-age=31536000, immutable');
+      
+      // كسر التخزين المؤقت عبر إضافة طابع زمني فريد للتأكد من تحديث الصور دائما
+      if (options.bustCache) {
+        searchParams.set('t', Date.now().toString());
+      }
+      
+      // إشارة لنظام التخزين المؤقت للمتصفح بأن هذه الصورة مهمة
+      if (options.isImportant) {
+        searchParams.set('priority', 'high');
+      }
+    } 
+    // للصور الخارجية، نطبق تحسينات بسيطة فقط
+    else if (!isSupabaseUrl) {
+      // إضافة طابع زمني للروابط الخارجية
+      if (options.bustCache) {
+        searchParams.set('t', Date.now().toString());
+      }
+    }
+    // للصور الأخرى في Supabase ولكن ليست مرفوعة مباشرة
+    else {
+      // تطبيق تحسينات أساسية
+      searchParams.set('format', options.format || 'webp');
+      searchParams.set('quality', (options.quality || 80).toString());
+      
+      if (options.bustCache) {
+        searchParams.set('t', Date.now().toString());
+      }
     }
     
     // إضافة معلمة للإشارة إلى أن هذه الصورة تم تحسينها
     searchParams.set('optimized', 'true');
     
-    // إرجاع الرابط المحسن
-    console.log(`[Image Optimizer] تم تحسين الصورة: ${optimizedUrl.toString()}`);
     return optimizedUrl.toString();
   } catch (error) {
     console.error(`[Image Optimizer] خطأ في تحسين الرابط: ${url}`, error);
@@ -73,7 +95,6 @@ export const optimizeImageUrl = (
 
 /**
  * دالة مساعدة لإنشاء خصائص عنصر img المحسن
- * بدلاً من استخدام JSX، سنقوم بإرجاع كائن يحتوي على الخصائص
  */
 export const createOptimizedImageProps = (
   src: string | null | undefined,
@@ -91,7 +112,7 @@ export const createOptimizedImageProps = (
     isImportant: options.isImportant,
     bustCache: true,
     format: 'webp',
-    quality: 80,
+    quality: options.isImportant ? 90 : 80,  // جودة أعلى للصور المهمة
   });
 
   return {

@@ -61,7 +61,7 @@ export const optimizeImage = async (file: File): Promise<File> => {
   
   try {
     // إذا كانت الصورة كبيرة جدًا، قم بضغطها
-    if (file.size > 1024 * 1024) { // أكبر من 1 ميجابايت
+    if (file.size > 800 * 1024) { // أكبر من 800 كيلوبايت
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const img = new Image();
@@ -72,9 +72,9 @@ export const optimizeImage = async (file: File): Promise<File> => {
         img.src = URL.createObjectURL(file);
       });
       
-      // تحديد أبعاد الصورة المضغوطة (الحد الأقصى 1200 بكسل)
-      const maxWidth = 1200;
-      const maxHeight = 1200;
+      // تحديد أبعاد الصورة المضغوطة (الحد الأقصى 1800 بكسل للصور الكبيرة)
+      const maxWidth = 1800;
+      const maxHeight = 1800;
       let width = img.width;
       let height = img.height;
       
@@ -98,7 +98,7 @@ export const optimizeImage = async (file: File): Promise<File> => {
       
       // تحويل Canvas إلى Blob بصيغة WebP إذا كانت مدعومة
       const supportWebP = !!HTMLCanvasElement.prototype.toBlob;
-      const quality = 0.8; // جودة 80%
+      const quality = 0.85; // تحسين الجودة إلى 85% للصور المرفوعة
       
       if (supportWebP) {
         // محاولة استخدام صيغة WebP
@@ -114,7 +114,9 @@ export const optimizeImage = async (file: File): Promise<File> => {
             { type: 'image/webp' }
           );
           
-          // إذا كان الملف المحسن أصغر، استخدمه
+          URL.revokeObjectURL(img.src); // تحرير الذاكرة
+          
+          // للتأكد من أن الملف المحسن ليس أكبر من الأصلي
           return optimizedFile.size < file.size ? optimizedFile : file;
         }
       }
@@ -126,11 +128,14 @@ export const optimizeImage = async (file: File): Promise<File> => {
       
       if (blob) {
         const optimizedFile = new File([blob], file.name, { type: file.type });
+        URL.revokeObjectURL(img.src); // تحرير الذاكرة
         return optimizedFile.size < file.size ? optimizedFile : file;
       }
+      
+      URL.revokeObjectURL(img.src); // تحرير الذاكرة عند الفشل
     }
     
-    // إذا كانت الصورة صغيرة بالفعل أو فشلت عملية التحسين، أرجع الملف الأصلي
+    // إذا كانت الصورة صغيرة بالفعل، أرجع الملف الأصلي
     return file;
   } catch (error) {
     console.error("خطأ أثناء تحسين الصورة:", error);
@@ -161,9 +166,9 @@ export const uploadImage = async (
     const filePath = createUniqueFilePath(userId, folder, optimizedFile);
     console.log(`مسار الملف: ${filePath}`);
     
-    // تعيين خيارات CORS وتحديث رؤوس التخزين المؤقت
+    // تحسين إعدادات التخزين المؤقت
     const options = {
-      cacheControl: 'max-age=31536000', // تخزين مؤقت لمدة سنة
+      cacheControl: 'public, max-age=31536000, immutable', // تخزين مؤقت لمدة سنة
       upsert: true,
       contentType: optimizedFile.type
     };
@@ -183,6 +188,11 @@ export const uploadImage = async (
       .getPublicUrl(filePath);
       
     console.log(`تم رفع الصورة بنجاح. الرابط العام: ${publicUrl}`);
+    
+    // تحميل مسبق للصورة لتحسين الأداء
+    const img = new Image();
+    img.src = publicUrl;
+    
     return publicUrl;
   } catch (error) {
     console.error("خطأ في رفع الصورة:", error);
