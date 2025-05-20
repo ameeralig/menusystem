@@ -1,8 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { createUniqueFilePath } from "@/utils/storageHelpers";
-import { optimizeImageUrl } from "@/utils/imageOptimizer";
 
 interface UseBannerUploadProps {
   setBannerUrl: (url: string | null) => void;
@@ -15,19 +15,14 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // استعادة الصورة المحفوظة سابقاً مع تحسينات
+  // استعادة الصورة المحفوظة سابقاً
   useEffect(() => {
     if (initialUrl) {
-      // استخدام أداة تحسين الصور الجديدة
-      const optimized = optimizeImageUrl(initialUrl, {
-        format: 'webp',
-        quality: 80,
-        bustCache: true,
-        isImportant: true
-      });
-      
-      setImageUrl(optimized || initialUrl);
-      setPreviewUrl(optimized || initialUrl);
+      const timestamp = new Date().getTime();
+      const baseUrl = initialUrl.split('?')[0];
+      const cachedUrl = `${baseUrl}?t=${timestamp}`;
+      setImageUrl(cachedUrl);
+      setPreviewUrl(cachedUrl);
     }
   }, [initialUrl]);
 
@@ -55,13 +50,12 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
 
       const filePath = createUniqueFilePath(user.id, 'banners', file);
       
-      // إضافة رأسيات لتجنب التخزين المؤقت وتحسين الأداء
+      // إضافة رأسيات لتجنب التخزين المؤقت
       const { data, error: uploadError } = await supabase.storage
         .from('banners')
         .upload(filePath, file, {
-          cacheControl: 'public, max-age=31536000, immutable', // تخزين مؤقت لمدة سنة
-          upsert: true,
-          contentType: file.type
+          cacheControl: '0',
+          upsert: true
         });
 
       if (uploadError) throw uploadError;
@@ -70,21 +64,18 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
       const { data: { publicUrl } } = supabase.storage
         .from('banners')
         .getPublicUrl(filePath);
+
+      // إضافة معرف زمني للصورة لتجنب التخزين المؤقت
+      const timestamp = new Date().getTime();
+      const baseUrl = publicUrl.split('?')[0];
+      const cachedUrl = `${baseUrl}?t=${timestamp}`;
       
       // تحرير عنوان URL المؤقت
       URL.revokeObjectURL(tempPreviewUrl);
       
-      // تحسين الرابط باستخدام أداة التحسين
-      const optimizedUrl = optimizeImageUrl(publicUrl, {
-        format: 'webp',
-        quality: 80,
-        bustCache: true,
-        isImportant: true
-      });
-      
-      setImageUrl(optimizedUrl || publicUrl);
-      setPreviewUrl(optimizedUrl || publicUrl);
-      setBannerUrl(optimizedUrl || publicUrl); // تحديث الرابط مباشرة هنا
+      setImageUrl(cachedUrl);
+      setPreviewUrl(cachedUrl);
+      setBannerUrl(cachedUrl); // تحديث الرابط مباشرة هنا
 
       toast({
         title: "تم رفع الصورة بنجاح",
@@ -108,17 +99,14 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
       // تأكد من أن URL صالح
       new URL(url);
       
-      // تحسين الرابط باستخدام أداة التحسين
-      const optimizedUrl = optimizeImageUrl(url, {
-        format: 'webp',
-        quality: 80,
-        bustCache: true,
-        isImportant: true
-      });
+      // إضافة معرف زمني للصورة بعد إزالة أي معرفات موجودة
+      const timestamp = new Date().getTime();
+      const baseUrl = url.split('?')[0];
+      const updatedUrl = `${baseUrl}?t=${timestamp}`;
       
-      setImageUrl(optimizedUrl || url);
-      setPreviewUrl(optimizedUrl || url);
-      setBannerUrl(optimizedUrl || url); // تحديث الرابط مباشرة هنا
+      setImageUrl(updatedUrl);
+      setPreviewUrl(updatedUrl);
+      setBannerUrl(updatedUrl); // تحديث الرابط مباشرة هنا
       setError(null);
     } catch (e) {
       setError("الرجاء إدخال رابط صحيح للصورة");

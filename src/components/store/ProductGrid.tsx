@@ -2,8 +2,7 @@
 import { motion } from "framer-motion";
 import { Product } from "@/types/product";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState, useEffect } from "react";
-import { optimizeImageUrl } from "@/utils/imageOptimizer";
+import { useState } from "react";
 
 interface ProductGridProps {
   products: Product[];
@@ -13,28 +12,21 @@ interface ProductGridProps {
 const ProductCard = ({ product }: { product: Product }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [optimizedUrl, setOptimizedUrl] = useState<string | null>(null);
 
-  // تحسين معالجة الصور - إضافة تحميل مسبق ومعالجة أكثر فعالية
-  useEffect(() => {
-    if (product.image_url) {
-      // إنشاء رابط محسن للصورة
-      const optimized = optimizeImageUrl(product.image_url, { 
-        format: 'webp',
-        quality: 85,  // تحسين الجودة قليلاً
-        bustCache: true,
-        isImportant: product.is_popular || product.is_new // إعطاء أولوية للمنتجات الجديدة والمشهورة
-      });
-      
-      setOptimizedUrl(optimized);
-      
-      // تحميل مسبق للصورة في الخلفية
-      if (optimized) {
-        const img = new Image();
-        img.src = optimized;
-      }
+  // تحويل الصورة إلى صيغة WebP عندما يكون ذلك ممكنًا
+  const getOptimizedImageUrl = (url: string | null | undefined) => {
+    if (!url) return null;
+    
+    const baseUrl = url.split('?')[0];
+    
+    // تحسين URL الصورة لاستخدام WebP إذا كان متاحًا عبر خدمة تخزين Supabase أو عبر CDN
+    if (baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')) {
+      return `${baseUrl}?format=webp&quality=80&t=${Date.now()}`;
     }
-  }, [product.image_url, product.is_popular, product.is_new]);
+    
+    // إضافة طابع زمني للتأكد من تحميل أحدث إصدار من الصورة
+    return `${baseUrl}?t=${Date.now()}`;
+  };
 
   return (
     <motion.div
@@ -43,22 +35,21 @@ const ProductCard = ({ product }: { product: Product }) => {
       exit={{ opacity: 0, y: -20 }}
       className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300"
     >
-      {optimizedUrl && (
+      {product.image_url && (
         <div className="aspect-[16/9] overflow-hidden relative">
           {!imageLoaded && !imageError && (
             <Skeleton className="absolute inset-0 w-full h-full" />
           )}
           <img
-            src={optimizedUrl}
+            src={getOptimizedImageUrl(product.image_url)}
             alt={product.name}
             className={`w-full h-full object-cover transition-all duration-300 ${
               imageLoaded ? "opacity-100 hover:scale-105" : "opacity-0"
             }`}
             loading="lazy"
-            fetchPriority={product.is_popular || product.is_new ? "high" : "auto"}
-            decoding="async"
             onLoad={() => setImageLoaded(true)}
             onError={() => setImageError(true)}
+            decoding="async"
           />
         </div>
       )}
@@ -78,31 +69,6 @@ const ProductCard = ({ product }: { product: Product }) => {
 };
 
 const ProductGrid = ({ products, colorTheme }: ProductGridProps) => {
-  // تحميل مسبق للمنتجات المهمة
-  useEffect(() => {
-    // تحميل صور المنتجات الشعبية والجديدة مسبقاً
-    const importantProducts = products.filter(p => p.is_popular || p.is_new);
-    
-    if (importantProducts.length > 0) {
-      importantProducts.forEach(product => {
-        if (product.image_url) {
-          const optimized = optimizeImageUrl(product.image_url, { 
-            format: 'webp',
-            quality: 90,
-            bustCache: true,
-            isImportant: true
-          });
-          
-          if (optimized) {
-            const img = new Image();
-            img.src = optimized;
-            img.fetchPriority = "high";
-          }
-        }
-      });
-    }
-  }, [products]);
-
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
       {products.map((product) => (

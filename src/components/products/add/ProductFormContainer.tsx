@@ -6,8 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { TabsContent } from "@/components/ui/tabs";
 import { Product } from "@/types/product";
 import { CategoryImage } from "@/types/categoryImage";
-import { uploadImage, createUniqueFilePath } from "@/utils/storageHelpers"; // إضافة استيراد createUniqueFilePath
-import { optimizeImageUrl } from "@/utils/imageOptimizer"; // إضافة استيراد optimizeImageUrl
+import { uploadImage } from "@/utils/storageHelpers";
 import CategorySelector from "@/components/products/add/CategorySelector";
 import ProductDetailsForm from "@/components/products/add/ProductDetailsForm";
 
@@ -41,9 +40,6 @@ const ProductFormContainer = ({ activeTab, onContinueToProduct }: ProductFormCon
   const [uploadMethod, setUploadMethod] = useState<"url" | "file">("file");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   // معالجة اختيار التصنيف
   const handleCategorySelected = async (category: string, imageUrl?: string, selectedFile?: File | null) => {
@@ -176,78 +172,6 @@ const ProductFormContainer = ({ activeTab, onContinueToProduct }: ProductFormCon
     }
   };
 
-  const handleImageUpload = async (file: File) => {
-    try {
-      setError(null);
-      
-      if (!file.type.startsWith('image/')) {
-        setError("الرجاء اختيار ملف صورة صالح");
-        return;
-      }
-
-      const MAX_SIZE = 10 * 1024 * 1024;
-      if (file.size > MAX_SIZE) {
-        setError("حجم الصورة كبير جداً. الحد الأقصى هو 10 ميجابايت");
-        return;
-      }
-
-      // إنشاء عنوان URL مؤقت للمعاينة قبل الرفع
-      const tempPreviewUrl = URL.createObjectURL(file);
-      setPreviewUrl(tempPreviewUrl);
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("يجب تسجيل الدخول أولاً");
-
-      const filePath = createUniqueFilePath(user.id, 'banners', file);
-      
-      // تحسين إعدادات التخزين المؤقت للصورة المرفوعة
-      const { data, error: uploadError } = await supabase.storage
-        .from('banners')
-        .upload(filePath, file, {
-          cacheControl: 'public, max-age=31536000, immutable', // تخزين مؤقت لمدة سنة
-          upsert: true,
-          contentType: file.type
-        });
-
-      if (uploadError) throw uploadError;
-
-      // الحصول على رابط العام
-      const { data: { publicUrl } } = supabase.storage
-        .from('banners')
-        .getPublicUrl(filePath);
-      
-      // تحرير عنوان URL المؤقت
-      URL.revokeObjectURL(tempPreviewUrl);
-      
-      // تحسين الرابط باستخدام أداة التحسين
-      const optimizedUrl = optimizeImageUrl(publicUrl, {
-        format: 'webp',
-        quality: 90,
-        bustCache: true,
-        isImportant: true
-      });
-      
-      // تحميل مسبق للصورة لتسريع العرض
-      const preloadImg = new Image();
-      preloadImg.src = optimizedUrl || publicUrl;
-      preloadImg.fetchPriority = "high";
-      
-      setImageUrl(optimizedUrl || publicUrl);
-      setPreviewUrl(optimizedUrl || publicUrl);
-      setBannerUrl(optimizedUrl || publicUrl);
-
-      toast({
-        title: "تم رفع الصورة بنجاح",
-        description: "يمكنك الآن حفظ التغييرات",
-        duration: 3000,
-      });
-
-    } catch (error: any) {
-      console.error("Error uploading image:", error);
-      setError(error.message || "حدث خطأ أثناء رفع الصورة");
-    }
-  };
-
   return (
     <>
       <TabsContent value="category" className="mt-0">
@@ -271,10 +195,6 @@ const ProductFormContainer = ({ activeTab, onContinueToProduct }: ProductFormCon
           loading={loading}
           onSubmit={handleSubmit}
           selectedCategory={selectedCategory}
-          handleImageUpload={handleImageUpload} // تمرير الدالة الجديدة
-          imageUrl={imageUrl}
-          bannerUrl={bannerUrl}
-          error={error}
         />
       </TabsContent>
     </>

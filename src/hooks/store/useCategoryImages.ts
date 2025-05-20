@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { CategoryImage } from "@/types/categoryImage";
-import { optimizeImageUrl } from "@/utils/imageOptimizer";
 
 export const useCategoryImages = (userId: string | null, forceRefresh: number) => {
   const [categoryImages, setCategoryImages] = useState<CategoryImage[]>([]);
@@ -33,24 +32,24 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
 
         console.log(`تم استلام صور التصنيفات بنجاح، عددها: ${data?.length || 0}`);
         
+        // إضافة طابع زمني لجميع الصور لكسر التخزين المؤقت
+        const uniqueTimestamp = forceRefresh || Date.now();
+        const cacheBreaker = `t=${uniqueTimestamp}&nocache=${Math.random()}`;
+        
         if (data && data.length > 0) {
           const updatedImages = data.map(img => {
             if (img.image_url) {
-              // استخدام أداة تحسين الصور الجديدة
+              // استخراج الرابط الأساسي وإضافة طابع زمني
+              const baseUrl = img.image_url.split('?')[0];
               return {
                 ...img,
-                image_url: optimizeImageUrl(img.image_url, {
-                  format: 'webp',
-                  quality: 80,
-                  bustCache: true,
-                  isImportant: true
-                })
+                image_url: `${baseUrl}?${cacheBreaker}`
               };
             }
             return img;
           });
           
-          console.log(`تم تحديث ${updatedImages.length} صورة تصنيف بتحسينات جديدة`);
+          console.log(`تم تحديث ${updatedImages.length} صورة تصنيف بطابع زمني جديد`);
 
           // تحميل مسبق للصور (preload) لتحسين الأداء
           updatedImages.forEach(img => {

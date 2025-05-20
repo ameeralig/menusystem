@@ -1,3 +1,4 @@
+
 import { supabase } from "@/lib/supabase";
 
 /**
@@ -61,7 +62,7 @@ export const optimizeImage = async (file: File): Promise<File> => {
   
   try {
     // إذا كانت الصورة كبيرة جدًا، قم بضغطها
-    if (file.size > 800 * 1024) { // أكبر من 800 كيلوبايت
+    if (file.size > 1024 * 1024) { // أكبر من 1 ميجابايت
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const img = new Image();
@@ -72,9 +73,9 @@ export const optimizeImage = async (file: File): Promise<File> => {
         img.src = URL.createObjectURL(file);
       });
       
-      // تحديد أبعاد الصورة المضغوطة (الحد الأقصى 1800 بكسل للصور الكبيرة)
-      const maxWidth = 1800;
-      const maxHeight = 1800;
+      // تحديد أبعاد الصورة المضغوطة (الحد الأقصى 1200 بكسل)
+      const maxWidth = 1200;
+      const maxHeight = 1200;
       let width = img.width;
       let height = img.height;
       
@@ -98,7 +99,7 @@ export const optimizeImage = async (file: File): Promise<File> => {
       
       // تحويل Canvas إلى Blob بصيغة WebP إذا كانت مدعومة
       const supportWebP = !!HTMLCanvasElement.prototype.toBlob;
-      const quality = 0.85; // تحسين الجودة إلى 85% للصور المرفوعة
+      const quality = 0.8; // جودة 80%
       
       if (supportWebP) {
         // محاولة استخدام صيغة WebP
@@ -114,9 +115,7 @@ export const optimizeImage = async (file: File): Promise<File> => {
             { type: 'image/webp' }
           );
           
-          URL.revokeObjectURL(img.src); // تحرير الذاكرة
-          
-          // للتأكد من أن الملف المحسن ليس أكبر من الأصلي
+          // إذا كان الملف المحسن أصغر، استخدمه
           return optimizedFile.size < file.size ? optimizedFile : file;
         }
       }
@@ -128,14 +127,11 @@ export const optimizeImage = async (file: File): Promise<File> => {
       
       if (blob) {
         const optimizedFile = new File([blob], file.name, { type: file.type });
-        URL.revokeObjectURL(img.src); // تحرير الذاكرة
         return optimizedFile.size < file.size ? optimizedFile : file;
       }
-      
-      URL.revokeObjectURL(img.src); // تحرير الذاكرة عند الفشل
     }
     
-    // إذا كانت الصورة صغيرة بالفعل، أرجع الملف الأصلي
+    // إذا كانت الصورة صغيرة بالفعل أو فشلت عملية التحسين، أرجع الملف الأصلي
     return file;
   } catch (error) {
     console.error("خطأ أثناء تحسين الصورة:", error);
@@ -166,9 +162,9 @@ export const uploadImage = async (
     const filePath = createUniqueFilePath(userId, folder, optimizedFile);
     console.log(`مسار الملف: ${filePath}`);
     
-    // تحسين إعدادات التخزين المؤقت
+    // تعيين خيارات CORS وتحديث رؤوس التخزين المؤقت
     const options = {
-      cacheControl: 'public, max-age=31536000, immutable', // تخزين مؤقت لمدة سنة
+      cacheControl: 'max-age=31536000', // تخزين مؤقت لمدة سنة
       upsert: true,
       contentType: optimizedFile.type
     };
@@ -188,11 +184,6 @@ export const uploadImage = async (
       .getPublicUrl(filePath);
       
     console.log(`تم رفع الصورة بنجاح. الرابط العام: ${publicUrl}`);
-    
-    // تحميل مسبق للصورة لتحسين الأداء
-    const img = new Image();
-    img.src = publicUrl;
-    
     return publicUrl;
   } catch (error) {
     console.error("خطأ في رفع الصورة:", error);
@@ -295,109 +286,5 @@ export const extractFilePathFromUrl = (url: string, bucket: string): string | nu
   } catch (e) {
     console.error("خطأ في استخراج مسار الملف:", e);
     return null;
-  }
-};
-
-/**
- * تحسين رابط الصورة لاستخدام API تحسين الصور من Supabase
- * @param url رابط الصورة الأصلي
- * @param options خيارات التحسين
- */
-export const getOptimizedImageUrl = (
-  url: string | null | undefined,
-  options: {
-    width?: number;
-    height?: number;
-    quality?: number;
-    format?: 'webp' | 'auto' | 'jpeg';
-    bustCache?: boolean;
-  } = {}
-): string | null => {
-  if (!url) return null;
-  
-  try {
-    // التحقق ما إذا كان الرابط من Supabase Storage
-    const isSupabaseUrl = url.includes('supabase.co') || 
-                         url.includes('supabase.in') || 
-                         url.includes('lovable-app');
-    
-    const urlObj = new URL(url);
-    
-    // التعامل مع صور Supabase
-    if (isSupabaseUrl) {
-      // إضافة معلمات التحسين
-      if (options.format) {
-        urlObj.searchParams.set('format', options.format);
-      }
-      
-      if (options.quality) {
-        urlObj.searchParams.set('quality', options.quality.toString());
-      }
-      
-      // إضافة طابع زمني لكسر التخزين المؤقت إذا طلب ذلك
-      if (options.bustCache) {
-        urlObj.searchParams.set('t', Date.now().toString());
-      }
-      
-      // للحفاظ على تنسيق الصورة الأصلي، لا نضيف width أو height
-      return urlObj.toString();
-    }
-    
-    // لروابط الصور الخارجية، أعد الرابط كما هو مع إضافة طابع زمني فقط إذا تم طلبه
-    if (options.bustCache) {
-      urlObj.searchParams.set('t', Date.now().toString());
-      return urlObj.toString();
-    }
-    
-    return url;
-  } catch (error) {
-    console.error("خطأ في تحسين رابط الصورة:", error);
-    return url;
-  }
-};
-
-/**
- * تعزيز HTTP Caching عند تحميل الصور إلى Supabase Storage
- * @param bucket اسم المستودع
- * @param file ملف الصورة
- * @param userId معرّف المستخدم
- * @param folder مجلد الحفظ (اختياري)
- */
-export const uploadImageWithCaching = async (
-  bucket: string,
-  file: File,
-  userId: string,
-  folder: string = ''
-): Promise<string> => {
-  try {
-    // تحسين الصورة قبل الرفع
-    const optimizedFile = await optimizeImage(file);
-    
-    const filePath = createUniqueFilePath(userId, folder, optimizedFile);
-    
-    // تعزيز إعدادات HTTP Caching
-    const options = {
-      cacheControl: 'public, max-age=31536000, immutable', // تخزين مؤقت لمدة سنة
-      upsert: true,
-      contentType: optimizedFile.type
-    };
-    
-    const { error: uploadError } = await supabase.storage
-      .from(bucket)
-      .upload(filePath, optimizedFile, options);
-
-    if (uploadError) {
-      throw uploadError;
-    }
-
-    // الحصول على الرابط العام - تم تعديله لإزالة خيار transform
-    const { data: { publicUrl } } = supabase.storage
-      .from(bucket)
-      .getPublicUrl(filePath);
-      
-    return publicUrl;
-  } catch (error) {
-    console.error("خطأ في رفع الصورة:", error);
-    throw error;
   }
 };

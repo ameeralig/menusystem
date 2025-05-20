@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { CSSProperties, useEffect, useState } from "react";
 import { CategoryImage } from "@/types/categoryImage";
 import { Folder } from "lucide-react";
-import { optimizeImageUrl } from "@/utils/imageOptimizer";
 
 interface FontSettings {
   categoryText?: {
@@ -34,16 +33,6 @@ const CategoryCard = ({
   const [imgError, setImgError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
-  // تحسين رابط الصورة باستخدام أداة التحسين الجديدة
-  const optimizedImageUrl = imageUrl 
-    ? optimizeImageUrl(imageUrl, {
-        format: 'webp',
-        quality: 80,
-        isImportant: true,
-        bustCache: true
-      }) 
-    : null;
-
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
@@ -51,7 +40,7 @@ const CategoryCard = ({
       onClick={onClick}
     >
       <div className="h-[140px] overflow-hidden">
-        {!imgError && optimizedImageUrl ? (
+        {!imgError && imageUrl ? (
           <>
             {isLoading && (
               <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
@@ -59,7 +48,7 @@ const CategoryCard = ({
               </div>
             )}
             <img 
-              src={optimizedImageUrl} 
+              src={imageUrl} 
               alt={category}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               onError={() => {
@@ -72,8 +61,6 @@ const CategoryCard = ({
                 setIsLoading(false);
               }}
               loading="eager"
-              fetchPriority="high"
-              decoding="async"
             />
           </>
         ) : (
