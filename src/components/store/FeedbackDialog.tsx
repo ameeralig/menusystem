@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Phone } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,6 +29,7 @@ interface FeedbackDialogProps {
 
 const FeedbackDialog = ({ userId }: FeedbackDialogProps) => {
   const [visitorName, setVisitorName] = useState("");
+  const [visitorPhone, setVisitorPhone] = useState(""); // إضافة حالة جديدة لرقم الهاتف
   const [feedbackType, setFeedbackType] = useState("");
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,7 +40,7 @@ const FeedbackDialog = ({ userId }: FeedbackDialogProps) => {
     if (!visitorName || !feedbackType || !description) {
       toast({
         title: "خطأ",
-        description: "الرجاء تعبئة جميع الحقول",
+        description: "الرجاء تعبئة جميع الحقول الإلزامية",
         variant: "destructive",
       });
       return;
@@ -50,6 +51,7 @@ const FeedbackDialog = ({ userId }: FeedbackDialogProps) => {
       const { error } = await supabase.from("feedback").insert({
         store_owner_id: userId,
         visitor_name: visitorName,
+        visitor_phone: visitorPhone || null, // إضافة رقم الهاتف مع مراعاة إمكانية أن يكون فارغاً
         type: feedbackType,
         description: description,
       });
@@ -62,6 +64,7 @@ const FeedbackDialog = ({ userId }: FeedbackDialogProps) => {
       });
       
       setVisitorName("");
+      setVisitorPhone("");
       setFeedbackType("");
       setDescription("");
       setIsOpen(false);
@@ -107,6 +110,20 @@ const FeedbackDialog = ({ userId }: FeedbackDialogProps) => {
               placeholder="أدخل اسمك"
             />
           </div>
+          
+          {/* إضافة حقل رقم الهاتف */}
+          <div className="grid gap-2">
+            <Label className="text-right">رقم الهاتف (اختياري)</Label>
+            <Input
+              type="tel"
+              value={visitorPhone}
+              onChange={(e) => setVisitorPhone(e.target.value)}
+              className="text-right"
+              placeholder="أدخل رقم هاتفك"
+              dir="ltr" // لضمان عرض رقم الهاتف من اليسار إلى اليمين
+            />
+          </div>
+          
           <div className="grid gap-2">
             <Label className="text-right">نوع الملاحظات</Label>
             <Select value={feedbackType} onValueChange={setFeedbackType}>
