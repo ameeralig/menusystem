@@ -1,82 +1,124 @@
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
-import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface FeedbackItem {
+  id: string;
+  visitor_name: string;
+  visitor_phone: string | null; // تعديل النوع ليتوافق مع قاعدة البيانات
+  type: string;
+  description: string;
+  created_at: string;
+  status: string;
+}
 
 export const useFeedback = () => {
-  const [feedback, setFeedback] = useState<any[]>([]);
+  const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [contactInfo, setContactInfo] = useState<any>(null);
-  const [colorTheme, setColorTheme] = useState<string | null>("default");
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const fetchFeedback = async () => {
-    try {
-      // الحصول على معرف المستخدم الحالي
-      const { data: userData } = await supabase.auth.getUser();
-      
-      if (!userData?.user?.id) {
-        throw new Error("لم يتم العثور على المستخدم");
-      }
-      
-      // جلب بيانات الملاحظات
-      const { data, error } = await supabase
-        .from('feedback')
-        .select('*')
-        .eq('store_owner_id', userData.user.id)
-        .order('created_at', { ascending: false });
+  useEffect(() => {
+    const fetchFeedback = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
         
-      if (error) throw error;
-      
-      setFeedback(data || []);
-      
-      // جلب معلومات المتجر
-      const { data: storeData, error: storeError } = await supabase
-        .from('store_settings')
-        .select('contact_info, color_theme')
-        .eq('user_id', userData.user.id)
-        .single();
+        if (!user) {
+          navigate("/auth/login");
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from("feedback")
+          .select("*")
+          .eq("store_owner_id", user.id)
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
         
-      if (storeError) {
-        console.error("Error fetching store info:", storeError);
-      } else if (storeData) {
-        setContactInfo(storeData.contact_info || null);
-        setColorTheme(storeData.color_theme || "default");
+        // تحويل البيانات ووضع قيمة افتراضية لحقل رقم الهاتف إذا كان غير موجود
+        const processedData = data?.map(item => ({
+          ...item,
+          visitor_phone: item.visitor_phone || null // القيمة الافتراضية إذا كان الحقل غير موجود
+        })) || [];
+        
+        setFeedback(processedData);
+        
+        // تحديث حالة الشكاوى من pending إلى reviewed عند فتح الصفحة
+        const pendingIds = data
+          ?.filter(item => item.status === 'pending')
+          .map(item => item.id) || [];
+          
+        if (pendingIds.length > 0) {
+          const { error: updateError } = await supabase
+            .from("feedback")
+            .update({ status: 'reviewed' })
+            .in('id', pendingIds);
+            
+          if (updateError) {
+            console.error("خطأ في تحديث حالة الشكاوى:", updateError);
+          } else {
+            // تحديث الحالة محلياً أيضاً
+            setFeedback(prev => 
+              prev.map(item => 
+                pendingIds.includes(item.id) ? {...item, status: 'reviewed'} : item
+              )
+            );
+          }
+        }
+      } catch (error) {
+        console.error("خطأ في جلب الشكاوى والاقتراحات:", error);
+        toast({
+          title: "خطأ",
+          description: "حدث خطأ أثناء جلب الشكاوى والاقتراحات",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error: any) {
-      console.error("Error fetching feedback:", error);
-      toast.error("حدث خطأ أثناء تحميل البيانات");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+
+    fetchFeedback();
+  }, [navigate, toast]);
 
   const markAsResolved = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('feedback')
+        .from("feedback")
         .update({ status: 'resolved' })
         .eq('id', id);
         
       if (error) throw error;
       
-      // تحديث حالة الملاحظة في القائمة المحلية
-      setFeedback(feedback.map(item => {
-        if (item.id === id) {
-          return { ...item, status: 'resolved' };
-        }
-        return item;
-      }));
+      setFeedback(prev => 
+        prev.map(item => 
+          item.id === id ? {...item, status: 'resolved'} : item
+        )
+      );
       
-      toast.success("تم تحديث حالة الملاحظة بنجاح");
-    } catch (error: any) {
-      console.error("Error updating feedback status:", error);
-      toast.error("حدث خطأ أثناء تحديث حالة الملاحظة");
+      toast({
+        title: "تم بنجاح",
+        description: "تم تحديث حالة الشكوى/الاقتراح إلى 'تم الحل'",
+      });
+
+      return Promise.resolve();
+    } catch (error) {
+      console.error("خطأ في تحديث حالة الشكوى/الاقتراح:", error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء تحديث حالة الشكوى/الاقتراح",
+        variant: "destructive",
+      });
+
+      return Promise.reject(error);
     }
   };
 
-  useEffect(() => {
-    fetchFeedback();
-  }, []);
-
-  return { feedback, isLoading, markAsResolved, contactInfo, colorTheme };
+  return {
+    feedback,
+    isLoading,
+    markAsResolved
+  };
 };
