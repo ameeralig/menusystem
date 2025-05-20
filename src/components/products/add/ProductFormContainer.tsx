@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -5,7 +6,8 @@ import { supabase } from "@/lib/supabase";
 import { TabsContent } from "@/components/ui/tabs";
 import { Product } from "@/types/product";
 import { CategoryImage } from "@/types/categoryImage";
-import { uploadImage } from "@/utils/storageHelpers";
+import { uploadImage, createUniqueFilePath } from "@/utils/storageHelpers"; // إضافة استيراد createUniqueFilePath
+import { optimizeImageUrl } from "@/utils/imageOptimizer"; // إضافة استيراد optimizeImageUrl
 import CategorySelector from "@/components/products/add/CategorySelector";
 import ProductDetailsForm from "@/components/products/add/ProductDetailsForm";
 
@@ -269,7 +271,7 @@ const ProductFormContainer = ({ activeTab, onContinueToProduct }: ProductFormCon
           loading={loading}
           onSubmit={handleSubmit}
           selectedCategory={selectedCategory}
-          handleImageUpload={handleImageUpload}
+          handleImageUpload={handleImageUpload} // تمرير الدالة الجديدة
           imageUrl={imageUrl}
           bannerUrl={bannerUrl}
           error={error}

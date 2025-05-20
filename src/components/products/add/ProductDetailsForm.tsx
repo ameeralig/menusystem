@@ -23,6 +23,11 @@ interface ProductDetailsFormProps {
   loading: boolean;
   onSubmit: (data: Partial<Product>) => Promise<void>;
   selectedCategory: string;
+  // إضافة الخاصيات المفقودة
+  handleImageUpload?: (file: File) => Promise<void>;
+  imageUrl?: string | null;
+  bannerUrl?: string | null;
+  error?: string | null;
 }
 
 const ProductDetailsForm = ({
@@ -36,7 +41,11 @@ const ProductDetailsForm = ({
   setPreviewUrl,
   loading,
   onSubmit,
-  selectedCategory
+  selectedCategory,
+  handleImageUpload, // إضافة الخاصية الجديدة
+  imageUrl,
+  bannerUrl,
+  error
 }: ProductDetailsFormProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
