@@ -4,10 +4,11 @@ import LoadingState from "@/components/store/LoadingState";
 import FeedbackContainer from "@/components/feedback/FeedbackContainer";
 import FeedbackHeader from "@/components/feedback/FeedbackHeader";
 import FeedbackList from "@/components/feedback/FeedbackList";
+import StoreFeedbackInfo from "@/components/feedback/StoreFeedbackInfo";
 import { useFeedback } from "@/hooks/feedback/useFeedback";
 
 const Feedback = () => {
-  const { feedback, isLoading, markAsResolved } = useFeedback();
+  const { feedback, isLoading, markAsResolved, contactInfo, colorTheme } = useFeedback();
 
   if (isLoading) {
     return <LoadingState />;
@@ -20,6 +21,15 @@ const Feedback = () => {
       
       <FeedbackContainer>
         <FeedbackHeader />
+        
+        {/* إضافة معلومات المتجر */}
+        {contactInfo && (
+          <StoreFeedbackInfo 
+            contactInfo={contactInfo} 
+            colorTheme={colorTheme} 
+          />
+        )}
+        
         <FeedbackList 
           feedback={feedback}
           onResolve={markAsResolved}
