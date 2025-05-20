@@ -66,6 +66,7 @@ export type Database = {
           store_owner_id: string
           type: string
           visitor_name: string
+          visitor_phone: string | null
         }
         Insert: {
           created_at?: string
@@ -75,6 +76,7 @@ export type Database = {
           store_owner_id: string
           type: string
           visitor_name: string
+          visitor_phone?: string | null
         }
         Update: {
           created_at?: string
@@ -84,6 +86,7 @@ export type Database = {
           store_owner_id?: string
           type?: string
           visitor_name?: string
+          visitor_phone?: string | null
         }
         Relationships: []
       }
