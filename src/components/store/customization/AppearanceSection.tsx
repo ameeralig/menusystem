@@ -2,6 +2,7 @@
 import { Palette } from "lucide-react";
 import CustomizationSection from "./CustomizationSection";
 import BannerImageUploader from "@/components/store/BannerImageUploader";
+import ProfileImageUploader from "@/components/store/ProfileImageUploader";
 import ColorPickerAdvanced from "./ColorPickerAdvanced";
 import FontStyleSelector from "@/components/store/FontStyleSelector";
 import { FontSettings } from "@/types/store";
@@ -11,10 +12,13 @@ interface AppearanceSectionProps {
   setColorTheme: (value: string) => void;
   bannerUrl: string | null;
   setBannerUrl: (url: string | null) => void;
+  profileImageUrl: string | null;
+  setProfileImageUrl: (url: string | null) => void;
   fontSettings: FontSettings;
   setFontSettings: (value: FontSettings) => void;
   handleColorThemeSubmit: () => Promise<void>;
   handleBannerSubmit: () => Promise<void>;
+  handleProfileImageSubmit: () => Promise<void>;
   handleFontSettingsSubmit: () => Promise<void>;
   isLoading: boolean;
 }
@@ -24,10 +28,13 @@ const AppearanceSection = ({
   setColorTheme,
   bannerUrl,
   setBannerUrl,
+  profileImageUrl,
+  setProfileImageUrl,
   fontSettings,
   setFontSettings,
   handleColorThemeSubmit,
   handleBannerSubmit,
+  handleProfileImageSubmit,
   handleFontSettingsSubmit,
   isLoading
 }: AppearanceSectionProps) => {
@@ -42,6 +49,13 @@ const AppearanceSection = ({
           bannerUrl={bannerUrl}
           setBannerUrl={setBannerUrl}
           handleSubmit={handleBannerSubmit}
+          isLoading={isLoading}
+        />
+
+        <ProfileImageUploader
+          profileImageUrl={profileImageUrl}
+          setProfileImageUrl={setProfileImageUrl}
+          handleSubmit={handleProfileImageSubmit}
           isLoading={isLoading}
         />
 

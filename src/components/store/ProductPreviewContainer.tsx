@@ -1,7 +1,7 @@
-
 import { ReactNode, useState, useEffect, CSSProperties } from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface FontSettings {
   generalText?: {
@@ -25,6 +25,7 @@ interface ProductPreviewContainerProps {
   children: ReactNode;
   colorTheme: string | null;
   bannerUrl?: string | null;
+  profileImageUrl?: string | null;
   fontSettings?: FontSettings;
   containerHeight?: string;
 }
@@ -33,14 +34,17 @@ const ProductPreviewContainer = ({
   children, 
   colorTheme,
   bannerUrl,
+  profileImageUrl,
   fontSettings,
   containerHeight = "auto"
 }: ProductPreviewContainerProps) => {
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [profileImageLoaded, setProfileImageLoaded] = useState(false);
   const [fontFaceLoaded, setFontFaceLoaded] = useState(false);
   const [fontId, setFontId] = useState<string>("");
   const [imgSrc, setImgSrc] = useState<string | null>(null);
+  const [profileImgSrc, setProfileImgSrc] = useState<string | null>(null);
   
   // هذا التأثير يتعامل مع تحميل الخطوط المخصصة
   useEffect(() => {
@@ -97,6 +101,7 @@ const ProductPreviewContainer = ({
         // تعيين خصائص إضافية للتحميل السريع
         img.decoding = "async";
         img.loading = "eager"; // تحميل فوري للصور المهمة مثل البانر
+        img.fetchPriority = "high";
         img.src = newUrl;
       };
 
@@ -118,6 +123,41 @@ const ProductPreviewContainer = ({
       setImgSrc(null);
     }
   }, [bannerUrl]);
+  
+  // تحميل صورة الملف الشخصي
+  useEffect(() => {
+    if (profileImageUrl) {
+      const loadProfileImage = () => {
+        const timestamp = new Date().getTime();
+        const baseUrl = profileImageUrl.split('?')[0];
+        
+        const shouldUseWebP = baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app');
+        const newUrl = shouldUseWebP 
+          ? `${baseUrl}?t=${timestamp}&format=webp&quality=80` 
+          : `${baseUrl}?t=${timestamp}`;
+        
+        const img = new Image();
+        img.onload = () => {
+          console.log("Profile image loaded successfully:", newUrl);
+          setProfileImgSrc(newUrl);
+          setProfileImageLoaded(true);
+        };
+        img.onerror = (e) => {
+          console.error("Error loading profile image:", newUrl, e);
+          setProfileImgSrc(null);
+        };
+        
+        img.decoding = "async";
+        img.loading = "eager";
+        img.fetchPriority = "high";
+        img.src = newUrl;
+      };
+
+      loadProfileImage();
+    } else {
+      setProfileImgSrc(null);
+    }
+  }, [profileImageUrl]);
   
   const getThemeClasses = (theme: string | null) => {
     switch (theme) {
@@ -169,8 +209,9 @@ const ProductPreviewContainer = ({
                   setImageError(true);
                 }}
                 onLoad={() => setImageLoaded(true)}
-                loading="eager" // البانر يجب أن يتحمل فوريًا لأنه جزء مهم من واجهة المستخدم
+                loading="eager"
                 fetchPriority="high"
+                decoding="async"
               />
             ) : null}
             <div className="absolute inset-0 bg-black bg-opacity-30"></div>
@@ -183,6 +224,20 @@ const ProductPreviewContainer = ({
         )}
         <div className="w-full relative">
           <div className={`bg-white dark:bg-gray-800 rounded-tl-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-700 ${imgSrc && !imageError ? 'mt-[-1rem]' : ''}`} style={{ minHeight: containerHeight }}>
+            {profileImgSrc && (
+              <div className="flex justify-center">
+                <Avatar className="w-24 h-24 border-4 border-white mt-[-3rem] z-10 shadow-md">
+                  <AvatarImage 
+                    src={profileImgSrc} 
+                    alt="صورة الملف الشخصي"
+                    onLoad={() => setProfileImageLoaded(true)} 
+                  />
+                  <AvatarFallback>
+                    {storeName?.substring(0, 2) || "..."}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            )}
             <div className="p-4 sm:p-6">
               {children}
             </div>
