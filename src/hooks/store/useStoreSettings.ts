@@ -12,7 +12,6 @@ export const useStoreSettings = (slug: string | undefined) => {
     socialLinks: {} as SocialLinks,
     contactInfo: {} as ContactInfo,
     bannerUrl: null as string | null,
-    profileImageUrl: null as string | null,
     fontSettings: undefined as FontSettings | undefined,
     storeOwnerId: null as string | null,
   });
@@ -50,7 +49,7 @@ export const useStoreSettings = (slug: string | undefined) => {
 
         const { data: settings, error } = await supabase
           .from("store_settings")
-          .select("user_id, store_name, color_theme, social_links, banner_url, profile_image_url, font_settings, contact_info")
+          .select("user_id, store_name, color_theme, social_links, banner_url, font_settings, contact_info")
           .eq("slug", slug.trim())
           .maybeSingle();
 
@@ -94,7 +93,6 @@ export const useStoreSettings = (slug: string | undefined) => {
           socialLinks: settings.social_links as SocialLinks || {},
           contactInfo: settings.contact_info as ContactInfo || {},
           bannerUrl: settings.banner_url,
-          profileImageUrl: settings.profile_image_url,
           fontSettings: parsedFontSettings,
           storeOwnerId: settings.user_id,
         });
@@ -107,8 +105,6 @@ export const useStoreSettings = (slug: string | undefined) => {
           variant: "destructive",
         });
         navigate('/404');
-      } finally {
-        setIsLoading(false);
       }
     };
 

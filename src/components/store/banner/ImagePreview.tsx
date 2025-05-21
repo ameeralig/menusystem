@@ -44,7 +44,6 @@ const ImagePreview = ({ previewUrl, onClear, onError }: ImagePreviewProps) => {
           onLoad={() => setIsLoading(false)}
           loading="eager"
           fetchPriority="high"
-          decoding="async"
         />
         <Button 
           type="button" 

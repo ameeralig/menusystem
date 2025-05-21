@@ -76,7 +76,6 @@ const StoreCustomization = () => {
   const [storeSlug, setStoreSlug] = useState("");
   const [colorTheme, setColorTheme] = useState("default");
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
-  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const [fontSettings, setFontSettings] = useState<FontSettings>(defaultFontSettings);
   const [contactInfo, setContactInfo] = useState<ContactInfo>(defaultContactInfo);
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({
@@ -101,7 +100,7 @@ const StoreCustomization = () => {
 
       const { data: storeSettings, error } = await supabase
         .from("store_settings")
-        .select("store_name, color_theme, slug, social_links, banner_url, profile_image_url, font_settings, contact_info")
+        .select("store_name, color_theme, slug, social_links, banner_url, font_settings, contact_info")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -115,7 +114,6 @@ const StoreCustomization = () => {
         setColorTheme(storeSettings.color_theme || "default");
         setStoreSlug(storeSettings.slug || "");
         setBannerUrl(storeSettings.banner_url || null);
-        setProfileImageUrl(storeSettings.profile_image_url || null);
         
         if (storeSettings.social_links) {
           setSocialLinks({
@@ -179,7 +177,6 @@ const StoreCustomization = () => {
     slug: string;
     social_links: SocialLinks;
     banner_url: string | null;
-    profile_image_url: string | null;
     font_settings: FontSettings;
     contact_info: ContactInfo;
   }>) => {
@@ -237,7 +234,6 @@ const StoreCustomization = () => {
       if (updatedData.slug !== undefined) setStoreSlug(updatedData.slug);
       if (updatedData.social_links !== undefined) setSocialLinks(updatedData.social_links);
       if (updatedData.banner_url !== undefined) setBannerUrl(updatedData.banner_url);
-      if (updatedData.profile_image_url !== undefined) setProfileImageUrl(updatedData.profile_image_url);
       if (updatedData.font_settings !== undefined) setFontSettings(updatedData.font_settings);
       if (updatedData.contact_info !== undefined) setContactInfo(updatedData.contact_info);
 
@@ -300,10 +296,6 @@ const StoreCustomization = () => {
     await saveStoreSettings({ banner_url: bannerUrl });
   };
 
-  const handleProfileImageSubmit = async () => {
-    await saveStoreSettings({ profile_image_url: profileImageUrl });
-  };
-
   const handleFontSettingsSubmit = async () => {
     await saveStoreSettings({ font_settings: fontSettings });
   };
@@ -343,7 +335,6 @@ const StoreCustomization = () => {
                 <ProductPreviewContainer 
                   colorTheme={colorTheme} 
                   bannerUrl={bannerUrl}
-                  profileImageUrl={profileImageUrl}
                   fontSettings={fontSettings}
                   containerHeight="auto"
                 >
@@ -386,13 +377,10 @@ const StoreCustomization = () => {
               setColorTheme={setColorTheme}
               bannerUrl={bannerUrl}
               setBannerUrl={setBannerUrl}
-              profileImageUrl={profileImageUrl}
-              setProfileImageUrl={setProfileImageUrl}
               fontSettings={fontSettings}
               setFontSettings={setFontSettings}
               handleColorThemeSubmit={handleColorThemeSubmit}
               handleBannerSubmit={handleBannerSubmit}
-              handleProfileImageSubmit={handleProfileImageSubmit}
               handleFontSettingsSubmit={handleFontSettingsSubmit}
               isLoading={isLoading}
             />
