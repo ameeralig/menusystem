@@ -1,6 +1,6 @@
 
-import React, { useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +9,8 @@ import { CategoryImage } from "@/types/categoryImage";
 import { Upload, Image as ImageIcon, X, Save } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface CategoryImageCardProps {
   category: string;
@@ -31,7 +33,70 @@ export const CategoryImageCard = ({
 }: CategoryImageCardProps) => {
   const [imageUrl, setImageUrl] = useState<string>("");
   const [uploadTab, setUploadTab] = useState<string>("file");
-  const [previewError, setPreviewError] = useState<boolean>(false);
+  const [imgSrc, setImgSrc] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [imgError, setImgError] = useState<boolean>(false);
+
+  // تحميل الصورة مع معالجة مشاكل التخزين المؤقت
+  useEffect(() => {
+    if (categoryImage?.image_url) {
+      setIsLoading(true);
+      setImgError(false);
+      
+      // إضافة طابع زمني للرابط لتجنب التخزين المؤقت
+      const timestamp = Date.now();
+      const baseUrl = categoryImage.image_url.split('?')[0];
+      
+      // تحسين الرابط مع تنسيق webp إذا كان من supabase
+      const isSupabaseUrl = baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app');
+      const optimizedUrl = isSupabaseUrl
+        ? `${baseUrl}?t=${timestamp}&format=webp&quality=80&preview=true`
+        : `${baseUrl}?t=${timestamp}&preview=true`;
+      
+      console.log(`تحميل معاينة صورة التصنيف ${category}: ${optimizedUrl}`);
+      
+      // تحميل الصورة
+      const img = new Image();
+      img.onload = () => {
+        console.log(`تم تحميل صورة معاينة التصنيف ${category} بنجاح`);
+        setImgSrc(optimizedUrl);
+        setIsLoading(false);
+      };
+      
+      img.onerror = (e) => {
+        console.error(`فشل تحميل صورة معاينة التصنيف ${category}:`, e);
+        setImgError(true);
+        setIsLoading(false);
+      };
+      
+      // تعيين خصائص الصورة للتحميل الأمثل
+      img.decoding = "async";
+      img.fetchPriority = "high";
+      img.crossOrigin = "anonymous";
+      img.src = optimizedUrl;
+      
+      // إعادة المحاولة بعد فترة إذا فشل التحميل
+      const retryTimeout = setTimeout(() => {
+        if (img.complete === false) {
+          console.log(`إعادة محاولة تحميل صورة معاينة التصنيف ${category}`);
+          const retryTimestamp = Date.now();
+          const retryUrl = isSupabaseUrl
+            ? `${baseUrl}?t=${retryTimestamp}&format=webp&quality=80&retry=true`
+            : `${baseUrl}?t=${retryTimestamp}&retry=true`;
+          img.src = retryUrl;
+        }
+      }, 2000);
+      
+      return () => {
+        clearTimeout(retryTimeout);
+        img.onload = null;
+        img.onerror = null;
+      };
+    } else {
+      setImgSrc(null);
+      setIsLoading(false);
+    }
+  }, [categoryImage?.image_url, category]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -67,49 +132,64 @@ export const CategoryImageCard = ({
           </Alert>
         )}
 
-        {categoryImage?.image_url ? (
-          <div className="relative aspect-video mb-3">
-            {previewError ? (
-              <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground">
-                <p className="text-xs text-center p-2">فشل تحميل الصورة</p>
-              </div>
-            ) : (
-              <img 
-                src={categoryImage.image_url}
-                alt={`صورة ${category}`}
-                className="w-full h-full object-cover rounded-md"
-                onError={() => setPreviewError(true)}
-                fetchPriority="high"
-              />
-            )}
-            
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="destructive"
-                  className="absolute top-2 right-2 h-7 w-7"
-                  disabled={uploading}
-                  onClick={() => onRemoveImage(category)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>حذف الصورة</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        ) : (
-          <div className="aspect-video mb-3 border-2 border-dashed border-muted rounded-md flex items-center justify-center bg-muted/20">
-            <div className="text-center p-4">
-              <ImageIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground/70" />
-              <p className="text-xs text-muted-foreground">لا توجد صورة</p>
+        <div className="relative aspect-video mb-3">
+          {isLoading && (
+            <div className="absolute inset-0 z-10">
+              <Skeleton className="w-full h-full" />
             </div>
-          </div>
-        )}
+          )}
+          
+          {imgSrc && !imgError ? (
+            <AspectRatio ratio={16/9}>
+              <img 
+                src={imgSrc}
+                alt={`صورة ${category}`}
+                className={`w-full h-full object-cover rounded-md transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+                onError={() => {
+                  console.error(`خطأ في عرض صورة معاينة التصنيف ${category}`);
+                  setImgError(true);
+                }}
+                fetchPriority="high"
+                crossOrigin="anonymous"
+              />
+              
+              {!isLoading && !uploading && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      className="absolute top-2 right-2 h-7 w-7"
+                      onClick={() => onRemoveImage(category)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>حذف الصورة</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </AspectRatio>
+          ) : (
+            <div className="aspect-video border-2 border-dashed border-muted rounded-md flex items-center justify-center bg-muted/20">
+              <div className="text-center p-4">
+                <ImageIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground/70" />
+                <p className="text-xs text-muted-foreground">
+                  {imgError ? "فشل تحميل الصورة" : "لا توجد صورة"}
+                </p>
+              </div>
+            </div>
+          )}
+          
+          {uploading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-md">
+              <Spinner className="h-8 w-8" />
+            </div>
+          )}
+        </div>
 
-        {!categoryImage?.image_url && (
+        {(!imgSrc || imgError) && !uploading && (
           <Tabs value={uploadTab} onValueChange={setUploadTab}>
             <TabsList className="grid w-full grid-cols-2 mb-2">
               <TabsTrigger value="file">ملف</TabsTrigger>
@@ -124,17 +204,8 @@ export const CategoryImageCard = ({
                   variant="outline"
                   className="w-full"
                 >
-                  {uploading ? (
-                    <>
-                      <Spinner className="h-4 w-4 mr-2" />
-                      جاري الرفع...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-4 w-4 ml-2" />
-                      رفع صورة
-                    </>
-                  )}
+                  <Upload className="h-4 w-4 ml-2" />
+                  رفع صورة
                 </Button>
                 <input
                   id={`file-upload-${category}`}
@@ -165,17 +236,8 @@ export const CategoryImageCard = ({
                   className="w-full"
                   size="sm"
                 >
-                  {uploading ? (
-                    <>
-                      <Spinner className="h-4 w-4 mr-2" />
-                      جاري الرفع...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4 ml-2" />
-                      استخدام الرابط
-                    </>
-                  )}
+                  <Save className="h-4 w-4 ml-2" />
+                  استخدام الرابط
                 </Button>
               </div>
             </TabsContent>

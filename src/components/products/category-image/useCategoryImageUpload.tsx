@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { CategoryImage } from "@/types/categoryImage";
-import { uploadImage, deleteImage, extractFilePathFromUrl, optimizeImage, getUrlWithTimestamp } from "@/utils/storageHelpers";
+import { uploadImage, deleteImage, extractFilePathFromUrl, optimizeImage } from "@/utils/storageHelpers";
 
 interface UseCategoryImageUploadProps {
   categoryImages: CategoryImage[];
@@ -52,14 +52,6 @@ export const useCategoryImageUpload = ({
       console.log(`رفع صورة جديدة للتصنيف: ${category}`);
       const imageUrl = await uploadImage("category-images", optimizedFile, userId, category);
 
-      // إضافة طابع زمني للصورة لتجنب التخزين المؤقت
-      const timestampedUrl = getUrlWithTimestamp(imageUrl);
-
-      // تحميل مسبق للصورة لتحسين وقت العرض
-      const preloadImage = new Image();
-      preloadImage.src = timestampedUrl || '';
-      preloadImage.fetchPriority = "high";
-
       // تحديث أو إنشاء سجل لصورة التصنيف
       if (existingImage) {
         console.log(`تحديث صورة التصنيف: ${category}`);
@@ -75,7 +67,7 @@ export const useCategoryImageUpload = ({
 
         if (data?.[0]) {
           const updatedImages = categoryImages.map(img => 
-            img.id === existingImage.id ? {...data[0], image_url: timestampedUrl} : img
+            img.id === existingImage.id ? data[0] : img
           );
           onUpdateImages(updatedImages);
         }
@@ -95,7 +87,7 @@ export const useCategoryImageUpload = ({
         }
 
         if (data?.[0]) {
-          onUpdateImages([...categoryImages, {...data[0], image_url: timestampedUrl}]);
+          onUpdateImages([...categoryImages, data[0]]);
         }
       }
 
@@ -145,14 +137,6 @@ export const useCategoryImageUpload = ({
       // الحصول على الصورة الحالية إن وجدت
       const existingImage = categoryImages.find(img => img.category === category);
       
-      // إضافة طابع زمني للصورة لتجنب التخزين المؤقت
-      const timestampedUrl = getUrlWithTimestamp(url);
-      
-      // تحميل مسبق للصورة لتحسين وقت العرض
-      const preloadImage = new Image();
-      preloadImage.src = timestampedUrl || '';
-      preloadImage.fetchPriority = "high";
-      
       // تحديث أو إنشاء سجل لصورة التصنيف
       if (existingImage) {
         console.log(`تحديث صورة التصنيف: ${category}`);
@@ -168,7 +152,7 @@ export const useCategoryImageUpload = ({
 
         if (data?.[0]) {
           const updatedImages = categoryImages.map(img => 
-            img.id === existingImage.id ? {...data[0], image_url: timestampedUrl} : img
+            img.id === existingImage.id ? data[0] : img
           );
           onUpdateImages(updatedImages);
         }
@@ -188,7 +172,7 @@ export const useCategoryImageUpload = ({
         }
 
         if (data?.[0]) {
-          onUpdateImages([...categoryImages, {...data[0], image_url: timestampedUrl}]);
+          onUpdateImages([...categoryImages, data[0]]);
         }
       }
 
