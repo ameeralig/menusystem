@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { CategoryImage } from "@/types/categoryImage";
+import { getUrlWithTimestamp } from "@/utils/storageHelpers";
 
 export const useCategoryImages = (userId: string | null, forceRefresh: number) => {
   const [categoryImages, setCategoryImages] = useState<CategoryImage[]>([]);
@@ -32,18 +33,13 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
 
         console.log(`تم استلام صور التصنيفات بنجاح، عددها: ${data?.length || 0}`);
         
-        // إضافة طابع زمني لجميع الصور لكسر التخزين المؤقت
-        const uniqueTimestamp = forceRefresh || Date.now();
-        const cacheBreaker = `t=${uniqueTimestamp}&nocache=${Math.random()}`;
-        
         if (data && data.length > 0) {
           const updatedImages = data.map(img => {
             if (img.image_url) {
-              // استخراج الرابط الأساسي وإضافة طابع زمني
-              const baseUrl = img.image_url.split('?')[0];
+              // استخدام getUrlWithTimestamp لإضافة طابع زمني
               return {
                 ...img,
-                image_url: `${baseUrl}?${cacheBreaker}`
+                image_url: getUrlWithTimestamp(img.image_url) || img.image_url
               };
             }
             return img;

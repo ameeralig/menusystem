@@ -1,4 +1,3 @@
-
 import { supabase } from "@/lib/supabase";
 
 /**
@@ -140,70 +139,6 @@ export const optimizeImage = async (file: File): Promise<File> => {
 };
 
 /**
- * رفع صورة إلى مستودع Supabase
- * @param bucket اسم المستودع (مثل 'product-images' أو 'category-images')
- * @param file ملف الصورة
- * @param userId معرف المستخدم
- * @param folder اسم المجلد الفرعي (اختياري)
- * @returns رابط الصورة العام
- */
-export const uploadImage = async (
-  bucket: string,
-  file: File,
-  userId: string,
-  folder: string = ''
-): Promise<string> => {
-  try {
-    console.log(`بدء رفع صورة إلى دلو ${bucket} للمستخدم ${userId}`);
-    
-    // تحسين الصورة قبل الرفع
-    const optimizedFile = await optimizeImage(file);
-    
-    const filePath = createUniqueFilePath(userId, folder, optimizedFile);
-    console.log(`مسار الملف: ${filePath}`);
-    
-    // تعيين خيارات CORS وتحديث رؤوس التخزين المؤقت
-    const options = {
-      cacheControl: 'max-age=31536000', // تخزين مؤقت لمدة سنة
-      upsert: true,
-      contentType: optimizedFile.type
-    };
-    
-    const { error: uploadError, data } = await supabase.storage
-      .from(bucket)
-      .upload(filePath, optimizedFile, options);
-
-    if (uploadError) {
-      console.error("خطأ في رفع الصورة:", uploadError);
-      throw uploadError;
-    }
-
-    // الحصول على الرابط العام
-    const { data: { publicUrl } } = supabase.storage
-      .from(bucket)
-      .getPublicUrl(filePath);
-      
-    console.log(`تم رفع الصورة بنجاح. الرابط العام: ${publicUrl}`);
-    return publicUrl;
-  } catch (error) {
-    console.error("خطأ في رفع الصورة:", error);
-    throw error;
-  }
-};
-
-/**
- * تحويل URL الصورة (مثل blob) إلى كائن File
- * @param url رابط الصورة
- * @param filename اسم الملف
- * @returns كائن File
- */
-export const urlToFile = async (url: string, filename: string): Promise<File> => {
-  const response = await fetch(url);
-  const blob = await response.blob();
-  return new File([blob], filename, { type: blob.type });
-};
-
-/**
  * إنشاء رابط مع طابع زمني لتجنب مشاكل التخزين المؤقت
  * @param url الرابط الأصلي
  * @returns رابط مع طابع زمني
@@ -286,5 +221,69 @@ export const extractFilePathFromUrl = (url: string, bucket: string): string | nu
   } catch (e) {
     console.error("خطأ في استخراج مسار الملف:", e);
     return null;
+  }
+};
+
+/**
+ * تحويل URL الصورة (مثل blob) إلى كائن File
+ * @param url رابط الصورة
+ * @param filename اسم الملف
+ * @returns كائن File
+ */
+export const urlToFile = async (url: string, filename: string): Promise<File> => {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  return new File([blob], filename, { type: blob.type });
+};
+
+/**
+ * رفع صورة إلى مستودع Supabase
+ * @param bucket اسم المستودع (مثل 'product-images' أو 'category-images')
+ * @param file ملف الصورة
+ * @param userId معرف المستخدم
+ * @param folder اسم المجلد الفرعي (اختياري)
+ * @returns رابط الصورة العام
+ */
+export const uploadImage = async (
+  bucket: string,
+  file: File,
+  userId: string,
+  folder: string = ''
+): Promise<string> => {
+  try {
+    console.log(`بدء رفع صورة إلى دلو ${bucket} للمستخدم ${userId}`);
+    
+    // تحسين الصورة قبل الرفع
+    const optimizedFile = await optimizeImage(file);
+    
+    const filePath = createUniqueFilePath(userId, folder, optimizedFile);
+    console.log(`مسار الملف: ${filePath}`);
+    
+    // تعيين خيارات CORS وتحديث رؤوس التخزين المؤقت
+    const options = {
+      cacheControl: 'max-age=31536000', // تخزين مؤقت لمدة سنة
+      upsert: true,
+      contentType: optimizedFile.type
+    };
+    
+    const { error: uploadError, data } = await supabase.storage
+      .from(bucket)
+      .upload(filePath, optimizedFile, options);
+
+    if (uploadError) {
+      console.error("خطأ في رفع الصورة:", uploadError);
+      throw uploadError;
+    }
+
+    // الحصول على الرابط العام
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(filePath);
+      
+    console.log(`تم رفع الصورة بنجاح. الرابط العام: ${publicUrl}`);
+    return publicUrl;
+  } catch (error) {
+    console.error("خطأ في رفع الصورة:", error);
+    throw error;
   }
 };

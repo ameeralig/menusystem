@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { CategoryImage } from "@/types/categoryImage";
-import { uploadImage, deleteImage, extractFilePathFromUrl } from "@/utils/storageHelpers";
+import { uploadImage, deleteImage, extractFilePathFromUrl, optimizeImage, getUrlWithTimestamp } from "@/utils/storageHelpers";
 
 interface UseCategoryImageUploadProps {
   categoryImages: CategoryImage[];
@@ -15,6 +15,7 @@ export const useCategoryImageUpload = ({
   onUpdateImages
 }: UseCategoryImageUploadProps) => {
   const [uploading, setUploading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   // رفع ملف صورة للتصنيف
@@ -22,6 +23,7 @@ export const useCategoryImageUpload = ({
     try {
       console.log(`بدء رفع صورة للتصنيف: ${category}`);
       setUploading(category);
+      setError(null);
 
       // التأكد من وجود مستخدم
       const { data: userData } = await supabase.auth.getUser();
@@ -30,6 +32,9 @@ export const useCategoryImageUpload = ({
       }
 
       const userId = userData.user.id;
+      
+      // تحسين الصورة قبل الرفع لتقليل الحجم وتحسين الأداء
+      const optimizedFile = await optimizeImage(file);
       
       // الحصول على الصورة الحالية إن وجدت
       const existingImage = categoryImages.find(img => img.category === category);
@@ -45,7 +50,15 @@ export const useCategoryImageUpload = ({
 
       // رفع الصورة الجديدة
       console.log(`رفع صورة جديدة للتصنيف: ${category}`);
-      const imageUrl = await uploadImage("category-images", file, userId, category);
+      const imageUrl = await uploadImage("category-images", optimizedFile, userId, category);
+
+      // إضافة طابع زمني للصورة لتجنب التخزين المؤقت
+      const timestampedUrl = getUrlWithTimestamp(imageUrl);
+
+      // تحميل مسبق للصورة لتحسين وقت العرض
+      const preloadImage = new Image();
+      preloadImage.src = timestampedUrl || '';
+      preloadImage.fetchPriority = "high";
 
       // تحديث أو إنشاء سجل لصورة التصنيف
       if (existingImage) {
@@ -62,7 +75,7 @@ export const useCategoryImageUpload = ({
 
         if (data?.[0]) {
           const updatedImages = categoryImages.map(img => 
-            img.id === existingImage.id ? data[0] : img
+            img.id === existingImage.id ? {...data[0], image_url: timestampedUrl} : img
           );
           onUpdateImages(updatedImages);
         }
@@ -82,7 +95,7 @@ export const useCategoryImageUpload = ({
         }
 
         if (data?.[0]) {
-          onUpdateImages([...categoryImages, data[0]]);
+          onUpdateImages([...categoryImages, {...data[0], image_url: timestampedUrl}]);
         }
       }
 
@@ -95,9 +108,102 @@ export const useCategoryImageUpload = ({
 
     } catch (error: any) {
       console.error(`خطأ في رفع صورة التصنيف ${category}:`, error);
+      setError(error.message);
       toast({
         title: "فشل رفع الصورة",
         description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(null);
+    }
+  };
+
+  // رفع صورة عن طريق الرابط
+  const handleUrlUpload = async (category: string, url: string) => {
+    try {
+      if (!url.trim()) {
+        setError("الرجاء إدخال رابط صالح للصورة");
+        return;
+      }
+      
+      console.log(`بدء رفع صورة للتصنيف ${category} من الرابط: ${url}`);
+      setUploading(category);
+      setError(null);
+      
+      // التأكد من أن URL صالح
+      new URL(url);
+      
+      // التأكد من وجود مستخدم
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) {
+        throw new Error("يجب تسجيل الدخول أولاً");
+      }
+
+      const userId = userData.user.id;
+      
+      // الحصول على الصورة الحالية إن وجدت
+      const existingImage = categoryImages.find(img => img.category === category);
+      
+      // إضافة طابع زمني للصورة لتجنب التخزين المؤقت
+      const timestampedUrl = getUrlWithTimestamp(url);
+      
+      // تحميل مسبق للصورة لتحسين وقت العرض
+      const preloadImage = new Image();
+      preloadImage.src = timestampedUrl || '';
+      preloadImage.fetchPriority = "high";
+      
+      // تحديث أو إنشاء سجل لصورة التصنيف
+      if (existingImage) {
+        console.log(`تحديث صورة التصنيف: ${category}`);
+        const { data, error } = await supabase
+          .from("category_images")
+          .update({ image_url: url })
+          .eq("id", existingImage.id)
+          .select("*");
+
+        if (error) {
+          throw error;
+        }
+
+        if (data?.[0]) {
+          const updatedImages = categoryImages.map(img => 
+            img.id === existingImage.id ? {...data[0], image_url: timestampedUrl} : img
+          );
+          onUpdateImages(updatedImages);
+        }
+      } else {
+        console.log(`إنشاء صورة جديدة للتصنيف: ${category}`);
+        const { data, error } = await supabase
+          .from("category_images")
+          .insert({
+            user_id: userId,
+            category: category,
+            image_url: url,
+          })
+          .select("*");
+
+        if (error) {
+          throw error;
+        }
+
+        if (data?.[0]) {
+          onUpdateImages([...categoryImages, {...data[0], image_url: timestampedUrl}]);
+        }
+      }
+
+      console.log(`تم رفع الصورة للتصنيف ${category} بنجاح من الرابط`);
+      
+      toast({
+        title: "تم رفع الصورة بنجاح",
+        description: `تم تحديث صورة التصنيف ${category}`,
+      });
+    } catch (error: any) {
+      console.error(`خطأ في رفع صورة التصنيف ${category} من الرابط:`, error);
+      setError(error.message || "رابط الصورة غير صالح");
+      toast({
+        title: "فشل رفع الصورة",
+        description: error.message || "رابط الصورة غير صالح",
         variant: "destructive"
       });
     } finally {
@@ -110,6 +216,7 @@ export const useCategoryImageUpload = ({
     try {
       console.log(`بدء عملية حذف صورة التصنيف: ${category}`);
       setUploading(category);
+      setError(null);
 
       const imageToRemove = categoryImages.find(img => img.category === category);
       if (!imageToRemove) {
@@ -145,6 +252,7 @@ export const useCategoryImageUpload = ({
 
     } catch (error: any) {
       console.error(`خطأ في حذف صورة التصنيف ${category}:`, error);
+      setError(error.message);
       toast({
         title: "فشل حذف الصورة",
         description: error.message,
@@ -157,7 +265,10 @@ export const useCategoryImageUpload = ({
 
   return {
     uploading,
+    error,
+    setError,
     handleFileUpload,
+    handleUrlUpload,
     removeImage
   };
 };
