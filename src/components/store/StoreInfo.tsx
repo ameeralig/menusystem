@@ -93,27 +93,29 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
       
       if (openDays.length === 0) {
         return (
-          <div className="text-right mb-2 p-2 bg-gray-100 dark:bg-gray-800 rounded-md">
+          <div className="text-left mb-2 p-2 bg-gray-100 dark:bg-gray-800 rounded-md">
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300">المتجر مغلق حالياً</p>
           </div>
         );
       }
       
       return (
-        <div className="text-right mb-2 p-2 bg-gray-100 dark:bg-gray-800 rounded-md">
+        <div className="text-left mb-2 p-2 bg-gray-100 dark:bg-gray-800 rounded-md">
           <div className="grid gap-1">
             {workDays.map((day) => {
               const dayLabel = weekDays.find(d => d.id === day.day)?.label || day.day;
               return (
                 <div key={day.day} className="flex justify-between items-center text-sm">
                   <div className="flex items-center">
+                    <span className="font-medium">{dayLabel}</span>
+                  </div>
+                  <div>
                     {day.isOpen ? (
                       <span className="text-green-600 dark:text-green-400">{day.openTime} - {day.closeTime}</span>
                     ) : (
                       <span className="text-red-500 dark:text-red-400">مغلق</span>
                     )}
                   </div>
-                  <span className="font-medium">{dayLabel}</span>
                 </div>
               );
             })}
@@ -127,11 +129,11 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
   };
 
   return (
-    <div className="mt-2 mb-6 text-right space-y-3">
+    <div className="mt-2 mb-6 text-left space-y-3">
       {contactInfo.description && (
-        <div className="flex items-center justify-end gap-2 text-gray-700 dark:text-gray-300">
-          <p className="text-sm">{contactInfo.description}</p>
+        <div className="flex items-center justify-start gap-2 text-gray-700 dark:text-gray-300">
           <Info className={`w-4 h-4 ${themeIconClasses}`} />
+          <p className="text-sm">{contactInfo.description}</p>
         </div>
       )}
 
@@ -141,12 +143,12 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
           onOpenChange={setIsBusinessHoursOpen}
           className="border-b border-transparent"
         >
-          <CollapsibleTrigger className="flex items-center justify-end gap-2 text-gray-700 dark:text-gray-300 w-full cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md p-1 transition-colors">
+          <CollapsibleTrigger className="flex items-center justify-start gap-2 text-gray-700 dark:text-gray-300 w-full cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md p-1 transition-colors">
             <div className="flex items-center gap-2">
-              <p className="text-sm font-medium">ساعات العمل</p>
               <Clock className={`w-4 h-4 ${themeIconClasses}`} />
+              <p className="text-sm font-medium">ساعات العمل</p>
             </div>
-            <ChevronDown className={`w-4 h-4 ${isBusinessHoursOpen ? "transform rotate-180" : ""} transition-transform duration-200`} />
+            <ChevronDown className={`w-4 h-4 mr-auto ${isBusinessHoursOpen ? "transform rotate-180" : ""} transition-transform duration-200`} />
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-1">
             {formatBusinessHours()}
@@ -156,35 +158,35 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
 
       {contactInfo.address && (
         <div 
-          className="flex items-center justify-end gap-2 text-gray-700 dark:text-gray-300 cursor-pointer hover:underline" 
+          className="flex items-center justify-start gap-2 text-gray-700 dark:text-gray-300 cursor-pointer hover:underline" 
           onClick={handleGoogleMapsClick}
         >
-          <p className="text-sm">انقر هنا لمعرفة موقع المتجر</p>
           <MapPin className={`w-4 h-4 ${themeIconClasses}`} />
+          <p className="text-sm">انقر هنا لمعرفة موقع المتجر</p>
         </div>
       )}
 
       {contactInfo.phone && (
-        <div className="flex items-center justify-end gap-2 text-gray-700 dark:text-gray-300">
+        <div className="flex items-center justify-start gap-2 text-gray-700 dark:text-gray-300">
+          <Phone className={`w-4 h-4 ${themeIconClasses}`} />
           <a href={`tel:${contactInfo.phone}`} className="text-sm hover:underline">
             {contactInfo.phone}
           </a>
-          <Phone className={`w-4 h-4 ${themeIconClasses}`} />
         </div>
       )}
 
       {contactInfo.wifi && (
-        <div className="flex flex-col items-end">
+        <div className="flex flex-col items-start">
           <div 
-            className="flex items-center justify-end gap-2 text-gray-700 dark:text-gray-300 cursor-pointer"
+            className="flex items-center justify-start gap-2 text-gray-700 dark:text-gray-300 cursor-pointer"
             onClick={toggleWifiCode}
           >
-            <p className="text-sm">رمز شبكة Wifi</p>
             <Wifi className={`w-4 h-4 ${themeIconClasses}`} />
+            <p className="text-sm">رمز شبكة Wifi</p>
           </div>
           
           {isWifiCodeVisible && (
-            <div className="mt-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-md text-center">
+            <div className="mt-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-md text-center w-full">
               <p className="font-mono">{contactInfo.wifi}</p>
             </div>
           )}

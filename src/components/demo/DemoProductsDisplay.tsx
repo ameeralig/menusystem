@@ -8,6 +8,7 @@ import ProductGrid from "@/components/store/ProductGrid";
 import BackButton from "@/components/store/BackButton";
 import EmptyCategoryMessage from "@/components/store/EmptyCategoryMessage";
 import { CategoryImage } from "@/types/categoryImage";
+import StoreInfo from "@/components/store/StoreInfo";
 
 type FontSettings = {
   storeName?: {
@@ -27,12 +28,21 @@ type FontSettings = {
   };
 };
 
+type ContactInfo = {
+  description?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  wifi?: string | null;
+  businessHours?: string | null;
+};
+
 interface DemoProductsDisplayProps {
   products: Product[];
   storeName: string;
   colorTheme: string;
   categoryImages?: CategoryImage[];
   fontSettings?: FontSettings;
+  contactInfo?: ContactInfo;
 }
 
 const DemoProductsDisplay = ({ 
@@ -40,7 +50,8 @@ const DemoProductsDisplay = ({
   storeName, 
   colorTheme,
   categoryImages = [],
-  fontSettings
+  fontSettings,
+  contactInfo = {}
 }: DemoProductsDisplayProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -92,6 +103,9 @@ const DemoProductsDisplay = ({
   return (
     <>
       <StoreHeader storeName={storeName} colorTheme={colorTheme} fontSettings={fontSettings} />
+      
+      <StoreInfo contactInfo={contactInfo} colorTheme={colorTheme} />
+      
       <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
       {!selectedCategory ? (
