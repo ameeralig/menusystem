@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { CategoryImage } from "@/types/categoryImage";
-import { getUrlWithTimestamp } from "@/utils/storageHelpers";
 
 export const useCategoryImages = (userId: string | null, forceRefresh: number) => {
   const [categoryImages, setCategoryImages] = useState<CategoryImage[]>([]);
@@ -22,11 +21,12 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
         console.log("جاري جلب صور التصنيفات للمستخدم:", userId);
         setIsLoading(true);
         
-        // استخدام استعلام مباشر مع تحديد عمود user_id بشكل صريح في الاستعلام
+        // استخدام استعلام مباشر بدلاً من طبقة التخزين المؤقت
         const { data, error } = await supabase
           .from("category_images")
           .select("*")
-          .eq("user_id", userId);
+          .eq("user_id", userId)
+          .order('created_at', { ascending: false });
 
         if (error) {
           throw error;
@@ -34,18 +34,25 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
 
         console.log(`تم استلام صور التصنيفات بنجاح، عددها: ${data?.length || 0}`);
         
+        // إضافة طابع زمني لجميع الصور لكسر التخزين المؤقت
+        const uniqueTimestamp = forceRefresh || Date.now();
+        
         if (data && data.length > 0) {
-          // استخدام تابع getUrlWithTimestamp لتحديث روابط الصور
           const updatedImages = data.map(img => {
-            return {
-              ...img,
-              image_url: img.image_url ? getUrlWithTimestamp(img.image_url, forceRefresh) : null
-            };
+            if (img.image_url) {
+              // استخراج الرابط الأساسي وإضافة طابع زمني
+              const baseUrl = img.image_url.split('?')[0];
+              return {
+                ...img,
+                image_url: `${baseUrl}?t=${uniqueTimestamp}&nocache=true`
+              };
+            }
+            return img;
           });
           
           console.log(`تم تحديث ${updatedImages.length} صورة تصنيف بطابع زمني جديد`);
 
-          // تحميل مسبق للصور لتحسين الأداء
+          // تحميل مسبق للصور (preload) لتحسين الأداء
           updatedImages.forEach(img => {
             if (img.image_url) {
               const preloadImage = new Image();

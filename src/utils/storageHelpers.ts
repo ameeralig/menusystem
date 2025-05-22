@@ -1,3 +1,4 @@
+
 import { supabase } from "@/lib/supabase";
 
 /**
@@ -259,26 +260,20 @@ export const urlToFile = async (url: string, filename: string): Promise<File> =>
 /**
  * إنشاء رابط مع طابع زمني لتجنب مشاكل التخزين المؤقت
  * @param url الرابط الأصلي
- * @param forceRefresh رقم إجباري للتحديث (اختياري)
  * @returns رابط مع طابع زمني
  */
-export const getUrlWithTimestamp = (url: string | null, forceRefresh?: number): string | null => {
+export const getUrlWithTimestamp = (url: string | null): string | null => {
   if (!url) return null;
   
-  const timestamp = forceRefresh || Date.now();
+  const timestamp = Date.now();
+  const baseUrl = url.split('?')[0];
   
-  // التحقق من وجود معلمات في الرابط الأصلي
-  const hasParams = url.includes('?');
-  const separator = hasParams ? '&' : '?';
-  
-  // تحسين URL الصورة باستخدام WebP إذا كان متاحًا في Supabase
-  if (url.includes('supabase.co') || url.includes('lovable-app')) {
-    const baseUrl = url.split('?')[0]; // الحصول على الرابط الأساسي بدون معلمات
-    return `${baseUrl}?format=webp&quality=80&t=${timestamp}&nocache=true`;
+  // تحسين URL الصورة لاستخدام WebP إذا كان متاحًا
+  if (baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')) {
+    return `${baseUrl}?format=webp&quality=80&t=${timestamp}`;
   }
   
-  // إذا كان الرابط من مصدر آخر، نضيف فقط معلمة زمنية
-  return `${url}${separator}t=${timestamp}&nocache=true`;
+  return `${baseUrl}?t=${timestamp}`;
 };
 
 /**
