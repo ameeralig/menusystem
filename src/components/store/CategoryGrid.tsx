@@ -32,14 +32,17 @@ const CategoryCard = ({
 }) => {
   const [imgError, setImgError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(imageUrl);
   
   // إعادة تعيين حالة الخطأ والتحميل عند تغيير الرابط
   useEffect(() => {
-    if (imageUrl) {
+    if (imageUrl && imageUrl !== currentImageUrl) {
       setImgError(false);
       setIsLoading(true);
+      setCurrentImageUrl(imageUrl);
+      console.log(`تحديث رابط صورة التصنيف ${category}: ${imageUrl}`);
     }
-  }, [imageUrl]);
+  }, [imageUrl, category, currentImageUrl]);
   
   return (
     <motion.div
@@ -48,7 +51,7 @@ const CategoryCard = ({
       onClick={onClick}
     >
       <div className="h-[140px] overflow-hidden">
-        {!imgError && imageUrl ? (
+        {!imgError && currentImageUrl ? (
           <>
             {isLoading && (
               <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
@@ -56,11 +59,11 @@ const CategoryCard = ({
               </div>
             )}
             <img 
-              src={imageUrl} 
+              src={currentImageUrl} 
               alt={category}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               onError={() => {
-                console.error(`خطأ في تحميل صورة التصنيف: ${category}، رابط: ${imageUrl}`);
+                console.error(`خطأ في تحميل صورة التصنيف: ${category}، رابط: ${currentImageUrl}`);
                 setImgError(true);
                 setIsLoading(false);
               }}
@@ -99,6 +102,15 @@ const CategoryGrid = ({
   const [fontFaceLoaded, setFontFaceLoaded] = useState(false);
   const [fontId, setFontId] = useState<string>("");
   
+  // تسجيل معلومات تفصيلية عن الصور المتوفرة
+  useEffect(() => {
+    console.log(`CategoryGrid: تلقي ${categoryImages?.length || 0} صورة تصنيف`);
+    if (categoryImages?.length > 0) {
+      console.log("صور التصنيفات المتاحة في CategoryGrid:", 
+        categoryImages.map(img => `${img.category}: ${img.image_url?.substring(0, 50)}...`));
+    }
+  }, [categoryImages]);
+  
   // معالجة الخط المخصص إذا كان متاحاً
   useEffect(() => {
     if (fontSettings?.categoryText?.isCustom && fontSettings?.categoryText?.customFontUrl) {
@@ -127,34 +139,16 @@ const CategoryGrid = ({
   // الحصول على رابط صورة التصنيف مع التحقق من وجودها
   const getCategoryImageUrl = (category: string): string | null => {
     if (!categoryImages || categoryImages.length === 0) {
-      console.log(`لا توجد صور للتصنيفات متاحة للتصنيف: ${category}`);
       return null;
     }
     
     const imageData = categoryImages.find(img => img.category === category);
     if (!imageData?.image_url) {
-      console.log(`لم يتم العثور على صورة للتصنيف: ${category}`);
       return null;
     }
     
-    // تسجيل معلومات التصحيح
-    console.log(`استخدام صورة للتصنيف: ${category} - الرابط: ${imageData.image_url}`);
-    
     return imageData.image_url;
   };
-
-  // تسجيل معلومات للتصحيح
-  useEffect(() => {
-    console.log(`CategoryGrid: تلقي ${categoryImages?.length || 0} صورة تصنيف`);
-    if (categoryImages?.length > 0) {
-      console.log("تفاصيل صور التصنيفات المتاحة في CategoryGrid:");
-      categoryImages.forEach(img => {
-        console.log(`- التصنيف: ${img.category}, الرابط: ${img.image_url || 'غير متوفر'}`);
-      });
-    }
-    
-    console.log("التصنيفات المتاحة:", categories);
-  }, [categoryImages, categories]);
 
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">

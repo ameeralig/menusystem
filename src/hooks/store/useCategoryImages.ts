@@ -34,7 +34,7 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
 
         console.log(`تم استلام صور التصنيفات بنجاح، عددها: ${data?.length || 0}`);
         
-        // إضافة طابع زمني لجميع الصور لكسر التخزين المؤقت
+        // إنشاء طابع زمني فريد لجميع الصور
         const uniqueTimestamp = forceRefresh || Date.now();
         
         if (data && data.length > 0) {
@@ -42,9 +42,21 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
             if (img.image_url) {
               // استخراج الرابط الأساسي وإضافة طابع زمني
               const baseUrl = img.image_url.split('?')[0];
+              
+              // التحقق من نوع الرابط (Supabase أو غيره)
+              const isSupabaseUrl = baseUrl.includes('supabase.co') || 
+                                    baseUrl.includes('supabase.in') || 
+                                    baseUrl.includes('zqlckixwpyrwdwrsuhsg') ||
+                                    baseUrl.includes('lovable-app');
+                                    
+              // إنشاء رابط جديد مع معلمات مختلفة حسب المصدر
+              const updatedUrl = isSupabaseUrl 
+                ? `${baseUrl}?format=webp&quality=80&t=${uniqueTimestamp}&nocache=true&width=400`
+                : `${baseUrl}?t=${uniqueTimestamp}&nocache=true`;
+                
               return {
                 ...img,
-                image_url: `${baseUrl}?t=${uniqueTimestamp}&nocache=true`
+                image_url: updatedUrl
               };
             }
             return img;
@@ -57,18 +69,9 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
             if (img.image_url) {
               const preloadImage = new Image();
               preloadImage.src = img.image_url;
-              preloadImage.fetchPriority = "high";
-              console.log(`تحميل مسبق للصورة: ${img.category}`);
+              console.log(`تحميل مسبق للصورة: ${img.category} - ${img.image_url}`);
             }
           });
-
-          // طباعة تفاصيل صور التصنيفات بعد المعالجة
-          if (updatedImages.length > 0) {
-            console.log("تفاصيل صور التصنيفات بعد المعالجة:");
-            updatedImages.forEach(img => {
-              console.log(`- التصنيف: ${img.category}, الرابط: ${img.image_url || 'غير متوفر'}`);
-            });
-          }
           
           setCategoryImages(updatedImages);
         } else {
