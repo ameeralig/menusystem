@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { CategoryImage } from "@/types/categoryImage";
+import { getUrlWithTimestamp } from "@/utils/storageHelpers";
 
 export const useCategoryImages = (categoryImages: CategoryImage[] = []) => {
   const [processedCategoryImages, setProcessedCategoryImages] = useState<CategoryImage[]>([]);
@@ -10,22 +11,13 @@ export const useCategoryImages = (categoryImages: CategoryImage[] = []) => {
     if (categoryImages && categoryImages.length > 0) {
       console.log("معالجة صور التصنيفات...", categoryImages.length);
       
-      // إضافة طابع زمني جديد للتأكد من عدم استخدام الصور المخزنة مؤقتًا
-      const timestamp = Date.now();
+      // استخدام تابع getUrlWithTimestamp لتحديث روابط الصور
       const processed = categoryImages.map(img => {
         if (!img.image_url) return img;
         
-        // تحليل الرابط للتأكد من عدم تكرار المعلمات
-        const baseUrl = img.image_url.split('?')[0];
-        
-        // تحسين URL الصورة لاستخدام WebP إذا كان متاحًا
-        const newImageUrl = baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')
-          ? `${baseUrl}?format=webp&quality=80&t=${timestamp}&nocache=true`
-          : `${baseUrl}?t=${timestamp}&nocache=true`;
-        
         return {
           ...img,
-          image_url: newImageUrl
+          image_url: getUrlWithTimestamp(img.image_url)
         };
       });
       

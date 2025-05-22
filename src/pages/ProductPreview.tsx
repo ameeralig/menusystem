@@ -38,12 +38,6 @@ const ProductPreview = () => {
       metaTag.setAttribute('content', tag.content);
     });
 
-    // إضافة رؤوس للتخزين المؤقت للصور والملفات الثابتة
-    const cacheControlHeaders = document.createElement('meta');
-    cacheControlHeaders.setAttribute('http-equiv', 'Cache-Control');
-    cacheControlHeaders.setAttribute('content', 'max-age=86400, public'); // تخزين مؤقت لمدة 24 ساعة للأصول الثابتة
-    document.head.appendChild(cacheControlHeaders);
-
     return () => {
       metaTags.forEach(tag => {
         const metaTag = document.querySelector(`meta[name="${tag.name}"]`);
@@ -51,11 +45,10 @@ const ProductPreview = () => {
           metaTag.remove();
         }
       });
-      cacheControlHeaders.remove();
     };
   }, []);
 
-  // تحديث تلقائي كل دقيقة للتحقق من التغييرات
+  // تحديث تلقائي كل 30 ثانية للتحقق من التغييرات
   useEffect(() => {
     const interval = setInterval(() => {
       if (isAutoRefresh) {
@@ -63,7 +56,7 @@ const ProductPreview = () => {
         refreshData();
         setLastManualRefresh(Date.now());
       }
-    }, 60000); // تحديث كل دقيقة
+    }, 30000); // تحديث كل 30 ثانية
     
     return () => clearInterval(interval);
   }, [isAutoRefresh, refreshData]);
@@ -77,7 +70,7 @@ const ProductPreview = () => {
     }
   }, [storeData.bannerUrl, forceRefresh, lastManualRefresh]);
 
-  // تفعيل الاستماع للتحديثات المباشرة بشكل هادئ في الخلفية
+  // تفعيل الاستماع للتحديثات المباشرة
   useEffect(() => {
     if (!storeOwnerId) {
       return;
@@ -88,7 +81,7 @@ const ProductPreview = () => {
       .channel('products-changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'products', filter: `user_id=eq.${storeOwnerId}` }, 
-        (payload) => {
+        () => {
           if (isAutoRefresh) {
             toast.info("تم تحديث المنتجات");
             refreshData();
@@ -103,7 +96,7 @@ const ProductPreview = () => {
       .channel('settings-changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'store_settings', filter: `user_id=eq.${storeOwnerId}` }, 
-        (payload) => {
+        () => {
           if (isAutoRefresh) {
             toast.info("تم تحديث إعدادات المتجر");
             refreshData();
@@ -118,7 +111,7 @@ const ProductPreview = () => {
       .channel('categories-changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'category_images', filter: `user_id=eq.${storeOwnerId}` }, 
-        (payload) => {
+        () => {
           if (isAutoRefresh) {
             toast.info("تم تحديث التصنيفات");
             refreshData();

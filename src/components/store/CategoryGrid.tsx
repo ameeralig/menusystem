@@ -124,7 +124,7 @@ const CategoryGrid = ({
     return {};
   };
 
-  // الحصول على رابط صورة التصنيف مع التحقق من وجودها
+  // الحصول على رابط صورة التصنيف
   const getCategoryImageUrl = (category: string): string | null => {
     if (!categoryImages || categoryImages.length === 0) {
       console.log(`لا توجد صور للتصنيفات متاحة للتصنيف: ${category}`);
@@ -137,7 +137,7 @@ const CategoryGrid = ({
       return null;
     }
     
-    // تسجيل معلومات التصحيح
+    // تسجيل رابط الصورة للتصحيح
     console.log(`استخدام صورة للتصنيف: ${category} - الرابط: ${imageData.image_url}`);
     
     return imageData.image_url;
