@@ -43,6 +43,18 @@ const ProductPreview = () => {
     cacheControlHeaders.setAttribute('http-equiv', 'Cache-Control');
     cacheControlHeaders.setAttribute('content', 'max-age=86400, public'); // تخزين مؤقت لمدة 24 ساعة للأصول الثابتة
     document.head.appendChild(cacheControlHeaders);
+    
+    // إضافة رؤوس CORS للسماح بالوصول عبر المجالات المختلفة
+    const corsHeaders = document.createElement('meta');
+    corsHeaders.setAttribute('http-equiv', 'Access-Control-Allow-Origin');
+    corsHeaders.setAttribute('content', '*');
+    document.head.appendChild(corsHeaders);
+    
+    // إضافة رؤوس لتحسين تحميل الصور
+    const dnsPreconnect = document.createElement('link');
+    dnsPreconnect.setAttribute('rel', 'preconnect');
+    dnsPreconnect.setAttribute('href', 'https://zqlckixwpyrwdwrsuhsg.supabase.co');
+    document.head.appendChild(dnsPreconnect);
 
     return () => {
       metaTags.forEach(tag => {
@@ -52,6 +64,8 @@ const ProductPreview = () => {
         }
       });
       cacheControlHeaders.remove();
+      corsHeaders.remove();
+      dnsPreconnect.remove();
     };
   }, []);
 
@@ -74,8 +88,23 @@ const ProductPreview = () => {
       const preloadImage = new Image();
       preloadImage.src = `${storeData.bannerUrl.split('?')[0]}?t=${Date.now()}`;
       preloadImage.loading = "eager"; // تحميل الصورة الرئيسية بشكل فوري
+      preloadImage.crossOrigin = "anonymous";
     }
-  }, [storeData.bannerUrl, forceRefresh, lastManualRefresh]);
+    
+    // تحميل مسبق لصور التصنيفات
+    if (storeData?.categoryImages && storeData.categoryImages.length > 0) {
+      const timestamp = Date.now();
+      storeData.categoryImages.forEach(img => {
+        if (img.image_url) {
+          const preloadImage = new Image();
+          const baseUrl = img.image_url.split('?')[0];
+          preloadImage.src = `${baseUrl}?t=${timestamp}`;
+          preloadImage.loading = "eager";
+          preloadImage.crossOrigin = "anonymous";
+        }
+      });
+    }
+  }, [storeData.bannerUrl, storeData.categoryImages, forceRefresh, lastManualRefresh]);
 
   // تفعيل الاستماع للتحديثات المباشرة بشكل هادئ في الخلفية
   useEffect(() => {

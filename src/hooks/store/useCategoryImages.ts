@@ -34,12 +34,20 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
         console.log(`تم استلام صور التصنيفات بنجاح، عددها: ${data?.length || 0}`);
         
         if (data && data.length > 0) {
+          // إنشاء نسخة جديدة من المصفوفة مع روابط محدثة بطوابع زمنية جديدة
           const updatedImages = data.map(img => {
             if (img.image_url) {
-              // استخدام getUrlWithTimestamp لإضافة طابع زمني
+              const timestamp = Date.now(); // طابع زمني جديد لكل صورة
+              const baseUrl = img.image_url.split('?')[0];
+              
+              // إضافة طابع زمني ومعلمات تحسين للصورة
+              const optimizedUrl = baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')
+                ? `${baseUrl}?format=webp&quality=80&t=${timestamp}`
+                : `${baseUrl}?t=${timestamp}`;
+                
               return {
                 ...img,
-                image_url: getUrlWithTimestamp(img.image_url) || img.image_url
+                image_url: optimizedUrl
               };
             }
             return img;
@@ -53,6 +61,7 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
               const preloadImage = new Image();
               preloadImage.src = img.image_url;
               preloadImage.fetchPriority = "high";
+              preloadImage.crossOrigin = "anonymous"; // السماح بالوصول عبر المجالات المختلفة
               console.log(`تحميل مسبق للصورة: ${img.category}`);
             }
           });
