@@ -162,12 +162,41 @@ export const uploadImage = async (
     const filePath = createUniqueFilePath(userId, folder, optimizedFile);
     console.log(`مسار الملف: ${filePath}`);
     
+    // التحقق من وجود الدلو
+    try {
+      const { data: bucketsList, error: bucketsError } = await supabase.storage.listBuckets();
+      
+      let bucketExists = false;
+      
+      if (!bucketsError && bucketsList) {
+        bucketExists = bucketsList.some(b => b.name === bucket);
+      }
+      
+      if (!bucketExists) {
+        console.log(`إنشاء دلو جديد: ${bucket}`);
+        const { error: createBucketError } = await supabase.storage.createBucket(bucket, {
+          public: true
+        });
+        
+        if (createBucketError) {
+          console.error(`خطأ في إنشاء دلو ${bucket}:`, createBucketError);
+        } else {
+          console.log(`تم إنشاء دلو ${bucket} بنجاح`);
+        }
+      }
+    } catch (bucketCheckError) {
+      console.error("خطأ أثناء التحقق من وجود الدلو:", bucketCheckError);
+    }
+    
     // تعيين خيارات CORS وتحديث رؤوس التخزين المؤقت
     const options = {
-      cacheControl: 'max-age=31536000', // تخزين مؤقت لمدة سنة
+      cacheControl: 'max-age=3600', // تخزين مؤقت لمدة ساعة واحدة
       upsert: true,
       contentType: optimizedFile.type
     };
+    
+    // ننتظر لحظة قبل الرفع لتجنب مشاكل التزامن
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     const { error: uploadError, data } = await supabase.storage
       .from(bucket)
@@ -175,16 +204,41 @@ export const uploadImage = async (
 
     if (uploadError) {
       console.error("خطأ في رفع الصورة:", uploadError);
-      throw uploadError;
+      
+      // محاولة إنشاء الدلو وإعادة المحاولة
+      if (uploadError.message.includes("bucket") || uploadError.message.includes("not found")) {
+        const { error: createBucketRetryError } = await supabase.storage.createBucket(bucket, {
+          public: true
+        });
+        
+        if (!createBucketRetryError) {
+          // إعادة محاولة الرفع
+          const { error: retryError, data: retryData } = await supabase.storage
+            .from(bucket)
+            .upload(filePath, optimizedFile, options);
+            
+          if (retryError) {
+            throw retryError;
+          }
+        } else {
+          throw createBucketRetryError;
+        }
+      } else {
+        throw uploadError;
+      }
     }
 
     // الحصول على الرابط العام
     const { data: { publicUrl } } = supabase.storage
       .from(bucket)
       .getPublicUrl(filePath);
+    
+    // إضافة طابع زمني للتأكد من عدم استخدام نسخة مخزنة مؤقتًا
+    const timestamp = Date.now();
+    const finalUrl = `${publicUrl}?t=${timestamp}&nocache=true`;
       
-    console.log(`تم رفع الصورة بنجاح. الرابط العام: ${publicUrl}`);
-    return publicUrl;
+    console.log(`تم رفع الصورة بنجاح. الرابط العام: ${finalUrl}`);
+    return finalUrl;
   } catch (error) {
     console.error("خطأ في رفع الصورة:", error);
     throw error;

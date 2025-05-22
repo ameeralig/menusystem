@@ -21,10 +21,12 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
         console.log("جاري جلب صور التصنيفات للمستخدم:", userId);
         setIsLoading(true);
         
+        // استخدام استعلام مباشر بدلاً من طبقة التخزين المؤقت
         const { data, error } = await supabase
           .from("category_images")
           .select("*")
-          .eq("user_id", userId);
+          .eq("user_id", userId)
+          .order('created_at', { ascending: false });
 
         if (error) {
           throw error;
@@ -34,7 +36,6 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
         
         // إضافة طابع زمني لجميع الصور لكسر التخزين المؤقت
         const uniqueTimestamp = forceRefresh || Date.now();
-        const cacheBreaker = `t=${uniqueTimestamp}&nocache=${Math.random()}`;
         
         if (data && data.length > 0) {
           const updatedImages = data.map(img => {
@@ -43,7 +44,7 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
               const baseUrl = img.image_url.split('?')[0];
               return {
                 ...img,
-                image_url: `${baseUrl}?${cacheBreaker}`
+                image_url: `${baseUrl}?t=${uniqueTimestamp}&nocache=true`
               };
             }
             return img;

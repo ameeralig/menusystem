@@ -1,5 +1,5 @@
 
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import { CategoryImage } from "@/types/categoryImage";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -34,9 +34,20 @@ interface CategorySectionProps {
 const CategorySection: React.FC<CategorySectionProps> = ({ 
   categories, 
   onCategorySelect, 
-  categoryImages,
+  categoryImages = [],
   fontSettings 
 }) => {
+  // تسجيل معلومات للتصحيح
+  useEffect(() => {
+    console.log(`CategorySection: تلقي ${categoryImages?.length || 0} صورة تصنيف`);
+    if (categoryImages?.length > 0) {
+      console.log("عينة من صور التصنيفات في CategorySection:");
+      categoryImages.slice(0, 3).forEach(img => {
+        console.log(`- التصنيف: ${img.category}, الرابط: ${img.image_url || 'غير متوفر'}`);
+      });
+    }
+  }, [categoryImages]);
+
   return (
     <Suspense fallback={<CategorySkeleton />}>
       <CategoryGrid 

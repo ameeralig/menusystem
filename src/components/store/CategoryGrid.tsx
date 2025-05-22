@@ -33,6 +33,14 @@ const CategoryCard = ({
   const [imgError, setImgError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
+  // إعادة تعيين حالة الخطأ والتحميل عند تغيير الرابط
+  useEffect(() => {
+    if (imageUrl) {
+      setImgError(false);
+      setIsLoading(true);
+    }
+  }, [imageUrl]);
+  
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
@@ -52,7 +60,7 @@ const CategoryCard = ({
               alt={category}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               onError={() => {
-                console.error(`خطأ في تحميل صورة التصنيف: ${category}`);
+                console.error(`خطأ في تحميل صورة التصنيف: ${category}، رابط: ${imageUrl}`);
                 setImgError(true);
                 setIsLoading(false);
               }}
@@ -61,6 +69,7 @@ const CategoryCard = ({
                 setIsLoading(false);
               }}
               loading="eager"
+              fetchPriority="high"
             />
           </>
         ) : (
@@ -117,10 +126,16 @@ const CategoryGrid = ({
 
   // الحصول على رابط صورة التصنيف مع التحقق من وجودها
   const getCategoryImageUrl = (category: string): string | null => {
-    if (!categoryImages || categoryImages.length === 0) return null;
+    if (!categoryImages || categoryImages.length === 0) {
+      console.log(`لا توجد صور للتصنيفات متاحة للتصنيف: ${category}`);
+      return null;
+    }
     
     const imageData = categoryImages.find(img => img.category === category);
-    if (!imageData?.image_url) return null;
+    if (!imageData?.image_url) {
+      console.log(`لم يتم العثور على صورة للتصنيف: ${category}`);
+      return null;
+    }
     
     // تسجيل معلومات التصحيح
     console.log(`استخدام صورة للتصنيف: ${category} - الرابط: ${imageData.image_url}`);
