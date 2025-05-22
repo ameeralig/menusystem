@@ -3,8 +3,6 @@ import { motion } from "framer-motion";
 import { CSSProperties, useEffect, useState } from "react";
 import { CategoryImage } from "@/types/categoryImage";
 import { Folder } from "lucide-react";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface FontSettings {
   categoryText?: {
@@ -34,67 +32,7 @@ const CategoryCard = ({
 }) => {
   const [imgError, setImgError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [imgSrc, setImgSrc] = useState<string | null>(null);
-
-  // إعداد الصورة مع طابع زمني جديد وتجنب التخزين المؤقت
-  useEffect(() => {
-    if (imageUrl) {
-      // إنشاء طابع زمني جديد لتجنب التخزين المؤقت
-      const timestamp = Date.now();
-      const baseUrl = imageUrl.split('?')[0];
-      
-      // تحسين الصورة إذا كانت من Supabase
-      const useWebP = baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app');
-      const optimizedUrl = useWebP 
-        ? `${baseUrl}?t=${timestamp}&format=webp&quality=80` 
-        : `${baseUrl}?t=${timestamp}`;
-      
-      console.log(`تهيئة صورة التصنيف ${category} مع الرابط: ${optimizedUrl}`);
-      
-      // إنشاء كائن صورة جديد للتحميل المسبق
-      const img = new Image();
-      img.onload = () => {
-        console.log(`تم تحميل صورة التصنيف ${category} بنجاح`);
-        setImgSrc(optimizedUrl);
-        setIsLoading(false);
-        setImgError(false);
-      };
-      
-      img.onerror = (e) => {
-        console.error(`فشل تحميل صورة التصنيف ${category}:`, e);
-        setImgError(true);
-        setIsLoading(false);
-      };
-      
-      // تعيين خصائص الصورة لتحسين التحميل
-      img.decoding = "async";
-      img.fetchPriority = "high";
-      img.crossOrigin = "anonymous";
-      img.src = optimizedUrl;
-      
-      // إعادة المحاولة بعد فترة وجيزة إذا كانت صورة جديدة
-      const retryTimeout = setTimeout(() => {
-        if (img.complete === false) {
-          console.log(`إعادة محاولة تحميل صورة التصنيف ${category} بعد المهلة`);
-          const newTimestamp = Date.now();
-          const retryUrl = useWebP 
-            ? `${baseUrl}?t=${newTimestamp}&format=webp&quality=80&retry=true` 
-            : `${baseUrl}?t=${newTimestamp}&retry=true`;
-          img.src = retryUrl;
-        }
-      }, 2000);
-      
-      return () => {
-        clearTimeout(retryTimeout);
-        img.onload = null;
-        img.onerror = null;
-      };
-    } else {
-      setImgSrc(null);
-      setIsLoading(false);
-    }
-  }, [imageUrl, category]);
-
+  
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
@@ -102,39 +40,42 @@ const CategoryCard = ({
       onClick={onClick}
     >
       <div className="h-[140px] overflow-hidden">
-        <AspectRatio ratio={16 / 9} className="w-full h-full">
-          {isLoading && (
-            <Skeleton className="w-full h-full absolute inset-0" />
-          )}
-          
-          {!imgError && imgSrc ? (
+        {!imgError && imageUrl ? (
+          <>
+            {isLoading && (
+              <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            )}
             <img 
-              src={imgSrc}
+              src={imageUrl} 
               alt={category}
-              className={`w-full h-full object-cover transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               onError={() => {
-                console.error(`خطأ في عرض صورة التصنيف: ${category}`);
+                console.error(`خطأ في تحميل صورة التصنيف: ${category}`);
                 setImgError(true);
+                setIsLoading(false);
+              }}
+              onLoad={() => {
+                console.log(`تم تحميل صورة التصنيف بنجاح: ${category}`);
+                setIsLoading(false);
               }}
               loading="eager"
-              fetchPriority="high"
-              crossOrigin="anonymous"
             />
-          ) : (
-            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-              <Folder className="h-12 w-12 text-gray-400" />
-            </div>
-          )}
-          
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-            <h3 
-              className="text-white text-2xl font-bold tracking-wide px-3 text-center"
-              style={fontStyle}
-            >
-              {category}
-            </h3>
+          </>
+        ) : (
+          <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+            <Folder className="h-12 w-12 text-gray-400" />
           </div>
-        </AspectRatio>
+        )}
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+          <h3 
+            className="text-white text-2xl font-bold tracking-wide px-3 text-center"
+            style={fontStyle}
+          >
+            {category}
+          </h3>
+        </div>
       </div>
     </motion.div>
   );
@@ -174,12 +115,15 @@ const CategoryGrid = ({
     return {};
   };
 
-  // الحصول على رابط صورة التصنيف
+  // الحصول على رابط صورة التصنيف مع التحقق من وجودها
   const getCategoryImageUrl = (category: string): string | null => {
     if (!categoryImages || categoryImages.length === 0) return null;
     
     const imageData = categoryImages.find(img => img.category === category);
     if (!imageData?.image_url) return null;
+    
+    // تسجيل معلومات التصحيح
+    console.log(`استخدام صورة للتصنيف: ${category} - الرابط: ${imageData.image_url}`);
     
     return imageData.image_url;
   };

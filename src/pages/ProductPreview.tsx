@@ -38,36 +38,11 @@ const ProductPreview = () => {
       metaTag.setAttribute('content', tag.content);
     });
 
-    // إضافة رؤوس CORS للسماح بالوصول عبر المجالات المختلفة
-    const corsHeaders = document.createElement('meta');
-    corsHeaders.setAttribute('http-equiv', 'Access-Control-Allow-Origin');
-    corsHeaders.setAttribute('content', '*');
-    document.head.appendChild(corsHeaders);
-    
-    // تحسين الخصوصية والأمان
-    const referrerPolicy = document.createElement('meta');
-    referrerPolicy.setAttribute('name', 'referrer');
-    referrerPolicy.setAttribute('content', 'no-referrer-when-downgrade');
-    document.head.appendChild(referrerPolicy);
-    
-    // إضافة رؤوس DNS preconnect لتحسين تحميل الصور
-    const dnsPreconnect = document.createElement('link');
-    dnsPreconnect.setAttribute('rel', 'preconnect');
-    dnsPreconnect.setAttribute('href', 'https://zqlckixwpyrwdwrsuhsg.supabase.co');
-    dnsPreconnect.setAttribute('crossorigin', 'anonymous');
-    document.head.appendChild(dnsPreconnect);
-    
-    // إضافة رؤوس DNS prefetch لتحسين تحميل الصور
-    const dnsPrefetch = document.createElement('link');
-    dnsPrefetch.setAttribute('rel', 'dns-prefetch');
-    dnsPrefetch.setAttribute('href', 'https://zqlckixwpyrwdwrsuhsg.supabase.co');
-    document.head.appendChild(dnsPrefetch);
-
-    // تحسين سياسة تخزين الصور والملفات الثابتة
-    const cacheImages = document.createElement('meta');
-    cacheImages.setAttribute('http-equiv', 'Cache-Control');
-    cacheImages.setAttribute('content', 'public, max-age=31536000, immutable');
-    document.head.appendChild(cacheImages);
+    // إضافة رؤوس للتخزين المؤقت للصور والملفات الثابتة
+    const cacheControlHeaders = document.createElement('meta');
+    cacheControlHeaders.setAttribute('http-equiv', 'Cache-Control');
+    cacheControlHeaders.setAttribute('content', 'max-age=86400, public'); // تخزين مؤقت لمدة 24 ساعة للأصول الثابتة
+    document.head.appendChild(cacheControlHeaders);
 
     return () => {
       metaTags.forEach(tag => {
@@ -76,11 +51,7 @@ const ProductPreview = () => {
           metaTag.remove();
         }
       });
-      corsHeaders.remove();
-      referrerPolicy.remove();
-      dnsPreconnect.remove();
-      dnsPrefetch.remove();
-      cacheImages.remove();
+      cacheControlHeaders.remove();
     };
   }, []);
 
@@ -97,47 +68,14 @@ const ProductPreview = () => {
     return () => clearInterval(interval);
   }, [isAutoRefresh, refreshData]);
 
-  // تنفيذ تحميل مسبق للصور الرئيسية عند تحميل الصفحة
+  // إجبار تحميل الصور حديثاً عند تحديث البيانات
   useEffect(() => {
-    // تعريف دالة للتحميل المسبق للصور
-    const preloadImage = (url: string, priority: 'high' | 'low' = 'high') => {
-      if (!url) return;
-      
-      const timestamp = Date.now();
-      const baseUrl = url.split('?')[0];
-      const isCacheBustingNeeded = !url.includes('t=');
-      
-      // تنسيق URL مع طابع زمني جديد إذا لم يكن موجوداً بالفعل
-      const formattedUrl = isCacheBustingNeeded
-        ? `${baseUrl}?t=${timestamp}&preload=true`
-        : url;
-      
-      const img = new Image();
-      img.src = formattedUrl;
-      img.crossOrigin = "anonymous";
-      img.fetchPriority = priority;
-      img.decoding = "async";
-      
-      console.log(`تحميل مسبق للصورة: ${formattedUrl}`);
-    };
-    
-    // تحميل مسبق لصورة الغلاف
     if (storeData?.bannerUrl) {
-      preloadImage(storeData.bannerUrl, 'high');
+      const preloadImage = new Image();
+      preloadImage.src = `${storeData.bannerUrl.split('?')[0]}?t=${Date.now()}`;
+      preloadImage.loading = "eager"; // تحميل الصورة الرئيسية بشكل فوري
     }
-    
-    // تحميل مسبق لصور التصنيفات
-    if (storeData?.categoryImages && storeData.categoryImages.length > 0) {
-      console.log(`تحميل مسبق لـ ${storeData.categoryImages.length} صورة تصنيف`);
-      storeData.categoryImages.forEach((img, index) => {
-        if (img.image_url) {
-          // تحميل الصور الأولى بأولوية عالية والباقي بأولوية منخفضة
-          const priority = index < 4 ? 'high' : 'low';
-          preloadImage(img.image_url, priority);
-        }
-      });
-    }
-  }, [storeData.bannerUrl, storeData.categoryImages, forceRefresh, lastManualRefresh]);
+  }, [storeData.bannerUrl, forceRefresh, lastManualRefresh]);
 
   // تفعيل الاستماع للتحديثات المباشرة بشكل هادئ في الخلفية
   useEffect(() => {

@@ -5,7 +5,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CategoryImageCard } from "./category-image/CategoryImageCard";
 import { useCategoryImageUpload } from "./category-image/useCategoryImageUpload";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 interface CategoryImageManagerProps {
   categories: string[];
@@ -18,22 +18,10 @@ export const CategoryImageManager = ({
   categoryImages,
   onUpdateImages,
 }: CategoryImageManagerProps) => {
-  const { uploading, error, setError, handleFileUpload, handleUrlUpload, removeImage } = useCategoryImageUpload({
+  const { uploading, handleFileUpload, removeImage } = useCategoryImageUpload({
     categoryImages,
     onUpdateImages
   });
-  
-  const [categoryErrors, setCategoryErrors] = useState<Record<string, string | null>>({});
-  
-  // تحديث سجل الأخطاء لكل تصنيف
-  useEffect(() => {
-    if (error) {
-      setCategoryErrors(prev => ({
-        ...prev,
-        [uploading || '']: error
-      }));
-    }
-  }, [error, uploading]);
   
   // تسجيل معلومات حول صور التصنيفات عند تغيرها
   useEffect(() => {
@@ -82,10 +70,8 @@ export const CategoryImageManager = ({
                 category={category}
                 categoryImage={categoryImage}
                 onFileUpload={handleFileUpload}
-                onUrlUpload={handleUrlUpload}
                 onRemoveImage={removeImage}
                 uploading={uploading === category}
-                error={categoryErrors[category] || null}
               />
             );
           })}

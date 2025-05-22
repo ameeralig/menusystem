@@ -62,7 +62,6 @@ const StoreProductsDisplay = ({
   const [processedCategoryImages, setProcessedCategoryImages] = useState<CategoryImage[]>([]);
   const [visibleProducts, setVisibleProducts] = useState<Product[]>([]);
   const [page, setPage] = useState(1);
-  const [lastRefresh, setLastRefresh] = useState<number>(Date.now());
   const PRODUCTS_PER_PAGE = 12;
 
   // معالجة صور التصنيفات للتأكد من استخدام أحدث روابط الصور
@@ -78,20 +77,18 @@ const StoreProductsDisplay = ({
         const baseUrl = img.image_url.split('?')[0];
         
         // تحسين URL الصورة لاستخدام WebP إذا كان متاحًا
+        if (baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')) {
+          return {
+            ...img,
+            image_url: `${baseUrl}?format=webp&quality=80&t=${timestamp}`
+          };
+        }
+        
+        // إضافة طابع زمني فقط
         return {
           ...img,
-          image_url: `${baseUrl}?format=webp&quality=80&t=${timestamp}&refresh=${lastRefresh}`
+          image_url: `${baseUrl}?t=${timestamp}`
         };
-      });
-      
-      // تحميل مسبق للصور
-      processed.forEach(img => {
-        if (img.image_url) {
-          const preloadImage = new Image();
-          preloadImage.src = img.image_url;
-          preloadImage.fetchPriority = "high";
-          preloadImage.crossOrigin = "anonymous";
-        }
       });
       
       setProcessedCategoryImages(processed);
@@ -99,16 +96,7 @@ const StoreProductsDisplay = ({
     } else {
       setProcessedCategoryImages([]);
     }
-  }, [categoryImages, lastRefresh]);
-
-  // تحديث دوري للصور كل 30 ثانية
-  useEffect(() => {
-    const refreshTimer = setInterval(() => {
-      setLastRefresh(Date.now());
-    }, 30000);
-    
-    return () => clearInterval(refreshTimer);
-  }, []);
+  }, [categoryImages]);
 
   const categories = useMemo(() => {
     const categorySet = new Set<string>();
@@ -197,13 +185,6 @@ const StoreProductsDisplay = ({
       setSearchQuery("");
     }
   }, [showSearch]);
-
-  // إجبار تحديث روابط الصور عند تغيير التصنيف المحدد
-  useEffect(() => {
-    if (selectedCategory) {
-      setLastRefresh(Date.now());
-    }
-  }, [selectedCategory]);
 
   return (
     <div className="space-y-6">
