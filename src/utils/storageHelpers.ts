@@ -276,15 +276,15 @@ export const uploadImage = async (
       throw uploadError;
     }
 
-    // تعديل: تصحيح طريقة الحصول على الرابط العام
-    const { data: publicUrlData, error: urlError } = supabase
+    // تصحيح طريقة الحصول على الرابط العام - getPublicUrl لا تحتوي على خاصية error
+    const { data: publicUrlData } = supabase
       .storage
       .from(bucket)
       .getPublicUrl(filePath);
       
-    if (urlError || !publicUrlData?.publicUrl) {
-      console.error("خطأ في الحصول على الرابط العام:", urlError);
-      throw urlError || new Error("فشل في الحصول على الرابط العام");
+    if (!publicUrlData?.publicUrl) {
+      console.error("فشل في الحصول على الرابط العام");
+      throw new Error("فشل في الحصول على الرابط العام");
     }
     
     console.log(`تم رفع الصورة بنجاح. الرابط العام: ${publicUrlData.publicUrl}`);
