@@ -1,3 +1,4 @@
+
 import { supabase } from "@/lib/supabase";
 
 /**
@@ -275,13 +276,19 @@ export const uploadImage = async (
       throw uploadError;
     }
 
-    // الحصول على الرابط العام
-    const { data: { publicUrl } } = supabase.storage
+    // تعديل: تصحيح طريقة الحصول على الرابط العام
+    const { data: publicUrlData, error: urlError } = supabase
+      .storage
       .from(bucket)
       .getPublicUrl(filePath);
       
-    console.log(`تم رفع الصورة بنجاح. الرابط العام: ${publicUrl}`);
-    return publicUrl;
+    if (urlError || !publicUrlData?.publicUrl) {
+      console.error("خطأ في الحصول على الرابط العام:", urlError);
+      throw urlError || new Error("فشل في الحصول على الرابط العام");
+    }
+    
+    console.log(`تم رفع الصورة بنجاح. الرابط العام: ${publicUrlData.publicUrl}`);
+    return publicUrlData.publicUrl;
   } catch (error) {
     console.error("خطأ في رفع الصورة:", error);
     throw error;
