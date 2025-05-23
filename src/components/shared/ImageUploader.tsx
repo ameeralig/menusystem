@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -133,7 +132,8 @@ const ImageUploader = ({
       const url = new URL(urlInput);
       
       // للتأكد من أن الرابط هو رابط صورة يمكن تحميله
-      const testImage = new Image();
+      const testImage = document.createElement('img');
+      
       testImage.onerror = () => {
         toast({
           title: "رابط غير صالح",
