@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,10 +24,12 @@ const CategorySelector = ({
   const [newCategory, setNewCategory] = useState("");
   const [uploadMethod, setUploadMethod] = useState<"file" | "url">("file");
   const [imageUrl, setImageUrl] = useState("");
+  const [imageUrlError, setImageUrlError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isUrlLoading, setIsUrlLoading] = useState(false);
 
   // جلب التصنيفات الموجودة
   useEffect(() => {
@@ -78,6 +81,57 @@ const CategorySelector = ({
       setSelectedFile(file);
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
+    }
+  };
+
+  // معالجة الرابط وتحميل الصورة للمعاينة
+  const handleUrlChange = async (url: string) => {
+    setImageUrl(url);
+    
+    if (!url) {
+      setPreviewUrl(null);
+      setImageUrlError(null);
+      return;
+    }
+    
+    try {
+      setIsUrlLoading(true);
+      setImageUrlError(null);
+      
+      // استخدام الوظيفة المحسنة لتنسيق الرابط
+      const optimizedUrl = formatImageUrl(url);
+      
+      // التحقق من صحة الرابط
+      const img = document.createElement('img');
+      
+      // إنشاء وعد لاكتمال تحميل الصورة
+      const imagePromise = new Promise<void>((resolve, reject) => {
+        img.onload = () => {
+          setPreviewUrl(optimizedUrl);
+          resolve();
+        };
+        
+        img.onerror = () => {
+          reject(new Error("لا يمكن تحميل الصورة من هذا الرابط"));
+        };
+        
+        // تعيين المهلة الزمنية
+        setTimeout(() => {
+          if (!img.complete) {
+            reject(new Error("انتهت مهلة تحميل الصورة"));
+          }
+        }, 5000);
+      });
+      
+      img.src = optimizedUrl;
+      
+      await imagePromise;
+    } catch (error: any) {
+      console.error("خطأ في تحميل الصورة من الرابط:", error);
+      setImageUrlError(error.message || "رابط غير صالح للصورة");
+      setPreviewUrl(null);
+    } finally {
+      setIsUrlLoading(false);
     }
   };
 
@@ -204,13 +258,30 @@ const CategorySelector = ({
             </div>
 
             {uploadMethod === "url" ? (
-              <div className="max-w-md">
+              <div className="space-y-2 max-w-md">
                 <Input
                   type="url"
                   value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="أدخل رابط الصورة"
+                  onChange={(e) => handleUrlChange(e.target.value)}
+                  placeholder="أدخل رابط الصورة (من أي مصدر)"
+                  className={cn(imageUrlError && "border-destructive")}
                 />
+                {imageUrlError && (
+                  <p className="text-sm text-destructive">{imageUrlError}</p>
+                )}
+                {isUrlLoading && (
+                  <div className="py-4 text-center text-muted-foreground">جارِ تحميل الصورة...</div>
+                )}
+                {previewUrl && !isUrlLoading && (
+                  <div className="relative mt-4">
+                    <img 
+                      src={previewUrl} 
+                      alt="معاينة" 
+                      className="max-h-48 mx-auto rounded-lg object-contain" 
+                    />
+                    <p className="mt-2 text-sm text-center text-muted-foreground">تم جلب الصورة بنجاح</p>
+                  </div>
+                )}
               </div>
             ) : (
               <div>
@@ -257,7 +328,8 @@ const CategorySelector = ({
           onClick={handleSubmit}
           disabled={
             (selectionType === "existing" && !selectedCategory) ||
-            (selectionType === "new" && !newCategory)
+            (selectionType === "new" && !newCategory) ||
+            isUrlLoading
           }
           size="lg"
           className="min-w-[150px]"

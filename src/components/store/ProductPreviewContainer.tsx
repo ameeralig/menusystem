@@ -1,3 +1,4 @@
+
 import { ReactNode, useState, useEffect, CSSProperties } from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -70,26 +71,47 @@ const ProductPreviewContainer = ({
   useEffect(() => {
     if (bannerUrl) {
       const loadImage = () => {
-        // استخدام وظيفة formatImageUrl المحسنة
-        const optimizedUrl = formatImageUrl(bannerUrl);
-        
-        // إنشاء كائن صورة جديد للتحقق من تحميل الصورة
-        const img = document.createElement('img');
-        img.onload = () => {
-          console.log("Image loaded successfully:", optimizedUrl);
-          setImgSrc(optimizedUrl);
-          setImageError(false);
-          setImageLoaded(true);
-        };
-        img.onerror = (e) => {
-          console.error("Error loading banner image:", optimizedUrl, e);
+        try {
+          // استخدام وظيفة formatImageUrl المحسنة لدعم أي نوع من روابط الصور
+          const optimizedUrl = formatImageUrl(bannerUrl);
+          
+          // إنشاء كائن صورة جديد للتحقق من تحميل الصورة
+          const img = document.createElement('img');
+          img.onload = () => {
+            console.log("تم تحميل صورة البانر بنجاح:", optimizedUrl);
+            setImgSrc(optimizedUrl);
+            setImageError(false);
+            setImageLoaded(true);
+          };
+          img.onerror = (e) => {
+            console.error("خطأ في تحميل صورة البانر:", optimizedUrl, e);
+            
+            // محاولة استخدام الرابط الأصلي إذا فشل الرابط المحسّن
+            if (optimizedUrl !== bannerUrl) {
+              console.log("محاولة استخدام الرابط الأصلي للبانر:", bannerUrl);
+              const fallbackImg = document.createElement('img');
+              fallbackImg.onload = () => {
+                setImgSrc(bannerUrl);
+                setImageError(false);
+                setImageLoaded(true);
+              };
+              fallbackImg.onerror = () => {
+                setImageError(true);
+              };
+              fallbackImg.src = bannerUrl;
+            } else {
+              setImageError(true);
+            }
+          };
+          
+          // تعيين خصائص إضافية للتحميل السريع
+          img.decoding = "async";
+          img.loading = "eager"; // تحميل فوري للصور المهمة مثل البانر
+          img.src = optimizedUrl;
+        } catch (error) {
+          console.error("خطأ في معالجة رابط البانر:", error);
           setImageError(true);
-        };
-        
-        // تعيين خصائص إضافية للتحميل السريع
-        img.decoding = "async";
-        img.loading = "eager"; // تحميل فوري للصور المهمة مثل البانر
-        img.src = optimizedUrl;
+        }
       };
 
       // تحميل الصورة مباشرة
@@ -98,7 +120,8 @@ const ProductPreviewContainer = ({
       // إعادة محاولة التحميل بعد فترة إذا كانت صورة جديدة تم رفعها حديثًا
       const retryTimeout = setTimeout(() => {
         if (imageError) {
-          console.log("Retrying image load after timeout");
+          console.log("إعادة محاولة تحميل البانر بعد مهلة");
+          setImageError(false); // إعادة تعيين حالة الخطأ قبل المحاولة مرة أخرى
           loadImage();
         }
       }, 1500);
@@ -157,14 +180,20 @@ const ProductPreviewContainer = ({
                 alt="صورة الغلاف" 
                 className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
                 onError={() => {
-                  console.error("Error displaying image:", imgSrc);
+                  console.error("خطأ في عرض البانر:", imgSrc);
                   setImageError(true);
                 }}
                 onLoad={() => setImageLoaded(true)}
                 loading="eager" // البانر يجب أن يتحمل فوريًا لأنه جزء مهم من واجهة المستخدم
                 fetchPriority="high"
               />
-            ) : null}
+            ) : (
+              imageError && (
+                <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                  <p className="text-gray-500 dark:text-gray-400">لا يمكن تحميل صورة الغلاف</p>
+                </div>
+              )
+            )}
             <div className="absolute inset-0 bg-black bg-opacity-30"></div>
           </AspectRatio>
         </div>

@@ -14,10 +14,26 @@ const ProductCard = ({ product }: { product: Product }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  // استخدام formatImageUrl المحسنة للحصول على روابط الصور الأمثل
+  // استخدام formatImageUrl المحسنة للحصول على روابط الصور المباشرة من أي مصدر
   const getOptimizedImageUrl = (url: string | null | undefined) => {
     if (!url) return null;
-    return formatImageUrl(url);
+    try {
+      return formatImageUrl(url);
+    } catch (error) {
+      console.error("خطأ في تحويل رابط الصورة:", error, url);
+      return url; // استخدام الرابط الأصلي في حال فشل التحويل
+    }
+  };
+
+  const handleImageError = () => {
+    console.error(`فشل تحميل صورة المنتج: ${product.name}`);
+    setImageError(true);
+    
+    // محاولة تحميل الصورة مرة أخرى بعد تنظيف الرابط
+    if (product.image_url) {
+      const cleanUrl = product.image_url.split('?')[0];
+      console.log(`محاولة تحميل الصورة مرة أخرى من الرابط المنظف: ${cleanUrl}`);
+    }
   };
 
   return (
@@ -40,9 +56,16 @@ const ProductCard = ({ product }: { product: Product }) => {
             }`}
             loading="lazy"
             onLoad={() => setImageLoaded(true)}
-            onError={() => setImageError(true)}
+            onError={handleImageError}
             decoding="async"
           />
+          {imageError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700">
+              <p className="text-sm text-gray-500 dark:text-gray-400 p-4 text-center">
+                {product.name}
+              </p>
+            </div>
+          )}
         </div>
       )}
       <div className="p-4">

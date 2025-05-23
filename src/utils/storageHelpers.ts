@@ -1,3 +1,4 @@
+
 import { supabase } from "@/lib/supabase";
 
 /**
@@ -287,22 +288,88 @@ export const formatImageUrl = (url: string, timestamp?: number): string => {
   // تحسين روابط Imgur
   if (url.includes('imgur.com')) {
     // تحويل روابط ألبوم Imgur إلى روابط مباشرة
-    if (url.includes('imgur.com/a/')) {
-      const albumId = url.split('imgur.com/a/')[1]?.split(/[?#]/)[0];
+    if (url.includes('imgur.com/a/') || url.includes('imgur.com/gallery/')) {
+      const albumId = url.split(/imgur\.com\/(?:a|gallery)\//).pop()?.split(/[?#]/)[0];
       if (albumId) {
         console.log(`تحويل رابط ألبوم Imgur ${albumId} إلى رابط مباشر`);
         return `https://i.imgur.com/${albumId}.jpg`;
       }
     }
     
-    // تحويل روابط صور Imgur إلى روابط مباشرة
+    // تحويل روابط صور Imgur العادية إلى روابط مباشرة
     if (url.includes('imgur.com/') && !url.includes('i.imgur.com/')) {
-      const imgId = url.split('imgur.com/')[1]?.split(/[?#]/)[0];
+      const imgId = url.split('imgur.com/').pop()?.split(/[?#]/)[0];
       if (imgId) {
         console.log(`تحويل رابط صورة Imgur ${imgId} إلى رابط مباشر`);
         return `https://i.imgur.com/${imgId}.jpg`;
       }
     }
+  }
+  
+  // تحويل روابط Google Drive إلى روابط مباشرة
+  if (url.includes('drive.google.com')) {
+    // روابط مشاركة Google Drive المعتادة
+    if (url.includes('file/d/')) {
+      const fileId = url.split('file/d/')[1]?.split(/[/?#]/)[0];
+      if (fileId) {
+        console.log(`تحويل رابط Google Drive ${fileId} إلى رابط مباشر`);
+        return `https://drive.google.com/uc?export=view&id=${fileId}`;
+      }
+    }
+    
+    // روابط العرض المباشر لملفات Google Drive
+    if (url.includes('id=')) {
+      const fileId = url.match(/id=([^&]+)/)?.[1];
+      if (fileId) {
+        console.log(`تحويل رابط Google Drive ${fileId} إلى رابط عرض مباشر`);
+        return `https://drive.google.com/uc?export=view&id=${fileId}`;
+      }
+    }
+  }
+  
+  // تحويل روابط Dropbox إلى روابط مباشرة
+  if (url.includes('dropbox.com')) {
+    // التأكد من استخدام رابط مباشر للصور
+    if (url.includes('?dl=0')) {
+      console.log(`تحويل رابط Dropbox إلى رابط مباشر`);
+      return url.replace('?dl=0', '?raw=1');
+    } else if (!url.includes('?raw=1')) {
+      return url + '?raw=1';
+    }
+  }
+
+  // تحويل روابط OneDrive إلى روابط مباشرة
+  if (url.includes('1drv.ms') || url.includes('onedrive.live.com')) {
+    console.log(`تحويل رابط OneDrive إلى رابط مباشر`);
+    // يتطلب معالجة خاصة من الخادم لاحقاً
+    // نحاول استخدام embed بدلاً من عرض مباشر
+    if (url.includes('1drv.ms')) {
+      return `${url}/embed`;
+    }
+  }
+
+  // تحويل روابط iCloud إلى روابط مباشرة (لا يمكن تحويلها بشكل مباشر عادة)
+  if (url.includes('icloud.com')) {
+    console.log(`تم اكتشاف رابط iCloud، سنستخدمه كما هو`);
+    // في معظم الحالات، فإن روابط iCloud تحتاج إلى معالجة خاصة من طرف الخادم
+  }
+
+  // تحويل روابط قصيرة Twitter/X إلى روابط مباشرة
+  if (url.includes('pbs.twimg.com') || url.includes('x.com') || url.includes('twitter.com')) {
+    console.log(`تحويل رابط Twitter/X إلى الشكل المناسب`);
+    // نستخدم الرابط كما هو لصور Twitter المباشرة
+    if (url.includes('pbs.twimg.com')) {
+      // تجريد الرابط من معلمات الاستعلام
+      const baseTwitterUrl = url.split('?')[0];
+      // إضافة معلمة format=jpg للتأكد من الحصول على الصور بتنسيق jpg
+      return `${baseTwitterUrl}?format=jpg&name=large`;
+    }
+  }
+
+  // تحويل روابط Flickr إلى روابط مباشرة
+  if (url.includes('flickr.com')) {
+    console.log(`تم اكتشاف رابط Flickr، قد تحتاج لرابط مباشر`);
+    // الدعم المباشر لـ Flickr يتطلب معالجة API
   }
   
   // تحليل الرابط للتأكد من عدم تكرار المعلمات
@@ -330,27 +397,64 @@ export const checkImageUrl = async (url: string | null): Promise<boolean> => {
   if (!url) return false;
   
   try {
-    // استخدام Image API بدلاً من fetch للتحقق من صلاحية الصورة
+    // تنظيف الرابط من أي معلمات استعلام
+    const cleanUrl = url.split('?')[0];
+    
+    // محاولة تحويل الرابط إلى رابط مباشر إذا لم يكن كذلك
+    const processedUrl = formatImageUrl(url);
+    
+    // استخدام Image API للتحقق من صلاحية الصورة
     return new Promise((resolve) => {
       const img = document.createElement('img');
       
       img.onload = () => {
-        console.log(`✅ تم التحقق من صلاحية الصورة: ${url}`);
+        console.log(`✅ تم التحقق من صلاحية الصورة: ${processedUrl}`);
         resolve(true);
       };
       
       img.onerror = () => {
-        console.error(`❌ الصورة غير صالحة: ${url}`);
-        resolve(false);
+        console.error(`❌ الصورة غير صالحة: ${processedUrl}`);
+        
+        // محاولة مع تنسيقات مختلفة إذا فشلت المحاولة الأولى
+        const extensionsToTry = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+        
+        let attemptsLeft = extensionsToTry.length;
+        let foundValid = false;
+        
+        extensionsToTry.forEach(ext => {
+          if (foundValid) return;
+          
+          const altImg = document.createElement('img');
+          const altUrl = `${cleanUrl.split('.').slice(0, -1).join('.')}.${ext}?t=${Date.now()}`;
+          
+          altImg.onload = () => {
+            if (!foundValid) {
+              console.log(`✅ تم العثور على صيغة بديلة صالحة: ${altUrl}`);
+              foundValid = true;
+              resolve(true);
+            }
+          };
+          
+          altImg.onerror = () => {
+            attemptsLeft--;
+            if (attemptsLeft === 0 && !foundValid) {
+              console.error(`❌ جميع المحاولات البديلة فشلت للصورة: ${url}`);
+              resolve(false);
+            }
+          };
+          
+          // استخدام الرابط البديل
+          altImg.src = altUrl;
+        });
       };
       
       // استخدام الرابط المنسق وإضافة معلمة عشوائية
-      img.src = formatImageUrl(url) + `&random=${Math.random()}`;
+      img.src = processedUrl + `&random=${Math.random()}`;
         
       // تعيين مهلة زمنية للتحميل
       setTimeout(() => {
         if (!img.complete) {
-          console.error(`⏱️ انتهت مهلة تحميل الصورة: ${url}`);
+          console.error(`⏱️ انتهت مهلة تحميل الصورة: ${processedUrl}`);
           resolve(false);
         }
       }, 5000); // 5 ثوان كمهلة زمنية
