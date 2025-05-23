@@ -264,7 +264,8 @@ const ImageUploader = ({
               alt="الصورة المحملة"
               className="w-full h-full object-cover"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = "https://placehold.co/600x400?text=صورة+غير+متاحة";
+                const target = e.target as HTMLImageElement;
+                target.src = "https://placehold.co/600x400?text=صورة+غير+متاحة";
               }}
             />
           </div>
