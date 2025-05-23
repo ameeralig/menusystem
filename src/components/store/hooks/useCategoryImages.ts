@@ -21,20 +21,16 @@ export const useCategoryImages = (categoryImages: CategoryImage[] = []) => {
           
           // التحقق من نوع الرابط (إذا كان من سوبابيس أو من مصدر آخر)
           const isSupabaseUrl = baseUrl.includes('supabase.co') || 
-                              baseUrl.includes('supabase.in') || 
-                              baseUrl.includes('zqlckixwpyrwdwrsuhsg') ||
-                              baseUrl.includes('lovable-app');
+                                baseUrl.includes('supabase.in') || 
+                                baseUrl.includes('zqlckixwpyrwdwrsuhsg') ||
+                                baseUrl.includes('lovable-app');
           
-          // تحسين URL الصورة مع تحسينات WebP وتحجيم أفضل
+          // تحسين URL الصورة مع معلمات مختلفة حسب المصدر
           const newImageUrl = isSupabaseUrl
-            ? `${baseUrl}?format=webp&quality=80&t=${timestamp}&width=400&height=300&resize=contain&nocache=true`
+            ? `${baseUrl}?format=webp&quality=80&t=${timestamp}&nocache=true`
             : `${baseUrl}?t=${timestamp}&nocache=true`;
           
-          // تحميل مسبق للصورة لتحسين الأداء
-          const preloadImage = new Image();
-          preloadImage.src = newImageUrl;
-          
-          console.log(`معالجة صورة للتصنيف ${img.category}: إلى "${newImageUrl}"`);
+          console.log(`معالجة صورة للتصنيف ${img.category}: من "${img.image_url}" إلى "${newImageUrl}"`);
           
           return {
             ...img,
