@@ -1,7 +1,7 @@
-
 import { ReactNode, useState, useEffect, CSSProperties } from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatImageUrl } from "@/utils/storageHelpers";
 
 interface FontSettings {
   generalText?: {
@@ -70,34 +70,26 @@ const ProductPreviewContainer = ({
   useEffect(() => {
     if (bannerUrl) {
       const loadImage = () => {
-        // إضافة معرف زمني لتجنب التخزين المؤقت
-        const timestamp = new Date().getTime();
-        const baseUrl = bannerUrl.split('?')[0];
-        
-        // تحسين URL الصورة لاستخدام WebP إذا كان ذلك متاحًا
-        // يمكن استبدال هذا بخدمة CDN لاحقًا
-        const shouldUseWebP = baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app');
-        const newUrl = shouldUseWebP 
-          ? `${baseUrl}?t=${timestamp}&format=webp&quality=80` 
-          : `${baseUrl}?t=${timestamp}`;
+        // استخدام وظيفة formatImageUrl المحسنة
+        const optimizedUrl = formatImageUrl(bannerUrl);
         
         // إنشاء كائن صورة جديد للتحقق من تحميل الصورة
-        const img = new Image();
+        const img = document.createElement('img');
         img.onload = () => {
-          console.log("Image loaded successfully:", newUrl);
-          setImgSrc(newUrl);
+          console.log("Image loaded successfully:", optimizedUrl);
+          setImgSrc(optimizedUrl);
           setImageError(false);
           setImageLoaded(true);
         };
         img.onerror = (e) => {
-          console.error("Error loading banner image:", newUrl, e);
+          console.error("Error loading banner image:", optimizedUrl, e);
           setImageError(true);
         };
         
         // تعيين خصائص إضافية للتحميل السريع
         img.decoding = "async";
         img.loading = "eager"; // تحميل فوري للصور المهمة مثل البانر
-        img.src = newUrl;
+        img.src = optimizedUrl;
       };
 
       // تحميل الصورة مباشرة

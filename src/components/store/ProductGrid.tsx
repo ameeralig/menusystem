@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Product } from "@/types/product";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
+import { formatImageUrl } from "@/utils/storageHelpers";
 
 interface ProductGridProps {
   products: Product[];
@@ -13,19 +14,10 @@ const ProductCard = ({ product }: { product: Product }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  // تحويل الصورة إلى صيغة WebP عندما يكون ذلك ممكنًا
+  // استخدام formatImageUrl المحسنة للحصول على روابط الصور الأمثل
   const getOptimizedImageUrl = (url: string | null | undefined) => {
     if (!url) return null;
-    
-    const baseUrl = url.split('?')[0];
-    
-    // تحسين URL الصورة لاستخدام WebP إذا كان متاحًا عبر خدمة تخزين Supabase أو عبر CDN
-    if (baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')) {
-      return `${baseUrl}?format=webp&quality=80&t=${Date.now()}`;
-    }
-    
-    // إضافة طابع زمني للتأكد من تحميل أحدث إصدار من الصورة
-    return `${baseUrl}?t=${Date.now()}`;
+    return formatImageUrl(url);
   };
 
   return (

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/lib/supabase";
 
 /**
@@ -277,6 +276,52 @@ export const getUrlWithTimestamp = (url: string | null): string | null => {
 };
 
 /**
+ * تنسيق رابط الصورة واستخراج الرابط المباشر للصورة من مختلف المصادر
+ * @param url رابط الصورة الأصلي
+ * @param timestamp طابع زمني اختياري لتجاوز التخزين المؤقت
+ * @returns رابط الصورة المنسق
+ */
+export const formatImageUrl = (url: string, timestamp?: number): string => {
+  if (!url) return url;
+  
+  // تحسين روابط Imgur
+  if (url.includes('imgur.com')) {
+    // تحويل روابط ألبوم Imgur إلى روابط مباشرة
+    if (url.includes('imgur.com/a/')) {
+      const albumId = url.split('imgur.com/a/')[1]?.split(/[?#]/)[0];
+      if (albumId) {
+        console.log(`تحويل رابط ألبوم Imgur ${albumId} إلى رابط مباشر`);
+        return `https://i.imgur.com/${albumId}.jpg`;
+      }
+    }
+    
+    // تحويل روابط صور Imgur إلى روابط مباشرة
+    if (url.includes('imgur.com/') && !url.includes('i.imgur.com/')) {
+      const imgId = url.split('imgur.com/')[1]?.split(/[?#]/)[0];
+      if (imgId) {
+        console.log(`تحويل رابط صورة Imgur ${imgId} إلى رابط مباشر`);
+        return `https://i.imgur.com/${imgId}.jpg`;
+      }
+    }
+  }
+  
+  // تحليل الرابط للتأكد من عدم تكرار المعلمات
+  const baseUrl = url.split('?')[0];
+  const uniqueTimestamp = timestamp || Date.now();
+  
+  // التحقق من نوع الرابط (إذا كان من سوبابيس أو من مصدر آخر)
+  const isSupabaseUrl = baseUrl.includes('supabase.co') || 
+                        baseUrl.includes('supabase.in') || 
+                        baseUrl.includes('zqlckixwpyrwdwrsuhsg') ||
+                        baseUrl.includes('lovable-app');
+  
+  // تحسين URL الصورة مع معلمات مختلفة حسب المصدر
+  return isSupabaseUrl
+    ? `${baseUrl}?format=webp&quality=80&t=${uniqueTimestamp}&nocache=true`
+    : `${baseUrl}?t=${uniqueTimestamp}&nocache=true`;
+};
+
+/**
  * فحص ما إذا كان الرابط صالح للصورة
  * @param url رابط الصورة
  * @returns وعد يحل إلى صحة الرابط
@@ -287,7 +332,7 @@ export const checkImageUrl = async (url: string | null): Promise<boolean> => {
   try {
     // استخدام Image API بدلاً من fetch للتحقق من صلاحية الصورة
     return new Promise((resolve) => {
-      const img = new Image();
+      const img = document.createElement('img');
       
       img.onload = () => {
         console.log(`✅ تم التحقق من صلاحية الصورة: ${url}`);
@@ -299,10 +344,8 @@ export const checkImageUrl = async (url: string | null): Promise<boolean> => {
         resolve(false);
       };
       
-      // إضافة معامل عشوائي لتجنب التخزين المؤقت
-      img.src = url.includes('?') ? 
-        `${url}&random=${Math.random()}` : 
-        `${url}?random=${Math.random()}`;
+      // استخدام الرابط المنسق وإضافة معلمة عشوائية
+      img.src = formatImageUrl(url) + `&random=${Math.random()}`;
         
       // تعيين مهلة زمنية للتحميل
       setTimeout(() => {
