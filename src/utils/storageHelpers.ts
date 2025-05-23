@@ -51,6 +51,10 @@ export const createUniqueFilePath = (userId: string, folder: string = '', file: 
 
 /**
  * تحسين الصورة قبل الرفع لتقليل الحجم
+ * 
+ * يقوم هذا الكود بضغط الصورة وتحويلها إلى WebP إذا كان مدعوماً
+ * لتحسين سرعة التحميل بشكل كبير (يمكن تقليل الحجم بنسبة تصل إلى 80%)
+ * 
  * @param file ملف الصورة الأصلي
  * @returns وعد بملف الصورة المحسن
  */
@@ -61,78 +65,80 @@ export const optimizeImage = async (file: File): Promise<File> => {
   }
   
   try {
-    // إذا كانت الصورة كبيرة جدًا، قم بضغطها
-    if (file.size > 1024 * 1024) { // أكبر من 1 ميجابايت
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-      
-      // إنشاء وعد لتحميل الصورة
-      await new Promise((resolve) => {
-        img.onload = resolve;
-        img.src = URL.createObjectURL(file);
-      });
-      
-      // تحديد أبعاد الصورة المضغوطة (الحد الأقصى 1200 بكسل)
-      const maxWidth = 1200;
-      const maxHeight = 1200;
-      let width = img.width;
-      let height = img.height;
-      
-      // تقليص الأبعاد إذا تجاوزت الحد الأقصى
-      if (width > maxWidth || height > maxHeight) {
-        if (width > height) {
-          height *= maxWidth / width;
-          width = maxWidth;
-        } else {
-          width *= maxHeight / height;
-          height = maxHeight;
-        }
-      }
-      
-      // ضبط أبعاد Canvas
-      canvas.width = width;
-      canvas.height = height;
-      
-      // رسم الصورة على Canvas بالأبعاد الجديدة
-      ctx?.drawImage(img, 0, 0, width, height);
-      
-      // تحويل Canvas إلى Blob بصيغة WebP إذا كانت مدعومة
-      const supportWebP = !!HTMLCanvasElement.prototype.toBlob;
-      const quality = 0.8; // جودة 80%
-      
-      if (supportWebP) {
-        // محاولة استخدام صيغة WebP
-        const blob = await new Promise<Blob | null>((resolve) => 
-          canvas.toBlob(resolve, 'image/webp', quality)
-        );
-        
-        if (blob) {
-          // إنشاء ملف جديد بصيغة WebP
-          const optimizedFile = new File(
-            [blob], 
-            file.name.replace(/\.[^.]+$/, '.webp'), 
-            { type: 'image/webp' }
-          );
-          
-          // إذا كان الملف المحسن أصغر، استخدمه
-          return optimizedFile.size < file.size ? optimizedFile : file;
-        }
-      }
-      
-      // إذا لم يكن WebP مدعومًا، استخدم نفس صيغة الملف الأصلي
-      const blob = await new Promise<Blob | null>((resolve) => 
-        canvas.toBlob(resolve, file.type, quality)
-      );
-      
-      if (blob) {
-        const optimizedFile = new File([blob], file.name, { type: file.type });
-        return optimizedFile.size < file.size ? optimizedFile : file;
+    // نقوم بضغط جميع الصور بغض النظر عن الحجم للحصول على أفضل أداء
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    // إنشاء وعد لتحميل الصورة
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("فشل تحميل الصورة"));
+      img.src = URL.createObjectURL(file);
+    });
+    
+    // تحديد أبعاد الصورة المضغوطة (بحد أقصى 1200 بكسل للبعد الأكبر)
+    const MAX_WIDTH = 1200;
+    const MAX_HEIGHT = 1200;
+    let { width, height } = img;
+    
+    // تقليص الأبعاد إذا تجاوزت الحد الأقصى
+    if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+      if (width > height) {
+        height = Math.round(height * MAX_WIDTH / width);
+        width = MAX_WIDTH;
+      } else {
+        width = Math.round(width * MAX_HEIGHT / height);
+        height = MAX_HEIGHT;
       }
     }
     
-    // إذا كانت الصورة صغيرة بالفعل أو فشلت عملية التحسين، أرجع الملف الأصلي
-    return file;
+    // ضبط أبعاد Canvas
+    canvas.width = width;
+    canvas.height = height;
+    
+    // رسم الصورة على Canvas بالأبعاد الجديدة
+    ctx?.drawImage(img, 0, 0, width, height);
+    
+    // محاولة استخدام WebP للحصول على أفضل ضغط
+    const canUseWebP = Boolean(HTMLCanvasElement.prototype.toBlob);
+    const options = {
+      quality: 0.8, // جودة 80%
+      format: canUseWebP ? 'webp' : file.type.replace('image/', '')
+    };
+    
+    // تحويل Canvas إلى Blob
+    const blob = await new Promise<Blob>((resolve) => {
+      if (canUseWebP) {
+        canvas.toBlob((b) => resolve(b!), 'image/webp', 0.8);
+      } else {
+        canvas.toBlob((b) => resolve(b!), file.type, 0.8);
+      }
+    });
+    
+    // إنشاء ملف جديد من Blob
+    const optimizedFile = new File(
+      [blob], 
+      canUseWebP ? 
+        file.name.replace(/\.[^/.]+$/, '.webp') : // تغيير اللاحقة إلى webp
+        file.name, 
+      { 
+        type: canUseWebP ? 'image/webp' : file.type,
+        lastModified: Date.now()
+      }
+    );
+    
+    // تحرير الذاكرة
+    URL.revokeObjectURL(img.src);
+    
+    // مقارنة الحجم وإرجاع الملف المحسن إذا كان أصغر
+    if (optimizedFile.size < file.size) {
+      console.log(`تم ضغط الصورة من ${file.size} بايت إلى ${optimizedFile.size} بايت (${Math.round(optimizedFile.size / file.size * 100)}%)`);
+      return optimizedFile;
+    } else {
+      console.log("حجم الصورة المحسنة أكبر من الأصلية، سيتم استخدام الملف الأصلي");
+      return file;
+    }
   } catch (error) {
     console.error("خطأ أثناء تحسين الصورة:", error);
     return file; // إرجاع الملف الأصلي في حالة حدوث خطأ
@@ -190,13 +196,13 @@ export const uploadImage = async (
     
     // تعيين خيارات CORS وتحديث رؤوس التخزين المؤقت
     const options = {
-      cacheControl: 'max-age=3600', // تخزين مؤقت لمدة ساعة واحدة
+      cacheControl: '3600', // تخزين مؤقت لمدة ساعة واحدة
       upsert: true,
       contentType: optimizedFile.type
     };
     
     // ننتظر لحظة قبل الرفع لتجنب مشاكل التزامن
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 100));
     
     const { error: uploadError, data } = await supabase.storage
       .from(bucket)
@@ -233,9 +239,12 @@ export const uploadImage = async (
       .from(bucket)
       .getPublicUrl(filePath);
     
-    // إضافة طابع زمني للتأكد من عدم استخدام نسخة مخزنة مؤقتًا
+    // إضافة معلمات لصيغة WebP وتحسين العرض
     const timestamp = Date.now();
-    const finalUrl = `${publicUrl}?t=${timestamp}&nocache=true`;
+    const isWebP = optimizedFile.type === 'image/webp';
+    
+    // إضافة معلمات التحسين المناسبة
+    const finalUrl = `${publicUrl.split('?')[0]}?${isWebP ? '' : 'format=webp&'}quality=80&t=${timestamp}&width=600`;
       
     console.log(`تم رفع الصورة بنجاح. الرابط العام: ${finalUrl}`);
     return finalUrl;
