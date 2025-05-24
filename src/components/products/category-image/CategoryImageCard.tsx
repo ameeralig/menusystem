@@ -25,6 +25,7 @@ export const CategoryImageCard = ({
 }: CategoryImageCardProps) => {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [imageSrc, setImageSrc] = useState<string | undefined>(categoryImage?.image_url);
 
@@ -36,6 +37,7 @@ export const CategoryImageCard = ({
       // إعادة تعيين حالات الخطأ والتحميل
       setIsLoading(true);
       setImageError(false);
+      setImageLoaded(false);
       
       // تحديث رابط الصورة مع طابع زمني جديد لتجنب التخزين المؤقت
       const timestamp = Date.now();
@@ -52,6 +54,7 @@ export const CategoryImageCard = ({
     } else {
       console.log(`لا توجد صورة للتصنيف ${category}`);
       setImageSrc(undefined);
+      setImageLoaded(false);
     }
   }, [category, categoryImage?.image_url]);
 
@@ -59,12 +62,14 @@ export const CategoryImageCard = ({
     console.log(`تم تحميل صورة التصنيف ${category} بنجاح`);
     setImageError(false);
     setIsLoading(false);
+    setImageLoaded(true);
   };
 
   const handleImageError = () => {
     console.error(`خطأ في تحميل صورة التصنيف ${category}`);
     setImageError(true);
     setIsLoading(false);
+    setImageLoaded(false);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,10 +123,13 @@ export const CategoryImageCard = ({
             <img
               src={imageSrc}
               alt={category}
-              className="w-full h-full object-cover"
+              className={`
+                w-full h-full object-cover transition-all duration-500
+                ${!imageLoaded ? 'blur-md opacity-60' : 'blur-0 opacity-100'}
+              `}
               onLoad={handleImageLoad}
               onError={handleImageError}
-              loading="eager"
+              loading="lazy"
               style={{ display: isLoading ? 'none' : 'block' }}
             />
           </div>

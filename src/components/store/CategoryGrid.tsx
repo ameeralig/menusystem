@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { CSSProperties, useEffect, useState } from "react";
 import { CategoryImage } from "@/types/categoryImage";
@@ -33,12 +32,14 @@ const CategoryCard = ({
   const [imgError, setImgError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(imageUrl);
+  const [imageLoaded, setImageLoaded] = useState(false);
   
   // إعادة تعيين حالة الخطأ والتحميل عند تغيير الرابط
   useEffect(() => {
     if (imageUrl && imageUrl !== currentImageUrl) {
       setImgError(false);
       setIsLoading(true);
+      setImageLoaded(false);
       setCurrentImageUrl(imageUrl);
       console.log(`تحديث رابط صورة التصنيف ${category}: ${imageUrl}`);
     }
@@ -61,18 +62,23 @@ const CategoryCard = ({
             <img 
               src={currentImageUrl} 
               alt={category}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              className={`
+                w-full h-full object-cover transition-all duration-500 group-hover:scale-110
+                ${!imageLoaded ? 'blur-md opacity-60' : 'blur-0 opacity-100'}
+              `}
               onError={() => {
                 console.error(`خطأ في تحميل صورة التصنيف: ${category}، رابط: ${currentImageUrl}`);
                 setImgError(true);
                 setIsLoading(false);
+                setImageLoaded(false);
               }}
               onLoad={() => {
                 console.log(`تم تحميل صورة التصنيف بنجاح: ${category}`);
                 setIsLoading(false);
+                setImageLoaded(true);
               }}
-              loading="eager"
-              fetchPriority="high"
+              loading="lazy"
+              fetchPriority="auto"
             />
           </>
         ) : (
