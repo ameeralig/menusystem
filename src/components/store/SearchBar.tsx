@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { Search, SparklesIcon, Shuffle } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,6 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { toast } from "sonner";
-import Fuse from "fuse.js";
 
 interface SearchBarProps {
   query?: string;
@@ -25,9 +25,9 @@ interface SearchBarProps {
   products?: Product[];
 }
 
-const SearchBar = ({
+const SearchBar = ({ 
   query,
-  searchQuery,
+  searchQuery, 
   onQueryChange,
   setSearchQuery,
   onToggleSearch,
@@ -36,91 +36,138 @@ const SearchBar = ({
 }: SearchBarProps) => {
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   const [results, setResults] = useState<Product[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
+  const [searchTerm, setSearchTerm] = useState("");
+  
+  // المتغير الذي سيتم استخدامه للبحث (سواء من query أو searchQuery)
   const currentQuery = query || searchQuery || "";
-
-  const fuse = new Fuse(products, {
-    keys: ["name", "description", "category"],
-    threshold: 0.35,
-  });
-
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (onQueryChange) onQueryChange(value);
     if (setSearchQuery) setSearchQuery(value);
     setSearchTerm(value);
   };
-
-  const performSearch = useCallback(
-    (value: string) => {
-      if (!value.trim()) {
-        setResults([]);
-        return;
+  
+  // دالة لقياس تشابه النصوص بطريقة Fuzzy Search
+  const fuzzysort = (text: string, query: string): number => {
+    if (!text || !query) return 0;
+    
+    text = text.toLowerCase();
+    query = query.toLowerCase();
+    
+    // حالة التطابق التام
+    if (text === query) return 1;
+    
+    // حالة احتواء النص على المصطلح
+    if (text.includes(query)) {
+      // كلما كانت الكلمة أقصر، كان التطابق أعلى
+      return 0.9 * (query.length / text.length);
+    }
+    
+    // مقارنة الكلمات
+    const textWords = text.split(/\s+/);
+    const queryWords = query.split(/\s+/);
+    
+    let matchScore = 0;
+    for (const queryWord of queryWords) {
+      for (const textWord of textWords) {
+        if (textWord.includes(queryWord) || queryWord.includes(textWord)) {
+          matchScore += 0.5 * Math.min(textWord.length, queryWord.length) / Math.max(textWord.length, queryWord.length);
+        }
       }
+    }
+    
+    // تحمل الأخطاء الإملائية البسيطة
+    let commonChars = 0;
+    for (let i = 0; i < Math.min(text.length, query.length); i++) {
+      if (text[i] === query[i]) commonChars++;
+    }
+    
+    const spellingMatchScore = commonChars / Math.max(text.length, query.length);
+    
+    return Math.max(matchScore, spellingMatchScore * 0.7);
+  };
 
-      setIsLoading(true);
+  // دالة البحث الرئيسية
+  const performSearch = useCallback((value: string) => {
+    if (!value.trim()) {
+      setResults([]);
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      // نسخة متقدمة من البحث
+      const searchResults = products.map(product => {
+        const nameMatch = fuzzysort(product.name, value);
+        const descMatch = product.description ? fuzzysort(product.description, value) : 0;
+        const categoryMatch = product.category ? fuzzysort(product.category, value) : 0;
+        
+        // نحسب درجة التطابق الكلية
+        const matchScore = Math.max(nameMatch, descMatch, categoryMatch);
+        
+        return {
+          ...product,
+          score: matchScore
+        };
+      })
+      // نأخذ النتائج ذات التطابق المعقول فقط
+      .filter(item => item.score > 0.1)
+      // ونرتبها حسب درجة التطابق
+      .sort((a, b) => b.score - a.score);
+      
+      setResults(searchResults);
+    } catch (error) {
+      console.error("خطأ في البحث:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [products]);
 
-      try {
-        const searchResults = fuse.search(value).map(result => result.item);
-        setResults(searchResults);
-      } catch (error) {
-        console.error("Search error:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [fuse]
-  );
-
+  // البحث أثناء الكتابة
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       performSearch(searchTerm);
-    }, 200);
+    }, 200); // تأخير بسيط لتحسين الأداء
+    
     return () => clearTimeout(timeoutId);
   }, [searchTerm, performSearch]);
-
-  useEffect(() => {
-    setSearchTerm(currentQuery);
-    performSearch(currentQuery);
-  }, [currentQuery, performSearch]);
-
-  // Shortcut: Ctrl + K to open search
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setSearchDialogOpen(true);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
+  
+  // ميزة اختيار عنصر عشوائي
   const suggestRandomItem = () => {
     if (products.length === 0) {
-      toast.error("ماكو منتجات حالياً");
+      toast.error("لا توجد منتجات متاحة");
       return;
     }
-
+    
+    // نقسم المنتجات حسب التصنيف
     const categoriesMap: Record<string, Product[]> = {};
+    
     products.forEach(product => {
       const category = product.category || "أخرى";
-      if (!categoriesMap[category]) categoriesMap[category] = [];
+      if (!categoriesMap[category]) {
+        categoriesMap[category] = [];
+      }
       categoriesMap[category].push(product);
     });
-
+    
+    // نختار فئة عشوائية
     const categories = Object.keys(categoriesMap);
     const randomCategory = categories[Math.floor(Math.random() * categories.length)];
-    const randomProduct = categoriesMap[randomCategory][
-      Math.floor(Math.random() * categoriesMap[randomCategory].length)
-    ];
-
+    
+    // نختار منتج عشوائي من الفئة
+    const productsInCategory = categoriesMap[randomCategory];
+    const randomProduct = productsInCategory[Math.floor(Math.random() * productsInCategory.length)];
+    
+    // نضبط البحث على هذا المنتج
     if (onQueryChange) onQueryChange(randomProduct.name);
     if (setSearchQuery) setSearchQuery(randomProduct.name);
     setSearchTerm(randomProduct.name);
-    toast.success(`اقترحنا لك: ${randomProduct.name} (${randomCategory})`);
+    
+    // نعرض رسالة للمستخدم
+    toast.success(`اقتراح: ${randomProduct.name} (${randomCategory})`);
   };
 
   const selectProduct = (product: Product) => {
@@ -128,20 +175,23 @@ const SearchBar = ({
     if (setSearchQuery) setSearchQuery(product.name);
     setSearchTerm(product.name);
     setSearchDialogOpen(false);
-
-    setTimeout(() => {
-      document.getElementById("product-list")?.scrollIntoView({ behavior: "smooth" });
-    }, 300);
   };
+  
+  // استخدام useEffect لتحديث البحث عند تغيير query أو searchQuery من الخارج
+  useEffect(() => {
+    setSearchTerm(currentQuery);
+    performSearch(currentQuery);
+  }, [currentQuery, performSearch]);
 
   return (
     <div className="relative max-w-md mx-auto mb-8">
       <div className="flex items-center relative">
+        <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
         <Input
           type="text"
-          placeholder="🔍 ابحث عن طبق مفضل..."
-          className="w-full pl-14 pr-10 py-2 text-right rounded-xl border-2 border-blue-300 focus:ring-2 focus:ring-blue-500"
-          value={searchTerm}
+          placeholder="ابحث عن طبق..."
+          className="w-full pl-20 pr-10 py-2 text-right"
+          value={currentQuery}
           onChange={handleChange}
           onClick={() => {
             if (products.length > 0) {
@@ -149,76 +199,74 @@ const SearchBar = ({
             }
           }}
         />
-        <Search className="absolute right-3 top-2.5 h-5 w-5 text-gray-500" />
-
-        <div className="absolute left-1 top-1 flex gap-2">
+        <div className="absolute left-1 top-1 flex gap-1">
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
-            className="p-1 h-9 w-9 rounded-full border border-blue-300 hover:bg-blue-100 transition-all"
+            className="p-1 h-8 w-8 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
             onClick={() => setSearchDialogOpen(true)}
-            title="بحث متقدم"
+            title="بحث"
           >
             <SparklesIcon className="h-4 w-4 text-blue-500" />
           </Button>
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
-            className="p-1 h-9 w-9 rounded-full border border-green-300 hover:bg-green-100 transition-all"
+            className="p-1 h-8 w-8 rounded-full hover:bg-green-100 dark:hover:bg-green-900 transition-colors"
             onClick={suggestRandomItem}
-            title="اقترح طبق"
+            title="اقترح وجبة"
           >
-            <Shuffle className="h-4 w-4 text-green-600" />
+            <Shuffle className="h-4 w-4 text-green-500" />
           </Button>
         </div>
       </div>
 
       <CommandDialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
-        <CommandInput
-          placeholder="شنو نفسك تاكل اليوم؟ 🍔"
+        <CommandInput 
+          placeholder="ماذا تريد أن تأكل اليوم؟" 
           value={searchTerm}
           onValueChange={setSearchTerm}
         />
         <CommandList>
           <CommandEmpty>
             {isLoading ? (
-              <p className="py-6 text-center text-sm">جاري البحث...</p>
+              <p className="py-6 text-center text-sm">جارٍ البحث...</p>
             ) : (
-              <p className="py-6 text-center text-sm">ماكو نتائج، جرّب كلمة غيرها</p>
+              <p className="py-6 text-center text-sm">لا توجد نتائج. جرّب كلمات أخرى.</p>
             )}
           </CommandEmpty>
-
-          <CommandGroup heading="النتائج">
+          
+          <CommandGroup heading="نتائج البحث">
             {results.map((product) => (
               <CommandItem
                 key={product.id}
                 onSelect={() => selectProduct(product)}
-                className="flex justify-between items-center py-2"
+                className="flex items-center justify-between py-2"
               >
-                <div>
-                  <p>{product.name}</p>
-                  {product.price && (
-                    <p className="text-xs text-gray-500">{product.price} د.ع</p>
-                  )}
+                <div className="flex items-center">
+                  <span>{product.name}</span>
+                  <span className="ml-2 text-sm text-gray-500">
+                    {product.price ? `${product.price} د.ع` : ''}
+                  </span>
                 </div>
                 {product.category && (
-                  <span className="text-xs bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded-full">
+                  <span className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
                     {product.category}
                   </span>
                 )}
               </CommandItem>
             ))}
           </CommandGroup>
-
+          
           <CommandSeparator />
-
+          
           <CommandGroup heading="اقتراحات">
             <CommandItem
               onSelect={suggestRandomItem}
-              className="justify-center py-3 text-green-600"
+              className="flex items-center justify-center py-3 text-green-600"
             >
               <Shuffle className="h-4 w-4 mr-2" />
-              <span>اقترحلي وجبة عشوائية</span>
+              <span>اقترح وجبة عشوائية</span>
             </CommandItem>
           </CommandGroup>
         </CommandList>
