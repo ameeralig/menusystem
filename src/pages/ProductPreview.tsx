@@ -55,19 +55,6 @@ const ProductPreview = () => {
     };
   }, []);
 
-  // تحديث تلقائي كل دقيقة للتحقق من التغييرات
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (isAutoRefresh) {
-        console.log("Auto refreshing data...");
-        refreshData();
-        setLastManualRefresh(Date.now());
-      }
-    }, 60000); // تحديث كل دقيقة
-    
-    return () => clearInterval(interval);
-  }, [isAutoRefresh, refreshData]);
-
   // إجبار تحميل الصور حديثاً عند تحديث البيانات
   useEffect(() => {
     if (storeData?.bannerUrl) {
