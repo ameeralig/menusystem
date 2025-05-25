@@ -14,6 +14,7 @@ interface Product {
   category: string | null;
   is_new: boolean;
   is_popular: boolean;
+  is_available?: boolean | null;
 }
 
 interface ProductCardProps {
@@ -37,6 +38,8 @@ export const ProductCard = ({ product, layout }: ProductCardProps) => {
     );
   };
 
+  const isAvailable = product.is_available !== false;
+
   return (
     <motion.div
       layout
@@ -54,8 +57,20 @@ export const ProductCard = ({ product, layout }: ProductCardProps) => {
               loading="lazy"
               src={product.image_url}
               alt={product.name}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 ${
+                !isAvailable ? "grayscale opacity-60" : ""
+              }`}
             />
+            
+            {/* عرض حالة عدم التوفر */}
+            {!isAvailable && (
+              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                <div className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold">
+                  غير متوفر
+                </div>
+              </div>
+            )}
+            
             <div className="absolute top-2 right-2 flex flex-col gap-2">
               {product.is_new && (
                 <Badge variant="secondary" className="bg-yellow-500/90 text-white border-none">
@@ -73,7 +88,9 @@ export const ProductCard = ({ product, layout }: ProductCardProps) => {
         <CardContent className="p-4">
           <div className="flex flex-col gap-2">
             <div className="flex justify-between items-start gap-2">
-              <h3 className="text-lg font-bold text-right line-clamp-1 flex-1">
+              <h3 className={`text-lg font-bold text-right line-clamp-1 flex-1 ${
+                !isAvailable ? "text-gray-500" : ""
+              }`}>
                 {product.name}
               </h3>
               {product.category && (
@@ -84,7 +101,9 @@ export const ProductCard = ({ product, layout }: ProductCardProps) => {
             </div>
             
             {product.description && (
-              <p className="text-gray-600 dark:text-gray-300 text-sm text-right line-clamp-2">
+              <p className={`text-sm text-right line-clamp-2 ${
+                !isAvailable ? "text-gray-400" : "text-gray-600 dark:text-gray-300"
+              }`}>
                 {product.description}
               </p>
             )}
@@ -104,7 +123,9 @@ export const ProductCard = ({ product, layout }: ProductCardProps) => {
                   </span>
                 )}
               </div>
-              {formatPrice(product.price)}
+              <div className={!isAvailable ? "opacity-60" : ""}>
+                {formatPrice(product.price)}
+              </div>
             </div>
           </div>
         </CardContent>

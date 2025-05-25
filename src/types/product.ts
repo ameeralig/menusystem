@@ -9,6 +9,7 @@ export interface Product {
   user_id: string;
   is_new?: boolean | null;
   is_popular?: boolean | null;
+  is_available?: boolean | null;
   display_order?: number | null;
   category_id?: string | null;
   created_at?: string | null;

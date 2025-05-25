@@ -35,6 +35,7 @@ const EditProductContainer = () => {
   const [category, setCategory] = useState("");
   const [isNew, setIsNew] = useState(false);
   const [isPopular, setIsPopular] = useState(false);
+  const [isAvailable, setIsAvailable] = useState(true);
 
   const fetchProducts = async () => {
     setIsLoading(true);
@@ -98,6 +99,7 @@ const EditProductContainer = () => {
     setCategory(product.category || "");
     setIsNew(product.is_new || false);
     setIsPopular(product.is_popular || false);
+    setIsAvailable(product.is_available !== false);
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -114,7 +116,8 @@ const EditProductContainer = () => {
           price: parseFloat(price),
           category,
           is_new: isNew,
-          is_popular: isPopular
+          is_popular: isPopular,
+          is_available: isAvailable
         })
         .eq("id", selectedProduct.id);
 
@@ -127,7 +130,7 @@ const EditProductContainer = () => {
 
       setProducts(products.map(p => 
         p.id === selectedProduct.id 
-          ? { ...p, name, description, price: parseFloat(price), category, is_new: isNew, is_popular: isPopular }
+          ? { ...p, name, description, price: parseFloat(price), category, is_new: isNew, is_popular: isPopular, is_available: isAvailable }
           : p
       ));
 
@@ -186,6 +189,7 @@ const EditProductContainer = () => {
     setCategory("");
     setIsNew(false);
     setIsPopular(false);
+    setIsAvailable(true);
     
     if (productId) {
       navigate("/edit-product", { replace: true });
@@ -299,6 +303,8 @@ const EditProductContainer = () => {
             setIsNew={setIsNew}
             isPopular={isPopular}
             setIsPopular={setIsPopular}
+            isAvailable={isAvailable}
+            setIsAvailable={setIsAvailable}
             isLoading={isSaving}
           />
         )}

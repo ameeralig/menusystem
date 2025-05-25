@@ -51,6 +51,8 @@ const ProductCard = ({ product }: { product: Product }) => {
     );
   };
 
+  const isAvailable = product.is_available !== false;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -68,12 +70,22 @@ const ProductCard = ({ product }: { product: Product }) => {
             alt={product.name}
             className={`w-full h-full object-cover transition-all duration-300 ${
               imageLoaded ? "opacity-100 hover:scale-105" : "opacity-0"
-            }`}
+            } ${!isAvailable ? "grayscale opacity-60" : ""}`}
             loading="lazy"
             onLoad={() => setImageLoaded(true)}
             onError={handleImageError}
             decoding="async"
           />
+          
+          {/* عرض حالة عدم التوفر */}
+          {!isAvailable && imageLoaded && (
+            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+              <div className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold">
+                غير متوفر
+              </div>
+            </div>
+          )}
+          
           {imageError && (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700">
               <p className="text-sm text-gray-500 dark:text-gray-400 p-4 text-center">
@@ -85,11 +97,19 @@ const ProductCard = ({ product }: { product: Product }) => {
       )}
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="text-lg font-semibold text-right">{product.name}</h3>
-          {formatPrice(product.price)}
+          <h3 className={`text-lg font-semibold text-right ${
+            !isAvailable ? "text-gray-500" : ""
+          }`}>
+            {product.name}
+          </h3>
+          <div className={!isAvailable ? "opacity-60" : ""}>
+            {formatPrice(product.price)}
+          </div>
         </div>
         {product.description && (
-          <p className="text-gray-600 dark:text-gray-300 text-sm text-right">
+          <p className={`text-sm text-right ${
+            !isAvailable ? "text-gray-400" : "text-gray-600 dark:text-gray-300"
+          }`}>
             {product.description}
           </p>
         )}
