@@ -7,6 +7,7 @@ import { useCategoryImageUpload } from "./category-image/useCategoryImageUpload"
 import { CategoryOrderManager } from "./category-order/CategoryOrderManager";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 interface CategoryImageManagerProps {
   categories: string[];
@@ -35,9 +36,25 @@ export const CategoryImageManager = ({
     }
   }, [categoryImages]);
 
-  const handleOrderUpdate = () => {
-    // إعادة تحميل صور التصنيفات بعد تحديث الترتيب
-    window.location.reload();
+  const handleOrderUpdate = async () => {
+    try {
+      // إعادة جلب صور التصنيفات من قاعدة البيانات
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: updatedImages, error } = await supabase
+        .from("category_images")
+        .select("*")
+        .eq("user_id", user.id)
+        .order('display_order', { ascending: true });
+
+      if (!error && updatedImages) {
+        onUpdateImages(updatedImages);
+        console.log("تم تحديث صور التصنيفات بنجاح بعد تغيير الترتيب");
+      }
+    } catch (error) {
+      console.error("خطأ في تحديث صور التصنيفات:", error);
+    }
   };
 
   if (categories.length === 0) {
