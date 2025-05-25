@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, Phone } from "lucide-react";
+import { Phone } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,14 +22,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import FeedbackButton from "./feedback/FeedbackButton";
 
 interface FeedbackDialogProps {
   userId: string;
+  colorTheme?: string;
 }
 
-const FeedbackDialog = ({ userId }: FeedbackDialogProps) => {
+const FeedbackDialog = ({ userId, colorTheme = "default" }: FeedbackDialogProps) => {
   const [visitorName, setVisitorName] = useState("");
-  const [visitorPhone, setVisitorPhone] = useState(""); // إضافة حالة جديدة لرقم الهاتف
+  const [visitorPhone, setVisitorPhone] = useState("");
   const [feedbackType, setFeedbackType] = useState("");
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,7 +53,7 @@ const FeedbackDialog = ({ userId }: FeedbackDialogProps) => {
       const { error } = await supabase.from("feedback").insert({
         store_owner_id: userId,
         visitor_name: visitorName,
-        visitor_phone: visitorPhone || null, // إضافة رقم الهاتف مع مراعاة إمكانية أن يكون فارغاً
+        visitor_phone: visitorPhone || null,
         type: feedbackType,
         description: description,
       });
@@ -83,14 +85,12 @@ const FeedbackDialog = ({ userId }: FeedbackDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <motion.button 
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary flex items-center gap-1.5 mx-auto mt-8 transition-colors"
-        >
-          <MessageSquare className="w-4 h-4" />
-          <span>إرسال ملاحظات</span>
-        </motion.button>
+        <div className="flex justify-center mt-8">
+          <FeedbackButton 
+            onClick={() => setIsOpen(true)}
+            colorTheme={colorTheme}
+          />
+        </div>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] backdrop-blur-xl bg-white/10 dark:bg-black/10 border border-white/20 dark:border-white/10">
         <DialogHeader>
@@ -111,7 +111,6 @@ const FeedbackDialog = ({ userId }: FeedbackDialogProps) => {
             />
           </div>
           
-          {/* إضافة حقل رقم الهاتف */}
           <div className="grid gap-2">
             <Label className="text-right">رقم الهاتف (اختياري)</Label>
             <Input
@@ -120,7 +119,7 @@ const FeedbackDialog = ({ userId }: FeedbackDialogProps) => {
               onChange={(e) => setVisitorPhone(e.target.value)}
               className="text-right"
               placeholder="أدخل رقم هاتفك"
-              dir="ltr" // لضمان عرض رقم الهاتف من اليسار إلى اليمين
+              dir="ltr"
             />
           </div>
           
