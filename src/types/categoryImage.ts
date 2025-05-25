@@ -5,4 +5,5 @@ export interface CategoryImage {
   category: string;
   image_url: string;
   created_at?: string;
+  display_order?: number;
 }

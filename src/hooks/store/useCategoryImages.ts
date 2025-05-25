@@ -21,11 +21,12 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
         console.log("جاري جلب صور التصنيفات للمستخدم:", userId);
         setIsLoading(true);
         
-        // استخدام استعلام مباشر بدلاً من طبقة التخزين المؤقت
+        // استخدام استعلام مباشر بدلاً من طبقة التخزين المؤقت مع ترتيب حسب display_order
         const { data, error } = await supabase
           .from("category_images")
           .select("*")
           .eq("user_id", userId)
+          .order('display_order', { ascending: true })
           .order('created_at', { ascending: false });
 
         if (error) {

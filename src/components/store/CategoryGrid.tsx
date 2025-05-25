@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { CSSProperties, useEffect, useState } from "react";
 import { CategoryImage } from "@/types/categoryImage";
@@ -108,12 +109,14 @@ const CategoryGrid = ({
   const [fontFaceLoaded, setFontFaceLoaded] = useState(false);
   const [fontId, setFontId] = useState<string>("");
   
-  // تسجيل معلومات تفصيلية عن الصور المتوفرة
+  // تسجيل معلومات تفصيلية عن الصور المتوفرة مع الترتيب
   useEffect(() => {
     console.log(`CategoryGrid: تلقي ${categoryImages?.length || 0} صورة تصنيف`);
     if (categoryImages?.length > 0) {
-      console.log("صور التصنيفات المتاحة في CategoryGrid:", 
-        categoryImages.map(img => `${img.category}: ${img.image_url?.substring(0, 50)}...`));
+      console.log("صور التصنيفات المتاحة في CategoryGrid مرتبة:", 
+        categoryImages
+          .sort((a, b) => (a.display_order || 999) - (b.display_order || 999))
+          .map(img => `${img.category} (ترتيب: ${img.display_order || 'غير محدد'}): ${img.image_url?.substring(0, 50)}...`));
     }
   }, [categoryImages]);
   
@@ -156,9 +159,20 @@ const CategoryGrid = ({
     return imageData.image_url;
   };
 
+  // ترتيب التصنيفات حسب display_order
+  const sortedCategories = [...categories].sort((a, b) => {
+    const aImage = categoryImages.find(img => img.category === a);
+    const bImage = categoryImages.find(img => img.category === b);
+    
+    const aOrder = aImage?.display_order || 999;
+    const bOrder = bImage?.display_order || 999;
+    
+    return aOrder - bOrder;
+  });
+
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
-      {categories.map((category) => (
+      {sortedCategories.map((category) => (
         category && (
           <CategoryCard
             key={category}
