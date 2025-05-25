@@ -50,32 +50,32 @@ const StoreProductsDisplay = ({
 }: StoreProductsDisplayProps) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [fontLoaded, setFontLoaded] = useState(false);
+  const [customFontFamily, setCustomFontFamily] = useState<string>("");
   
   const { categories } = useGlobalSearch(products);
 
   // تحميل الخط المخصص لاسم المتجر
   useEffect(() => {
     if (fontSettings?.storeName?.isCustom && fontSettings?.storeName?.customFontUrl) {
-      const fontId = `store-name-font-${Math.random().toString(36).substring(2, 9)}`;
+      const fontId = `custom-store-font-${Date.now()}`;
       
       try {
         const fontFace = new FontFace(fontId, `url(${fontSettings.storeName.customFontUrl})`);
         
-        fontFace.load().then((loadedFontFace) => {
-          document.fonts.add(loadedFontFace);
-          setFontLoaded(true);
-          console.log("تم تحميل خط اسم المتجر بنجاح");
+        fontFace.load().then((loadedFont) => {
+          document.fonts.add(loadedFont);
+          setCustomFontFamily(fontId);
+          console.log("تم تحميل خط اسم المتجر بنجاح:", fontId);
         }).catch(err => {
           console.error("خطأ في تحميل خط اسم المتجر:", err);
-          setFontLoaded(false);
+          setCustomFontFamily("");
         });
       } catch (error) {
         console.error("خطأ في إنشاء FontFace:", error);
-        setFontLoaded(false);
+        setCustomFontFamily("");
       }
     } else {
-      setFontLoaded(true);
+      setCustomFontFamily("");
     }
   }, [fontSettings?.storeName?.customFontUrl, fontSettings?.storeName?.isCustom]);
 
@@ -106,11 +106,11 @@ const StoreProductsDisplay = ({
   };
 
   // دالة للحصول على نمط الخط
-  const getStoreNameStyle = () => {
+  const getStoreNameStyle = (): React.CSSProperties => {
     const style: React.CSSProperties = {};
     
-    if (fontSettings?.storeName?.isCustom && fontSettings?.storeName?.customFontUrl && fontLoaded) {
-      style.fontFamily = `"store-name-font", sans-serif`;
+    if (fontSettings?.storeName?.isCustom && customFontFamily) {
+      style.fontFamily = `"${customFontFamily}", sans-serif`;
     } else if (fontSettings?.storeName?.family && fontSettings?.storeName?.family !== 'inherit') {
       style.fontFamily = fontSettings.storeName.family;
     }
