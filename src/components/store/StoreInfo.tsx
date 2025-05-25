@@ -1,5 +1,5 @@
 
-import { MapPin, Phone, Wifi, Info, Clock, ChevronDown } from "lucide-react";
+import { MapPin, Phone, Wifi, Info, Clock } from "lucide-react";
 import { useState } from "react";
 import { 
   Collapsible,
@@ -72,6 +72,24 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
     setIsWifiCodeVisible(!isWifiCodeVisible);
   };
 
+  // دالة لتحويل الوقت من نظام 24 ساعة إلى 12 ساعة
+  const convertTo12Hour = (time24: string) => {
+    if (!time24) return time24;
+    
+    const [hours, minutes] = time24.split(':');
+    const hour24 = parseInt(hours);
+    
+    if (hour24 === 0) {
+      return `12:${minutes} ص`;
+    } else if (hour24 < 12) {
+      return `${hour24}:${minutes} ص`;
+    } else if (hour24 === 12) {
+      return `12:${minutes} م`;
+    } else {
+      return `${hour24 - 12}:${minutes} م`;
+    }
+  };
+
   const formatBusinessHours = () => {
     if (!contactInfo.businessHours) return null;
     
@@ -111,7 +129,9 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
                   </div>
                   <div>
                     {day.isOpen ? (
-                      <span className="text-green-600 dark:text-green-400">{day.openTime} - {day.closeTime}</span>
+                      <span className="text-green-600 dark:text-green-400">
+                        {convertTo12Hour(day.openTime)} - {convertTo12Hour(day.closeTime)}
+                      </span>
                     ) : (
                       <span className="text-red-500 dark:text-red-400">مغلق</span>
                     )}
@@ -148,7 +168,6 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
               <Clock className={`w-4 h-4 ${themeIconClasses}`} />
               <p className="text-sm font-medium">ساعات العمل</p>
             </div>
-            <ChevronDown className={`w-4 h-4 mr-auto ${isBusinessHoursOpen ? "transform rotate-180" : ""} transition-transform duration-200`} />
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-1">
             {formatBusinessHours()}
