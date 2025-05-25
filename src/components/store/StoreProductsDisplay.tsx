@@ -101,6 +101,23 @@ const StoreProductsDisplay = ({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
+      {/* عنوان المتجر */}
+      <motion.div
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="text-center mb-6"
+      >
+        <h1 
+          className="text-4xl font-bold text-gray-900 dark:text-white"
+          style={{
+            fontFamily: fontSettings?.storeName?.family || 'inherit'
+          }}
+        >
+          {storeName}
+        </h1>
+      </motion.div>
+
       {/* معلومات المتجر */}
       <motion.div
         initial={{ y: -20, opacity: 0 }}
@@ -108,9 +125,8 @@ const StoreProductsDisplay = ({
         transition={{ duration: 0.6, ease: "easeOut" }}
       >
         <StoreInfo 
-          storeName={storeName}
-          fontSettings={fontSettings}
           contactInfo={contactInfo}
+          colorTheme={colorTheme}
         />
       </motion.div>
 
@@ -180,9 +196,8 @@ const StoreProductsDisplay = ({
                 />
               ) : (
                 <EmptyCategoryMessage 
-                  categoryName={selectedCategory}
+                  selectedCategory={selectedCategory}
                   searchQuery={searchQuery}
-                  onBackToCategories={handleBackToCategories}
                 />
               )}
             </motion.div>
