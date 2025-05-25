@@ -1,5 +1,5 @@
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ProductGrid from "./ProductGrid";
 import CategoryGrid from "./CategoryGrid";
@@ -50,8 +50,73 @@ const StoreProductsDisplay = ({
 }: StoreProductsDisplayProps) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [fontLoaded, setFontLoaded] = useState(false);
   
   const { categories } = useGlobalSearch(products);
+
+  // تحميل الخط المخصص لاسم المتجر
+  useEffect(() => {
+    if (fontSettings?.storeName?.isCustom && fontSettings?.storeName?.customFontUrl) {
+      const fontId = `store-name-font-${Math.random().toString(36).substring(2, 9)}`;
+      
+      try {
+        const fontFace = new FontFace(fontId, `url(${fontSettings.storeName.customFontUrl})`);
+        
+        fontFace.load().then((loadedFontFace) => {
+          document.fonts.add(loadedFontFace);
+          setFontLoaded(true);
+          console.log("تم تحميل خط اسم المتجر بنجاح");
+        }).catch(err => {
+          console.error("خطأ في تحميل خط اسم المتجر:", err);
+          setFontLoaded(false);
+        });
+      } catch (error) {
+        console.error("خطأ في إنشاء FontFace:", error);
+        setFontLoaded(false);
+      }
+    } else {
+      setFontLoaded(true);
+    }
+  }, [fontSettings?.storeName?.customFontUrl, fontSettings?.storeName?.isCustom]);
+
+  // دالة للحصول على ألوان الثيم
+  const getThemeColors = (theme: string) => {
+    switch (theme) {
+      case 'coral':
+        return 'text-[#ff9178] dark:text-[#ffbcad]';
+      case 'purple':
+        return 'text-purple-600 dark:text-purple-400';
+      case 'blue':
+        return 'text-blue-600 dark:text-blue-400';
+      case 'green':
+        return 'text-green-600 dark:text-green-400';
+      case 'pink':
+        return 'text-pink-600 dark:text-pink-400';
+      case 'teal':
+        return 'text-teal-600 dark:text-teal-400';
+      case 'amber':
+        return 'text-amber-600 dark:text-amber-400';
+      case 'indigo':
+        return 'text-indigo-600 dark:text-indigo-400';
+      case 'rose':
+        return 'text-rose-600 dark:text-rose-400';
+      default:
+        return 'text-gray-900 dark:text-white';
+    }
+  };
+
+  // دالة للحصول على نمط الخط
+  const getStoreNameStyle = () => {
+    const style: React.CSSProperties = {};
+    
+    if (fontSettings?.storeName?.isCustom && fontSettings?.storeName?.customFontUrl && fontLoaded) {
+      style.fontFamily = `"store-name-font", sans-serif`;
+    } else if (fontSettings?.storeName?.family && fontSettings?.storeName?.family !== 'inherit') {
+      style.fontFamily = fontSettings.storeName.family;
+    }
+    
+    return style;
+  };
 
   const filteredProducts = useMemo(() => {
     let filtered = products;
@@ -109,10 +174,8 @@ const StoreProductsDisplay = ({
         className="text-center mb-6"
       >
         <h1 
-          className="text-4xl font-bold text-gray-900 dark:text-white"
-          style={{
-            fontFamily: fontSettings?.storeName?.family || 'inherit'
-          }}
+          className={`text-4xl font-bold transition-all duration-300 ${getThemeColors(colorTheme)}`}
+          style={getStoreNameStyle()}
         >
           {storeName}
         </h1>
