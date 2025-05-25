@@ -39,6 +39,21 @@ export const ProductCard = ({ product, layout }: ProductCardProps) => {
   };
 
   const isAvailable = product.is_available !== false;
+  const isPopular = product.is_popular;
+  const isNew = product.is_new;
+
+  // تحديد فئات CSS للتأثيرات المختلفة
+  const getCardClasses = () => {
+    let baseClasses = "group overflow-hidden h-full hover:shadow-lg transition-all duration-300 dark:bg-gray-800 relative";
+    
+    if (isPopular) {
+      baseClasses += " fire-glow-red";
+    } else if (isNew) {
+      baseClasses += " fire-glow-blue";
+    }
+    
+    return baseClasses;
+  };
 
   return (
     <motion.div
@@ -50,7 +65,21 @@ export const ProductCard = ({ product, layout }: ProductCardProps) => {
       transition={{ duration: 0.2 }}
       className={layout === "list" ? "w-full" : "w-full"}
     >
-      <Card className="group overflow-hidden h-full hover:shadow-lg transition-all duration-300 dark:bg-gray-800">
+      <Card className={getCardClasses()}>
+        {/* تأثير النيران للمنتجات عالية الطلب */}
+        {isPopular && (
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="fire-effect-red"></div>
+          </div>
+        )}
+        
+        {/* تأثير النيران الزرقاء للمنتجات الجديدة */}
+        {isNew && !isPopular && (
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="fire-effect-blue"></div>
+          </div>
+        )}
+
         {product.image_url && (
           <div className="relative aspect-[4/3] overflow-hidden">
             <motion.img
@@ -85,7 +114,7 @@ export const ProductCard = ({ product, layout }: ProductCardProps) => {
             </div>
           </div>
         )}
-        <CardContent className="p-4">
+        <CardContent className="p-4 relative z-10">
           <div className="flex flex-col gap-2">
             <div className="flex justify-between items-start gap-2">
               <h3 className={`text-lg font-bold text-right line-clamp-1 flex-1 ${

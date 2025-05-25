@@ -52,14 +52,43 @@ const ProductCard = ({ product }: { product: Product }) => {
   };
 
   const isAvailable = product.is_available !== false;
+  const isPopular = product.is_popular;
+  const isNew = product.is_new;
+
+  // تحديد فئات CSS للتأثيرات المختلفة
+  const getCardClasses = () => {
+    let baseClasses = "bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 relative";
+    
+    if (isPopular) {
+      baseClasses += " fire-glow-red";
+    } else if (isNew) {
+      baseClasses += " fire-glow-blue";
+    }
+    
+    return baseClasses;
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300"
+      className={getCardClasses()}
     >
+      {/* تأثير النيران للمنتجات عالية الطلب */}
+      {isPopular && (
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="fire-effect-red"></div>
+        </div>
+      )}
+      
+      {/* تأثير النيران الزرقاء للمنتجات الجديدة */}
+      {isNew && !isPopular && (
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="fire-effect-blue"></div>
+        </div>
+      )}
+
       {product.image_url && (
         <div className="aspect-[16/9] overflow-hidden relative">
           {!imageLoaded && !imageError && (
@@ -95,7 +124,7 @@ const ProductCard = ({ product }: { product: Product }) => {
           )}
         </div>
       )}
-      <div className="p-4">
+      <div className="p-4 relative z-10">
         <div className="flex justify-between items-start mb-2">
           <h3 className={`text-lg font-semibold text-right ${
             !isAvailable ? "text-gray-500" : ""
