@@ -1,15 +1,14 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Accordion } from "@/components/ui/accordion";
 import { ArrowRight, Loader2, X } from "lucide-react";
 import { Product } from "@/types/product";
 import { useIsMobile } from "@/hooks/use-mobile";
-import ImageUploadSection from "@/components/products/edit/ImageUploadSection";
+import BasicInfoSection from "@/components/products/edit/sections/BasicInfoSection";
+import ProductSettingsSection from "@/components/products/edit/sections/ProductSettingsSection";
+import ImageSection from "@/components/products/edit/sections/ImageSection";
 
 interface EditProductFormProps {
   product: Product;
@@ -89,115 +88,40 @@ const EditProductForm = ({
       </CardHeader>
 
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-right block">
-                  اسم المنتج
-                </Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="text-right"
-                  required
-                />
-              </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Accordion type="multiple" defaultValue={["basic-info", "product-image"]} className="w-full">
+            <BasicInfoSection
+              name={name}
+              setName={setName}
+              description={description}
+              setDescription={setDescription}
+              price={price}
+              setPrice={setPrice}
+              category={category}
+              setCategory={setCategory}
+            />
 
-              <div className="space-y-2">
-                <Label htmlFor="description" className="text-right block">
-                  الوصف
-                </Label>
-                <Textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="text-right min-h-20"
-                  rows={3}
-                />
-              </div>
+            <ImageSection
+              currentImageUrl={product.image_url}
+              uploadMethod={uploadMethod}
+              setUploadMethod={setUploadMethod}
+              imageUrl={imageUrl}
+              setImageUrl={setImageUrl}
+              selectedFile={selectedFile}
+              setSelectedFile={setSelectedFile}
+              previewUrl={previewUrl}
+              setPreviewUrl={setPreviewUrl}
+            />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="price" className="text-right block">
-                    السعر (د.ع)
-                  </Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    className="text-right"
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="category" className="text-right block">
-                    التصنيف
-                  </Label>
-                  <Input
-                    id="category"
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="text-right"
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-4">
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <Label htmlFor="is-new" className="text-sm font-medium">
-                    منتج جديد
-                  </Label>
-                  <Switch
-                    id="is-new"
-                    checked={isNew}
-                    onCheckedChange={setIsNew}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <Label htmlFor="is-popular" className="text-sm font-medium">
-                    الأكثر طلباً
-                  </Label>
-                  <Switch
-                    id="is-popular"
-                    checked={isPopular}
-                    onCheckedChange={setIsPopular}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <Label htmlFor="is-available" className="text-sm font-medium">
-                    متوفر
-                  </Label>
-                  <Switch
-                    id="is-available"
-                    checked={isAvailable}
-                    onCheckedChange={setIsAvailable}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <ImageUploadSection
-                currentImageUrl={product.image_url}
-                uploadMethod={uploadMethod}
-                setUploadMethod={setUploadMethod}
-                imageUrl={imageUrl}
-                setImageUrl={setImageUrl}
-                selectedFile={selectedFile}
-                setSelectedFile={setSelectedFile}
-                previewUrl={previewUrl}
-                setPreviewUrl={setPreviewUrl}
-              />
-            </div>
-          </div>
+            <ProductSettingsSection
+              isNew={isNew}
+              setIsNew={setIsNew}
+              isPopular={isPopular}
+              setIsPopular={setIsPopular}
+              isAvailable={isAvailable}
+              setIsAvailable={setIsAvailable}
+            />
+          </Accordion>
 
           <div className="flex gap-3 pt-4">
             <Button
