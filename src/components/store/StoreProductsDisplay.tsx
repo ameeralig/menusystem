@@ -1,18 +1,17 @@
 
-import React, { useState, useCallback, useMemo, useEffect } from "react";
-import { Product } from "@/types/product";
-import { CategoryImage } from "@/types/categoryImage";
-import { useProductLoading } from "./hooks/useProductLoading";
-import { useGlobalSearch } from "./hooks/useGlobalSearch";
-import { useCategoryImages } from "./hooks/useCategoryImages";
-import StoreHeader from "./StoreHeader";
+import { useState, useMemo, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import ProductGrid from "./ProductGrid";
+import CategoryGrid from "./CategoryGrid";
 import StoreInfo from "./StoreInfo";
 import BackButton from "./BackButton";
-import SearchBar from "./SearchBar";
-import CategorySection from "./category/CategorySection";
-import ProductSection from "./product/ProductSection";
+import AdvancedSearchBar from "./AdvancedSearchBar";
+import EmptyCategoryMessage from "./EmptyCategoryMessage";
+import { Product } from "@/types/product";
+import { CategoryImage } from "@/types/categoryImage";
+import { useGlobalSearch } from "./hooks/useGlobalSearch";
 
-type FontSettings = {
+interface FontSettings {
   storeName?: {
     family: string;
     isCustom: boolean;
@@ -23,109 +22,174 @@ type FontSettings = {
     isCustom: boolean;
     customFontUrl: string | null;
   };
-  generalText?: {
-    family: string;
-    isCustom: boolean;
-    customFontUrl: string | null;
-  };
-};
+}
 
-type ContactInfo = {
-  description?: string | null;
-  address?: string | null;
-  phone?: string | null;
-  wifi?: string | null;
-  businessHours?: string | null;
-};
+interface ContactInfo {
+  phone?: string;
+  email?: string;
+  address?: string;
+  website?: string;
+}
 
 interface StoreProductsDisplayProps {
   products: Product[];
-  storeName: string | null;
-  colorTheme: string | null;
+  storeName: string;
+  colorTheme: string;
   fontSettings?: FontSettings;
   contactInfo?: ContactInfo;
   categoryImages?: CategoryImage[];
 }
 
-const StoreProductsDisplay = ({ 
-  products, 
-  storeName, 
+const StoreProductsDisplay = ({
+  products,
+  storeName,
   colorTheme,
   fontSettings,
   contactInfo,
-  categoryImages = []
+  categoryImages = [],
 }: StoreProductsDisplayProps) => {
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [showSearch, setShowSearch] = useState(false);
-
-  // استخدام الهوكس الجديدة
-  const { processedCategoryImages } = useCategoryImages(categoryImages);
-  const { visibleProducts, hasMoreProducts, loadMoreProducts } = useProductLoading(products, selectedCategory, searchQuery);
+  const [searchQuery, setSearchQuery] = useState("");
+  
   const { categories } = useGlobalSearch(products);
 
-  // التعامل مع البحث
-  const handleSearch = useCallback((query: string) => {
-    setSearchQuery(query);
-  }, []);
+  const filteredProducts = useMemo(() => {
+    let filtered = products;
 
-  // اختيار التصنيف
+    // تطبيق فلتر التصنيف
+    if (selectedCategory) {
+      filtered = filtered.filter(product => product.category === selectedCategory);
+    }
+
+    // تطبيق فلتر البحث
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(product =>
+        product.name.toLowerCase().includes(query) ||
+        product.description?.toLowerCase().includes(query) ||
+        product.category?.toLowerCase().includes(query)
+      );
+    }
+
+    return filtered;
+  }, [products, selectedCategory, searchQuery]);
+
   const handleCategorySelect = useCallback((category: string) => {
     setSelectedCategory(category);
+    setSearchQuery(""); // مسح البحث عند اختيار تصنيف
   }, []);
 
-  // العودة للصفحة الرئيسية
-  const handleBackClick = useCallback(() => {
+  const handleBackToCategories = useCallback(() => {
     setSelectedCategory(null);
-    setSearchQuery("");
+    setSearchQuery(""); // مسح البحث عند الرجوع للتصنيفات
   }, []);
 
-  // تبديل حالة البحث
-  const toggleSearch = useCallback(() => {
-    setShowSearch(!showSearch);
-    if (showSearch) {
-      setSearchQuery("");
+  const handleSearchChange = useCallback((query: string) => {
+    setSearchQuery(query);
+    if (query.trim()) {
+      setSelectedCategory(null); // إلغاء التصنيف المحدد عند البحث
     }
-  }, [showSearch]);
+  }, []);
+
+  const showCategories = !selectedCategory && !searchQuery.trim();
+  const showProducts = selectedCategory || searchQuery.trim();
 
   return (
-    <div className="space-y-6">
-      <StoreHeader storeName={storeName} colorTheme={colorTheme} fontSettings={fontSettings} />
-      
-      <StoreInfo contactInfo={contactInfo} colorTheme={colorTheme} />
-
-      {selectedCategory && (
-        <BackButton onClick={handleBackClick} />
-      )}
-
-      <SearchBar
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        onToggleSearch={toggleSearch}
-        showSearch={showSearch}
-        products={products}
-      />
-
-      {/* عرض شبكة التصنيفات أو شبكة المنتجات حسب الحالة */}
-      {!selectedCategory && categories.length > 0 && !searchQuery ? (
-        <CategorySection 
-          categories={categories}
-          onCategorySelect={handleCategorySelect}
+    <motion.div
+      className="container mx-auto px-4 py-8 max-w-6xl relative"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      {/* معلومات المتجر */}
+      <motion.div
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
+        <StoreInfo 
+          storeName={storeName}
           fontSettings={fontSettings}
-          categoryImages={processedCategoryImages}
+          contactInfo={contactInfo}
         />
-      ) : (
-        <ProductSection
-          products={visibleProducts}
-          filteredProducts={visibleProducts}
-          colorTheme={colorTheme}
+      </motion.div>
+
+      {/* شريط البحث المتقدم */}
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+      >
+        <AdvancedSearchBar
           searchQuery={searchQuery}
-          selectedCategory={selectedCategory}
-          onLoadMore={loadMoreProducts}
-          hasMore={hasMoreProducts}
+          setSearchQuery={handleSearchChange}
+          products={products}
         />
-      )}
-    </div>
+      </motion.div>
+
+      {/* زر الرجوع */}
+      <AnimatePresence>
+        {showProducts && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.3 }}
+          >
+            <BackButton onClick={handleBackToCategories} colorTheme={colorTheme} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* المحتوى الرئيسي */}
+      <motion.div
+        className="mt-8"
+        layout
+        transition={{ duration: 0.5, ease: "easeInOut" }}
+      >
+        <AnimatePresence mode="wait">
+          {showCategories && (
+            <motion.div
+              key="categories"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            >
+              <CategoryGrid 
+                categories={categories}
+                onCategorySelect={handleCategorySelect}
+                fontSettings={fontSettings}
+                categoryImages={categoryImages}
+              />
+            </motion.div>
+          )}
+
+          {showProducts && (
+            <motion.div
+              key="products"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            >
+              {filteredProducts.length > 0 ? (
+                <ProductGrid 
+                  products={filteredProducts}
+                  colorTheme={colorTheme}
+                />
+              ) : (
+                <EmptyCategoryMessage 
+                  categoryName={selectedCategory}
+                  searchQuery={searchQuery}
+                  onBackToCategories={handleBackToCategories}
+                />
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </motion.div>
   );
 };
 
