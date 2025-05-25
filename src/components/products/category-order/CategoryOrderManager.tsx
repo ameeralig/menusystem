@@ -129,19 +129,7 @@ export const CategoryOrderManager = ({
         description: "تم تحديث ترتيب التصنيفات بنجاح",
       });
 
-      // إضافة تأخير قصير لضمان حفظ البيانات في قاعدة البيانات
-      setTimeout(() => {
-        // إجبار تحديث البيانات
-        onOrderUpdate();
-        
-        // إشعار المستخدم بأن المعاينة ستُحدث
-        toast({
-          title: "تحديث المعاينة",
-          description: "يمكنك الآن مشاهدة التغييرات في صفحة المعاينة",
-          duration: 3000,
-        });
-      }, 500);
-
+      onOrderUpdate();
     } catch (error: any) {
       console.error("خطأ في حفظ ترتيب التصنيفات:", error);
       toast({
