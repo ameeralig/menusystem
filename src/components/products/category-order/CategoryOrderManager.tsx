@@ -19,6 +19,7 @@ export const CategoryOrderManager = ({
   onOrderUpdate,
 }: CategoryOrderManagerProps) => {
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
+  const [draggedOverItem, setDraggedOverItem] = useState<string | null>(null);
   const [orderedCategories, setOrderedCategories] = useState(categories);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -27,6 +28,7 @@ export const CategoryOrderManager = ({
   const handleDragStart = (e: React.DragEvent, category: string) => {
     setDraggedItem(category);
     e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", category);
   };
 
   // دالة للسماح بالإفلات
@@ -35,23 +37,54 @@ export const CategoryOrderManager = ({
     e.dataTransfer.dropEffect = "move";
   };
 
+  // دالة عند الدخول إلى منطقة الإفلات
+  const handleDragEnter = (e: React.DragEvent, category: string) => {
+    e.preventDefault();
+    setDraggedOverItem(category);
+  };
+
+  // دالة عند الخروج من منطقة الإفلات
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDraggedOverItem(null);
+  };
+
   // دالة للإفلات
   const handleDrop = (e: React.DragEvent, targetCategory: string) => {
     e.preventDefault();
     
-    if (!draggedItem) return;
+    const draggedCategory = e.dataTransfer.getData("text/plain") || draggedItem;
+    
+    if (!draggedCategory || draggedCategory === targetCategory) {
+      setDraggedItem(null);
+      setDraggedOverItem(null);
+      return;
+    }
 
     const newOrder = [...orderedCategories];
-    const draggedIndex = newOrder.indexOf(draggedItem);
+    const draggedIndex = newOrder.indexOf(draggedCategory);
     const targetIndex = newOrder.indexOf(targetCategory);
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedItem(null);
+      setDraggedOverItem(null);
+      return;
+    }
 
     // إزالة العنصر المسحوب من موقعه الأصلي
     newOrder.splice(draggedIndex, 1);
     // إدراجه في الموقع الجديد
-    newOrder.splice(targetIndex, 0, draggedItem);
+    newOrder.splice(targetIndex, 0, draggedCategory);
 
     setOrderedCategories(newOrder);
     setDraggedItem(null);
+    setDraggedOverItem(null);
+  };
+
+  // دالة عند انتهاء السحب
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+    setDraggedOverItem(null);
   };
 
   // دالة لحفظ الترتيب الجديد
@@ -156,11 +189,15 @@ export const CategoryOrderManager = ({
               draggable
               onDragStart={(e) => handleDragStart(e, category)}
               onDragOver={handleDragOver}
+              onDragEnter={(e) => handleDragEnter(e, category)}
+              onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, category)}
+              onDragEnd={handleDragEnd}
               className={`
                 flex items-center gap-3 p-3 border rounded-lg cursor-move 
                 transition-all duration-200 hover:shadow-md
-                ${draggedItem === category ? "opacity-50" : ""}
+                ${draggedItem === category ? "opacity-50 scale-95" : ""}
+                ${draggedOverItem === category ? "border-primary border-2 bg-primary/5" : ""}
               `}
             >
               <GripVertical className="h-4 w-4 text-muted-foreground" />
