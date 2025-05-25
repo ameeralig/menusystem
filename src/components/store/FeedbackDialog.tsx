@@ -2,27 +2,12 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Phone } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { motion } from "framer-motion";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import FeedbackButton from "./feedback/FeedbackButton";
+import FeedbackDialogContent from "./feedback/FeedbackDialogContent";
+import FeedbackDialogHeader from "./feedback/FeedbackDialogHeader";
+import FeedbackForm from "./feedback/FeedbackForm";
 
 interface FeedbackDialogProps {
   userId: string;
@@ -65,6 +50,7 @@ const FeedbackDialog = ({ userId, colorTheme = "default" }: FeedbackDialogProps)
         description: "شكراً لك على ملاحظاتك",
       });
       
+      // إعادة تعيين النموذج
       setVisitorName("");
       setVisitorPhone("");
       setFeedbackType("");
@@ -85,85 +71,43 @@ const FeedbackDialog = ({ userId, colorTheme = "default" }: FeedbackDialogProps)
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <div className="flex justify-center mt-8">
+        <motion.div 
+          className="flex justify-center mt-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
           <FeedbackButton 
             onClick={() => setIsOpen(true)}
             colorTheme={colorTheme}
           />
-        </div>
+        </motion.div>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] backdrop-blur-xl bg-white/10 dark:bg-black/10 border border-white/20 dark:border-white/10">
-        <DialogHeader>
-          <DialogTitle className="text-right text-xl bg-gradient-to-br from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent">إرسال ملاحظات</DialogTitle>
-        </DialogHeader>
-        <motion.div 
+      
+      <FeedbackDialogContent colorTheme={colorTheme}>
+        <FeedbackDialogHeader colorTheme={colorTheme} />
+        
+        <motion.div
+          className="py-6"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="grid gap-4 py-4"
+          transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <div className="grid gap-2">
-            <Label className="text-right">الاسم</Label>
-            <Input
-              value={visitorName}
-              onChange={(e) => setVisitorName(e.target.value)}
-              className="text-right"
-              placeholder="أدخل اسمك"
-            />
-          </div>
-          
-          <div className="grid gap-2">
-            <Label className="text-right">رقم الهاتف (اختياري)</Label>
-            <Input
-              type="tel"
-              value={visitorPhone}
-              onChange={(e) => setVisitorPhone(e.target.value)}
-              className="text-right"
-              placeholder="أدخل رقم هاتفك"
-              dir="ltr"
-            />
-          </div>
-          
-          <div className="grid gap-2">
-            <Label className="text-right">نوع الملاحظات</Label>
-            <Select value={feedbackType} onValueChange={setFeedbackType}>
-              <SelectTrigger className="text-right">
-                <SelectValue placeholder="اختر نوع الملاحظات" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="complaint">شكوى</SelectItem>
-                <SelectItem value="suggestion">اقتراح</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label className="text-right">الوصف</Label>
-            <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="text-right min-h-[120px]"
-              placeholder="اكتب ملاحظاتك هنا"
-            />
-          </div>
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="w-full mt-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <span className="mr-2">جاري الإرسال...</span>
-                  <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
-                </>
-              ) : "إرسال"}
-            </Button>
-          </motion.div>
+          <FeedbackForm
+            visitorName={visitorName}
+            setVisitorName={setVisitorName}
+            visitorPhone={visitorPhone}
+            setVisitorPhone={setVisitorPhone}
+            feedbackType={feedbackType}
+            setFeedbackType={setFeedbackType}
+            description={description}
+            setDescription={setDescription}
+            isSubmitting={isSubmitting}
+            onSubmit={handleSubmit}
+            colorTheme={colorTheme}
+          />
         </motion.div>
-      </DialogContent>
+      </FeedbackDialogContent>
     </Dialog>
   );
 };
