@@ -2,12 +2,15 @@
 import { motion } from "framer-motion";
 import { MessageSquareText, Sparkles } from "lucide-react";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface FeedbackDialogHeaderProps {
   colorTheme: string;
 }
 
 const FeedbackDialogHeader = ({ colorTheme }: FeedbackDialogHeaderProps) => {
+  const isMobile = useIsMobile();
+
   const getThemeAccent = (theme: string) => {
     switch (theme) {
       case 'coral':
@@ -59,7 +62,7 @@ const FeedbackDialogHeader = ({ colorTheme }: FeedbackDialogHeaderProps) => {
   };
 
   return (
-    <DialogHeader className="relative overflow-hidden">
+    <DialogHeader className={`relative overflow-hidden ${isMobile ? 'pb-2' : 'pb-4'}`}>
       {/* خلفية متحركة */}
       <motion.div
         className={`absolute inset-0 bg-gradient-to-r ${getThemeGradient(colorTheme)} opacity-10 rounded-t-lg`}
@@ -75,7 +78,7 @@ const FeedbackDialogHeader = ({ colorTheme }: FeedbackDialogHeaderProps) => {
       
       {/* شرارات متحركة */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-        {[...Array(3)].map((_, i) => (
+        {[...Array(isMobile ? 2 : 3)].map((_, i) => (
           <motion.div
             key={i}
             className={`absolute w-1 h-1 bg-${getThemeAccent(colorTheme)} rounded-full`}
@@ -97,14 +100,14 @@ const FeedbackDialogHeader = ({ colorTheme }: FeedbackDialogHeaderProps) => {
       </div>
 
       <motion.div
-        className="relative z-10 flex items-center justify-center gap-3 py-2"
+        className={`relative z-10 flex items-center justify-center gap-3 ${isMobile ? 'py-1' : 'py-2'}`}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
         {/* أيقونة متحركة */}
         <motion.div
-          className={`p-2 rounded-full bg-gradient-to-r ${getThemeGradient(colorTheme)} shadow-lg`}
+          className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-full bg-gradient-to-r ${getThemeGradient(colorTheme)} shadow-lg`}
           animate={{
             rotate: [0, 360],
             scale: [1, 1.1, 1],
@@ -114,10 +117,10 @@ const FeedbackDialogHeader = ({ colorTheme }: FeedbackDialogHeaderProps) => {
             scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
           }}
         >
-          <MessageSquareText className="w-5 h-5 text-white" />
+          <MessageSquareText className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} text-white`} />
         </motion.div>
 
-        <DialogTitle className={`text-xl font-bold bg-gradient-to-r ${getThemeGradient(colorTheme)} bg-clip-text text-transparent`}>
+        <DialogTitle className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold bg-gradient-to-r ${getThemeGradient(colorTheme)} bg-clip-text text-transparent text-center`}>
           إرسال ملاحظات
         </DialogTitle>
 
@@ -133,7 +136,7 @@ const FeedbackDialogHeader = ({ colorTheme }: FeedbackDialogHeaderProps) => {
             ease: "easeInOut"
           }}
         >
-          <Sparkles className={`w-4 h-4 text-${getThemeAccent(colorTheme)}`} />
+          <Sparkles className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-${getThemeAccent(colorTheme)}`} />
         </motion.div>
       </motion.div>
 

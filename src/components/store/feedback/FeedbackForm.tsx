@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Send, Loader2 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface FeedbackFormProps {
   visitorName: string;
@@ -36,6 +37,7 @@ const FeedbackForm = ({
   colorTheme
 }: FeedbackFormProps) => {
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   const getThemeGradient = (theme: string) => {
     switch (theme) {
@@ -113,7 +115,7 @@ const FeedbackForm = ({
       variants={formVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-6"
+      className={`space-y-${isMobile ? '4' : '6'} overflow-y-auto max-h-full`}
     >
       {/* الخلفية المتدرجة */}
       <motion.div
@@ -125,12 +127,12 @@ const FeedbackForm = ({
 
       {/* حقل الاسم */}
       <motion.div variants={fieldVariants} className="relative space-y-2">
-        <Label className="text-right text-sm font-medium text-gray-700 dark:text-gray-300">
+        <Label className={`text-right ${isMobile ? 'text-sm' : 'text-sm'} font-medium text-gray-700 dark:text-gray-300`}>
           الاسم *
         </Label>
         <motion.div
           className="relative"
-          whileFocus={{ scale: 1.02 }}
+          whileFocus={{ scale: isMobile ? 1 : 1.02 }}
           transition={{ duration: 0.2 }}
         >
           <Input
@@ -138,7 +140,7 @@ const FeedbackForm = ({
             onChange={(e) => setVisitorName(e.target.value)}
             onFocus={() => setFocusedField('name')}
             onBlur={() => setFocusedField(null)}
-            className={`text-right transition-all duration-300 ${
+            className={`text-right transition-all duration-300 ${isMobile ? 'h-10 text-base' : 'h-11'} ${
               focusedField === 'name'
                 ? `border-${getThemeAccent(colorTheme)} shadow-lg shadow-${getThemeAccent(colorTheme)}/20`
                 : 'border-gray-200 dark:border-gray-700'
@@ -158,12 +160,12 @@ const FeedbackForm = ({
 
       {/* حقل رقم الهاتف */}
       <motion.div variants={fieldVariants} className="relative space-y-2">
-        <Label className="text-right text-sm font-medium text-gray-700 dark:text-gray-300">
+        <Label className={`text-right ${isMobile ? 'text-sm' : 'text-sm'} font-medium text-gray-700 dark:text-gray-300`}>
           رقم الهاتف (اختياري)
         </Label>
         <motion.div
           className="relative"
-          whileFocus={{ scale: 1.02 }}
+          whileFocus={{ scale: isMobile ? 1 : 1.02 }}
           transition={{ duration: 0.2 }}
         >
           <Input
@@ -172,7 +174,7 @@ const FeedbackForm = ({
             onChange={(e) => setVisitorPhone(e.target.value)}
             onFocus={() => setFocusedField('phone')}
             onBlur={() => setFocusedField(null)}
-            className={`text-right transition-all duration-300 ${
+            className={`text-right transition-all duration-300 ${isMobile ? 'h-10 text-base' : 'h-11'} ${
               focusedField === 'phone'
                 ? `border-${getThemeAccent(colorTheme)} shadow-lg shadow-${getThemeAccent(colorTheme)}/20`
                 : 'border-gray-200 dark:border-gray-700'
@@ -193,7 +195,7 @@ const FeedbackForm = ({
 
       {/* نوع الملاحظات */}
       <motion.div variants={fieldVariants} className="relative space-y-2">
-        <Label className="text-right text-sm font-medium text-gray-700 dark:text-gray-300">
+        <Label className={`text-right ${isMobile ? 'text-sm' : 'text-sm'} font-medium text-gray-700 dark:text-gray-300`}>
           نوع الملاحظات *
         </Label>
         <Select 
@@ -202,7 +204,7 @@ const FeedbackForm = ({
           onOpenChange={(open) => setFocusedField(open ? 'type' : null)}
         >
           <SelectTrigger 
-            className={`text-right transition-all duration-300 ${
+            className={`text-right transition-all duration-300 ${isMobile ? 'h-10 text-base' : 'h-11'} ${
               focusedField === 'type'
                 ? `border-${getThemeAccent(colorTheme)} shadow-lg shadow-${getThemeAccent(colorTheme)}/20`
                 : 'border-gray-200 dark:border-gray-700'
@@ -219,12 +221,12 @@ const FeedbackForm = ({
 
       {/* الوصف */}
       <motion.div variants={fieldVariants} className="relative space-y-2">
-        <Label className="text-right text-sm font-medium text-gray-700 dark:text-gray-300">
+        <Label className={`text-right ${isMobile ? 'text-sm' : 'text-sm'} font-medium text-gray-700 dark:text-gray-300`}>
           الوصف *
         </Label>
         <motion.div
           className="relative"
-          whileFocus={{ scale: 1.02 }}
+          whileFocus={{ scale: isMobile ? 1 : 1.02 }}
           transition={{ duration: 0.2 }}
         >
           <Textarea
@@ -232,7 +234,7 @@ const FeedbackForm = ({
             onChange={(e) => setDescription(e.target.value)}
             onFocus={() => setFocusedField('description')}
             onBlur={() => setFocusedField(null)}
-            className={`text-right min-h-[120px] transition-all duration-300 resize-none ${
+            className={`text-right ${isMobile ? 'min-h-[100px] text-base' : 'min-h-[120px]'} transition-all duration-300 resize-none ${
               focusedField === 'description'
                 ? `border-${getThemeAccent(colorTheme)} shadow-lg shadow-${getThemeAccent(colorTheme)}/20`
                 : 'border-gray-200 dark:border-gray-700'
@@ -253,16 +255,16 @@ const FeedbackForm = ({
       {/* زر الإرسال */}
       <motion.div
         variants={fieldVariants}
-        className="pt-4"
+        className={`${isMobile ? 'pt-3' : 'pt-4'}`}
       >
         <motion.div
-          whileHover={{ scale: 1.02 }}
+          whileHover={{ scale: isMobile ? 1 : 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
           <Button
             onClick={onSubmit}
             disabled={isSubmitting}
-            className={`w-full h-12 bg-gradient-to-r from-${getThemeAccent(colorTheme)} to-${getThemeAccent(colorTheme)}/80 hover:from-${getThemeAccent(colorTheme)}/90 hover:to-${getThemeAccent(colorTheme)}/70 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform`}
+            className={`w-full ${isMobile ? 'h-11 text-base' : 'h-12'} bg-gradient-to-r from-${getThemeAccent(colorTheme)} to-${getThemeAccent(colorTheme)}/80 hover:from-${getThemeAccent(colorTheme)}/90 hover:to-${getThemeAccent(colorTheme)}/70 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform`}
           >
             {isSubmitting ? (
               <motion.div
@@ -271,7 +273,7 @@ const FeedbackForm = ({
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
               >
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className={`${isMobile ? 'w-4 h-4' : 'w-4 h-4'} animate-spin`} />
                 <span>جاري الإرسال...</span>
               </motion.div>
             ) : (
@@ -281,7 +283,7 @@ const FeedbackForm = ({
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
               >
-                <Send className="w-4 h-4" />
+                <Send className={`${isMobile ? 'w-4 h-4' : 'w-4 h-4'}`} />
                 <span>إرسال الملاحظات</span>
               </motion.div>
             )}

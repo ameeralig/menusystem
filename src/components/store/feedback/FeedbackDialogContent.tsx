@@ -1,6 +1,7 @@
 
 import { motion } from "framer-motion";
 import { DialogContent } from "@/components/ui/dialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface FeedbackDialogContentProps {
   children: React.ReactNode;
@@ -8,6 +9,8 @@ interface FeedbackDialogContentProps {
 }
 
 const FeedbackDialogContent = ({ children, colorTheme }: FeedbackDialogContentProps) => {
+  const isMobile = useIsMobile();
+
   const getThemeGradient = (theme: string) => {
     switch (theme) {
       case 'coral':
@@ -60,7 +63,10 @@ const FeedbackDialogContent = ({ children, colorTheme }: FeedbackDialogContentPr
 
   return (
     <DialogContent className={`
-      sm:max-w-[450px] 
+      ${isMobile 
+        ? 'w-[95vw] max-w-[95vw] max-h-[90vh] mx-2 my-4' 
+        : 'sm:max-w-[450px] max-h-[85vh]'
+      }
       backdrop-blur-xl 
       bg-white/95 dark:bg-gray-900/95 
       border-2 ${getBorderGradient(colorTheme)}
@@ -68,6 +74,14 @@ const FeedbackDialogContent = ({ children, colorTheme }: FeedbackDialogContentPr
       rounded-2xl
       overflow-hidden
       relative
+      ${isMobile ? 'p-4' : 'p-6'}
+      fixed
+      left-[50%] 
+      top-[50%] 
+      translate-x-[-50%] 
+      translate-y-[-50%]
+      overflow-y-auto
+      custom-scrollbar
     `}>
       {/* خلفية متدرجة متحركة */}
       <motion.div
@@ -84,7 +98,7 @@ const FeedbackDialogContent = ({ children, colorTheme }: FeedbackDialogContentPr
 
       {/* نقاط ديكورية */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[...Array(8)].map((_, i) => (
+        {[...Array(isMobile ? 5 : 8)].map((_, i) => (
           <motion.div
             key={i}
             className={`absolute w-2 h-2 bg-gradient-to-r ${getThemeGradient(colorTheme).replace('/5', '/30')} rounded-full`}
@@ -108,7 +122,7 @@ const FeedbackDialogContent = ({ children, colorTheme }: FeedbackDialogContentPr
 
       {/* المحتوى */}
       <motion.div
-        className="relative z-10"
+        className="relative z-10 h-full"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
