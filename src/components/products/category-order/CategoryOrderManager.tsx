@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GripVertical, Save } from "lucide-react";
@@ -110,7 +110,7 @@ export const CategoryOrderManager = ({
   };
 
   // تحديث الترتيب عند تغيير التصنيفات
-  React.useEffect(() => {
+  useEffect(() => {
     // ترتيب التصنيفات حسب display_order إذا كانت متوفرة
     const sortedCategories = [...categories].sort((a, b) => {
       const aImage = categoryImages.find(img => img.category === a);
