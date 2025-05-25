@@ -13,6 +13,7 @@ import EditProductForm from "@/components/products/EditProductForm";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { CategoryImageManager } from "@/components/products/CategoryImageManager";
+import { uploadImage } from "@/utils/storageHelpers";
 
 const EditProductContainer = () => {
   const navigate = useNavigate();
@@ -102,12 +103,36 @@ const EditProductContainer = () => {
     setIsAvailable(product.is_available !== false);
   };
 
-  const handleUpdate = async (e: React.FormEvent) => {
+  const handleUpdate = async (e: React.FormEvent, imageData?: { uploadMethod: "url" | "file"; imageUrl?: string; selectedFile?: File | null }) => {
     e.preventDefault();
     if (!selectedProduct) return;
 
     setIsSaving(true);
     try {
+      let finalImageUrl = selectedProduct.image_url;
+
+      // معالجة تحديث الصورة
+      if (imageData) {
+        if (imageData.uploadMethod === "file" && imageData.selectedFile) {
+          // رفع الملف الجديد
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) throw new Error("يجب تسجيل الدخول أولاً");
+
+          const safeFileName = imageData.selectedFile.name
+            .toLowerCase()
+            .replace(/[^a-z0-9.]/g, '-')
+            .replace(/--+/g, '-');
+            
+          const timestamp = new Date().getTime();
+          const uniqueFilePath = `${name.replace(/\s+/g, '-')}-${timestamp}-${safeFileName}`;
+          
+          finalImageUrl = await uploadImage("product-images", imageData.selectedFile, user.id, uniqueFilePath);
+        } else if (imageData.uploadMethod === "url" && imageData.imageUrl) {
+          // استخدام الرابط الجديد
+          finalImageUrl = imageData.imageUrl;
+        }
+      }
+
       const { error } = await supabase
         .from("products")
         .update({
@@ -117,7 +142,8 @@ const EditProductContainer = () => {
           category,
           is_new: isNew,
           is_popular: isPopular,
-          is_available: isAvailable
+          is_available: isAvailable,
+          image_url: finalImageUrl
         })
         .eq("id", selectedProduct.id);
 
@@ -130,7 +156,17 @@ const EditProductContainer = () => {
 
       setProducts(products.map(p => 
         p.id === selectedProduct.id 
-          ? { ...p, name, description, price: parseFloat(price), category, is_new: isNew, is_popular: isPopular, is_available: isAvailable }
+          ? { 
+              ...p, 
+              name, 
+              description, 
+              price: parseFloat(price), 
+              category, 
+              is_new: isNew, 
+              is_popular: isPopular, 
+              is_available: isAvailable,
+              image_url: finalImageUrl
+            }
           : p
       ));
 

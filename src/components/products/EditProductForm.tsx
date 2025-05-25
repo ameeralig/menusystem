@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,10 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, Loader2, X } from "lucide-react";
 import { Product } from "@/types/product";
 import { useIsMobile } from "@/hooks/use-mobile";
+import ImageUploadSection from "@/components/products/edit/ImageUploadSection";
 
 interface EditProductFormProps {
   product: Product;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.FormEvent, imageData?: { uploadMethod: "url" | "file"; imageUrl?: string; selectedFile?: File | null }) => void;
   onCancel: () => void;
   name: string;
   setName: (value: string) => void;
@@ -53,8 +54,26 @@ const EditProductForm = ({
 }: EditProductFormProps) => {
   const isMobile = useIsMobile();
 
+  // حالات إدارة الصور
+  const [uploadMethod, setUploadMethod] = useState<"url" | "file">("url");
+  const [imageUrl, setImageUrl] = useState(product.image_url || "");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const imageData = {
+      uploadMethod,
+      imageUrl: uploadMethod === "url" ? imageUrl : undefined,
+      selectedFile: uploadMethod === "file" ? selectedFile : null,
+    };
+    
+    onSubmit(e, imageData);
+  };
+
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-full max-w-4xl mx-auto">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl md:text-2xl">تعديل المنتج</CardTitle>
@@ -70,107 +89,113 @@ const EditProductForm = ({
       </CardHeader>
 
       <CardContent>
-        <form onSubmit={onSubmit} className="space-y-4 md:space-y-6">
-          {product.image_url && (
-            <div className="flex justify-center mb-4 md:mb-6">
-              <img
-                src={product.image_url}
-                alt={product.name}
-                className="w-32 h-32 md:w-48 md:h-48 object-cover rounded-lg border"
-              />
-            </div>
-          )}
-
-          <div className="grid gap-4 md:gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-right block">
-                اسم المنتج
-              </Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="text-right"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description" className="text-right block">
-                الوصف
-              </Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="text-right min-h-20"
-                rows={3}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="price" className="text-right block">
-                  السعر (د.ع)
+                <Label htmlFor="name" className="text-right block">
+                  اسم المنتج
                 </Label>
                 <Input
-                  id="price"
-                  type="number"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   className="text-right"
-                  min="0"
-                  step="0.01"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category" className="text-right block">
-                  التصنيف
+                <Label htmlFor="description" className="text-right block">
+                  الوصف
                 </Label>
-                <Input
-                  id="category"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="text-right"
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="text-right min-h-20"
+                  rows={3}
                 />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="price" className="text-right block">
+                    السعر (د.ع)
+                  </Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="text-right"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="category" className="text-right block">
+                    التصنيف
+                  </Label>
+                  <Input
+                    id="category"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="text-right"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4">
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <Label htmlFor="is-new" className="text-sm font-medium">
+                    منتج جديد
+                  </Label>
+                  <Switch
+                    id="is-new"
+                    checked={isNew}
+                    onCheckedChange={setIsNew}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <Label htmlFor="is-popular" className="text-sm font-medium">
+                    الأكثر طلباً
+                  </Label>
+                  <Switch
+                    id="is-popular"
+                    checked={isPopular}
+                    onCheckedChange={setIsPopular}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <Label htmlFor="is-available" className="text-sm font-medium">
+                    متوفر
+                  </Label>
+                  <Switch
+                    id="is-available"
+                    checked={isAvailable}
+                    onCheckedChange={setIsAvailable}
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="grid gap-4">
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <Label htmlFor="is-new" className="text-sm font-medium">
-                  منتج جديد
-                </Label>
-                <Switch
-                  id="is-new"
-                  checked={isNew}
-                  onCheckedChange={setIsNew}
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <Label htmlFor="is-popular" className="text-sm font-medium">
-                  الأكثر طلباً
-                </Label>
-                <Switch
-                  id="is-popular"
-                  checked={isPopular}
-                  onCheckedChange={setIsPopular}
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <Label htmlFor="is-available" className="text-sm font-medium">
-                  متوفر
-                </Label>
-                <Switch
-                  id="is-available"
-                  checked={isAvailable}
-                  onCheckedChange={setIsAvailable}
-                />
-              </div>
+            <div className="space-y-4">
+              <ImageUploadSection
+                currentImageUrl={product.image_url}
+                uploadMethod={uploadMethod}
+                setUploadMethod={setUploadMethod}
+                imageUrl={imageUrl}
+                setImageUrl={setImageUrl}
+                selectedFile={selectedFile}
+                setSelectedFile={setSelectedFile}
+                previewUrl={previewUrl}
+                setPreviewUrl={setPreviewUrl}
+              />
             </div>
           </div>
 
