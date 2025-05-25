@@ -22,6 +22,21 @@ interface ProductCardProps {
 }
 
 export const ProductCard = ({ product, layout }: ProductCardProps) => {
+  // دالة لتنسيق عرض السعر
+  const formatPrice = (price: number) => {
+    const priceString = price.toLocaleString();
+    const firstDigit = priceString.charAt(0);
+    const remainingDigits = priceString.slice(1);
+    
+    return (
+      <span className="text-xl font-bold text-green-600 dark:text-green-400 text-right">
+        <span className="text-xl">{firstDigit}</span>
+        <span className="text-base">{remainingDigits}</span>
+        <span className="text-base"> د.ع</span>
+      </span>
+    );
+  };
+
   return (
     <motion.div
       layout
@@ -89,9 +104,7 @@ export const ProductCard = ({ product, layout }: ProductCardProps) => {
                   </span>
                 )}
               </div>
-              <p className="text-xl font-bold text-green-600 dark:text-green-400 text-right">
-                {product.price.toLocaleString()} د.ع
-              </p>
+              {formatPrice(product.price)}
             </div>
           </div>
         </CardContent>

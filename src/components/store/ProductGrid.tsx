@@ -36,6 +36,21 @@ const ProductCard = ({ product }: { product: Product }) => {
     }
   };
 
+  // دالة لتنسيق عرض السعر
+  const formatPrice = (price: number) => {
+    const priceString = price.toLocaleString();
+    const firstDigit = priceString.charAt(0);
+    const remainingDigits = priceString.slice(1);
+    
+    return (
+      <span className="text-lg font-bold text-green-600 dark:text-green-400">
+        <span className="text-lg">{firstDigit}</span>
+        <span className="text-sm">{remainingDigits}</span>
+        <span className="text-sm"> د.ع</span>
+      </span>
+    );
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -71,7 +86,7 @@ const ProductCard = ({ product }: { product: Product }) => {
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-lg font-semibold text-right">{product.name}</h3>
-          <span className="text-lg font-bold text-coral-500">{product.price.toLocaleString()} د.ع</span>
+          {formatPrice(product.price)}
         </div>
         {product.description && (
           <p className="text-gray-600 dark:text-gray-300 text-sm text-right">
