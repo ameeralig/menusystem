@@ -8,8 +8,7 @@ import DashboardStats from "@/components/dashboard/DashboardStats";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 
 interface DailyViewData {
   date: string;
@@ -30,10 +29,10 @@ const Dashboard = () => {
         const { data: { user } } = await supabase.auth.getUser();
         
         if (user) {
-          // Get total views
+          // Get total views for the current user
           const { data: viewsData, error: viewsError } = await supabase
             .from("page_views")
-            .select("view_count")
+            .select("view_count, last_viewed_at")
             .eq("user_id", user.id);
           
           if (viewsError) {
@@ -48,7 +47,7 @@ const Dashboard = () => {
             totalViews: totalViews,
           });
 
-          // Generate sample data for the last 7 days
+          // Generate daily view data for the last 7 days from actual database records
           const today = new Date();
           const last7Days = Array.from({ length: 7 }, (_, i) => {
             const date = new Date(today);
@@ -56,22 +55,20 @@ const Dashboard = () => {
             return date;
           });
 
-          // Format to daily view data - in a real app, you'd fetch this from the database
-          // For now we'll simulate some random values
+          // Create daily data based on actual view records
           const dailyData = last7Days.map(date => {
-            // Format the date as "DD/MM"
             const formattedDate = `${date.getDate()}/${date.getMonth() + 1}`;
             
-            // Generate a random view count based on total views to make it realistic
-            // Using Math.floor(totalViews * 0.1 * Math.random()) + 1 to get a value between 1 and 10% of total views
-            const randomViews = Math.min(
-              Math.floor(totalViews * 0.2 * Math.random()) + 1,
-              Math.max(1, Math.floor(totalViews / 10))
-            );
+            // Count views for this specific day
+            const dayViews = viewsData?.filter(view => {
+              if (!view.last_viewed_at) return false;
+              const viewDate = new Date(view.last_viewed_at);
+              return viewDate.toDateString() === date.toDateString();
+            }).reduce((sum, view) => sum + (view.view_count || 0), 0) || 0;
             
             return {
               date: formattedDate,
-              views: randomViews,
+              views: dayViews,
             };
           });
           
@@ -128,7 +125,7 @@ const Dashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="h-5 w-5 text-primary" />
-                  إحصائيات الزيارات
+                  إحصائيات الزيارات اليومية
                 </CardTitle>
               </CardHeader>
               <CardContent>
