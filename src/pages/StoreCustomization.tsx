@@ -305,6 +305,7 @@ const StoreCustomization = () => {
   };
 
   const handleDarkModeSubmit = async () => {
+    console.log("حفظ الوضع الداكن:", darkMode);
     await saveStoreSettings({ dark_mode: darkMode });
   };
 
@@ -344,6 +345,7 @@ const StoreCustomization = () => {
                   colorTheme={colorTheme} 
                   bannerUrl={bannerUrl}
                   fontSettings={fontSettings}
+                  darkMode={darkMode}
                   containerHeight="auto"
                 >
                   <DemoProductsDisplay 

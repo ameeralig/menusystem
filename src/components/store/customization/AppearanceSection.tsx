@@ -40,6 +40,19 @@ const AppearanceSection = ({
   isLoading
 }: AppearanceSectionProps) => {
   
+  const handleDarkModeChange = async (checked: boolean) => {
+    console.log("تغيير الوضع الداكن إلى:", checked);
+    setDarkMode(checked);
+    try {
+      await handleDarkModeSubmit();
+      console.log("تم حفظ الوضع الداكن بنجاح:", checked);
+    } catch (error) {
+      console.error("خطأ في حفظ الوضع الداكن:", error);
+      // إعادة تعيين الحالة في حالة الخطأ
+      setDarkMode(!checked);
+    }
+  };
+
   return (
     <CustomizationSection 
       title="المظهر والتخصيص" 
@@ -83,10 +96,7 @@ const AppearanceSection = ({
               <Switch
                 id="dark-mode"
                 checked={darkMode}
-                onCheckedChange={async (checked) => {
-                  setDarkMode(checked);
-                  await handleDarkModeSubmit();
-                }}
+                onCheckedChange={handleDarkModeChange}
                 disabled={isLoading}
               />
               <Label htmlFor="dark-mode" className="text-sm font-medium">
