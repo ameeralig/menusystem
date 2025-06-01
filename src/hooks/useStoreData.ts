@@ -1,142 +1,155 @@
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import { useStoreSettings } from "./store/useStoreSettings";
-import { useStoreProducts } from "./store/useStoreProducts";
-import { useCategoryImages } from "./store/useCategoryImages";
+import { Product } from "@/types/product";
+import { CategoryImage } from "@/types/categoryImage";
+import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
 
-// ثابت للتحكم في عدد المنتجات المُحمّلة مرة واحدة
-const PRODUCTS_PER_PAGE = 20;
+interface StoreData {
+  storeName: string;
+  colorTheme: string;
+  products: Product[];
+  socialLinks: SocialLinks;
+  contactInfo: ContactInfo;
+  bannerUrl: string | null;
+  fontSettings: FontSettings;
+  categoryImages: CategoryImage[];
+  storeOwnerId: string | null;
+  darkMode: boolean;
+}
 
 export const useStoreData = (slug: string | undefined, forceRefresh: number) => {
+  const [storeData, setStoreData] = useState<StoreData>({
+    storeName: "",
+    colorTheme: "default",
+    products: [],
+    socialLinks: {},
+    contactInfo: {},
+    bannerUrl: null,
+    fontSettings: {
+      storeName: { family: "inherit", isCustom: false, customFontUrl: null },
+      categoryText: { family: "inherit", isCustom: false, customFontUrl: null },
+      generalText: { family: "inherit", isCustom: false, customFontUrl: null },
+    },
+    categoryImages: [],
+    storeOwnerId: null,
+    darkMode: false,
+  });
   const [isLoading, setIsLoading] = useState(true);
-  const { storeSettings } = useStoreSettings(slug);
-  
-  // استخدام نظام التحميل بالصفحات
-  const [currentPage, setCurrentPage] = useState(1);
-  const { products, isLoading: productsLoading, hasMore } = useStoreProducts(
-    storeSettings.storeOwnerId, 
-    forceRefresh,
-    PRODUCTS_PER_PAGE,
-    currentPage
-  );
-  
-  const { categoryImages, isLoading: categoryImagesLoading } = useCategoryImages(storeSettings.storeOwnerId, forceRefresh);
-  const bannerUrlRef = useRef<string | null>(null);
-  const [lastRefresh, setLastRefresh] = useState<number>(Date.now());
-  const [cachedProducts, setCachedProducts] = useState<any[]>([]);
+  const [storeOwnerId, setStoreOwnerId] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  // دالة لتحميل المزيد من المنتجات عند التمرير لأسفل
-  const loadMoreProducts = useCallback(() => {
-    if (hasMore && !productsLoading) {
-      setCurrentPage(prev => prev + 1);
-    }
-  }, [hasMore, productsLoading]);
-
-  // تجميع كل المنتجات المُحمّلة
   useEffect(() => {
-    if (products.length > 0) {
-      setCachedProducts(prev => {
-        // تجميع المنتجات الحالية مع المنتجات الجديدة مع تجنب التكرار
-        const productIds = new Set(prev.map(p => p.id));
-        const newProducts = products.filter(p => !productIds.has(p.id));
-        return [...prev, ...newProducts];
-      });
-    } else if (currentPage === 1) {
-      // إعادة ضبط المنتجات المخزنة مؤقتًا إذا كنا على الصفحة الأولى (مثلاً عند تغيير المتجر)
-      setCachedProducts([]);
-    }
-  }, [products, currentPage]);
+    const fetchStoreData = async () => {
+      try {
+        setIsLoading(true);
+        
+        if (!slug) {
+          console.error("No slug provided");
+          navigate('/404');
+          return;
+        }
 
-  // مراقبة التمرير لتحميل المزيد من المنتجات
-  useEffect(() => {
-    const handleScroll = () => {
-      // إذا كان المستخدم قريبًا من أسفل الصفحة ولدينا المزيد من المنتجات للتحميل
-      if (
-        !productsLoading &&
-        hasMore &&
-        window.innerHeight + document.documentElement.scrollTop >= 
-        document.documentElement.offsetHeight - 800
-      ) {
-        loadMoreProducts();
+        // جلب إعدادات المتجر
+        const { data: settings, error: settingsError } = await supabase
+          .from("store_settings")
+          .select("user_id, store_name, color_theme, social_links, banner_url, font_settings, contact_info, dark_mode")
+          .eq("slug", slug.trim())
+          .maybeSingle();
+
+        if (settingsError || !settings) {
+          console.error("Error fetching store settings:", settingsError);
+          navigate('/404');
+          return;
+        }
+
+        setStoreOwnerId(settings.user_id);
+
+        // جلب المنتجات
+        const { data: products, error: productsError } = await supabase
+          .from("products")
+          .select("*")
+          .eq("user_id", settings.user_id)
+          .eq("is_available", true)
+          .order("created_at", { ascending: false });
+
+        if (productsError) {
+          console.error("Error fetching products:", productsError);
+          throw productsError;
+        }
+
+        // جلب صور التصنيفات
+        const { data: categoryImages, error: categoryImagesError } = await supabase
+          .from("category_images")
+          .select("*")
+          .eq("user_id", settings.user_id)
+          .order("display_order", { ascending: true });
+
+        if (categoryImagesError) {
+          console.error("Error fetching category images:", categoryImagesError);
+        }
+
+        // معالجة إعدادات الخطوط
+        let parsedFontSettings: FontSettings = {
+          storeName: { family: "inherit", isCustom: false, customFontUrl: null },
+          categoryText: { family: "inherit", isCustom: false, customFontUrl: null },
+          generalText: { family: "inherit", isCustom: false, customFontUrl: null },
+        };
+        
+        if (settings.font_settings) {
+          const fontData = settings.font_settings as any;
+          if (fontData.storeName && fontData.categoryText && fontData.generalText) {
+            parsedFontSettings = {
+              storeName: {
+                family: fontData.storeName.family || "inherit",
+                isCustom: fontData.storeName.isCustom || false,
+                customFontUrl: fontData.storeName.customFontUrl || null,
+              },
+              categoryText: {
+                family: fontData.categoryText.family || "inherit",
+                isCustom: fontData.categoryText.isCustom || false,
+                customFontUrl: fontData.categoryText.customFontUrl || null,
+              },
+              generalText: {
+                family: fontData.generalText.family || "inherit",
+                isCustom: fontData.generalText.isCustom || false,
+                customFontUrl: fontData.generalText.customFontUrl || null,
+              }
+            };
+          }
+        }
+
+        setStoreData({
+          storeName: settings.store_name || "متجر بدون اسم",
+          colorTheme: settings.color_theme || "default",
+          products: products || [],
+          socialLinks: settings.social_links as SocialLinks || {},
+          contactInfo: settings.contact_info as ContactInfo || {},
+          bannerUrl: settings.banner_url,
+          fontSettings: parsedFontSettings,
+          categoryImages: categoryImages || [],
+          storeOwnerId: settings.user_id,
+          darkMode: settings.dark_mode || false,
+        });
+
+      } catch (error: any) {
+        console.error("Error fetching store data:", error);
+        toast({
+          title: "حدث خطأ",
+          description: error.message,
+          variant: "destructive",
+        });
+        navigate('/404');
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [loadMoreProducts, productsLoading, hasMore]);
+    fetchStoreData();
+  }, [slug, forceRefresh, toast, navigate]);
 
-  // تسجيل معلومات تصحيح الأخطاء
-  useEffect(() => {
-    console.log("useStoreData - storeOwnerId:", storeSettings.storeOwnerId);
-    console.log("useStoreData - forceRefresh:", forceRefresh);
-    console.log("useStoreData - categoryImages:", categoryImages?.length || 0);
-    console.log("useStoreData - currentPage:", currentPage);
-    console.log("useStoreData - cachedProducts:", cachedProducts.length);
-    
-    if (categoryImages && categoryImages.length > 0) {
-      console.log("تفاصيل صور التصنيفات في useStoreData:", categoryImages.map(img => ({ 
-        category: img.category, 
-        url: img.image_url,
-        id: img.id
-      })));
-    }
-  }, [storeSettings.storeOwnerId, forceRefresh, categoryImages, currentPage, cachedProducts.length]);
-
-  useEffect(() => {
-    if (storeSettings && !categoryImagesLoading && (!productsLoading || cachedProducts.length > 0)) {
-      console.log("Data loaded - stopping loading state");
-      setIsLoading(false);
-    }
-  }, [storeSettings, productsLoading, categoryImagesLoading, cachedProducts.length]);
-
-  // تحديث الصفحة بشكل دوري لتحديث الصور
-  useEffect(() => {
-    // تحديث كل 5 دقائق
-    const refreshInterval = setInterval(() => {
-      setLastRefresh(Date.now());
-    }, 5 * 60 * 1000); // 5 دقائق
-    
-    return () => clearInterval(refreshInterval);
-  }, []);
-
-  // معالجة صورة الغلاف لتجنب مشكلة التخزين المؤقت
-  useEffect(() => {
-    if (storeSettings.bannerUrl !== bannerUrlRef.current) {
-      bannerUrlRef.current = storeSettings.bannerUrl;
-      
-      if (storeSettings.bannerUrl) {
-        // إذا كانت الصورة موجودة، نضيف معرف زمني لتجنب التخزين المؤقت
-        const timestamp = new Date().getTime();
-        const baseUrl = storeSettings.bannerUrl.split('?')[0];
-        
-        // تحسين URL الصورة باستخدام WebP
-        const updatedUrl = baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')
-          ? `${baseUrl}?format=webp&quality=80&t=${timestamp}`
-          : `${baseUrl}?t=${timestamp}`;
-          
-        storeSettings.bannerUrl = updatedUrl;
-        
-        // تحميل مسبق للصورة
-        const img = new Image();
-        img.src = updatedUrl;
-        img.fetchPriority = "high";
-        
-        console.log("تم تحديث صورة الغلاف:", updatedUrl);
-      }
-    }
-  }, [storeSettings.bannerUrl, lastRefresh]);
-
-  return {
-    storeData: {
-      ...storeSettings,
-      products: cachedProducts,
-      categoryImages,
-    },
-    isLoading,
-    storeOwnerId: storeSettings.storeOwnerId,
-    loadMoreProducts,
-    hasMoreProducts: hasMore
-  };
+  return { storeData, isLoading, storeOwnerId };
 };
