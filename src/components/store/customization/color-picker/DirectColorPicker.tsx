@@ -22,7 +22,6 @@ const DirectColorPicker = ({
 }: DirectColorPickerProps) => {
   const [selectedColor, setSelectedColor] = useState<string>("#ff9178");
   const [hexInput, setHexInput] = useState<string>("ff9178");
-  const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
   const { toast } = useToast();
 
@@ -43,12 +42,14 @@ const DirectColorPicker = ({
 
   // تطبيق اللون مباشرة على المعاينة
   const applyColorInstantly = (color: string) => {
-    if (color && color !== colorTheme) {
-      console.log("تطبيق اللون فوري على المعاينة:", color);
-      setColorTheme(color);
-      setIsPreviewMode(true);
-      setHasUnsavedChanges(true);
-    }
+    console.log("تطبيق اللون الفوري:", color);
+    setColorTheme(color);
+    setHasUnsavedChanges(true);
+    
+    // تأكد من إعادة رسم المكون
+    setTimeout(() => {
+      console.log("تم تطبيق اللون على المعاينة:", color);
+    }, 100);
   };
 
   // معالج تغيير اللون من منتقي الألوان
@@ -112,7 +113,6 @@ const DirectColorPicker = ({
     
     try {
       await handleSubmit();
-      setIsPreviewMode(false);
       setHasUnsavedChanges(false);
       toast({
         title: "تم حفظ اللون بنجاح",
@@ -287,7 +287,7 @@ const DirectColorPicker = ({
         )}
       </Button>
 
-      {isPreviewMode && hasUnsavedChanges && (
+      {hasUnsavedChanges && (
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
