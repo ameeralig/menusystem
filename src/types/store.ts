@@ -30,3 +30,14 @@ export interface FontSettings {
     customFontUrl: string | null;
   };
 }
+
+export interface StoreSettings {
+  storeName?: string | null;
+  colorTheme?: string;
+  socialLinks?: SocialLinks;
+  contactInfo?: ContactInfo;
+  bannerUrl?: string | null;
+  fontSettings?: FontSettings;
+  darkMode?: boolean;
+  storeOwnerId?: string | null;
+}

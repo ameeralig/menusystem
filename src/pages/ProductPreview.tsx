@@ -161,6 +161,7 @@ const ProductPreview = () => {
           colorTheme={storeData.colorTheme} 
           bannerUrl={storeData.bannerUrl}
           fontSettings={storeData.fontSettings}
+          darkMode={storeData.darkMode}
           containerHeight="auto"
         >
           <Suspense fallback={<div className="animate-pulse bg-gray-200 h-64 rounded-md w-full" />}>

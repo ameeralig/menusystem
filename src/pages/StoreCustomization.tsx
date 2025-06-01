@@ -78,6 +78,7 @@ const StoreCustomization = () => {
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [fontSettings, setFontSettings] = useState<FontSettings>(defaultFontSettings);
   const [contactInfo, setContactInfo] = useState<ContactInfo>(defaultContactInfo);
+  const [darkMode, setDarkMode] = useState(false);
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({
     instagram: "",
     facebook: "",
@@ -100,7 +101,7 @@ const StoreCustomization = () => {
 
       const { data: storeSettings, error } = await supabase
         .from("store_settings")
-        .select("store_name, color_theme, slug, social_links, banner_url, font_settings, contact_info")
+        .select("store_name, color_theme, slug, social_links, banner_url, font_settings, contact_info, dark_mode")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -114,6 +115,7 @@ const StoreCustomization = () => {
         setColorTheme(storeSettings.color_theme || "default");
         setStoreSlug(storeSettings.slug || "");
         setBannerUrl(storeSettings.banner_url || null);
+        setDarkMode(storeSettings.dark_mode || false);
         
         if (storeSettings.social_links) {
           setSocialLinks({
@@ -179,6 +181,7 @@ const StoreCustomization = () => {
     banner_url: string | null;
     font_settings: FontSettings;
     contact_info: ContactInfo;
+    dark_mode: boolean;
   }>) => {
     setIsLoading(true);
 
@@ -236,6 +239,7 @@ const StoreCustomization = () => {
       if (updatedData.banner_url !== undefined) setBannerUrl(updatedData.banner_url);
       if (updatedData.font_settings !== undefined) setFontSettings(updatedData.font_settings);
       if (updatedData.contact_info !== undefined) setContactInfo(updatedData.contact_info);
+      if (updatedData.dark_mode !== undefined) setDarkMode(updatedData.dark_mode);
 
     } catch (error: any) {
       console.error("Error saving store settings:", error);
@@ -300,6 +304,10 @@ const StoreCustomization = () => {
     await saveStoreSettings({ font_settings: fontSettings });
   };
 
+  const handleDarkModeSubmit = async () => {
+    await saveStoreSettings({ dark_mode: darkMode });
+  };
+
   const handleSocialLinksSubmit = async (links: SocialLinks) => {
     await saveStoreSettings({ social_links: links });
   };
@@ -331,7 +339,7 @@ const StoreCustomization = () => {
           >
             <div className="sticky top-24">
               <h2 className="text-xl font-semibold mb-4 text-right">معاينة المتجر</h2>
-              <div className="border rounded-lg overflow-hidden shadow-md max-h-[600px] overflow-y-auto">
+              <div className={`border rounded-lg overflow-hidden shadow-md max-h-[600px] overflow-y-auto ${darkMode ? 'dark' : ''}`}>
                 <ProductPreviewContainer 
                   colorTheme={colorTheme} 
                   bannerUrl={bannerUrl}
@@ -379,9 +387,12 @@ const StoreCustomization = () => {
               setBannerUrl={setBannerUrl}
               fontSettings={fontSettings}
               setFontSettings={setFontSettings}
+              darkMode={darkMode}
+              setDarkMode={setDarkMode}
               handleColorThemeSubmit={handleColorThemeSubmit}
               handleBannerSubmit={handleBannerSubmit}
               handleFontSettingsSubmit={handleFontSettingsSubmit}
+              handleDarkModeSubmit={handleDarkModeSubmit}
               isLoading={isLoading}
             />
 

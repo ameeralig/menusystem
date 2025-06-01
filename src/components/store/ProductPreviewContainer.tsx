@@ -1,4 +1,3 @@
-
 import { ReactNode, useState, useEffect, CSSProperties } from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,6 +27,7 @@ interface ProductPreviewContainerProps {
   bannerUrl?: string | null;
   fontSettings?: FontSettings;
   containerHeight?: string;
+  darkMode?: boolean;
 }
 
 const ProductPreviewContainer = ({ 
@@ -35,7 +35,8 @@ const ProductPreviewContainer = ({
   colorTheme,
   bannerUrl,
   fontSettings,
-  containerHeight = "auto"
+  containerHeight = "auto",
+  darkMode = false
 }: ProductPreviewContainerProps) => {
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -135,27 +136,28 @@ const ProductPreviewContainer = ({
   }, [bannerUrl]);
   
   const getThemeClasses = (theme: string | null) => {
+    const baseClasses = darkMode ? 'dark' : '';
     switch (theme) {
       case 'coral':
-        return 'bg-gradient-to-br from-[#fff5f2] to-[#ffede9] dark:from-[#ff9178]/10 dark:to-[#ff9178]/20';
+        return `${baseClasses} bg-gradient-to-br from-[#fff5f2] to-[#ffede9] dark:from-[#ff9178]/10 dark:to-[#ff9178]/20`;
       case 'purple':
-        return 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-900/30';
+        return `${baseClasses} bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-900/30`;
       case 'blue':
-        return 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/30';
+        return `${baseClasses} bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/30`;
       case 'green':
-        return 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/30';
+        return `${baseClasses} bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/30`;
       case 'pink':
-        return 'bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-900/30';
+        return `${baseClasses} bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-900/30`;
       case 'teal':
-        return 'bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-900/30';
+        return `${baseClasses} bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-900/30`;
       case 'amber':
-        return 'bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-900/30';
+        return `${baseClasses} bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-900/30`;
       case 'indigo':
-        return 'bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-900/30';
+        return `${baseClasses} bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-900/30`;
       case 'rose':
-        return 'bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-900/20 dark:to-rose-900/30';
+        return `${baseClasses} bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-900/20 dark:to-rose-900/30`;
       default:
-        return 'bg-gray-50 dark:bg-gray-900';
+        return `${baseClasses} bg-gray-50 dark:bg-gray-900`;
     }
   };
 
@@ -184,7 +186,7 @@ const ProductPreviewContainer = ({
                   setImageError(true);
                 }}
                 onLoad={() => setImageLoaded(true)}
-                loading="eager" // البانر يجب أن يتحمل فوريًا لأنه جزء مهم من واجهة المستخدم
+                loading="eager"
                 fetchPriority="high"
               />
             ) : (

@@ -1,5 +1,7 @@
 
-import { Palette } from "lucide-react";
+import { Palette, Moon } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import CustomizationSection from "./CustomizationSection";
 import BannerImageUploader from "@/components/store/BannerImageUploader";
 import ColorPickerAdvanced from "./ColorPickerAdvanced";
@@ -13,9 +15,12 @@ interface AppearanceSectionProps {
   setBannerUrl: (url: string | null) => void;
   fontSettings: FontSettings;
   setFontSettings: (value: FontSettings) => void;
+  darkMode: boolean;
+  setDarkMode: (value: boolean) => void;
   handleColorThemeSubmit: () => Promise<void>;
   handleBannerSubmit: () => Promise<void>;
   handleFontSettingsSubmit: () => Promise<void>;
+  handleDarkModeSubmit: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -26,9 +31,12 @@ const AppearanceSection = ({
   setBannerUrl,
   fontSettings,
   setFontSettings,
+  darkMode,
+  setDarkMode,
   handleColorThemeSubmit,
   handleBannerSubmit,
   handleFontSettingsSubmit,
+  handleDarkModeSubmit,
   isLoading
 }: AppearanceSectionProps) => {
   
@@ -63,6 +71,32 @@ const AppearanceSection = ({
             handleSubmit={handleFontSettingsSubmit}
             isLoading={isLoading}
           />
+        </div>
+
+        <div className="mt-6">
+          <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
+            <Moon className="h-5 w-5" />
+            الوضع الداكن
+          </h3>
+          <div className="flex items-center justify-between p-4 border rounded-lg bg-white dark:bg-gray-800">
+            <div className="flex items-center space-x-2 rtl:space-x-reverse">
+              <Switch
+                id="dark-mode"
+                checked={darkMode}
+                onCheckedChange={async (checked) => {
+                  setDarkMode(checked);
+                  await handleDarkModeSubmit();
+                }}
+                disabled={isLoading}
+              />
+              <Label htmlFor="dark-mode" className="text-sm font-medium">
+                {darkMode ? "مفعل" : "غير مفعل"}
+              </Label>
+            </div>
+            <Label htmlFor="dark-mode" className="text-sm text-gray-600 dark:text-gray-400">
+              تفعيل الوضع الداكن في صفحة المعاينة
+            </Label>
+          </div>
         </div>
       </div>
     </CustomizationSection>
