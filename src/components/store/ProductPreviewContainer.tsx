@@ -1,3 +1,4 @@
+
 import { ReactNode, useState, useEffect, CSSProperties } from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -137,6 +138,13 @@ const ProductPreviewContainer = ({
   
   const getThemeClasses = (theme: string | null) => {
     const baseClasses = darkMode ? 'dark' : '';
+    
+    // إذا كان اللون يبدأ بـ # فهو لون مخصص
+    if (theme && theme.startsWith('#')) {
+      return `${baseClasses} transition-colors duration-300`;
+    }
+    
+    // استخدام الألوان المحددة مسبقاً للألوان التقليدية
     switch (theme) {
       case 'coral':
         return `${baseClasses} bg-gradient-to-br from-[#fff5f2] to-[#ffede9] dark:from-[#ff9178]/10 dark:to-[#ff9178]/20`;
@@ -161,11 +169,38 @@ const ProductPreviewContainer = ({
     }
   };
 
-  const getContainerStyle = (): CSSProperties => {
-    if (fontSettings?.generalText?.isCustom && fontId && fontFaceLoaded) {
-      return { fontFamily: `"${fontId}", sans-serif` };
+  const getCustomThemeStyle = (theme: string | null): CSSProperties => {
+    if (theme && theme.startsWith('#')) {
+      // تحويل اللون إلى rgba للتدرجات
+      const hex = theme.replace('#', '');
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      
+      if (darkMode) {
+        return {
+          background: `linear-gradient(135deg, rgba(${r}, ${g}, ${b}, 0.1) 0%, rgba(${r}, ${g}, ${b}, 0.2) 100%)`,
+        };
+      } else {
+        return {
+          background: `linear-gradient(135deg, rgba(${r}, ${g}, ${b}, 0.05) 0%, rgba(${r}, ${g}, ${b}, 0.15) 100%)`,
+        };
+      }
     }
     return {};
+  };
+
+  const getContainerStyle = (): CSSProperties => {
+    let style: CSSProperties = {};
+    
+    // إضافة نمط الخط المخصص
+    if (fontSettings?.generalText?.isCustom && fontId && fontFaceLoaded) {
+      style.fontFamily = `"${fontId}", sans-serif`;
+    }
+    
+    // إضافة نمط اللون المخصص
+    const customStyle = getCustomThemeStyle(colorTheme);
+    return { ...style, ...customStyle };
   };
 
   return (

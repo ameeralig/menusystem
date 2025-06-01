@@ -1,9 +1,11 @@
+
 import { Palette, Moon } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import CustomizationSection from "./CustomizationSection";
 import BannerImageUploader from "@/components/store/BannerImageUploader";
-import ColorPickerAdvanced from "./ColorPickerAdvanced";
+import DirectColorPicker from "./color-picker/DirectColorPicker";
+import ColorPreviewCard from "./color-picker/ColorPreviewCard";
 import FontStyleSelector from "@/components/store/FontStyleSelector";
 import { FontSettings } from "@/types/store";
 
@@ -57,7 +59,8 @@ const AppearanceSection = ({
       title="المظهر والتخصيص" 
       icon={<Palette />}
     >
-      <div className="space-y-6">
+      <div className="space-y-8">
+        {/* رفع صورة البانر */}
         <BannerImageUploader
           bannerUrl={bannerUrl}
           setBannerUrl={setBannerUrl}
@@ -65,9 +68,23 @@ const AppearanceSection = ({
           isLoading={isLoading}
         />
 
-        <div className="mt-6">
-          <h3 className="text-lg font-medium mb-4">تخصيص الألوان</h3>
-          <ColorPickerAdvanced 
+        {/* قسم تخصيص الألوان الجديد */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium mb-4">تخصيص ألوان المتجر</h3>
+          
+          {/* معاينة اللون الحالي */}
+          <div className="mb-6">
+            <h4 className="text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">
+              اللون الحالي لمتجرك
+            </h4>
+            <ColorPreviewCard 
+              currentColor={colorTheme.startsWith('#') ? colorTheme : '#ff9178'} 
+              isActive={true}
+            />
+          </div>
+
+          {/* منتقي الألوان المباشر */}
+          <DirectColorPicker 
             colorTheme={colorTheme}
             setColorTheme={setColorTheme}
             handleSubmit={handleColorThemeSubmit}
@@ -75,7 +92,8 @@ const AppearanceSection = ({
           />
         </div>
 
-        <div className="mt-6">
+        {/* قسم تخصيص الخطوط */}
+        <div className="space-y-4">
           <h3 className="text-lg font-medium mb-2">تخصيص الخطوط</h3>
           <FontStyleSelector
             fontSettings={fontSettings}
@@ -85,7 +103,8 @@ const AppearanceSection = ({
           />
         </div>
 
-        <div className="mt-6">
+        {/* قسم الوضع الداكن */}
+        <div className="space-y-4">
           <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
             <Moon className="h-5 w-5" />
             الوضع الداكن
