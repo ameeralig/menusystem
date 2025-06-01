@@ -261,6 +261,7 @@ export type Database = {
           contact_info: Json | null
           created_at: string
           custom_domain: string | null
+          dark_mode: boolean | null
           font_settings: Json | null
           logo_url: string | null
           slug: string | null
@@ -276,6 +277,7 @@ export type Database = {
           contact_info?: Json | null
           created_at?: string
           custom_domain?: string | null
+          dark_mode?: boolean | null
           font_settings?: Json | null
           logo_url?: string | null
           slug?: string | null
@@ -291,6 +293,7 @@ export type Database = {
           contact_info?: Json | null
           created_at?: string
           custom_domain?: string | null
+          dark_mode?: boolean | null
           font_settings?: Json | null
           logo_url?: string | null
           slug?: string | null

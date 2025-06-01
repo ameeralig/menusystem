@@ -52,16 +52,14 @@ const AppearanceSection = ({
         <div>
           <Label className="text-right block mb-2">نمط الألوان</Label>
           <ColorThemeSelector 
-            selectedTheme={colorTheme} 
-            onThemeSelect={setColorTheme} 
+            colorTheme={colorTheme}
+            setColorTheme={setColorTheme}
+            isLoading={isLoading}
+            handleSubmit={async (e) => {
+              e.preventDefault();
+              handleColorThemeSubmit();
+            }}
           />
-          <Button 
-            onClick={handleColorThemeSubmit} 
-            className="mt-3 w-full"
-            disabled={isLoading}
-          >
-            {isLoading ? "جارِ الحفظ..." : "حفظ نمط الألوان"}
-          </Button>
         </div>
 
         <div>
@@ -69,14 +67,15 @@ const AppearanceSection = ({
             <Image className="h-4 w-4" />
             صورة الغلاف
           </Label>
-          <BannerImageUploader bannerUrl={bannerUrl} setBannerUrl={setBannerUrl} />
-          <Button 
-            onClick={handleBannerSubmit} 
-            className="mt-3 w-full"
-            disabled={isLoading}
-          >
-            {isLoading ? "جارِ الحفظ..." : "حفظ صورة الغلاف"}
-          </Button>
+          <BannerImageUploader 
+            bannerUrl={bannerUrl} 
+            setBannerUrl={setBannerUrl}
+            handleSubmit={async (e) => {
+              e.preventDefault();
+              handleBannerSubmit();
+            }}
+            isLoading={isLoading}
+          />
         </div>
 
         <div>
@@ -86,15 +85,13 @@ const AppearanceSection = ({
           </Label>
           <FontStyleSelector 
             fontSettings={fontSettings} 
-            setFontSettings={setFontSettings} 
+            setFontSettings={setFontSettings}
+            handleSubmit={async (e) => {
+              e.preventDefault();
+              handleFontSettingsSubmit();
+            }}
+            isLoading={isLoading}
           />
-          <Button 
-            onClick={handleFontSettingsSubmit} 
-            className="mt-3 w-full"
-            disabled={isLoading}
-          >
-            {isLoading ? "جارِ الحفظ..." : "حفظ أنماط الخطوط"}
-          </Button>
         </div>
 
         <div>
