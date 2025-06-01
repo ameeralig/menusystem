@@ -1,4 +1,3 @@
-
 import { Palette, Moon } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -20,7 +19,7 @@ interface AppearanceSectionProps {
   handleColorThemeSubmit: () => Promise<void>;
   handleBannerSubmit: () => Promise<void>;
   handleFontSettingsSubmit: () => Promise<void>;
-  handleDarkModeSubmit: () => Promise<void>;
+  handleDarkModeSubmit: (newValue: boolean) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -44,7 +43,7 @@ const AppearanceSection = ({
     console.log("تغيير الوضع الداكن إلى:", checked);
     setDarkMode(checked);
     try {
-      await handleDarkModeSubmit();
+      await handleDarkModeSubmit(checked);
       console.log("تم حفظ الوضع الداكن بنجاح:", checked);
     } catch (error) {
       console.error("خطأ في حفظ الوضع الداكن:", error);

@@ -304,9 +304,10 @@ const StoreCustomization = () => {
     await saveStoreSettings({ font_settings: fontSettings });
   };
 
-  const handleDarkModeSubmit = async () => {
-    console.log("حفظ الوضع الداكن:", darkMode);
-    await saveStoreSettings({ dark_mode: darkMode });
+  const handleDarkModeSubmit = async (newValue?: boolean) => {
+    const valueToSave = newValue !== undefined ? newValue : darkMode;
+    console.log("حفظ الوضع الداكن:", valueToSave);
+    await saveStoreSettings({ dark_mode: valueToSave });
   };
 
   const handleSocialLinksSubmit = async (links: SocialLinks) => {
