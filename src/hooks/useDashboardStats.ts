@@ -37,13 +37,20 @@ export const useDashboardStats = () => {
         throw new Error("المستخدم غير مسجل الدخول");
       }
 
+      console.log("جلب إحصائيات المشاهدات للمستخدم:", user.id);
+
       // جلب إحصائيات المشاهدات
       const { data: viewsData, error: viewsError } = await supabase
         .from("page_views")
         .select("view_count, last_viewed_at")
         .eq("user_id", user.id);
       
-      if (viewsError) throw viewsError;
+      if (viewsError) {
+        console.error("خطأ في جلب المشاهدات:", viewsError);
+        throw viewsError;
+      }
+
+      console.log("بيانات المشاهدات المستلمة:", viewsData);
 
       // جلب إحصائيات المنتجات
       const { data: productsData, error: productsError } = await supabase
@@ -51,7 +58,12 @@ export const useDashboardStats = () => {
         .select("is_available, is_popular, is_new, created_at")
         .eq("user_id", user.id);
       
-      if (productsError) throw productsError;
+      if (productsError) {
+        console.error("خطأ في جلب المنتجات:", productsError);
+        throw productsError;
+      }
+
+      console.log("بيانات المنتجات المستلمة:", productsData);
 
       // حساب الإحصائيات
       const totalViews = viewsData?.reduce((sum, item) => sum + (item.view_count || 0), 0) || 0;
@@ -59,6 +71,14 @@ export const useDashboardStats = () => {
       const activeProducts = productsData?.filter(product => product.is_available).length || 0;
       const popularProducts = productsData?.filter(product => product.is_popular).length || 0;
       const newProducts = productsData?.filter(product => product.is_new).length || 0;
+
+      console.log("الإحصائيات المحسوبة:", {
+        totalViews,
+        totalProducts,
+        activeProducts,
+        popularProducts,
+        newProducts
+      });
 
       setStats({
         totalViews,
@@ -68,7 +88,7 @@ export const useDashboardStats = () => {
         newProducts,
       });
 
-      // إنشاء بيانات المشاهدات اليومية
+      // إنشاء بيانات المشاهدات اليومية للأسبوع الماضي
       const today = new Date();
       const last7Days = Array.from({ length: 7 }, (_, i) => {
         const date = new Date(today);
@@ -108,6 +128,11 @@ export const useDashboardStats = () => {
 
   useEffect(() => {
     fetchStats();
+    
+    // تحديث الإحصائيات كل 30 ثانية لضمان الحصول على أحدث البيانات
+    const interval = setInterval(fetchStats, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   return {

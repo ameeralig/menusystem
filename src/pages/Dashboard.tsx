@@ -1,93 +1,15 @@
 
-import { useState, useEffect } from "react";
 import { BarChart3, LayoutDashboard } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import DashboardActions from "@/components/dashboard/DashboardActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DashboardStats from "@/components/dashboard/DashboardStats";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
-
-interface DailyViewData {
-  date: string;
-  views: number;
-}
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 
 const Dashboard = () => {
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalViews: 0,
-  });
-  const [dailyViewsData, setDailyViewsData] = useState<DailyViewData[]>([]);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (user) {
-          // Get total views for the current user
-          const { data: viewsData, error: viewsError } = await supabase
-            .from("page_views")
-            .select("view_count, last_viewed_at")
-            .eq("user_id", user.id);
-          
-          if (viewsError) {
-            console.error("Error fetching view count:", viewsError);
-            throw new Error("فشل في تحميل إحصائيات المشاهدات");
-          }
-          
-          // Calculate total views by summing all view_count values
-          const totalViews = viewsData?.reduce((sum, item) => sum + (item.view_count || 0), 0) || 0;
-          
-          setStats({
-            totalViews: totalViews,
-          });
-
-          // Generate daily view data for the last 7 days from actual database records
-          const today = new Date();
-          const last7Days = Array.from({ length: 7 }, (_, i) => {
-            const date = new Date(today);
-            date.setDate(today.getDate() - (6 - i));
-            return date;
-          });
-
-          // Create daily data based on actual view records
-          const dailyData = last7Days.map(date => {
-            const formattedDate = `${date.getDate()}/${date.getMonth() + 1}`;
-            
-            // Count views for this specific day
-            const dayViews = viewsData?.filter(view => {
-              if (!view.last_viewed_at) return false;
-              const viewDate = new Date(view.last_viewed_at);
-              return viewDate.toDateString() === date.toDateString();
-            }).reduce((sum, view) => sum + (view.view_count || 0), 0) || 0;
-            
-            return {
-              date: formattedDate,
-              views: dayViews,
-            };
-          });
-          
-          setDailyViewsData(dailyData);
-        }
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-        toast({
-          title: "حدث خطأ",
-          description: "لم نتمكن من تحميل بيانات لوحة التحكم",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, [toast]);
+  const { stats, dailyViewsData, loading } = useDashboardStats();
 
   return (
     <div className="min-h-screen bg-background">

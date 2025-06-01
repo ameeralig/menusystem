@@ -2,76 +2,22 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { BarChart3, Package, Eye, TrendingUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 
 interface DashboardStatsProps {
   stats: {
     totalViews: number;
+    totalProducts: number;
+    activeProducts: number;
+    popularProducts: number;
   };
   loading: boolean;
 }
 
-interface ExtendedStats {
-  totalViews: number;
-  totalProducts: number;
-  activeProducts: number;
-  popularProducts: number;
-}
-
 const DashboardStats = ({ stats, loading }: DashboardStatsProps) => {
-  const [extendedStats, setExtendedStats] = useState<ExtendedStats>({
-    totalViews: 0,
-    totalProducts: 0,
-    activeProducts: 0,
-    popularProducts: 0,
-  });
-  const [extendedLoading, setExtendedLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchExtendedStats = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (user) {
-          // Get products statistics
-          const { data: productsData, error: productsError } = await supabase
-            .from("products")
-            .select("is_available, is_popular")
-            .eq("user_id", user.id);
-          
-          if (productsError) {
-            console.error("Error fetching products:", productsError);
-            return;
-          }
-          
-          const totalProducts = productsData?.length || 0;
-          const activeProducts = productsData?.filter(product => product.is_available).length || 0;
-          const popularProducts = productsData?.filter(product => product.is_popular).length || 0;
-          
-          setExtendedStats({
-            totalViews: stats.totalViews,
-            totalProducts,
-            activeProducts,
-            popularProducts,
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching extended stats:", error);
-      } finally {
-        setExtendedLoading(false);
-      }
-    };
-
-    if (!loading) {
-      fetchExtendedStats();
-    }
-  }, [loading, stats.totalViews]);
-
   const statsItems = [
     {
       title: "إجمالي المشاهدات",
-      value: extendedStats.totalViews,
+      value: stats.totalViews,
       icon: Eye,
       color: "from-[#ff9178] to-[#ffbcad]",
       bgLight: "bg-[#fff5f2]",
@@ -80,7 +26,7 @@ const DashboardStats = ({ stats, loading }: DashboardStatsProps) => {
     },
     {
       title: "إجمالي المنتجات",
-      value: extendedStats.totalProducts,
+      value: stats.totalProducts,
       icon: Package,
       color: "from-blue-500 to-blue-400",
       bgLight: "bg-blue-50",
@@ -89,7 +35,7 @@ const DashboardStats = ({ stats, loading }: DashboardStatsProps) => {
     },
     {
       title: "المنتجات المتاحة",
-      value: extendedStats.activeProducts,
+      value: stats.activeProducts,
       icon: TrendingUp,
       color: "from-green-500 to-green-400",
       bgLight: "bg-green-50",
@@ -98,7 +44,7 @@ const DashboardStats = ({ stats, loading }: DashboardStatsProps) => {
     },
     {
       title: "المنتجات الشائعة",
-      value: extendedStats.popularProducts,
+      value: stats.popularProducts,
       icon: BarChart3,
       color: "from-purple-500 to-purple-400",
       bgLight: "bg-purple-50",
@@ -112,7 +58,7 @@ const DashboardStats = ({ stats, loading }: DashboardStatsProps) => {
       {statsItems.map((item, index) => (
         <Card key={index} className="overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow">
           <CardContent className="p-6">
-            {loading || extendedLoading ? (
+            {loading ? (
               <div className="space-y-3">
                 <Skeleton className="h-10 w-10 rounded-full" />
                 <Skeleton className="h-4 w-1/2" />
