@@ -74,10 +74,8 @@ const ProductPreviewContainer = ({
     if (bannerUrl) {
       const loadImage = () => {
         try {
-          // استخدام وظيفة formatImageUrl المحسنة لدعم أي نوع من روابط الصور
           const optimizedUrl = formatImageUrl(bannerUrl);
           
-          // إنشاء كائن صورة جديد للتحقق من تحميل الصورة
           const img = document.createElement('img');
           img.onload = () => {
             console.log("تم تحميل صورة البانر بنجاح:", optimizedUrl);
@@ -88,7 +86,6 @@ const ProductPreviewContainer = ({
           img.onerror = (e) => {
             console.error("خطأ في تحميل صورة البانر:", optimizedUrl, e);
             
-            // محاولة استخدام الرابط الأصلي إذا فشل الرابط المحسّن
             if (optimizedUrl !== bannerUrl) {
               console.log("محاولة استخدام الرابط الأصلي للبانر:", bannerUrl);
               const fallbackImg = document.createElement('img');
@@ -106,9 +103,8 @@ const ProductPreviewContainer = ({
             }
           };
           
-          // تعيين خصائص إضافية للتحميل السريع
           img.decoding = "async";
-          img.loading = "eager"; // تحميل فوري للصور المهمة مثل البانر
+          img.loading = "eager";
           img.src = optimizedUrl;
         } catch (error) {
           console.error("خطأ في معالجة رابط البانر:", error);
@@ -116,14 +112,12 @@ const ProductPreviewContainer = ({
         }
       };
 
-      // تحميل الصورة مباشرة
       loadImage();
 
-      // إعادة محاولة التحميل بعد فترة إذا كانت صورة جديدة تم رفعها حديثًا
       const retryTimeout = setTimeout(() => {
         if (imageError) {
           console.log("إعادة محاولة تحميل البانر بعد مهلة");
-          setImageError(false); // إعادة تعيين حالة الخطأ قبل المحاولة مرة أخرى
+          setImageError(false);
           loadImage();
         }
       }, 1500);
@@ -136,41 +130,47 @@ const ProductPreviewContainer = ({
     }
   }, [bannerUrl]);
   
+  // دالة محسنة للتعامل مع الألوان المخصصة والثيمات
   const getThemeClasses = (theme: string | null) => {
+    console.log("تطبيق اللون على المعاينة:", theme, "الوضع الداكن:", darkMode);
+    
     const baseClasses = darkMode ? 'dark' : '';
     
-    // إذا كان اللون يبدأ بـ # فهو لون مخصص
+    // إذا كان اللون يبدأ بـ # فهو لون مخصص - لا نحتاج إلى إضافة كلاسات CSS
     if (theme && theme.startsWith('#')) {
-      return `${baseClasses} transition-colors duration-300`;
+      return `${baseClasses} transition-all duration-500 ease-in-out`;
     }
     
     // استخدام الألوان المحددة مسبقاً للألوان التقليدية
     switch (theme) {
       case 'coral':
-        return `${baseClasses} bg-gradient-to-br from-[#fff5f2] to-[#ffede9] dark:from-[#ff9178]/10 dark:to-[#ff9178]/20`;
+        return `${baseClasses} bg-gradient-to-br from-[#fff5f2] to-[#ffede9] dark:from-[#ff9178]/10 dark:to-[#ff9178]/20 transition-all duration-500`;
       case 'purple':
-        return `${baseClasses} bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-900/30`;
+        return `${baseClasses} bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-900/30 transition-all duration-500`;
       case 'blue':
-        return `${baseClasses} bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/30`;
+        return `${baseClasses} bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/30 transition-all duration-500`;
       case 'green':
-        return `${baseClasses} bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/30`;
+        return `${baseClasses} bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/30 transition-all duration-500`;
       case 'pink':
-        return `${baseClasses} bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-900/30`;
+        return `${baseClasses} bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-900/30 transition-all duration-500`;
       case 'teal':
-        return `${baseClasses} bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-900/30`;
+        return `${baseClasses} bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-900/30 transition-all duration-500`;
       case 'amber':
-        return `${baseClasses} bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-900/30`;
+        return `${baseClasses} bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-900/30 transition-all duration-500`;
       case 'indigo':
-        return `${baseClasses} bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-900/30`;
+        return `${baseClasses} bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-900/30 transition-all duration-500`;
       case 'rose':
-        return `${baseClasses} bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-900/20 dark:to-rose-900/30`;
+        return `${baseClasses} bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-900/20 dark:to-rose-900/30 transition-all duration-500`;
       default:
-        return `${baseClasses} bg-gray-50 dark:bg-gray-900`;
+        return `${baseClasses} bg-gray-50 dark:bg-gray-900 transition-all duration-500`;
     }
   };
 
+  // دالة محسنة لإنشاء الأنماط المخصصة للألوان
   const getCustomThemeStyle = (theme: string | null): CSSProperties => {
     if (theme && theme.startsWith('#')) {
+      console.log("تطبيق اللون المخصص:", theme);
+      
       // تحويل اللون إلى rgba للتدرجات
       const hex = theme.replace('#', '');
       const r = parseInt(hex.substr(0, 2), 16);
@@ -179,15 +179,19 @@ const ProductPreviewContainer = ({
       
       if (darkMode) {
         return {
-          background: `linear-gradient(135deg, rgba(${r}, ${g}, ${b}, 0.1) 0%, rgba(${r}, ${g}, ${b}, 0.2) 100%)`,
+          background: `linear-gradient(135deg, rgba(${r}, ${g}, ${b}, 0.15) 0%, rgba(${r}, ${g}, ${b}, 0.25) 100%)`,
+          transition: 'all 0.5s ease-in-out'
         };
       } else {
         return {
-          background: `linear-gradient(135deg, rgba(${r}, ${g}, ${b}, 0.05) 0%, rgba(${r}, ${g}, ${b}, 0.15) 100%)`,
+          background: `linear-gradient(135deg, rgba(${r}, ${g}, ${b}, 0.08) 0%, rgba(${r}, ${g}, ${b}, 0.18) 100%)`,
+          transition: 'all 0.5s ease-in-out'
         };
       }
     }
-    return {};
+    return {
+      transition: 'all 0.5s ease-in-out'
+    };
   };
 
   const getContainerStyle = (): CSSProperties => {
@@ -235,12 +239,12 @@ const ProductPreviewContainer = ({
           </AspectRatio>
         </div>
       )}
-      <div className={`flex-1 ${getThemeClasses(colorTheme)} transition-colors duration-300 relative`}>
+      <div className={`flex-1 ${getThemeClasses(colorTheme)} relative`}>
         {imgSrc && !imageError && (
           <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-black/20 to-transparent"></div>
         )}
         <div className="w-full relative">
-          <div className={`bg-white dark:bg-gray-800 rounded-tl-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-700 ${imgSrc && !imageError ? 'mt-[-1rem]' : ''}`} style={{ minHeight: containerHeight }}>
+          <div className={`bg-white dark:bg-gray-800 rounded-tl-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-700 transition-all duration-500 ${imgSrc && !imageError ? 'mt-[-1rem]' : ''}`} style={{ minHeight: containerHeight }}>
             <div className="p-4 sm:p-6">
               {children}
             </div>
