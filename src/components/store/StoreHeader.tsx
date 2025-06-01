@@ -1,3 +1,4 @@
+
 import { CSSProperties, useEffect, useState } from "react";
 
 interface FontSettings {
@@ -41,7 +42,13 @@ const StoreHeader = ({ storeName, colorTheme, fontSettings }: StoreHeaderProps) 
     }
   }, [fontSettings?.storeName?.customFontUrl, fontSettings?.storeName?.isCustom]);
   
-  const getThemeClasses = (theme: string | null) => {
+  const getThemeColors = (theme: string | null) => {
+    // إذا كان اللون مخصص (يبدأ بـ #)
+    if (theme && theme.startsWith('#')) {
+      return { color: theme };
+    }
+    
+    // الألوان المحددة مسبقاً
     switch (theme) {
       case 'coral':
         return 'text-[#ff9178] dark:text-[#ffbcad]';
@@ -67,15 +74,26 @@ const StoreHeader = ({ storeName, colorTheme, fontSettings }: StoreHeaderProps) 
   };
 
   const getStoreNameStyle = (): CSSProperties => {
+    let style: CSSProperties = {};
+    
     if (fontSettings?.storeName?.isCustom && fontId && fontFaceLoaded) {
-      return { fontFamily: `"${fontId}", sans-serif` };
+      style.fontFamily = `"${fontId}", sans-serif`;
     }
-    return {};
+    
+    // تطبيق اللون المخصص إذا كان موجوداً
+    if (colorTheme && colorTheme.startsWith('#')) {
+      style.color = colorTheme;
+    }
+    
+    return style;
   };
+
+  const themeColors = getThemeColors(colorTheme);
+  const isCustomColor = colorTheme && colorTheme.startsWith('#');
 
   return storeName ? (
     <h1 
-      className={`text-3xl font-bold text-right mb-8 ${getThemeClasses(colorTheme)}`}
+      className={`text-3xl font-bold text-right mb-8 ${isCustomColor ? '' : themeColors}`}
       style={getStoreNameStyle()}
     >
       {storeName}

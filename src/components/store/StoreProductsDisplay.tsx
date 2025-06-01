@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ProductGrid from "./ProductGrid";
@@ -79,8 +78,14 @@ const StoreProductsDisplay = ({
     }
   }, [fontSettings?.storeName?.customFontUrl, fontSettings?.storeName?.isCustom]);
 
-  // دالة للحصول على ألوان الثيم
+  // دالة للحصول على ألوان الثيم لاسم المتجر
   const getThemeColors = (theme: string) => {
+    // إذا كان اللون مخصص (يبدأ بـ #)
+    if (theme && theme.startsWith('#')) {
+      return { color: theme };
+    }
+    
+    // الألوان المحددة مسبقاً
     switch (theme) {
       case 'coral':
         return 'text-[#ff9178] dark:text-[#ffbcad]';
@@ -105,7 +110,7 @@ const StoreProductsDisplay = ({
     }
   };
 
-  // دالة للحصول على نمط الخط
+  // دالة للحصول على نمط الخط واللون
   const getStoreNameStyle = (): React.CSSProperties => {
     const style: React.CSSProperties = {};
     
@@ -113,6 +118,11 @@ const StoreProductsDisplay = ({
       style.fontFamily = `"${customFontFamily}", sans-serif`;
     } else if (fontSettings?.storeName?.family && fontSettings?.storeName?.family !== 'inherit') {
       style.fontFamily = fontSettings.storeName.family;
+    }
+    
+    // تطبيق اللون المخصص إذا كان موجوداً
+    if (colorTheme && colorTheme.startsWith('#')) {
+      style.color = colorTheme;
     }
     
     return style;
@@ -159,6 +169,9 @@ const StoreProductsDisplay = ({
   const showCategories = !selectedCategory && !searchQuery.trim();
   const showProducts = selectedCategory || searchQuery.trim();
 
+  const themeColors = getThemeColors(colorTheme);
+  const isCustomColor = colorTheme && colorTheme.startsWith('#');
+
   return (
     <motion.div
       className="container mx-auto px-4 py-8 max-w-6xl relative"
@@ -174,7 +187,7 @@ const StoreProductsDisplay = ({
         className="text-center mb-6"
       >
         <h1 
-          className={`text-4xl font-bold transition-all duration-300 ${getThemeColors(colorTheme)}`}
+          className={`text-4xl font-bold transition-all duration-300 ${isCustomColor ? '' : themeColors}`}
           style={getStoreNameStyle()}
         >
           {storeName}
