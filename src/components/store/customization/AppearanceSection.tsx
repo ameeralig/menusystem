@@ -70,10 +70,7 @@ const AppearanceSection = ({
           <BannerImageUploader 
             bannerUrl={bannerUrl} 
             setBannerUrl={setBannerUrl}
-            handleSubmit={async (e) => {
-              e.preventDefault();
-              handleBannerSubmit();
-            }}
+            handleSubmit={handleBannerSubmit}
             isLoading={isLoading}
           />
         </div>
@@ -86,10 +83,7 @@ const AppearanceSection = ({
           <FontStyleSelector 
             fontSettings={fontSettings} 
             setFontSettings={setFontSettings}
-            handleSubmit={async (e) => {
-              e.preventDefault();
-              handleFontSettingsSubmit();
-            }}
+            handleSubmit={handleFontSettingsSubmit}
             isLoading={isLoading}
           />
         </div>
