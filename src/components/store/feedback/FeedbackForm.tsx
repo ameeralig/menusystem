@@ -128,7 +128,7 @@ const FeedbackForm = ({
       {/* حقل الاسم */}
       <motion.div variants={fieldVariants} className="relative space-y-2">
         <Label className={`text-right ${isMobile ? 'text-sm' : 'text-sm'} font-medium text-gray-700 dark:text-gray-300`}>
-          الاسم *
+          الاسم * (حد أقصى 100 حرف)
         </Label>
         <motion.div
           className="relative"
@@ -137,7 +137,7 @@ const FeedbackForm = ({
         >
           <Input
             value={visitorName}
-            onChange={(e) => setVisitorName(e.target.value)}
+            onChange={(e) => setVisitorName(e.target.value.slice(0, 100))}
             onFocus={() => setFocusedField('name')}
             onBlur={() => setFocusedField(null)}
             className={`text-right transition-all duration-300 ${isMobile ? 'h-10 text-base' : 'h-11'} ${
@@ -146,6 +146,8 @@ const FeedbackForm = ({
                 : 'border-gray-200 dark:border-gray-700'
             }`}
             placeholder="أدخل اسمك"
+            maxLength={100}
+            required
           />
           {focusedField === 'name' && (
             <motion.div
@@ -161,7 +163,7 @@ const FeedbackForm = ({
       {/* حقل رقم الهاتف */}
       <motion.div variants={fieldVariants} className="relative space-y-2">
         <Label className={`text-right ${isMobile ? 'text-sm' : 'text-sm'} font-medium text-gray-700 dark:text-gray-300`}>
-          رقم الهاتف (اختياري)
+          رقم الهاتف (اختياري - 8-20 رقم)
         </Label>
         <motion.div
           className="relative"
@@ -171,7 +173,10 @@ const FeedbackForm = ({
           <Input
             type="tel"
             value={visitorPhone}
-            onChange={(e) => setVisitorPhone(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value.slice(0, 20);
+              setVisitorPhone(value);
+            }}
             onFocus={() => setFocusedField('phone')}
             onBlur={() => setFocusedField(null)}
             className={`text-right transition-all duration-300 ${isMobile ? 'h-10 text-base' : 'h-11'} ${
@@ -181,6 +186,8 @@ const FeedbackForm = ({
             }`}
             placeholder="أدخل رقم هاتفك"
             dir="ltr"
+            minLength={8}
+            maxLength={20}
           />
           {focusedField === 'phone' && (
             <motion.div
@@ -213,8 +220,10 @@ const FeedbackForm = ({
             <SelectValue placeholder="اختر نوع الملاحظات" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="complaint">شكوى</SelectItem>
-            <SelectItem value="suggestion">اقتراح</SelectItem>
+            <SelectItem value="شكوى">شكوى</SelectItem>
+            <SelectItem value="اقتراح">اقتراح</SelectItem>
+            <SelectItem value="استفسار">استفسار</SelectItem>
+            <SelectItem value="مدح">مدح</SelectItem>
           </SelectContent>
         </Select>
       </motion.div>
@@ -222,7 +231,7 @@ const FeedbackForm = ({
       {/* الوصف */}
       <motion.div variants={fieldVariants} className="relative space-y-2">
         <Label className={`text-right ${isMobile ? 'text-sm' : 'text-sm'} font-medium text-gray-700 dark:text-gray-300`}>
-          الوصف *
+          الوصف * (حد أقصى 1000 حرف)
         </Label>
         <motion.div
           className="relative"
@@ -231,7 +240,7 @@ const FeedbackForm = ({
         >
           <Textarea
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) => setDescription(e.target.value.slice(0, 1000))}
             onFocus={() => setFocusedField('description')}
             onBlur={() => setFocusedField(null)}
             className={`text-right ${isMobile ? 'min-h-[100px] text-base' : 'min-h-[120px]'} transition-all duration-300 resize-none ${
@@ -240,7 +249,12 @@ const FeedbackForm = ({
                 : 'border-gray-200 dark:border-gray-700'
             }`}
             placeholder="اكتب ملاحظاتك هنا..."
+            maxLength={1000}
+            required
           />
+          <div className="text-sm text-muted-foreground text-left mt-2">
+            {description.length}/1000 حرف
+          </div>
           {focusedField === 'description' && (
             <motion.div
               className={`absolute inset-0 border-2 border-${getThemeAccent(colorTheme)} rounded-md pointer-events-none`}
