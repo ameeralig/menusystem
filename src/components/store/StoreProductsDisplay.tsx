@@ -8,6 +8,7 @@ import AdvancedSearchBar from "./AdvancedSearchBar";
 import EmptyCategoryMessage from "./EmptyCategoryMessage";
 import { Product } from "@/types/product";
 import { CategoryImage } from "@/types/categoryImage";
+import AnimatedStoreHeader from "./AnimatedStoreHeader";
 import { useGlobalSearch } from "./hooks/useGlobalSearch";
 
 interface FontSettings {
@@ -186,12 +187,11 @@ const StoreProductsDisplay = ({
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="text-center mb-6"
       >
-        <h1 
-          className={`text-4xl font-bold transition-all duration-300 ${isCustomColor ? '' : themeColors}`}
-          style={getStoreNameStyle()}
-        >
-          {storeName}
-        </h1>
+        <AnimatedStoreHeader
+          storeName={storeName}
+          colorTheme={colorTheme}
+          fontSettings={fontSettings}
+        />
       </motion.div>
 
       {/* معلومات المتجر */}
