@@ -48,7 +48,7 @@ const ProductPreviewContainer = ({
   }, [colorTheme]);
 
   return (
-    <div className="flex flex-col" style={getContainerStyle()}>
+    <div className={`flex flex-col ${darkMode ? 'dark' : ''}`} style={getContainerStyle()}>
       <BannerSection
         bannerUrl={bannerUrl}
         imgSrc={imgSrc}
@@ -58,8 +58,8 @@ const ProductPreviewContainer = ({
         onImageLoad={() => setImageLoaded(true)}
       />
       
-      {/* الخلفية الافتراضية بدون تطبيق اللون المخصص */}
-      <div className={`bg-gray-50 dark:bg-gray-900 transition-all duration-300`}>
+      {/* الخلفية الافتراضية مع تطبيق الوضع الداكن */}
+      <div className="bg-gray-50 dark:bg-gray-900 transition-all duration-300">
         {imgSrc && !imageError && (
           <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-black/20 to-transparent"></div>
         )}
