@@ -179,7 +179,10 @@ const ProductPreview = () => {
           </Suspense>
           {storeData.storeOwnerId && (
             <Suspense fallback={<div className="animate-pulse bg-gray-200 h-10 rounded-md w-40 mt-4" />}>
-              <FeedbackDialog userId={storeData.storeOwnerId} />
+              <FeedbackDialog 
+                userId={storeData.storeOwnerId} 
+                colorTheme={storeData.colorTheme}
+              />
             </Suspense>
           )}
         </ProductPreviewContainer>

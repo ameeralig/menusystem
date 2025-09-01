@@ -24,6 +24,13 @@ const FeedbackDialog = ({ userId, colorTheme = "default" }: FeedbackDialogProps)
   const { toast } = useToast();
 
   const handleSubmit = async () => {
+    console.log("محاولة إرسال الملاحظات:", {
+      visitorName,
+      feedbackType,
+      description,
+      userId
+    });
+
     if (!visitorName || !feedbackType || !description) {
       toast({
         title: "خطأ",
@@ -35,6 +42,7 @@ const FeedbackDialog = ({ userId, colorTheme = "default" }: FeedbackDialogProps)
 
     setIsSubmitting(true);
     try {
+      console.log("إرسال البيانات إلى قاعدة البيانات...");
       const { error } = await supabase.from("feedback").insert({
         store_owner_id: userId,
         visitor_name: visitorName,
@@ -43,11 +51,15 @@ const FeedbackDialog = ({ userId, colorTheme = "default" }: FeedbackDialogProps)
         description: description,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("خطأ في قاعدة البيانات:", error);
+        throw error;
+      }
 
+      console.log("تم إرسال الملاحظات بنجاح");
       toast({
-        title: "تم الإرسال",
-        description: "شكراً لك على ملاحظاتك",
+        title: "تم الإرسال بنجاح ✅",
+        description: "شكراً لك على ملاحظاتك القيمة! سيتم مراجعتها قريباً.",
       });
       
       // إعادة تعيين النموذج
@@ -59,8 +71,8 @@ const FeedbackDialog = ({ userId, colorTheme = "default" }: FeedbackDialogProps)
     } catch (error) {
       console.error("Error submitting feedback:", error);
       toast({
-        title: "خطأ",
-        description: "حدث خطأ أثناء إرسال الملاحظات",
+        title: "فشل في الإرسال ❌",
+        description: "لم نتمكن من إرسال ملاحظاتك. الرجاء المحاولة مرة أخرى.",
         variant: "destructive",
       });
     } finally {

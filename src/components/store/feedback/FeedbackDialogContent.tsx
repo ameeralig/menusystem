@@ -64,8 +64,8 @@ const FeedbackDialogContent = ({ children, colorTheme }: FeedbackDialogContentPr
   return (
     <DialogContent className={`
       ${isMobile 
-        ? 'w-[95vw] max-w-[95vw] max-h-[90vh] mx-2 my-4' 
-        : 'sm:max-w-[450px] max-h-[85vh]'
+        ? 'w-[92vw] max-w-[92vw] max-h-[88vh] mx-auto my-6 p-3' 
+        : 'sm:max-w-[450px] max-h-[85vh] p-6'
       }
       backdrop-blur-xl 
       bg-white/95 dark:bg-gray-900/95 
@@ -74,14 +74,12 @@ const FeedbackDialogContent = ({ children, colorTheme }: FeedbackDialogContentPr
       rounded-2xl
       overflow-hidden
       relative
-      ${isMobile ? 'p-4' : 'p-6'}
       fixed
       left-[50%] 
       top-[50%] 
       translate-x-[-50%] 
       translate-y-[-50%]
-      overflow-y-auto
-      custom-scrollbar
+      flex flex-col
     `}>
       {/* خلفية متدرجة متحركة */}
       <motion.div
@@ -122,7 +120,7 @@ const FeedbackDialogContent = ({ children, colorTheme }: FeedbackDialogContentPr
 
       {/* المحتوى */}
       <motion.div
-        className="relative z-10 h-full"
+        className={`relative z-10 flex-1 overflow-y-auto ${isMobile ? 'scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent' : ''}`}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}

@@ -115,7 +115,7 @@ const FeedbackForm = ({
       variants={formVariants}
       initial="hidden"
       animate="visible"
-      className={`space-y-${isMobile ? '4' : '6'} overflow-y-auto max-h-full`}
+      className={`space-y-${isMobile ? '3' : '6'} overflow-y-auto max-h-full relative`}
     >
       {/* الخلفية المتدرجة */}
       <motion.div
@@ -126,8 +126,8 @@ const FeedbackForm = ({
       />
 
       {/* حقل الاسم */}
-      <motion.div variants={fieldVariants} className="relative space-y-2">
-        <Label className={`text-right ${isMobile ? 'text-sm' : 'text-sm'} font-medium text-gray-700 dark:text-gray-300`}>
+      <motion.div variants={fieldVariants} className={`relative ${isMobile ? 'space-y-1.5' : 'space-y-2'}`}>
+        <Label className={`text-right ${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-700 dark:text-gray-300`}>
           الاسم * (حد أقصى 100 حرف)
         </Label>
         <motion.div
@@ -140,7 +140,7 @@ const FeedbackForm = ({
             onChange={(e) => setVisitorName(e.target.value.slice(0, 100))}
             onFocus={() => setFocusedField('name')}
             onBlur={() => setFocusedField(null)}
-            className={`text-right transition-all duration-300 ${isMobile ? 'h-10 text-base' : 'h-11'} ${
+            className={`text-right transition-all duration-300 ${isMobile ? 'h-9 text-sm' : 'h-11'} ${
               focusedField === 'name'
                 ? `border-${getThemeAccent(colorTheme)} shadow-lg shadow-${getThemeAccent(colorTheme)}/20`
                 : 'border-gray-200 dark:border-gray-700'
@@ -161,8 +161,8 @@ const FeedbackForm = ({
       </motion.div>
 
       {/* حقل رقم الهاتف */}
-      <motion.div variants={fieldVariants} className="relative space-y-2">
-        <Label className={`text-right ${isMobile ? 'text-sm' : 'text-sm'} font-medium text-gray-700 dark:text-gray-300`}>
+      <motion.div variants={fieldVariants} className={`relative ${isMobile ? 'space-y-1.5' : 'space-y-2'}`}>
+        <Label className={`text-right ${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-700 dark:text-gray-300`}>
           رقم الهاتف (اختياري - 8-20 رقم)
         </Label>
         <motion.div
@@ -179,7 +179,7 @@ const FeedbackForm = ({
             }}
             onFocus={() => setFocusedField('phone')}
             onBlur={() => setFocusedField(null)}
-            className={`text-right transition-all duration-300 ${isMobile ? 'h-10 text-base' : 'h-11'} ${
+            className={`text-right transition-all duration-300 ${isMobile ? 'h-9 text-sm' : 'h-11'} ${
               focusedField === 'phone'
                 ? `border-${getThemeAccent(colorTheme)} shadow-lg shadow-${getThemeAccent(colorTheme)}/20`
                 : 'border-gray-200 dark:border-gray-700'
@@ -201,8 +201,8 @@ const FeedbackForm = ({
       </motion.div>
 
       {/* نوع الملاحظات */}
-      <motion.div variants={fieldVariants} className="relative space-y-2">
-        <Label className={`text-right ${isMobile ? 'text-sm' : 'text-sm'} font-medium text-gray-700 dark:text-gray-300`}>
+      <motion.div variants={fieldVariants} className={`relative ${isMobile ? 'space-y-1.5' : 'space-y-2'}`}>
+        <Label className={`text-right ${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-700 dark:text-gray-300`}>
           نوع الملاحظات *
         </Label>
         <Select 
@@ -211,7 +211,7 @@ const FeedbackForm = ({
           onOpenChange={(open) => setFocusedField(open ? 'type' : null)}
         >
           <SelectTrigger 
-            className={`text-right transition-all duration-300 ${isMobile ? 'h-10 text-base' : 'h-11'} ${
+            className={`text-right transition-all duration-300 ${isMobile ? 'h-9 text-sm' : 'h-11'} ${
               focusedField === 'type'
                 ? `border-${getThemeAccent(colorTheme)} shadow-lg shadow-${getThemeAccent(colorTheme)}/20`
                 : 'border-gray-200 dark:border-gray-700'
@@ -229,8 +229,8 @@ const FeedbackForm = ({
       </motion.div>
 
       {/* الوصف */}
-      <motion.div variants={fieldVariants} className="relative space-y-2">
-        <Label className={`text-right ${isMobile ? 'text-sm' : 'text-sm'} font-medium text-gray-700 dark:text-gray-300`}>
+      <motion.div variants={fieldVariants} className={`relative ${isMobile ? 'space-y-1.5' : 'space-y-2'}`}>
+        <Label className={`text-right ${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-700 dark:text-gray-300`}>
           الوصف * (حد أقصى 1000 حرف)
         </Label>
         <motion.div
@@ -243,7 +243,7 @@ const FeedbackForm = ({
             onChange={(e) => setDescription(e.target.value.slice(0, 1000))}
             onFocus={() => setFocusedField('description')}
             onBlur={() => setFocusedField(null)}
-            className={`text-right ${isMobile ? 'min-h-[100px] text-base' : 'min-h-[120px]'} transition-all duration-300 resize-none ${
+            className={`text-right ${isMobile ? 'min-h-[80px] text-sm' : 'min-h-[120px]'} transition-all duration-300 resize-none ${
               focusedField === 'description'
                 ? `border-${getThemeAccent(colorTheme)} shadow-lg shadow-${getThemeAccent(colorTheme)}/20`
                 : 'border-gray-200 dark:border-gray-700'
@@ -252,7 +252,7 @@ const FeedbackForm = ({
             maxLength={1000}
             required
           />
-          <div className="text-sm text-muted-foreground text-left mt-2">
+          <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground text-left mt-1`}>
             {description.length}/1000 حرف
           </div>
           {focusedField === 'description' && (
@@ -269,7 +269,7 @@ const FeedbackForm = ({
       {/* زر الإرسال */}
       <motion.div
         variants={fieldVariants}
-        className={`${isMobile ? 'pt-3' : 'pt-4'}`}
+        className={`${isMobile ? 'pt-2' : 'pt-4'}`}
       >
         <motion.div
           whileHover={{ scale: isMobile ? 1 : 1.02 }}
@@ -277,8 +277,8 @@ const FeedbackForm = ({
         >
           <Button
             onClick={onSubmit}
-            disabled={isSubmitting}
-            className={`w-full ${isMobile ? 'h-11 text-base' : 'h-12'} bg-gradient-to-r from-${getThemeAccent(colorTheme)} to-${getThemeAccent(colorTheme)}/80 hover:from-${getThemeAccent(colorTheme)}/90 hover:to-${getThemeAccent(colorTheme)}/70 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform`}
+            disabled={isSubmitting || !visitorName || !feedbackType || !description}
+            className={`w-full ${isMobile ? 'h-10 text-sm' : 'h-12'} bg-gradient-to-r from-${getThemeAccent(colorTheme)} to-${getThemeAccent(colorTheme)}/80 hover:from-${getThemeAccent(colorTheme)}/90 hover:to-${getThemeAccent(colorTheme)}/70 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {isSubmitting ? (
               <motion.div

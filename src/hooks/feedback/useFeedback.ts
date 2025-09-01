@@ -30,13 +30,20 @@ export const useFeedback = () => {
           return;
         }
 
+        console.log("جلب الشكاوى والاقتراحات للمستخدم:", user.id);
+
         const { data, error } = await supabase
           .from("feedback")
           .select("*")
           .eq("store_owner_id", user.id)
           .order("created_at", { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+          console.error("خطأ في جلب الشكاوى:", error);
+          throw error;
+        }
+        
+        console.log("تم جلب الشكاوى بنجاح:", data);
         
         // تحويل البيانات ووضع قيمة افتراضية لحقل رقم الهاتف إذا كان غير موجود
         const processedData = data?.map(item => ({
@@ -52,6 +59,7 @@ export const useFeedback = () => {
           .map(item => item.id) || [];
           
         if (pendingIds.length > 0) {
+          console.log("تحديث حالة الشكاوى المعلقة:", pendingIds);
           const { error: updateError } = await supabase
             .from("feedback")
             .update({ status: 'reviewed' })
@@ -81,6 +89,22 @@ export const useFeedback = () => {
     };
 
     fetchFeedback();
+
+    // الاستماع للتحديثات الفورية للملاحظات
+    const channel = supabase
+      .channel('feedback-updates')
+      .on('postgres_changes', 
+        { event: 'INSERT', schema: 'public', table: 'feedback' }, 
+        (payload) => {
+          console.log("تم إضافة ملاحظة جديدة:", payload.new);
+          setFeedback(prev => [payload.new as FeedbackItem, ...prev]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [navigate, toast]);
 
   const markAsResolved = async (id: string) => {
