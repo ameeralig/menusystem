@@ -11,7 +11,7 @@ import { toast } from "sonner";
 const ProductPreviewContainer = lazy(() => import("@/components/store/ProductPreviewContainer"));
 const StoreProductsDisplay = lazy(() => import("@/components/store/StoreProductsDisplay"));
 const SocialIcons = lazy(() => import("@/components/store/SocialIcons"));
-const FeedbackDialog = lazy(() => import("@/components/store/FeedbackDialog"));
+const NewFeedbackDialog = lazy(() => import("@/components/store/feedback/NewFeedbackDialog"));
 
 const ProductPreview = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -179,7 +179,7 @@ const ProductPreview = () => {
           </Suspense>
           {storeData.storeOwnerId && (
             <Suspense fallback={<div className="animate-pulse bg-gray-200 h-10 rounded-md w-40 mt-4" />}>
-              <FeedbackDialog 
+              <NewFeedbackDialog 
                 userId={storeData.storeOwnerId} 
                 colorTheme={storeData.colorTheme}
               />
