@@ -362,25 +362,35 @@ const CustomerFeedback = () => {
                     <SelectValue placeholder="اختر نوع الملاحظة" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="complaint" className="flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 text-red-500" />
-                      شكوى
+                    <SelectItem value="complaint">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-red-500" />
+                        شكوى
+                      </div>
                     </SelectItem>
-                    <SelectItem value="suggestion" className="flex items-center gap-2">
-                      <MessageCircle className="w-4 h-4 text-blue-500" />
-                      اقتراح
+                    <SelectItem value="suggestion">
+                      <div className="flex items-center gap-2">
+                        <MessageCircle className="w-4 h-4 text-blue-500" />
+                        اقتراح
+                      </div>
                     </SelectItem>
-                    <SelectItem value="compliment" className="flex items-center gap-2">
-                      <Heart className="w-4 h-4 text-pink-500" />
-                      إعجاب
+                    <SelectItem value="compliment">
+                      <div className="flex items-center gap-2">
+                        <Heart className="w-4 h-4 text-pink-500" />
+                        إعجاب
+                      </div>
                     </SelectItem>
-                    <SelectItem value="question" className="flex items-center gap-2">
-                      <MessageCircle className="w-4 h-4 text-yellow-600" />
-                      استفسار
+                    <SelectItem value="question">
+                      <div className="flex items-center gap-2">
+                        <MessageCircle className="w-4 h-4 text-yellow-600" />
+                        استفسار
+                      </div>
                     </SelectItem>
-                    <SelectItem value="other" className="flex items-center gap-2">
-                      <Star className="w-4 h-4 text-purple-500" />
-                      أخرى
+                    <SelectItem value="other">
+                      <div className="flex items-center gap-2">
+                        <Star className="w-4 h-4 text-purple-500" />
+                        أخرى
+                      </div>
                     </SelectItem>
                   </SelectContent>
                 </Select>
