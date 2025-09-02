@@ -36,7 +36,7 @@ const FeedbackModal = ({ isOpen, onClose, children, colorTheme = "default" }: Fe
         <>
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -44,16 +44,17 @@ const FeedbackModal = ({ isOpen, onClose, children, colorTheme = "default" }: Fe
           />
           
           {/* Modal */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              className={`
-                relative w-full max-w-md mx-auto
-                ${isMobile ? 'max-h-[90vh]' : 'max-h-[85vh]'}
-                bg-background/95 backdrop-blur-xl
-                border-2 border-primary/20
-                rounded-2xl shadow-2xl
-                overflow-hidden
-              `}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+            <div className="pointer-events-auto relative w-full max-w-md mx-auto">
+              <motion.div
+                className={`
+                  relative w-full
+                  ${isMobile ? 'max-h-[90vh]' : 'max-h-[85vh]'}
+                  bg-background/95 backdrop-blur-xl
+                  border-2 border-primary/20
+                  rounded-2xl shadow-2xl
+                  overflow-hidden z-50
+                `}
               style={{
                 boxShadow: `0 25px 50px -12px ${getThemeAccentColor(colorTheme)}20`
               }}
@@ -82,7 +83,7 @@ const FeedbackModal = ({ isOpen, onClose, children, colorTheme = "default" }: Fe
               </div>
 
               {/* Content */}
-              <div className={`p-6 ${isMobile ? 'pb-8' : 'pb-8'} overflow-y-auto flex-1 max-h-[70vh]`}>
+              <div className={`p-6 ${isMobile ? 'pb-8' : 'pb-8'} overflow-y-auto flex-1 max-h-[70vh] relative z-50`}>
                 {children}
               </div>
 
@@ -110,7 +111,8 @@ const FeedbackModal = ({ isOpen, onClose, children, colorTheme = "default" }: Fe
                   />
                 ))}
               </div>
-            </motion.div>
+              </motion.div>
+            </div>
           </div>
         </>
       )}
