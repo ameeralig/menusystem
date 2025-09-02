@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +25,20 @@ const FeedbackFormFields = ({
 }: FeedbackFormFieldsProps) => {
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const isMobile = useIsMobile();
+
+  // Stable event handlers to prevent re-renders
+  const handleFocus = useCallback((fieldName: string) => {
+    setFocusedField(fieldName);
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    setFocusedField(null);
+  }, []);
+
+  const handleInputChange = useCallback((field: string, value: string, maxLength?: number) => {
+    const trimmedValue = maxLength ? value.slice(0, maxLength) : value;
+    onFormDataChange(field, trimmedValue);
+  }, [onFormDataChange]);
 
   const getAccentColor = (theme: string) => {
     const colors = {
@@ -79,95 +93,54 @@ const FeedbackFormFields = ({
     >
       {/* حقل الاسم */}
       <FormField label="الاسم (حد أقصى 100 حرف)" icon={User} required>
-        <motion.div
-          whileFocus={{ scale: isMobile ? 1 : 1.02 }}
-          transition={{ duration: 0.2 }}
-        >
+        <div className="space-y-1">
           <Input
             value={formData.visitorName}
-            onChange={(e) => onFormDataChange('visitorName', e.target.value.slice(0, 100))}
-            onFocus={() => setFocusedField('name')}
-            onBlur={() => setFocusedField(null)}
-            className={`
-              text-right h-11 transition-all duration-300 border-2
-              ${focusedField === 'name' 
-                ? 'shadow-lg ring-2' 
-                : 'border-border hover:border-primary/50'
-              }
-              bg-background text-foreground
-              focus:outline-none focus:ring-2 focus:ring-offset-2
-            `}
+            onChange={(e) => handleInputChange('visitorName', e.target.value, 100)}
+            onFocus={() => handleFocus('name')}
+            onBlur={handleBlur}
+            className="text-right h-11 bg-background text-foreground border-2 border-border hover:border-primary/50 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors duration-200"
             placeholder="أدخل اسمك الكريم..."
             maxLength={100}
             required
-            style={{
-              borderColor: focusedField === 'name' ? getAccentColor(colorTheme) : undefined
-            }}
           />
-        </motion.div>
-        <div className="text-xs text-muted-foreground text-left">
-          {formData.visitorName.length}/100 حرف
+          <div className="text-xs text-muted-foreground text-left">
+            {formData.visitorName.length}/100 حرف
+          </div>
         </div>
       </FormField>
 
       {/* حقل رقم الهاتف */}
       <FormField label="رقم الهاتف (اختياري - 8-20 رقم)" icon={Phone}>
-        <motion.div
-          whileFocus={{ scale: isMobile ? 1 : 1.02 }}
-          transition={{ duration: 0.2 }}
-        >
+        <div className="space-y-1">
           <Input
             type="tel"
             value={formData.visitorPhone}
-            onChange={(e) => onFormDataChange('visitorPhone', e.target.value.slice(0, 20))}
-            onFocus={() => setFocusedField('phone')}
-            onBlur={() => setFocusedField(null)}
-            className={`
-              text-right h-11 transition-all duration-300 border-2
-              ${focusedField === 'phone' 
-                ? 'shadow-lg ring-2' 
-                : 'border-border hover:border-primary/50'
-              }
-              bg-background text-foreground
-              focus:outline-none focus:ring-2 focus:ring-offset-2
-            `}
+            onChange={(e) => handleInputChange('visitorPhone', e.target.value, 20)}
+            onFocus={() => handleFocus('phone')}
+            onBlur={handleBlur}
+            className="text-right h-11 bg-background text-foreground border-2 border-border hover:border-primary/50 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors duration-200"
             placeholder="رقم الهاتف للتواصل معك..."
             dir="ltr"
             minLength={8}
             maxLength={20}
-            style={{
-              borderColor: focusedField === 'phone' ? getAccentColor(colorTheme) : undefined
-            }}
           />
-        </motion.div>
-        {formData.visitorPhone && (
-          <div className="text-xs text-muted-foreground text-left">
-            {formData.visitorPhone.length}/20 رقم
-          </div>
-        )}
+          {formData.visitorPhone && (
+            <div className="text-xs text-muted-foreground text-left">
+              {formData.visitorPhone.length}/20 رقم
+            </div>
+          )}
+        </div>
       </FormField>
 
       {/* نوع الملاحظات */}
       <FormField label="نوع الملاحظات" icon={MessageSquare} required>
         <Select 
           value={formData.feedbackType} 
-          onValueChange={(value) => onFormDataChange('feedbackType', value)}
-          onOpenChange={(open) => setFocusedField(open ? 'type' : null)}
+          onValueChange={(value) => handleInputChange('feedbackType', value)}
+          onOpenChange={(open) => handleFocus(open ? 'type' : '')}
         >
-          <SelectTrigger 
-            className={`
-              text-right h-11 transition-all duration-300 border-2
-              ${focusedField === 'type' 
-                ? 'shadow-lg ring-2' 
-                : 'border-border hover:border-primary/50'
-              }
-              bg-background text-foreground
-              focus:outline-none focus:ring-2 focus:ring-offset-2
-            `}
-            style={{
-              borderColor: focusedField === 'type' ? getAccentColor(colorTheme) : undefined
-            }}
-          >
+          <SelectTrigger className="text-right h-11 bg-background text-foreground border-2 border-border hover:border-primary/50 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors duration-200">
             <SelectValue placeholder="اختر نوع الملاحظات..." />
           </SelectTrigger>
           <SelectContent>
@@ -181,34 +154,20 @@ const FeedbackFormFields = ({
 
       {/* الوصف */}
       <FormField label="الوصف التفصيلي (حد أقصى 1000 حرف)" icon={FileText} required>
-        <motion.div
-          whileFocus={{ scale: isMobile ? 1 : 1.02 }}
-          transition={{ duration: 0.2 }}
-        >
+        <div className="space-y-1">
           <Textarea
             value={formData.description}
-            onChange={(e) => onFormDataChange('description', e.target.value.slice(0, 1000))}
-            onFocus={() => setFocusedField('description')}
-            onBlur={() => setFocusedField(null)}
-            className={`
-              text-right min-h-[120px] transition-all duration-300 resize-none border-2
-              ${focusedField === 'description' 
-                ? 'shadow-lg ring-2' 
-                : 'border-border hover:border-primary/50'
-              }
-              bg-background text-foreground
-              focus:outline-none focus:ring-2 focus:ring-offset-2
-            `}
+            onChange={(e) => handleInputChange('description', e.target.value, 1000)}
+            onFocus={() => handleFocus('description')}
+            onBlur={handleBlur}
+            className="text-right min-h-[120px] bg-background text-foreground border-2 border-border hover:border-primary/50 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors duration-200 resize-none"
             placeholder="شاركنا تفاصيل ملاحظاتك أو اقتراحاتك بكل صراحة..."
             maxLength={1000}
             required
-            style={{
-              borderColor: focusedField === 'description' ? getAccentColor(colorTheme) : undefined
-            }}
           />
-        </motion.div>
-        <div className="text-xs text-muted-foreground text-left">
-          {formData.description.length}/1000 حرف
+          <div className="text-xs text-muted-foreground text-left">
+            {formData.description.length}/1000 حرف
+          </div>
         </div>
       </FormField>
     </motion.div>
