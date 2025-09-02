@@ -86,31 +86,6 @@ const FeedbackModal = ({ isOpen, onClose, children, colorTheme = "default" }: Fe
               <div className={`p-6 ${isMobile ? 'pb-8' : 'pb-8'} overflow-y-auto flex-1 max-h-[70vh] relative z-50`}>
                 {children}
               </div>
-
-              {/* Decorative elements */}
-              <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                {Array.from({ length: isMobile ? 3 : 5 }).map((_, i) => (
-                  <motion.div
-                    key={i}
-                    className="absolute w-2 h-2 rounded-full"
-                    style={{
-                      top: `${Math.random() * 100}%`,
-                      left: `${Math.random() * 100}%`,
-                      backgroundColor: `${getThemeAccentColor(colorTheme)}30`
-                    }}
-                    animate={{
-                      scale: [0, 1.5, 0],
-                      opacity: [0, 0.8, 0],
-                      rotate: [0, 360],
-                    }}
-                    transition={{
-                      duration: 3 + Math.random() * 2,
-                      repeat: Infinity,
-                      delay: Math.random() * 2,
-                    }}
-                  />
-                ))}
-              </div>
               </motion.div>
             </div>
           </div>
