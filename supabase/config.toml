@@ -1,5 +1,5 @@
 
-zqlckixwpyrwdwrsuhsg
+project_id = "zqlckixwpyrwdwrsuhsg"
 
 [functions."get-service-key"]
 verify_jwt = true
@@ -21,3 +21,6 @@ verify_jwt = false
 
 [functions."setup-notifications-rpcs"]
 verify_jwt = true
+
+[functions."cleanup-feedback"]
+verify_jwt = false
