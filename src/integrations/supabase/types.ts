@@ -70,6 +70,7 @@ export type Database = {
           created_at: string
           description: string
           id: string
+          resolved_at: string | null
           status: string | null
           store_owner_id: string
           type: string
@@ -80,6 +81,7 @@ export type Database = {
           created_at?: string
           description: string
           id?: string
+          resolved_at?: string | null
           status?: string | null
           store_owner_id: string
           type: string
@@ -90,6 +92,7 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          resolved_at?: string | null
           status?: string | null
           store_owner_id?: string
           type?: string
@@ -364,9 +367,17 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      cleanup_old_resolved_feedback: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       create_notifications_table_if_not_exists: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      delete_resolved_feedback: {
+        Args: { owner_id: string }
+        Returns: number
       }
       increment_page_view: {
         Args: { store_user_id: string }

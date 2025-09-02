@@ -140,9 +140,49 @@ export const useFeedback = () => {
     }
   };
 
+  const deleteResolvedFeedback = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "خطأ في التحقق",
+          description: "الرجاء تسجيل الدخول أولاً.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data, error } = await supabase.rpc('delete_resolved_feedback', {
+        owner_id: user.id
+      });
+
+      if (error) {
+        console.error("خطأ في حذف الملاحظات:", error);
+        toast({
+          title: "خطأ في الحذف",
+          description: "لم نتمكن من حذف الملاحظات. الرجاء المحاولة مرة أخرى.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // تحديث القائمة المحلية
+      setFeedback(prev => prev.filter(item => item.status !== "resolved"));
+
+      toast({
+        title: "تم الحذف بنجاح",
+        description: `تم حذف ${data} ملاحظة محلولة.`,
+      });
+    } catch (error) {
+      console.error("خطأ غير متوقع:", error);
+    }
+  };
+
   return {
     feedback,
     isLoading,
-    markAsResolved
+    markAsResolved,
+    deleteResolvedFeedback
   };
 };
