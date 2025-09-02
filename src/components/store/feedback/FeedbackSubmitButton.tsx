@@ -36,7 +36,7 @@ const FeedbackSubmitButton = ({
 
   return (
     <motion.div
-      className="pt-4"
+      className="pt-6"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.4 }}
@@ -48,6 +48,7 @@ const FeedbackSubmitButton = ({
         <Button
           onClick={onSubmit}
           disabled={isDisabled}
+          size="lg"
           className={`
             w-full h-12 
             bg-gradient-to-r ${getThemeColors(colorTheme)}
@@ -114,7 +115,7 @@ const FeedbackSubmitButton = ({
 
       {/* رسالة تشجيعية */}
       <motion.p
-        className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2"
+        className="text-xs text-center text-muted-foreground mt-2"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6 }}

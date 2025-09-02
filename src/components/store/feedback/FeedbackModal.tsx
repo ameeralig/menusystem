@@ -14,34 +14,18 @@ interface FeedbackModalProps {
 const FeedbackModal = ({ isOpen, onClose, children, colorTheme = "default" }: FeedbackModalProps) => {
   const isMobile = useIsMobile();
 
-  const getThemeColors = (theme: string) => {
-    const themes = {
-      coral: "border-[#ff9178]/30 bg-gradient-to-br from-[#ff9178]/5 to-[#ff6342]/5",
-      purple: "border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-purple-700/5",
-      blue: "border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-blue-700/5",
-      green: "border-green-500/30 bg-gradient-to-br from-green-500/5 to-green-700/5",
-      pink: "border-pink-500/30 bg-gradient-to-br from-pink-500/5 to-pink-700/5",
-      teal: "border-teal-500/30 bg-gradient-to-br from-teal-500/5 to-teal-700/5",
-      amber: "border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-amber-700/5",
-      indigo: "border-indigo-500/30 bg-gradient-to-br from-indigo-500/5 to-indigo-700/5",
-      rose: "border-rose-500/30 bg-gradient-to-br from-rose-500/5 to-rose-700/5",
-      default: "border-gray-500/30 bg-gradient-to-br from-gray-500/5 to-gray-700/5"
-    };
-    return themes[theme as keyof typeof themes] || themes.default;
-  };
-
-  const getAccentColor = (theme: string) => {
+  const getThemeAccentColor = (theme: string) => {
     const colors = {
-      coral: "[#ff9178]",
-      purple: "purple-500",
-      blue: "blue-500",
-      green: "green-500",
-      pink: "pink-500",
-      teal: "teal-500",
-      amber: "amber-500",
-      indigo: "indigo-500",
-      rose: "rose-500",
-      default: "gray-500"
+      coral: "#ff9178",
+      purple: "#8b5cf6",
+      blue: "#3b82f6",
+      green: "#10b981",
+      pink: "#ec4899",
+      teal: "#14b8a6",
+      amber: "#f59e0b",
+      indigo: "#6366f1",
+      rose: "#f43f5e",
+      default: "#6b7280"
     };
     return colors[theme as keyof typeof colors] || colors.default;
   };
@@ -65,11 +49,14 @@ const FeedbackModal = ({ isOpen, onClose, children, colorTheme = "default" }: Fe
               className={`
                 relative w-full max-w-md mx-auto
                 ${isMobile ? 'max-h-[90vh]' : 'max-h-[85vh]'}
-                bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl
-                border-2 ${getThemeColors(colorTheme)}
+                bg-background/95 backdrop-blur-xl
+                border-2 border-primary/20
                 rounded-2xl shadow-2xl
                 overflow-hidden
               `}
+              style={{
+                boxShadow: `0 25px 50px -12px ${getThemeAccentColor(colorTheme)}20`
+              }}
               initial={{ opacity: 0, scale: 0.8, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, y: 20 }}
@@ -77,22 +64,25 @@ const FeedbackModal = ({ isOpen, onClose, children, colorTheme = "default" }: Fe
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header with close button */}
-              <div className="sticky top-0 z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 p-4 flex justify-between items-center">
-                <h2 className={`text-lg font-bold text-${getAccentColor(colorTheme)}`}>
+              <div className="sticky top-0 z-10 bg-background/90 backdrop-blur-sm border-b border-border p-4 flex justify-between items-center">
+                <h2 
+                  className="text-lg font-bold"
+                  style={{ color: getThemeAccentColor(colorTheme) }}
+                >
                   شاركنا رأيك
                 </h2>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={onClose}
-                  className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
+                  className="h-8 w-8 p-0 hover:bg-accent rounded-full"
                 >
                   <X className="w-4 h-4" />
                 </Button>
               </div>
 
               {/* Content */}
-              <div className={`p-4 ${isMobile ? 'pb-6' : 'pb-6'} overflow-y-auto flex-1`}>
+              <div className={`p-6 ${isMobile ? 'pb-8' : 'pb-8'} overflow-y-auto flex-1 max-h-[70vh]`}>
                 {children}
               </div>
 
@@ -101,10 +91,11 @@ const FeedbackModal = ({ isOpen, onClose, children, colorTheme = "default" }: Fe
                 {Array.from({ length: isMobile ? 3 : 5 }).map((_, i) => (
                   <motion.div
                     key={i}
-                    className={`absolute w-2 h-2 bg-${getAccentColor(colorTheme)}/30 rounded-full`}
+                    className="absolute w-2 h-2 rounded-full"
                     style={{
                       top: `${Math.random() * 100}%`,
                       left: `${Math.random() * 100}%`,
+                      backgroundColor: `${getThemeAccentColor(colorTheme)}30`
                     }}
                     animate={{
                       scale: [0, 1.5, 0],

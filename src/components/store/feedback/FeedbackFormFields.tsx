@@ -62,8 +62,8 @@ const FeedbackFormFields = ({
       variants={fieldVariants}
       className="space-y-2"
     >
-      <Label className="text-right text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2 justify-end">
-        <span>{label} {required && <span className="text-red-500">*</span>}</span>
+      <Label className="text-right text-sm font-medium text-foreground flex items-center gap-2 justify-end">
+        <span>{label} {required && <span className="text-destructive">*</span>}</span>
         <Icon className="w-4 h-4" style={{ color: getAccentColor(colorTheme) }} />
       </Label>
       {children}
@@ -91,9 +91,11 @@ const FeedbackFormFields = ({
             className={`
               text-right h-11 transition-all duration-300 border-2
               ${focusedField === 'name' 
-                ? `border-[${getAccentColor(colorTheme)}] shadow-lg ring-2 ring-[${getAccentColor(colorTheme)}]/20` 
-                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                ? 'shadow-lg ring-2' 
+                : 'border-border hover:border-primary/50'
               }
+              bg-background text-foreground
+              focus:outline-none focus:ring-2 focus:ring-offset-2
             `}
             placeholder="أدخل اسمك الكريم..."
             maxLength={100}
@@ -103,7 +105,7 @@ const FeedbackFormFields = ({
             }}
           />
         </motion.div>
-        <div className="text-xs text-gray-500 text-left">
+        <div className="text-xs text-muted-foreground text-left">
           {formData.visitorName.length}/100 حرف
         </div>
       </FormField>
@@ -123,9 +125,11 @@ const FeedbackFormFields = ({
             className={`
               text-right h-11 transition-all duration-300 border-2
               ${focusedField === 'phone' 
-                ? `border-[${getAccentColor(colorTheme)}] shadow-lg ring-2 ring-[${getAccentColor(colorTheme)}]/20` 
-                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                ? 'shadow-lg ring-2' 
+                : 'border-border hover:border-primary/50'
               }
+              bg-background text-foreground
+              focus:outline-none focus:ring-2 focus:ring-offset-2
             `}
             placeholder="رقم الهاتف للتواصل معك..."
             dir="ltr"
@@ -137,7 +141,7 @@ const FeedbackFormFields = ({
           />
         </motion.div>
         {formData.visitorPhone && (
-          <div className="text-xs text-gray-500 text-left">
+          <div className="text-xs text-muted-foreground text-left">
             {formData.visitorPhone.length}/20 رقم
           </div>
         )}
@@ -154,9 +158,11 @@ const FeedbackFormFields = ({
             className={`
               text-right h-11 transition-all duration-300 border-2
               ${focusedField === 'type' 
-                ? `border-[${getAccentColor(colorTheme)}] shadow-lg ring-2 ring-[${getAccentColor(colorTheme)}]/20` 
-                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                ? 'shadow-lg ring-2' 
+                : 'border-border hover:border-primary/50'
               }
+              bg-background text-foreground
+              focus:outline-none focus:ring-2 focus:ring-offset-2
             `}
             style={{
               borderColor: focusedField === 'type' ? getAccentColor(colorTheme) : undefined
@@ -187,9 +193,11 @@ const FeedbackFormFields = ({
             className={`
               text-right min-h-[120px] transition-all duration-300 resize-none border-2
               ${focusedField === 'description' 
-                ? `border-[${getAccentColor(colorTheme)}] shadow-lg ring-2 ring-[${getAccentColor(colorTheme)}]/20` 
-                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                ? 'shadow-lg ring-2' 
+                : 'border-border hover:border-primary/50'
               }
+              bg-background text-foreground
+              focus:outline-none focus:ring-2 focus:ring-offset-2
             `}
             placeholder="شاركنا تفاصيل ملاحظاتك أو اقتراحاتك بكل صراحة..."
             maxLength={1000}
@@ -199,7 +207,7 @@ const FeedbackFormFields = ({
             }}
           />
         </motion.div>
-        <div className="text-xs text-gray-500 text-left">
+        <div className="text-xs text-muted-foreground text-left">
           {formData.description.length}/1000 حرف
         </div>
       </FormField>
