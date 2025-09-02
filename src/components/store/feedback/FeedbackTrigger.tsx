@@ -1,13 +1,19 @@
 import { MessageCircle, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface FeedbackTriggerProps {
   colorTheme?: string;
-  onClick: () => void;
+  userId: string;
 }
 
-const FeedbackTrigger = ({ colorTheme = "default", onClick }: FeedbackTriggerProps) => {
+const FeedbackTrigger = ({ colorTheme = "default", userId }: FeedbackTriggerProps) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/customer-feedback/${userId}`);
+  };
   const getThemeColors = (theme: string) => {
     const themes = {
       coral: "from-[#ff9178] to-[#ff6342] hover:from-[#ff8765] hover:to-[#ff5c3a] shadow-[#ff9178]/30",
@@ -37,7 +43,7 @@ const FeedbackTrigger = ({ colorTheme = "default", onClick }: FeedbackTriggerPro
         className="relative"
       >
         <Button
-          onClick={onClick}
+          onClick={handleClick}
           className={`
             relative overflow-hidden
             bg-gradient-to-r ${getThemeColors(colorTheme)}

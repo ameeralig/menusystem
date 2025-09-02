@@ -17,6 +17,7 @@ import EditProduct from "./pages/EditProduct";
 import StoreCustomization from "./pages/StoreCustomization";
 import Profile from "./pages/Profile";
 import Feedback from "./pages/Feedback";
+import CustomerFeedback from "./pages/CustomerFeedback";
 import LegalPages from "./pages/LegalPages";
 import NotFound from "./pages/NotFound";
 import AdminLogin from "./pages/AdminLogin";
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/store-customization" element={<StoreCustomization />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/feedback" element={<Feedback />} />
+            <Route path="/customer-feedback/:userId" element={<CustomerFeedback />} />
             
             {/* صفحة موحدة للشروط والأحكام وسياسة الخصوصية والاتصال */}
             <Route path="/legal" element={<LegalPages />} />
