@@ -36,7 +36,20 @@ const FeedbackCard = ({ item, onResolve }: FeedbackCardProps) => {
   };
 
   const getFeedbackTypeText = (type: string) => {
-    return type === "complaint" ? "شكوى" : "اقتراح";
+    switch (type) {
+      case "complaint":
+        return "شكوى";
+      case "suggestion":
+        return "اقتراح";
+      case "compliment":
+        return "إعجاب";
+      case "question":
+        return "استفسار";
+      case "other":
+        return "أخرى";
+      default:
+        return type;
+    }
   };
 
   const getStatusText = (status: string) => {
