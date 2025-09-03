@@ -6,6 +6,7 @@ import StoreInfo from "./StoreInfo";
 import BackButton from "./BackButton";
 import AdvancedSearchBar from "./AdvancedSearchBar";
 import EmptyCategoryMessage from "./EmptyCategoryMessage";
+import WheelButton from "./WheelButton";
 import { Product } from "@/types/product";
 import { CategoryImage } from "@/types/categoryImage";
 import AnimatedStoreHeader from "./AnimatedStoreHeader";
@@ -38,6 +39,7 @@ interface StoreProductsDisplayProps {
   fontSettings?: FontSettings;
   contactInfo?: ContactInfo;
   categoryImages?: CategoryImage[];
+  slug?: string;
 }
 
 const StoreProductsDisplay = ({
@@ -47,6 +49,7 @@ const StoreProductsDisplay = ({
   fontSettings,
   contactInfo,
   categoryImages = [],
+  slug,
 }: StoreProductsDisplayProps) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -218,6 +221,18 @@ const StoreProductsDisplay = ({
           products={products}
         />
       </motion.div>
+
+      {/* زر عجلة الحظ */}
+      {slug && (
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
+          className="flex justify-center mt-6"
+        >
+          <WheelButton slug={slug} colorTheme={colorTheme} />
+        </motion.div>
+      )}
 
       {/* زر الرجوع */}
       <AnimatePresence>

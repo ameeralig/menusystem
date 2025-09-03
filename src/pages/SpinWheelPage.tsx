@@ -1,0 +1,196 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import SpinWheel from '@/components/wheel/SpinWheel';
+import { Product } from '@/types/product';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+const SpinWheelPage: React.FC = () => {
+  const { slug } = useParams();
+  const navigate = useNavigate();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [storeInfo, setStoreInfo] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  useEffect(() => {
+    if (slug) {
+      fetchStoreData();
+    }
+  }, [slug]);
+
+  const fetchStoreData = async () => {
+    try {
+      setLoading(true);
+      
+      // جلب بيانات المتجر
+      const { data: storeData, error: storeError } = await supabase
+        .from('store_settings')
+        .select('*')
+        .eq('slug', slug)
+        .single();
+
+      if (storeError) throw storeError;
+      
+      setStoreInfo(storeData);
+
+      // جلب المنتجات المتاحة فقط
+      const { data: productsData, error: productsError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('user_id', storeData.user_id)
+        .eq('is_available', true)
+        .order('created_at', { ascending: false });
+
+      if (productsError) throw productsError;
+      
+      setProducts(productsData || []);
+      
+    } catch (error) {
+      console.error('Error loading store data:', error);
+      toast.error('حدث خطأ في تحميل بيانات المتجر');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleWheelResult = (product: Product) => {
+    setSelectedProduct(product);
+  };
+
+  const goBack = () => {
+    navigate(`/store/${slug}`);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">جاري تحميل العجلة...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!storeInfo) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <h2 className="text-2xl font-bold mb-4">المتجر غير موجود</h2>
+          <p className="text-muted-foreground mb-4">الرابط الذي تحاول الوصول إليه غير صحيح</p>
+          <Button onClick={() => navigate('/')}>العودة للرئيسية</Button>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
+      {/* Header */}
+      <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={goBack}
+                className="gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                العودة للمتجر
+              </Button>
+              <div>
+                <h1 className="text-xl font-bold">عجلة الحظ</h1>
+                <p className="text-sm text-muted-foreground">{storeInfo.store_name}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="container mx-auto px-4 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="max-w-4xl mx-auto"
+        >
+          {/* مقدمة */}
+          <div className="text-center mb-8">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="text-6xl mb-4"
+            >
+              🎡
+            </motion.div>
+            <h2 className="text-3xl font-bold mb-2">عجلة الحظ</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              اضغط على "تدوير العجلة" واكتشف المنتج المحظوظ! 
+              {products.length > 0 && ` يوجد ${products.length} منتج متاح في العجلة`}
+            </p>
+          </div>
+
+          {/* العجلة */}
+          {products.length > 0 ? (
+            <div className="flex justify-center">
+              <SpinWheel 
+                products={products} 
+                onResult={handleWheelResult}
+              />
+            </div>
+          ) : (
+            <Card className="p-12 text-center">
+              <div className="text-6xl mb-4">📦</div>
+              <h3 className="text-2xl font-bold mb-2">لا توجد منتجات</h3>
+              <p className="text-muted-foreground mb-6">
+                لا يوجد منتجات متاحة حالياً في هذا المتجر لعرضها في العجلة
+              </p>
+              <Button onClick={goBack} variant="outline">
+                العودة للمتجر
+              </Button>
+            </Card>
+          )}
+
+          {/* معلومات إضافية */}
+          {products.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="mt-12 text-center"
+            >
+              <Card className="p-6 bg-muted/50">
+                <h3 className="text-lg font-semibold mb-2">كيف تعمل العجلة؟</h3>
+                <div className="grid md:grid-cols-3 gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">🎯</span>
+                    <span>اضغط على زر "تدوير العجلة"</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">🎡</span>
+                    <span>انتظر حتى تتوقف العجلة</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">🎉</span>
+                    <span>اكتشف المنتج المحظوظ!</span>
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+          )}
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+export default SpinWheelPage;

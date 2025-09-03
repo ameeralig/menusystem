@@ -172,6 +172,7 @@ const ProductPreview = () => {
               fontSettings={storeData.fontSettings}
               contactInfo={storeData.contactInfo}
               categoryImages={storeData.categoryImages}
+              slug={slug}
             />
           </Suspense>
           <Suspense fallback={<div className="animate-pulse bg-gray-200 h-12 rounded-md w-full mt-4" />}>
