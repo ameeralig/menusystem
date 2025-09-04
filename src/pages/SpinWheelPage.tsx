@@ -90,9 +90,9 @@ const SpinWheelPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b">
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -100,13 +100,13 @@ const SpinWheelPage: React.FC = () => {
                 variant="ghost"
                 size="sm"
                 onClick={goBack}
-                className="gap-2"
+                className="gap-2 hover:bg-muted/60"
               >
                 <ArrowLeft className="w-4 h-4" />
                 العودة للمتجر
               </Button>
               <div>
-                <h1 className="text-xl font-bold">عجلة الحظ</h1>
+                <h1 className="text-xl font-bold text-foreground">عجلة الحظ</h1>
                 <p className="text-sm text-muted-foreground">{storeInfo.store_name}</p>
               </div>
             </div>
@@ -132,7 +132,7 @@ const SpinWheelPage: React.FC = () => {
             >
               🎡
             </motion.div>
-            <h2 className="text-3xl font-bold mb-2">عجلة الحظ</h2>
+            <h2 className="text-3xl font-bold mb-2 text-foreground">عجلة الحظ</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               اضغط على "تدوير العجلة" واكتشف المنتج المحظوظ! 
               {products.length > 0 && ` يوجد ${products.length} منتج متاح في العجلة`}
@@ -148,9 +148,9 @@ const SpinWheelPage: React.FC = () => {
               />
             </div>
           ) : (
-            <Card className="p-12 text-center">
+            <Card className="p-12 text-center border-border/50 bg-card/50 backdrop-blur-sm">
               <div className="text-6xl mb-4">📦</div>
-              <h3 className="text-2xl font-bold mb-2">لا توجد منتجات</h3>
+              <h3 className="text-2xl font-bold mb-2 text-foreground">لا توجد منتجات</h3>
               <p className="text-muted-foreground mb-6">
                 لا يوجد منتجات متاحة حالياً في هذا المتجر لعرضها في العجلة
               </p>
@@ -168,8 +168,8 @@ const SpinWheelPage: React.FC = () => {
               transition={{ delay: 0.5 }}
               className="mt-12 text-center"
             >
-              <Card className="p-6 bg-muted/50">
-                <h3 className="text-lg font-semibold mb-2">كيف تعمل العجلة؟</h3>
+              <Card className="p-6 bg-muted/30 border-border/50 backdrop-blur-sm">
+                <h3 className="text-lg font-semibold mb-2 text-foreground">كيف تعمل العجلة؟</h3>
                 <div className="grid md:grid-cols-3 gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">🎯</span>

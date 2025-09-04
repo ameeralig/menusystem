@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { RotateCcw, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,42 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ products, onResult }) => {
   const [rotation, setRotation] = useState(0);
   const [result, setResult] = useState<Product | null>(null);
   const wheelRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // إنشاء صوت الدوران
+  useEffect(() => {
+    // إنشاء صوت بسيط للدوران باستخدام Web Audio API
+    const createSpinSound = () => {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.type = 'sawtooth';
+      oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(80, audioContext.currentTime + 3);
+      
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 3);
+      
+      return { oscillator, audioContext };
+    };
+
+    if (isSpinning) {
+      try {
+        const { oscillator, audioContext } = createSpinSound();
+        oscillator.start();
+        setTimeout(() => {
+          oscillator.stop();
+          audioContext.close();
+        }, 3000);
+      } catch (error) {
+        console.log('Audio not supported');
+      }
+    }
+  }, [isSpinning]);
 
   // التأكد من وجود منتجات
   if (!products || products.length === 0) {
@@ -35,8 +71,8 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ products, onResult }) => {
     setIsSpinning(true);
     setResult(null);
     
-    // حساب الدوران العشوائي (5-10 دورات كاملة + زاوية عشوائية)
-    const spins = Math.floor(Math.random() * 6) + 5; // 5-10 دورات
+    // حساب الدوران العشوائي (8-12 دورة كاملة + زاوية عشوائية)
+    const spins = Math.floor(Math.random() * 5) + 8; // 8-12 دورات
     const finalAngle = Math.random() * 360;
     const totalRotation = rotation + (spins * 360) + finalAngle;
     
@@ -44,16 +80,16 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ products, onResult }) => {
     
     // تحديد المنتج الفائز بعد انتهاء الدوران
     setTimeout(() => {
-      const normalizedAngle = totalRotation % 360;
+      const normalizedAngle = (360 - (totalRotation % 360)) % 360;
       const winnerIndex = Math.floor(normalizedAngle / sectorAngle);
-      const winner = products[winnerIndex];
+      const winner = products[winnerIndex < products.length ? winnerIndex : 0];
       
       setResult(winner);
       setIsSpinning(false);
       onResult?.(winner);
       
       toast.success(`🎉 النتيجة: ${winner.name}!`);
-    }, 3000);
+    }, 3500);
   };
 
   const resetWheel = () => {
@@ -66,72 +102,98 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ products, onResult }) => {
       {/* العجلة */}
       <div className="relative">
         {/* المؤشر */}
-        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-2 z-10">
-          <div className="w-0 h-0 border-l-4 border-r-4 border-b-8 border-l-transparent border-r-transparent border-b-primary"></div>
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-3 z-10">
+          <div className="flex flex-col items-center">
+            <div className="w-0 h-0 border-l-6 border-r-6 border-b-12 border-l-transparent border-r-transparent border-b-primary shadow-lg"></div>
+            <div className="w-4 h-6 bg-primary rounded-b-md shadow-lg"></div>
+          </div>
         </div>
         
         {/* العجلة الدوارة */}
         <motion.div
           ref={wheelRef}
-          className="relative w-80 h-80 rounded-full border-4 border-primary shadow-2xl overflow-hidden"
+          className="relative w-96 h-96 rounded-full border-8 border-primary/20 shadow-2xl overflow-hidden bg-gradient-to-br from-background/90 to-background/70 backdrop-blur-sm"
           animate={{ rotate: rotation }}
           transition={{ 
-            duration: isSpinning ? 3 : 0,
-            ease: isSpinning ? "easeOut" : "linear"
+            duration: isSpinning ? 3.5 : 0,
+            ease: isSpinning ? [0.23, 1, 0.32, 1] : "linear",
+            type: "spring"
           }}
           style={{
             background: `conic-gradient(${products.map((_, index) => {
               const startAngle = (index * sectorAngle);
               const endAngle = ((index + 1) * sectorAngle);
-              const color1 = `hsl(${(index * 360) / products.length}, 70%, 60%)`;
-              const color2 = `hsl(${(index * 360) / products.length}, 70%, 70%)`;
-              return `${color1} ${startAngle}deg ${endAngle}deg`;
+              // ألوان أكثر سلاسة ودعم للوضع الداكن
+              const hue = (index * 360) / products.length;
+              const color1 = `hsl(${hue}, 60%, 65%)`;
+              const color2 = `hsl(${hue}, 65%, 75%)`;
+              return `${color1} ${startAngle}deg, ${color2} ${endAngle}deg`;
             }).join(', ')})`
           }}
         >
-          {/* النصوص والصور */}
+          {/* خطوط فاصلة بين القطاعات */}
+          {products.map((_, index) => {
+            const angle = index * sectorAngle;
+            const radian = (angle * Math.PI) / 180;
+            const x1 = Math.cos(radian - Math.PI/2) * 50 + 192;
+            const y1 = Math.sin(radian - Math.PI/2) * 50 + 192;
+            const x2 = Math.cos(radian - Math.PI/2) * 192 + 192;
+            const y2 = Math.sin(radian - Math.PI/2) * 192 + 192;
+            
+            return (
+              <div
+                key={`line-${index}`}
+                className="absolute w-0.5 bg-white/30 origin-bottom"
+                style={{
+                  left: x1,
+                  top: y1,
+                  height: Math.sqrt((x2-x1)**2 + (y2-y1)**2),
+                  transform: `rotate(${angle + 90}deg)`,
+                  transformOrigin: 'bottom'
+                }}
+              />
+            );
+          })}
+
+          {/* أسماء المنتجات */}
           {products.map((product, index) => {
             const angle = (index * sectorAngle) + (sectorAngle / 2);
             const radian = (angle * Math.PI) / 180;
-            const x = Math.cos(radian - Math.PI/2) * 100 + 160;
-            const y = Math.sin(radian - Math.PI/2) * 100 + 160;
             
             return (
               <div
                 key={product.id}
-                className="absolute transform -translate-x-1/2 -translate-y-1/2 text-center"
+                className="absolute"
                 style={{
-                  left: x,
-                  top: y,
-                  transform: `translate(-50%, -50%) rotate(${angle}deg)`,
-                  width: '60px',
+                  left: '50%',
+                  top: '50%',
+                  transform: `rotate(${angle}deg)`,
+                  transformOrigin: '0 0',
+                  width: '140px',
+                  height: '20px'
                 }}
               >
-                {/* صورة المنتج */}
-                {product.image_url && (
-                  <div className="w-8 h-8 mx-auto mb-1 rounded-full overflow-hidden border-2 border-white shadow-sm">
-                    <img 
-                      src={product.image_url} 
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-                
-                {/* اسم المنتج */}
-                <p 
-                  className="text-[10px] font-bold text-white drop-shadow-md leading-tight"
-                  style={{ transform: `rotate(${-angle}deg)` }}
+                {/* النص من المنتصف للطرف */}
+                <div 
+                  className="absolute flex items-center justify-start"
+                  style={{
+                    left: '60px', // بداية النص من بعد المركز
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: '130px'
+                  }}
                 >
-                  {product.name.length > 8 ? product.name.substring(0, 8) + '...' : product.name}
-                </p>
+                  <p className="text-sm font-bold text-white drop-shadow-lg whitespace-nowrap overflow-hidden text-ellipsis">
+                    {product.name.length > 12 ? product.name.substring(0, 12) + '...' : product.name}
+                  </p>
+                </div>
               </div>
             );
           })}
           
           {/* الدائرة المركزية */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-background rounded-full border-4 border-primary shadow-lg flex items-center justify-center">
-            <Play className="w-6 h-6 text-primary" />
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-gradient-to-br from-background to-background/80 rounded-full border-4 border-primary shadow-xl flex items-center justify-center backdrop-blur-sm">
+            <Play className="w-8 h-8 text-primary" />
           </div>
         </motion.div>
       </div>
