@@ -9,9 +9,10 @@ import { toast } from 'sonner';
 interface SpinWheelProps {
   products: Product[];
   onResult?: (product: Product) => void;
+  colorTheme?: string;
 }
 
-const SpinWheel: React.FC<SpinWheelProps> = ({ products, onResult }) => {
+const SpinWheel: React.FC<SpinWheelProps> = ({ products, onResult, colorTheme = "default" }) => {
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [result, setResult] = useState<Product | null>(null);
@@ -52,6 +53,65 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ products, onResult }) => {
       }
     }
   }, [isSpinning]);
+
+  // ألوان العجلة حسب الثيم المختار
+  const getWheelColors = (theme: string) => {
+    const colorMap: { [key: string]: string } = {
+      default: '#6E7681',
+      coral: '#ff9178',
+      purple: '#8B5CF6',
+      blue: '#3B82F6',
+      green: '#10B981',
+      pink: '#EC4899',
+      teal: '#14B8A6',
+      amber: '#F59E0B',
+      indigo: '#6366F1',
+      rose: '#F43F5E'
+    };
+
+    const mainColor = colorMap[theme] || colorMap.default;
+    
+    // تحويل لون hex إلى HSL
+    const hexToHsl = (hex: string) => {
+      const r = parseInt(hex.slice(1, 3), 16) / 255;
+      const g = parseInt(hex.slice(3, 5), 16) / 255;
+      const b = parseInt(hex.slice(5, 7), 16) / 255;
+      
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      let h, s, l = (max + min) / 2;
+      
+      if (max === min) {
+        h = s = 0;
+      } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        
+        switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          case b: h = (r - g) / d + 4; break;
+        }
+        h! /= 6;
+      }
+      
+      return [h! * 360, s * 100, l * 100];
+    };
+
+    const [hue, saturation, lightness] = hexToHsl(mainColor);
+    
+    // إنشاء تدرجات من اللون الأساسي
+    const colors = [];
+    for (let i = 0; i < products.length; i++) {
+      const adjustedHue = (hue + (i * (360 / products.length))) % 360;
+      const adjustedSaturation = Math.max(40, saturation - (i % 3) * 10);
+      const adjustedLightness = Math.max(45, Math.min(75, lightness + (i % 4) * 8));
+      colors.push(`hsl(${adjustedHue}, ${adjustedSaturation}%, ${adjustedLightness}%)`);
+    }
+    return colors;
+  };
+
+  const wheelColors = getWheelColors(colorTheme);
 
   // التأكد من وجود منتجات
   if (!products || products.length === 0) {
@@ -123,10 +183,10 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ products, onResult }) => {
             background: `conic-gradient(${products.map((_, index) => {
               const startAngle = (index * sectorAngle);
               const endAngle = ((index + 1) * sectorAngle);
-              // ألوان أكثر سلاسة ودعم للوضع الداكن
-              const hue = (index * 360) / products.length;
-              const color1 = `hsl(${hue}, 60%, 65%)`;
-              const color2 = `hsl(${hue}, 65%, 75%)`;
+              const color1 = wheelColors[index] || wheelColors[index % wheelColors.length];
+              // تدرج لوني لكل قطاع
+              const [h, s, l] = color1.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/)?.slice(1, 4).map(Number) || [0, 50, 50];
+              const color2 = `hsl(${h}, ${Math.min(100, s + 10)}%, ${Math.min(80, l + 10)}%)`;
               return `${color1} ${startAngle}deg, ${color2} ${endAngle}deg`;
             }).join(', ')})`
           }}
