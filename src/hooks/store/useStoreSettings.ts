@@ -42,6 +42,7 @@ export const useStoreSettings = (slug: string | undefined) => {
   useEffect(() => {
     const fetchStoreSettings = async () => {
       try {
+        setIsLoading(true);
         if (!slug) {
           console.error("No slug provided");
           navigate('/404');
@@ -107,6 +108,8 @@ export const useStoreSettings = (slug: string | undefined) => {
           variant: "destructive",
         });
         navigate('/404');
+      } finally {
+        setIsLoading(false);
       }
     };
 
