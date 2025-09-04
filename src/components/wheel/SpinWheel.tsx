@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { RotateCcw, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,17 +12,16 @@ interface SpinWheelProps {
   colorTheme?: string;
 }
 
-const SpinWheel: React.FC<SpinWheelProps> = ({ products, onResult, colorTheme = "default" }) => {
+const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, colorTheme = "default" }) => {
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [result, setResult] = useState<Product | null>(null);
   const wheelRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // إنشاء صوت الدوران
-  useEffect(() => {
-    // إنشاء صوت بسيط للدوران باستخدام Web Audio API
-    const createSpinSound = () => {
+  // إنشاء صوت الدوران (محسّن للأداء)
+  const playSpinSound = useCallback(() => {
+    try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
@@ -37,25 +36,18 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ products, onResult, colorTheme = 
       gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 3);
       
-      return { oscillator, audioContext };
-    };
-
-    if (isSpinning) {
-      try {
-        const { oscillator, audioContext } = createSpinSound();
-        oscillator.start();
-        setTimeout(() => {
-          oscillator.stop();
-          audioContext.close();
-        }, 3000);
-      } catch (error) {
-        console.log('Audio not supported');
-      }
+      oscillator.start();
+      setTimeout(() => {
+        oscillator.stop();
+        audioContext.close();
+      }, 3000);
+    } catch (error) {
+      console.log('Audio not supported');
     }
-  }, [isSpinning]);
+  }, []);
 
-  // ألوان العجلة حسب الثيم المختار
-  const getWheelColors = (theme: string) => {
+  // ألوان العجلة محسّنة للأداء
+  const wheelColors = useMemo(() => {
     const colorMap: { [key: string]: string } = {
       default: '#6E7681',
       coral: '#ff9178',
@@ -69,21 +61,20 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ products, onResult, colorTheme = 
       rose: '#F43F5E'
     };
 
-    const mainColor = colorMap[theme] || colorMap.default;
+    const mainColor = colorMap[colorTheme] || colorMap.default;
     
-    // تحويل لون hex إلى HSL
-    const hexToHsl = (hex: string) => {
+    // تحويل لون hex إلى HSL مُحسّن
+    const hexToHsl = (hex: string): [number, number, number] => {
       const r = parseInt(hex.slice(1, 3), 16) / 255;
       const g = parseInt(hex.slice(3, 5), 16) / 255;
       const b = parseInt(hex.slice(5, 7), 16) / 255;
       
       const max = Math.max(r, g, b);
       const min = Math.min(r, g, b);
-      let h, s, l = (max + min) / 2;
+      let h = 0, s = 0;
+      const l = (max + min) / 2;
       
-      if (max === min) {
-        h = s = 0;
-      } else {
+      if (max !== min) {
         const d = max - min;
         s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
         
@@ -92,26 +83,22 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ products, onResult, colorTheme = 
           case g: h = (b - r) / d + 2; break;
           case b: h = (r - g) / d + 4; break;
         }
-        h! /= 6;
+        h /= 6;
       }
       
-      return [h! * 360, s * 100, l * 100];
+      return [h * 360, s * 100, l * 100];
     };
 
     const [hue, saturation, lightness] = hexToHsl(mainColor);
     
-    // إنشاء تدرجات من اللون الأساسي
-    const colors = [];
-    for (let i = 0; i < products.length; i++) {
+    // إنشاء تدرجات محسّنة
+    return products.map((_, i) => {
       const adjustedHue = (hue + (i * (360 / products.length))) % 360;
       const adjustedSaturation = Math.max(40, saturation - (i % 3) * 10);
       const adjustedLightness = Math.max(45, Math.min(75, lightness + (i % 4) * 8));
-      colors.push(`hsl(${adjustedHue}, ${adjustedSaturation}%, ${adjustedLightness}%)`);
-    }
-    return colors;
-  };
-
-  const wheelColors = getWheelColors(colorTheme);
+      return `hsl(${adjustedHue}, ${adjustedSaturation}%, ${adjustedLightness}%)`;
+    });
+  }, [products.length, colorTheme]);
 
   // التأكد من وجود منتجات
   if (!products || products.length === 0) {
@@ -122,14 +109,15 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ products, onResult, colorTheme = 
     );
   }
 
-  // حساب زاوية كل قطاع
-  const sectorAngle = 360 / products.length;
+  // حساب زاوية كل قطاع (مُحسّن)
+  const sectorAngle = useMemo(() => 360 / products.length, [products.length]);
 
-  const handleSpin = () => {
+  const handleSpin = useCallback(() => {
     if (isSpinning) return;
     
     setIsSpinning(true);
     setResult(null);
+    playSpinSound();
     
     // حساب الدوران العشوائي (8-12 دورة كاملة + زاوية عشوائية)
     const spins = Math.floor(Math.random() * 5) + 8; // 8-12 دورات
@@ -150,12 +138,12 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ products, onResult, colorTheme = 
       
       toast.success(`🎉 النتيجة: ${winner.name}!`);
     }, 3500);
-  };
+  }, [isSpinning, rotation, sectorAngle, products, onResult, playSpinSound]);
 
-  const resetWheel = () => {
+  const resetWheel = useCallback(() => {
     setRotation(0);
     setResult(null);
-  };
+  }, []);
 
   return (
     <div className="flex flex-col items-center gap-6 p-6">
@@ -179,17 +167,21 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ products, onResult, colorTheme = 
             ease: isSpinning ? [0.23, 1, 0.32, 1] : "linear",
             type: "spring"
           }}
-          style={{
+          style={useMemo(() => ({
             background: `conic-gradient(${products.map((_, index) => {
               const startAngle = (index * sectorAngle);
               const endAngle = ((index + 1) * sectorAngle);
               const color1 = wheelColors[index] || wheelColors[index % wheelColors.length];
-              // تدرج لوني لكل قطاع
-              const [h, s, l] = color1.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/)?.slice(1, 4).map(Number) || [0, 50, 50];
-              const color2 = `hsl(${h}, ${Math.min(100, s + 10)}%, ${Math.min(80, l + 10)}%)`;
-              return `${color1} ${startAngle}deg, ${color2} ${endAngle}deg`;
+              // تدرج لوني مُحسّن
+              const hslMatch = color1.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
+              if (hslMatch) {
+                const [h, s, l] = hslMatch.slice(1, 4).map(Number);
+                const color2 = `hsl(${h}, ${Math.min(100, s + 10)}%, ${Math.min(80, l + 10)}%)`;
+                return `${color1} ${startAngle}deg, ${color2} ${endAngle}deg`;
+              }
+              return `${color1} ${startAngle}deg, ${color1} ${endAngle}deg`;
             }).join(', ')})`
-          }}
+          }), [products.length, sectorAngle, wheelColors])}
         >
           {/* خطوط فاصلة بين القطاعات */}
           {products.map((_, index) => {
@@ -321,6 +313,6 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ products, onResult, colorTheme = 
       )}
     </div>
   );
-};
+});
 
 export default SpinWheel;

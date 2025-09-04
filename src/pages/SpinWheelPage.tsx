@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Loader2 } from 'lucide-react';
@@ -25,7 +25,7 @@ const SpinWheelPage: React.FC = () => {
     }
   }, [storeSettings.storeOwnerId, isLoading]);
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       setProductsLoading(true);
 
@@ -35,7 +35,7 @@ const SpinWheelPage: React.FC = () => {
         .select('*')
         .eq('user_id', storeSettings.storeOwnerId)
         .eq('is_available', true)
-        .order('created_at', { ascending: false });
+        .order('name');
 
       if (productsError) throw productsError;
       
@@ -47,7 +47,7 @@ const SpinWheelPage: React.FC = () => {
     } finally {
       setProductsLoading(false);
     }
-  };
+  }, [storeSettings.storeOwnerId]);
 
   const handleWheelResult = (product: Product) => {
     setSelectedProduct(product);
