@@ -19,28 +19,65 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
   const wheelRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // إنشاء صوت الدوران (محسّن للأداء)
+  // إنشاء صوت دوران العجلة الحقيقي (محسّن للأداء)
   const playSpinSound = useCallback(() => {
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
       
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
+      // إنشاء صوت الدوران المتكرر للعجلة
+      const createTickSound = (time: number, pitch: number) => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.type = 'triangle';
+        oscillator.frequency.setValueAtTime(pitch, time);
+        
+        gainNode.gain.setValueAtTime(0, time);
+        gainNode.gain.linearRampToValueAtTime(0.3, time + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.1);
+        
+        oscillator.start(time);
+        oscillator.stop(time + 0.1);
+      };
       
-      oscillator.type = 'sawtooth';
-      oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(80, audioContext.currentTime + 3);
+      // إنشاء سلسلة من الأصوات للمحاكاة صوت العجلة
+      const tickCount = 30;
+      const duration = 3.5;
       
-      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 3);
+      for (let i = 0; i < tickCount; i++) {
+        const time = audioContext.currentTime + (i / tickCount) * duration;
+        // تقليل التردد تدريجياً لمحاكاة تباطؤ العجلة
+        const pitch = 800 - (i / tickCount) * 400;
+        // زيادة الفترة الزمنية بين النقرات تدريجياً
+        const interval = 0.05 + (i / tickCount) * 0.15;
+        
+        if (i % Math.max(1, Math.floor((i + 1) / 5)) === 0) {
+          createTickSound(time, pitch);
+        }
+      }
       
-      oscillator.start();
+      // صوت التوقف النهائي
       setTimeout(() => {
-        oscillator.stop();
-        audioContext.close();
-      }, 3000);
+        const finalOscillator = audioContext.createOscillator();
+        const finalGain = audioContext.createGain();
+        
+        finalOscillator.connect(finalGain);
+        finalGain.connect(audioContext.destination);
+        
+        finalOscillator.type = 'sine';
+        finalOscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+        finalOscillator.frequency.exponentialRampToValueAtTime(150, audioContext.currentTime + 0.3);
+        
+        finalGain.gain.setValueAtTime(0.2, audioContext.currentTime);
+        finalGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        
+        finalOscillator.start();
+        finalOscillator.stop(audioContext.currentTime + 0.3);
+      }, 3200);
+      
     } catch (error) {
       console.log('Audio not supported');
     }
@@ -149,18 +186,30 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
     <div className="flex flex-col items-center gap-6 p-6">
       {/* العجلة */}
       <div className="relative">
-        {/* المؤشر */}
-        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-3 z-10">
+        {/* المؤشر المحسّن */}
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-4 z-10">
           <div className="flex flex-col items-center">
-            <div className="w-0 h-0 border-l-6 border-r-6 border-b-12 border-l-transparent border-r-transparent border-b-primary shadow-lg"></div>
-            <div className="w-4 h-6 bg-primary rounded-b-md shadow-lg"></div>
+            <div 
+              className="w-0 h-0 border-l-8 border-r-8 border-b-16 border-l-transparent border-r-transparent"
+              style={{
+                borderBottomColor: 'gold',
+                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4)) drop-shadow(0 0 10px rgba(255,215,0,0.6))'
+              }}
+            ></div>
+            <div 
+              className="w-6 h-8 rounded-b-md"
+              style={{
+                background: 'linear-gradient(180deg, gold 0%, #DAA520 50%, #B8860B 100%)',
+                boxShadow: '0 4px 8px rgba(0,0,0,0.3), 0 0 15px rgba(255,215,0,0.4)'
+              }}
+            ></div>
           </div>
         </div>
         
-        {/* العجلة الدوارة */}
+        {/* العجلة الدوارة المحسّنة */}
         <motion.div
           ref={wheelRef}
-          className="relative w-96 h-96 rounded-full border-8 border-primary/20 shadow-2xl overflow-hidden bg-gradient-to-br from-background/90 to-background/70 backdrop-blur-sm"
+          className="relative w-96 h-96 rounded-full shadow-2xl overflow-hidden"
           animate={{ rotate: rotation }}
           transition={{ 
             duration: isSpinning ? 3.5 : 0,
@@ -172,45 +221,54 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
               const startAngle = (index * sectorAngle);
               const endAngle = ((index + 1) * sectorAngle);
               const color1 = wheelColors[index] || wheelColors[index % wheelColors.length];
-              // تدرج لوني مُحسّن
+              // تدرج لوني متقدم مع تأثيرات إضاءة
               const hslMatch = color1.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
               if (hslMatch) {
                 const [h, s, l] = hslMatch.slice(1, 4).map(Number);
-                const color2 = `hsl(${h}, ${Math.min(100, s + 10)}%, ${Math.min(80, l + 10)}%)`;
-                return `${color1} ${startAngle}deg, ${color2} ${endAngle}deg`;
+                const color2 = `hsl(${h}, ${Math.min(100, s + 15)}%, ${Math.min(85, l + 15)}%)`;
+                const color3 = `hsl(${h}, ${Math.max(30, s - 10)}%, ${Math.max(30, l - 15)}%)`;
+                return `${color3} ${startAngle}deg, ${color1} ${startAngle + (sectorAngle/3)}deg, ${color2} ${startAngle + (2*sectorAngle/3)}deg, ${color1} ${endAngle}deg`;
               }
               return `${color1} ${startAngle}deg, ${color1} ${endAngle}deg`;
-            }).join(', ')})`
+            }).join(', ')})`,
+            border: '6px solid rgba(255, 255, 255, 0.3)',
+            boxShadow: `
+              0 0 50px rgba(255, 255, 255, 0.2),
+              0 0 100px rgba(255, 255, 255, 0.1),
+              inset 0 0 30px rgba(255, 255, 255, 0.1),
+              0 20px 40px rgba(0, 0, 0, 0.3)
+            `
           }), [products.length, sectorAngle, wheelColors])}
         >
-          {/* خطوط فاصلة بين القطاعات */}
+          {/* خطوط فاصلة محسّنة بين القطاعات */}
           {products.map((_, index) => {
             const angle = index * sectorAngle;
             const radian = (angle * Math.PI) / 180;
-            const x1 = Math.cos(radian - Math.PI/2) * 50 + 192;
-            const y1 = Math.sin(radian - Math.PI/2) * 50 + 192;
+            const x1 = Math.cos(radian - Math.PI/2) * 20 + 192;
+            const y1 = Math.sin(radian - Math.PI/2) * 20 + 192;
             const x2 = Math.cos(radian - Math.PI/2) * 192 + 192;
             const y2 = Math.sin(radian - Math.PI/2) * 192 + 192;
             
             return (
               <div
                 key={`line-${index}`}
-                className="absolute w-0.5 bg-white/30 origin-bottom"
+                className="absolute w-1 origin-bottom"
                 style={{
                   left: x1,
                   top: y1,
                   height: Math.sqrt((x2-x1)**2 + (y2-y1)**2),
                   transform: `rotate(${angle + 90}deg)`,
-                  transformOrigin: 'bottom'
+                  transformOrigin: 'bottom',
+                  background: 'linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.3), rgba(255,255,255,0.1))',
+                  boxShadow: '0 0 4px rgba(255,255,255,0.5)'
                 }}
               />
             );
           })}
 
-          {/* أسماء المنتجات */}
+          {/* أسماء المنتجات المحسّنة */}
           {products.map((product, index) => {
             const angle = (index * sectorAngle) + (sectorAngle / 2);
-            const radian = (angle * Math.PI) / 180;
             
             return (
               <div
@@ -225,17 +283,24 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
                   height: '20px'
                 }}
               >
-                {/* النص من المنتصف للطرف */}
+                {/* النص من المنتصف للطرف مع تأثيرات محسّنة */}
                 <div 
                   className="absolute flex items-center justify-start"
                   style={{
-                    left: '60px', // بداية النص من بعد المركز
+                    left: '40px', // بداية النص من المركز
                     top: '50%',
                     transform: 'translateY(-50%)',
                     width: '130px'
                   }}
                 >
-                  <p className="text-sm font-bold text-white drop-shadow-lg whitespace-nowrap overflow-hidden text-ellipsis">
+                  <p 
+                    className="text-sm font-bold whitespace-nowrap overflow-hidden text-ellipsis"
+                    style={{
+                      color: '#ffffff',
+                      textShadow: '2px 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5)',
+                      filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.3))'
+                    }}
+                  >
                     {product.name.length > 12 ? product.name.substring(0, 12) + '...' : product.name}
                   </p>
                 </div>
@@ -243,10 +308,26 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
             );
           })}
           
-          {/* الدائرة المركزية */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-gradient-to-br from-background to-background/80 rounded-full border-4 border-primary shadow-xl flex items-center justify-center backdrop-blur-sm">
-            <Play className="w-8 h-8 text-primary" />
-          </div>
+          {/* دائرة مركزية أنيقة بدون زر */}
+          <div 
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full"
+            style={{
+              background: `
+                radial-gradient(circle, 
+                  rgba(255,255,255,0.9) 0%, 
+                  rgba(255,255,255,0.7) 30%, 
+                  rgba(255,255,255,0.4) 70%, 
+                  rgba(255,255,255,0.1) 100%
+                )
+              `,
+              boxShadow: `
+                0 0 20px rgba(255,255,255,0.6),
+                inset 0 0 20px rgba(255,255,255,0.3),
+                0 4px 8px rgba(0,0,0,0.3)
+              `,
+              border: '2px solid rgba(255,255,255,0.8)'
+            }}
+          />
         </motion.div>
       </div>
 

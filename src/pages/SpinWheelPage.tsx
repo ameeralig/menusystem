@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import SpinWheel from '@/components/wheel/SpinWheel';
 import ProductPreviewContainer from '@/components/store/ProductPreviewContainer';
+import StoreHeader from '@/components/store/StoreHeader';
 import { Product } from '@/types/product';
 import { useStoreSettings } from '@/hooks/store/useStoreSettings';
 import { supabase } from '@/integrations/supabase/client';
@@ -118,6 +119,15 @@ const SpinWheelPage: React.FC = () => {
         transition={{ duration: 0.5 }}
         className="max-w-4xl mx-auto"
       >
+        {/* عنوان المتجر مع نفس التصميم */}
+        <div className="text-center mb-4">
+          <StoreHeader 
+            storeName={storeSettings.storeName}
+            colorTheme={storeSettings.colorTheme}
+            fontSettings={storeSettings.fontSettings}
+          />
+        </div>
+
         {/* مقدمة */}
         <div className="text-center mb-8">
           <motion.div
