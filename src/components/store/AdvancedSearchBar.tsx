@@ -286,7 +286,7 @@ const AdvancedSearchBar = ({
 
         {/* نتائج البحث */}
         <AnimatePresence>
-          {showResults && results.length > 0 && (
+          {false && showResults && results.length > 0 && (
             <motion.div
               className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
               initial={{ opacity: 0, y: -10, scale: 0.95 }}

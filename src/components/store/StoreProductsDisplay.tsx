@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Search } from "lucide-react";
 import ProductGrid from "./ProductGrid";
 import CategoryGrid from "./CategoryGrid";
 import StoreInfo from "./StoreInfo";
@@ -280,6 +281,44 @@ const StoreProductsDisplay = ({
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
             >
+              {/* نتائج البحث */}
+              {searchQuery.trim() && (
+                <motion.div
+                  className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-800"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-100 dark:bg-blue-800 rounded-lg">
+                        <motion.div
+                          animate={{ rotate: [0, 360] }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                        >
+                          <Search className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        </motion.div>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-blue-900 dark:text-blue-100">
+                          نتائج البحث عن: "{searchQuery}"
+                        </h3>
+                        <p className="text-sm text-blue-600 dark:text-blue-300">
+                          تم العثور على {filteredProducts.length} نتيجة
+                        </p>
+                      </div>
+                    </div>
+                    <motion.div
+                      className="text-2xl"
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    >
+                      🔍
+                    </motion.div>
+                  </div>
+                </motion.div>
+              )}
+
               {filteredProducts.length > 0 ? (
                 <ProductGrid 
                   products={filteredProducts}
