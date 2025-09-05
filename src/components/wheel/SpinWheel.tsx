@@ -199,11 +199,12 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
     
     setRotation(totalRotation);
     
-    // تحديد المنتج الفائز بعد انتهاء الدوران - تصحيح للاتجاه الصحيح
+    // تحديد المنتج الفائز بعد انتهاء الدوران - حساب صحيح للمنتج تحت السهم
     setTimeout(() => {
-      // السهم في الأعلى (90 درجة)، لذا نحتاج لتعديل الحساب
-      const normalizedAngle = (totalRotation + 90) % 360; // إضافة 90 درجة للسهم في الأعلى
-      const winnerIndex = Math.floor(normalizedAngle / sectorAngle) % products.length;
+      // السهم في الأعلى، نحتاج لحساب أي منتج يكون تحت السهم بعد التوقف
+      // نعكس الدوران لأن العجلة تدور والسهم ثابت
+      const adjustedRotation = (360 - (totalRotation % 360)) % 360;
+      const winnerIndex = Math.floor(adjustedRotation / sectorAngle) % products.length;
       const winner = products[winnerIndex];
       
       setResult(winner);
@@ -347,10 +348,10 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
           {/* دائرة مركزية قابلة للضغط لبدء الدوران */}
           {!isSpinning && !result && (
             <motion.div 
-              className="absolute w-20 h-20 rounded-full flex items-center justify-center"
+              className="absolute w-20 h-20 rounded-full flex items-center justify-center z-20"
               style={{
-                top: '50%',
-                left: '50%',
+                top: '192px', // نصف حجم العجلة (384/2)
+                left: '192px', // نصف حجم العجلة (384/2)
                 transform: 'translate(-50%, -50%)',
                 background: `
                   radial-gradient(circle, 
