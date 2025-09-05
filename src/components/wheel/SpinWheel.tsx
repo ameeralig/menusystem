@@ -345,10 +345,13 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
           })}
           
           {/* دائرة مركزية قابلة للضغط لبدء الدوران */}
-          {!isSpinning && (
+          {!isSpinning && !result && (
             <motion.div 
-              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full flex items-center justify-center"
+              className="absolute w-20 h-20 rounded-full flex items-center justify-center"
               style={{
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
                 background: `
                   radial-gradient(circle, 
                     rgba(255,255,255,0.95) 0%, 

@@ -60,7 +60,7 @@ const SpinWheelPage: React.FC = () => {
   const goBack = () => {
     // التأكد من وجود slug صحيح قبل التنقل
     if (slug && storeSettings.storeName) {
-      navigate(`/store/${slug}`);
+      navigate(`/${slug}`);
     } else {
       // في حالة عدم وجود slug صحيح، العودة للرئيسية
       navigate('/');
