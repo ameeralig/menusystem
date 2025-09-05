@@ -223,7 +223,7 @@ const StoreProductsDisplay = ({
       </motion.div>
 
       {/* زر عجلة الحظ */}
-      {slug && (
+      {slug && !searchQuery.trim() && (
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
