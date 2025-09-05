@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { RotateCcw, Play } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Product } from '@/types/product';
@@ -199,11 +199,12 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
     
     setRotation(totalRotation);
     
-    // تحديد المنتج الفائز بعد انتهاء الدوران
+    // تحديد المنتج الفائز بعد انتهاء الدوران - تصحيح للاتجاه الصحيح
     setTimeout(() => {
-      const normalizedAngle = (360 - (totalRotation % 360)) % 360;
-      const winnerIndex = Math.floor(normalizedAngle / sectorAngle);
-      const winner = products[winnerIndex < products.length ? winnerIndex : 0];
+      // السهم في الأعلى (90 درجة)، لذا نحتاج لتعديل الحساب
+      const normalizedAngle = (totalRotation + 90) % 360; // إضافة 90 درجة للسهم في الأعلى
+      const winnerIndex = Math.floor(normalizedAngle / sectorAngle) % products.length;
+      const winner = products[winnerIndex];
       
       setResult(winner);
       setIsSpinning(false);
@@ -343,56 +344,51 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
             );
           })}
           
-          {/* دائرة مركزية أنيقة بدون زر */}
-          <div 
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full"
+          {/* دائرة مركزية قابلة للضغط لبدء الدوران */}
+          <motion.div 
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full flex items-center justify-center"
             style={{
               background: `
                 radial-gradient(circle, 
-                  rgba(255,255,255,0.9) 0%, 
-                  rgba(255,255,255,0.7) 30%, 
-                  rgba(255,255,255,0.4) 70%, 
-                  rgba(255,255,255,0.1) 100%
+                  rgba(255,255,255,0.95) 0%, 
+                  rgba(255,255,255,0.8) 30%, 
+                  rgba(255,255,255,0.6) 70%, 
+                  rgba(255,255,255,0.3) 100%
                 )
               `,
               boxShadow: `
-                0 0 20px rgba(255,255,255,0.6),
-                inset 0 0 20px rgba(255,255,255,0.3),
-                0 4px 8px rgba(0,0,0,0.3)
+                0 0 25px rgba(255,255,255,0.8),
+                inset 0 0 25px rgba(255,255,255,0.4),
+                0 6px 12px rgba(0,0,0,0.4)
               `,
-              border: '2px solid rgba(255,255,255,0.8)'
+              border: '3px solid rgba(255,255,255,0.9)',
+              cursor: isSpinning ? 'not-allowed' : 'pointer',
+              pointerEvents: isSpinning ? 'none' : 'auto'
             }}
-          />
-        </motion.div>
-      </div>
-
-      {/* أزرار التحكم */}
-      <div className="flex gap-4 justify-center">
-        <Button
-          onClick={handleSpin}
-          disabled={isSpinning}
-          size="lg"
-          className="px-8"
-        >
-          {isSpinning ? (
-            <>
+            whileHover={!isSpinning ? { scale: 1.1 } : {}}
+            whileTap={!isSpinning ? { scale: 0.95 } : {}}
+            onClick={!isSpinning ? handleSpin : undefined}
+          >
+            {isSpinning ? (
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="w-5 h-5 mr-2"
+                className="text-2xl"
               >
-                <RotateCcw className="w-5 h-5" />
+                ⭐
               </motion.div>
-              جاري الدوران...
-            </>
-          ) : (
-            <>
-              <Play className="w-5 h-5 mr-2" />
-              تدوير العجلة
-            </>
-          )}
-        </Button>
-        
+            ) : (
+              <div className="text-center">
+                <div className="text-2xl mb-1">🎯</div>
+                <div className="text-xs font-bold text-gray-700">اضغط</div>
+              </div>
+            )}
+          </motion.div>
+        </motion.div>
+      </div>
+
+      {/* إعادة تعيين العجلة فقط */}
+      <div className="flex justify-center mt-6">
         <Button onClick={resetWheel} variant="outline" size="lg">
           <RotateCcw className="w-5 h-5 mr-2" />
           إعادة تعيين

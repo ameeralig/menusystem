@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Loader2 } from 'lucide-react';
@@ -11,6 +11,9 @@ import { Product } from '@/types/product';
 import { useStoreSettings } from '@/hooks/store/useStoreSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+// تحميل بطيء لمكون الملاحظات
+const FeedbackTrigger = lazy(() => import('@/components/store/feedback/FeedbackTrigger'));
 
 const SpinWheelPage: React.FC = () => {
   const { slug } = useParams();
@@ -89,30 +92,25 @@ const SpinWheelPage: React.FC = () => {
       darkMode={storeSettings.darkMode}
       containerHeight="100vh"
     >
-      {/* Header مُبسط */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/50 -mx-4 sm:-mx-6 px-4 sm:px-6 -mt-4 sm:-mt-6 mb-4">
-        <div className="py-2">
-          <div className="flex items-center">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={goBack}
-              className="gap-2 hover:bg-muted/60"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              العودة للمتجر
-            </Button>
-          </div>
+      {/* اسم المتجر في أعلى الصفحة */}
+      <div className="text-center mb-8 pt-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={goBack}
+          className="absolute top-4 left-4 gap-2 hover:bg-muted/60 z-10"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          العودة للمتجر
+        </Button>
+        
+        <div className="flex justify-center items-center">
+          <AnimatedStoreHeader 
+            storeName={storeSettings.storeName}
+            colorTheme={storeSettings.colorTheme}
+            fontSettings={storeSettings.fontSettings}
+          />
         </div>
-      </div>
-
-      {/* اسم المتجر في وسط الصفحة */}
-      <div className="flex justify-center items-center mb-8">
-        <AnimatedStoreHeader 
-          storeName={storeSettings.storeName}
-          colorTheme={storeSettings.colorTheme}
-          fontSettings={storeSettings.fontSettings}
-        />
       </div>
 
       {/* Content */}
@@ -122,7 +120,7 @@ const SpinWheelPage: React.FC = () => {
         transition={{ duration: 0.5 }}
         className="max-w-4xl mx-auto text-center"
       >
-        {/* مقدمة */}
+        {/* مقدمة مبسطة */}
         <div className="mb-8">
           <motion.div
             initial={{ scale: 0 }}
@@ -134,7 +132,7 @@ const SpinWheelPage: React.FC = () => {
           </motion.div>
           <h2 className="text-3xl font-bold mb-2 text-foreground">عجلة الحظ</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            اضغط على "تدوير العجلة" واكتشف المنتج المحظوظ! 
+            اضغط على وسط العجلة واكتشف المنتج المحظوظ! 
             {products.length > 0 && ` يوجد ${products.length} منتج متاح في العجلة`}
           </p>
         </div>
@@ -159,32 +157,16 @@ const SpinWheelPage: React.FC = () => {
           </Card>
         )}
 
-        {/* معلومات إضافية */}
-        {products.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mt-12 text-center"
-          >
-            <Card className="p-6 bg-muted/30 border-border/50 backdrop-blur-sm">
-              <h3 className="text-lg font-semibold mb-2 text-foreground">كيف تعمل العجلة؟</h3>
-              <div className="grid md:grid-cols-3 gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">🎯</span>
-                  <span>اضغط على زر "تدوير العجلة"</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">🎡</span>
-                  <span>انتظر حتى تتوقف العجلة</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">🎉</span>
-                  <span>اكتشف المنتج المحظوظ!</span>
-                </div>
-              </div>
-            </Card>
-          </motion.div>
+        {/* زر الملاحظات */}
+        {storeSettings.storeOwnerId && (
+          <div className="mt-12 flex justify-center">
+            <Suspense fallback={<div className="animate-pulse bg-gray-200 h-10 rounded-md w-40" />}>
+              <FeedbackTrigger 
+                userId={storeSettings.storeOwnerId} 
+                colorTheme={storeSettings.colorTheme}
+              />
+            </Suspense>
+          </div>
         )}
       </motion.div>
     </ProductPreviewContainer>
