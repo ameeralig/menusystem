@@ -103,10 +103,14 @@ const SpinWheelPage: React.FC = () => {
                 <ArrowLeft className="w-4 h-4" />
                 العودة للمتجر
               </Button>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">عجلة الحظ</h1>
-                <p className="text-sm text-muted-foreground">{storeSettings.storeName}</p>
-              </div>
+            </div>
+            {/* اسم المتجر مع الانيميشن في الأعلى */}
+            <div className="flex justify-center flex-1">
+              <AnimatedStoreHeader 
+                storeName={storeSettings.storeName}
+                colorTheme={storeSettings.colorTheme}
+                fontSettings={storeSettings.fontSettings}
+              />
             </div>
           </div>
         </div>
@@ -119,15 +123,6 @@ const SpinWheelPage: React.FC = () => {
         transition={{ duration: 0.5 }}
         className="max-w-4xl mx-auto text-center"
       >
-        {/* عنوان المتجر مع انيميشن السقوط والتوهج */}
-        <div className="flex justify-center mb-4">
-          <AnimatedStoreHeader 
-            storeName={storeSettings.storeName}
-            colorTheme={storeSettings.colorTheme}
-            fontSettings={storeSettings.fontSettings}
-          />
-        </div>
-
         {/* مقدمة */}
         <div className="mb-8">
           <motion.div
