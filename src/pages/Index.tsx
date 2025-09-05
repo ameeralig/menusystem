@@ -58,7 +58,7 @@ const Index = () => {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start mt-8">
               <Button
-                onClick={() => navigate("/products")}
+                onClick={() => navigate("/checkpoint")}
                 className="coral-button-outline"
                 size={isMobile ? "default" : "lg"}
               >
