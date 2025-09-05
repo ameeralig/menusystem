@@ -345,57 +345,39 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
           })}
           
           {/* دائرة مركزية قابلة للضغط لبدء الدوران */}
-          <motion.div 
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full flex items-center justify-center"
-            style={{
-              background: `
-                radial-gradient(circle, 
-                  rgba(255,255,255,0.95) 0%, 
-                  rgba(255,255,255,0.8) 30%, 
-                  rgba(255,255,255,0.6) 70%, 
-                  rgba(255,255,255,0.3) 100%
-                )
-              `,
-              boxShadow: `
-                0 0 25px rgba(255,255,255,0.8),
-                inset 0 0 25px rgba(255,255,255,0.4),
-                0 6px 12px rgba(0,0,0,0.4)
-              `,
-              border: '3px solid rgba(255,255,255,0.9)',
-              cursor: isSpinning ? 'not-allowed' : 'pointer',
-              pointerEvents: isSpinning ? 'none' : 'auto'
-            }}
-            whileHover={!isSpinning ? { scale: 1.1 } : {}}
-            whileTap={!isSpinning ? { scale: 0.95 } : {}}
-            onClick={!isSpinning ? handleSpin : undefined}
-          >
-            <AnimatePresence mode="wait">
-              {isSpinning ? (
-                <motion.div
-                  key="spinning"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="text-3xl"
-                  initial={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  ⭐
-                </motion.div>
-              ) : (
-                <motion.div 
-                  key="idle"
-                  className="text-center"
-                  initial={{ opacity: 1 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="text-2xl mb-1">🎯</div>
-                  <div className="text-xs font-bold text-gray-700">اضغط</div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+          {!isSpinning && (
+            <motion.div 
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full flex items-center justify-center"
+              style={{
+                background: `
+                  radial-gradient(circle, 
+                    rgba(255,255,255,0.95) 0%, 
+                    rgba(255,255,255,0.8) 30%, 
+                    rgba(255,255,255,0.6) 70%, 
+                    rgba(255,255,255,0.3) 100%
+                  )
+                `,
+                boxShadow: `
+                  0 0 25px rgba(255,255,255,0.8),
+                  inset 0 0 25px rgba(255,255,255,0.4),
+                  0 6px 12px rgba(0,0,0,0.4)
+                `,
+                border: '3px solid rgba(255,255,255,0.9)',
+                cursor: 'pointer'
+              }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleSpin}
+              initial={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="text-center">
+                <div className="text-2xl mb-1">🎯</div>
+                <div className="text-xs font-bold text-gray-700">اضغط</div>
+              </div>
+            </motion.div>
+          )}
         </motion.div>
       </div>
 

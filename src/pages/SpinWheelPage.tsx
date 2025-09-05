@@ -58,7 +58,13 @@ const SpinWheelPage: React.FC = () => {
   };
 
   const goBack = () => {
-    navigate(`/store/${slug}`);
+    // التأكد من وجود slug صحيح قبل التنقل
+    if (slug && storeSettings.storeName) {
+      navigate(`/store/${slug}`);
+    } else {
+      // في حالة عدم وجود slug صحيح، العودة للرئيسية
+      navigate('/');
+    }
   };
 
   if (isLoading || productsLoading) {
