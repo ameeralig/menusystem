@@ -199,7 +199,7 @@ const AdvancedSearchBar = ({
                 ref={inputRef}
                 type="text"
                 placeholder="ابحث عن أي طبق تريده..."
-                className="border-0 bg-transparent text-lg placeholder:text-gray-400 focus-visible:ring-0 text-right pr-0"
+                className="border-0 bg-transparent text-lg placeholder:text-gray-400 dark:placeholder:text-gray-500 focus-visible:ring-0 text-right pr-0 text-gray-900 dark:text-white"
                 value={currentQuery}
                 onChange={handleInputChange}
                 onFocus={() => {

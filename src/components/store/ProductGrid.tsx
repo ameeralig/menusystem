@@ -127,7 +127,7 @@ const ProductCard = ({ product }: { product: Product }) => {
       <div className="p-4 relative z-10">
         <div className="flex justify-between items-start mb-2">
           <h3 className={`text-lg font-semibold text-right ${
-            !isAvailable ? "text-gray-500" : ""
+            !isAvailable ? "text-gray-500 dark:text-gray-400" : "text-gray-900 dark:text-white"
           }`}>
             {product.name}
           </h3>
