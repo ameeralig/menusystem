@@ -19,64 +19,100 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
   const wheelRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // إنشاء صوت دوران العجلة الحقيقي (محسّن للأداء)
+  // إنشاء صوت دوران العجلة محسّن وواقعي
   const playSpinSound = useCallback(() => {
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       
-      // إنشاء صوت الدوران المتكرر للعجلة
-      const createTickSound = (time: number, pitch: number) => {
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
+      // إنشاء صوت النقر الواقعي للعجلة
+      const createRealisticTick = (time: number, intensity: number) => {
+        // صوت النقر الأساسي
+        const clickOscillator = audioContext.createOscillator();
+        const clickGain = audioContext.createGain();
+        const clickFilter = audioContext.createBiquadFilter();
         
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
+        clickOscillator.connect(clickFilter);
+        clickFilter.connect(clickGain);
+        clickGain.connect(audioContext.destination);
         
-        oscillator.type = 'triangle';
-        oscillator.frequency.setValueAtTime(pitch, time);
+        // تضبيط الصوت ليكون أكثر واقعية
+        clickOscillator.type = 'square';
+        clickOscillator.frequency.setValueAtTime(300 + intensity * 100, time);
+        clickOscillator.frequency.exponentialRampToValueAtTime(150, time + 0.05);
         
-        gainNode.gain.setValueAtTime(0, time);
-        gainNode.gain.linearRampToValueAtTime(0.3, time + 0.01);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.1);
+        clickFilter.type = 'highpass';
+        clickFilter.frequency.setValueAtTime(200, time);
         
-        oscillator.start(time);
-        oscillator.stop(time + 0.1);
+        clickGain.gain.setValueAtTime(0, time);
+        clickGain.gain.linearRampToValueAtTime(0.4 * intensity, time + 0.01);
+        clickGain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+        
+        clickOscillator.start(time);
+        clickOscillator.stop(time + 0.08);
+        
+        // إضافة صوت خشخشة خفيف
+        const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * 0.1, audioContext.sampleRate);
+        const noiseData = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < noiseData.length; i++) {
+          noiseData[i] = (Math.random() * 2 - 1) * 0.1 * intensity;
+        }
+        
+        const noiseSource = audioContext.createBufferSource();
+        const noiseGain = audioContext.createGain();
+        const noiseFilter = audioContext.createBiquadFilter();
+        
+        noiseSource.buffer = noiseBuffer;
+        noiseSource.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(audioContext.destination);
+        
+        noiseFilter.type = 'bandpass';
+        noiseFilter.frequency.setValueAtTime(800, time);
+        
+        noiseGain.gain.setValueAtTime(0, time);
+        noiseGain.gain.linearRampToValueAtTime(0.2 * intensity, time + 0.01);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+        
+        noiseSource.start(time);
       };
       
-      // إنشاء سلسلة من الأصوات للمحاكاة صوت العجلة
-      const tickCount = 30;
+      // محاكاة دوران العجلة مع تباطؤ تدريجي
+      const totalTicks = 40;
       const duration = 3.5;
       
-      for (let i = 0; i < tickCount; i++) {
-        const time = audioContext.currentTime + (i / tickCount) * duration;
-        // تقليل التردد تدريجياً لمحاكاة تباطؤ العجلة
-        const pitch = 800 - (i / tickCount) * 400;
-        // زيادة الفترة الزمنية بين النقرات تدريجياً
-        const interval = 0.05 + (i / tickCount) * 0.15;
+      for (let i = 0; i < totalTicks; i++) {
+        // حساب الوقت مع تباطؤ تدريجي (المسافات تزيد تدريجياً)
+        const progress = i / totalTicks;
+        const easeOut = 1 - Math.pow(1 - progress, 3); // منحنى التباطؤ
+        const time = audioContext.currentTime + easeOut * duration;
         
-        if (i % Math.max(1, Math.floor((i + 1) / 5)) === 0) {
-          createTickSound(time, pitch);
+        // شدة الصوت تقل تدريجياً
+        const intensity = 1 - (progress * 0.6);
+        
+        // تكرار النقرات يقل تدريجياً
+        if (progress < 0.3 || Math.random() > progress * 0.7) {
+          createRealisticTick(time, intensity);
         }
       }
       
-      // صوت التوقف النهائي
+      // صوت التوقف النهائي - نقرة أخيرة مكتومة
       setTimeout(() => {
-        const finalOscillator = audioContext.createOscillator();
+        const finalClick = audioContext.createOscillator();
         const finalGain = audioContext.createGain();
         
-        finalOscillator.connect(finalGain);
+        finalClick.connect(finalGain);
         finalGain.connect(audioContext.destination);
         
-        finalOscillator.type = 'sine';
-        finalOscillator.frequency.setValueAtTime(200, audioContext.currentTime);
-        finalOscillator.frequency.exponentialRampToValueAtTime(150, audioContext.currentTime + 0.3);
+        finalClick.type = 'triangle';
+        finalClick.frequency.setValueAtTime(180, audioContext.currentTime);
+        finalClick.frequency.exponentialRampToValueAtTime(120, audioContext.currentTime + 0.2);
         
-        finalGain.gain.setValueAtTime(0.2, audioContext.currentTime);
-        finalGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        finalGain.gain.setValueAtTime(0.3, audioContext.currentTime);
+        finalGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
         
-        finalOscillator.start();
-        finalOscillator.stop(audioContext.currentTime + 0.3);
-      }, 3200);
+        finalClick.start();
+        finalClick.stop(audioContext.currentTime + 0.2);
+      }, 3300);
       
     } catch (error) {
       console.log('Audio not supported');
@@ -140,7 +176,7 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
   // التأكد من وجود منتجات
   if (!products || products.length === 0) {
     return (
-      <Card className="p-8 text-center">
+      <Card className="p-8 text-center mx-auto max-w-md">
         <p className="text-muted-foreground">لا توجد منتجات متاحة للعجلة</p>
       </Card>
     );
@@ -183,24 +219,24 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
   }, []);
 
   return (
-    <div className="flex flex-col items-center gap-6 p-6">
+    <div className="flex flex-col items-center gap-6 p-6 w-full">
       {/* العجلة */}
-      <div className="relative">
+      <div className="relative flex justify-center">
         {/* المؤشر المحسّن */}
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-4 z-10">
           <div className="flex flex-col items-center">
             <div 
               className="w-0 h-0 border-l-8 border-r-8 border-b-16 border-l-transparent border-r-transparent"
               style={{
-                borderBottomColor: 'gold',
-                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4)) drop-shadow(0 0 10px rgba(255,215,0,0.6))'
+                borderBottomColor: 'hsl(45, 100%, 50%)',
+                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4)) drop-shadow(0 0 10px hsl(45, 100%, 70%))'
               }}
             ></div>
             <div 
               className="w-6 h-8 rounded-b-md"
               style={{
-                background: 'linear-gradient(180deg, gold 0%, #DAA520 50%, #B8860B 100%)',
-                boxShadow: '0 4px 8px rgba(0,0,0,0.3), 0 0 15px rgba(255,215,0,0.4)'
+                background: 'linear-gradient(180deg, hsl(45, 100%, 50%) 0%, hsl(43, 74%, 49%) 50%, hsl(43, 74%, 43%) 100%)',
+                boxShadow: '0 4px 8px rgba(0,0,0,0.3), 0 0 15px hsl(45, 100%, 70%)'
               }}
             ></div>
           </div>
@@ -294,11 +330,10 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
                   }}
                 >
                   <p 
-                    className="text-sm font-bold whitespace-nowrap overflow-hidden text-ellipsis"
+                    className="text-sm font-bold whitespace-nowrap overflow-hidden text-ellipsis text-white"
                     style={{
-                      color: '#ffffff',
-                      textShadow: '2px 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5)',
-                      filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.3))'
+                      textShadow: '2px 2px 4px rgba(0,0,0,0.9), 1px 1px 2px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.6)',
+                      filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.4))'
                     }}
                   >
                     {product.name.length > 12 ? product.name.substring(0, 12) + '...' : product.name}
@@ -332,7 +367,7 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
       </div>
 
       {/* أزرار التحكم */}
-      <div className="flex gap-4">
+      <div className="flex gap-4 justify-center">
         <Button
           onClick={handleSpin}
           disabled={isSpinning}
@@ -369,9 +404,9 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
+          className="text-center w-full"
         >
-          <Card className="p-6 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+          <Card className="p-6 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20 mx-auto max-w-md">
             <h3 className="text-2xl font-bold text-primary mb-2">🎉 النتيجة</h3>
             <div className="flex items-center justify-center gap-4">
               {result.image_url && (
@@ -382,7 +417,7 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
                 />
               )}
               <div>
-                <h4 className="text-xl font-semibold">{result.name}</h4>
+                <h4 className="text-xl font-semibold text-foreground">{result.name}</h4>
                 <p className="text-lg text-primary font-bold">{result.price.toLocaleString()} د.ع</p>
                 {result.description && (
                   <p className="text-sm text-muted-foreground mt-1">{result.description}</p>

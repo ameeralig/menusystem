@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import SpinWheel from '@/components/wheel/SpinWheel';
 import ProductPreviewContainer from '@/components/store/ProductPreviewContainer';
-import StoreHeader from '@/components/store/StoreHeader';
+import AnimatedStoreHeader from '@/components/store/AnimatedStoreHeader';
 import { Product } from '@/types/product';
 import { useStoreSettings } from '@/hooks/store/useStoreSettings';
 import { supabase } from '@/integrations/supabase/client';
@@ -117,11 +117,11 @@ const SpinWheelPage: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="max-w-4xl mx-auto"
+        className="max-w-4xl mx-auto text-center"
       >
-        {/* عنوان المتجر مع نفس التصميم */}
-        <div className="text-center mb-4">
-          <StoreHeader 
+        {/* عنوان المتجر مع انيميشن السقوط والتوهج */}
+        <div className="flex justify-center mb-4">
+          <AnimatedStoreHeader 
             storeName={storeSettings.storeName}
             colorTheme={storeSettings.colorTheme}
             fontSettings={storeSettings.fontSettings}
@@ -129,7 +129,7 @@ const SpinWheelPage: React.FC = () => {
         </div>
 
         {/* مقدمة */}
-        <div className="text-center mb-8">
+        <div className="mb-8">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -147,15 +147,13 @@ const SpinWheelPage: React.FC = () => {
 
         {/* العجلة */}
         {products.length > 0 ? (
-          <div className="flex justify-center">
-            <SpinWheel 
-              products={products} 
-              onResult={handleWheelResult}
-              colorTheme={storeSettings.colorTheme}
-            />
-          </div>
+          <SpinWheel 
+            products={products} 
+            onResult={handleWheelResult}
+            colorTheme={storeSettings.colorTheme}
+          />
         ) : (
-          <Card className="p-12 text-center border-border/50 bg-card/50 backdrop-blur-sm">
+          <Card className="p-12 border-border/50 bg-card/50 backdrop-blur-sm mx-auto max-w-md">
             <div className="text-6xl mb-4">📦</div>
             <h3 className="text-2xl font-bold mb-2 text-foreground">لا توجد منتجات</h3>
             <p className="text-muted-foreground mb-6">
