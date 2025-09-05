@@ -92,18 +92,16 @@ const SpinWheelPage: React.FC = () => {
       darkMode={storeSettings.darkMode}
       containerHeight="100vh"
     >
+      {/* زر الرجوع الدائري في أعلى اليمين */}
+      <button
+        onClick={goBack}
+        className="fixed top-4 right-4 z-50 w-12 h-12 bg-white dark:bg-white shadow-lg rounded-full flex items-center justify-center hover:shadow-xl transition-all duration-200 hover:scale-105 border border-gray-200"
+      >
+        <ArrowLeft className="w-5 h-5 text-gray-700" />
+      </button>
+      
       {/* اسم المتجر في أعلى الصفحة */}
-      <div className="text-center mb-8 pt-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={goBack}
-          className="absolute top-4 left-4 gap-2 hover:bg-muted/60 z-10"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          العودة للمتجر
-        </Button>
-        
+      <div className="text-center mb-8 pt-4">        
         <div className="flex justify-center items-center">
           <AnimatedStoreHeader 
             storeName={storeSettings.storeName}

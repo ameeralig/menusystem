@@ -369,25 +369,32 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
             whileTap={!isSpinning ? { scale: 0.95 } : {}}
             onClick={!isSpinning ? handleSpin : undefined}
           >
-            {isSpinning ? (
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="text-3xl"
-              >
-                ⭐
-              </motion.div>
-            ) : (
-              <motion.div 
-                className="text-center"
-                initial={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="text-2xl mb-1">🎯</div>
-                <div className="text-xs font-bold text-gray-700">اضغط</div>
-              </motion.div>
-            )}
+            <AnimatePresence mode="wait">
+              {isSpinning ? (
+                <motion.div
+                  key="spinning"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="text-3xl"
+                  initial={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  ⭐
+                </motion.div>
+              ) : (
+                <motion.div 
+                  key="idle"
+                  className="text-center"
+                  initial={{ opacity: 1 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="text-2xl mb-1">🎯</div>
+                  <div className="text-xs font-bold text-gray-700">اضغط</div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         </motion.div>
       </div>
