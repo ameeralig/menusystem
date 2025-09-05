@@ -77,20 +77,20 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
       };
       
       // محاكاة دوران العجلة مع تباطؤ تدريجي
-      const totalTicks = 40;
-      const duration = 3.5;
+      const totalTicks = 50; // زيادة عدد النقرات لمزيد من الواقعية
+      const duration = 4.2; // تطابق مدة الانيميشن الجديدة
       
       for (let i = 0; i < totalTicks; i++) {
         // حساب الوقت مع تباطؤ تدريجي (المسافات تزيد تدريجياً)
         const progress = i / totalTicks;
-        const easeOut = 1 - Math.pow(1 - progress, 3); // منحنى التباطؤ
+        const easeOut = 1 - Math.pow(1 - progress, 3.5); // منحنى تباطؤ أكثر سلاسة
         const time = audioContext.currentTime + easeOut * duration;
         
         // شدة الصوت تقل تدريجياً
-        const intensity = 1 - (progress * 0.6);
+        const intensity = 1 - (progress * 0.7);
         
         // تكرار النقرات يقل تدريجياً
-        if (progress < 0.3 || Math.random() > progress * 0.7) {
+        if (progress < 0.4 || Math.random() > progress * 0.8) {
           createRealisticTick(time, intensity);
         }
       }
@@ -112,7 +112,7 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
         
         finalClick.start();
         finalClick.stop(audioContext.currentTime + 0.2);
-      }, 3300);
+      }, 4200); // تطابق المدة الجديدة
       
     } catch (error) {
       console.log('Audio not supported');
@@ -192,8 +192,8 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
     setResult(null);
     playSpinSound();
     
-    // حساب الدوران العشوائي (8-12 دورة كاملة + زاوية عشوائية)
-    const spins = Math.floor(Math.random() * 5) + 8; // 8-12 دورات
+    // حساب الدوران العشوائي (10-15 دورة كاملة + زاوية عشوائية لمزيد من الواقعية)
+    const spins = Math.floor(Math.random() * 6) + 10; // 10-15 دورات
     const finalAngle = Math.random() * 360;
     const totalRotation = rotation + (spins * 360) + finalAngle;
     
@@ -210,7 +210,7 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
       onResult?.(winner);
       
       toast.success(`🎉 النتيجة: ${winner.name}!`);
-    }, 3500);
+    }, 4500); // تطابق مدة الانيميشن الجديدة
   }, [isSpinning, rotation, sectorAngle, products, onResult, playSpinSound]);
 
   const resetWheel = useCallback(() => {
@@ -248,9 +248,9 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
           className="relative w-96 h-96 rounded-full shadow-2xl overflow-hidden"
           animate={{ rotate: rotation }}
           transition={{ 
-            duration: isSpinning ? 3.5 : 0,
-            ease: isSpinning ? [0.23, 1, 0.32, 1] : "linear",
-            type: "spring"
+            duration: isSpinning ? 4.5 : 0,
+            ease: isSpinning ? [0.25, 0.46, 0.45, 0.94] : "linear",
+            type: "tween"
           }}
           style={useMemo(() => ({
             background: `conic-gradient(${products.map((_, index) => {

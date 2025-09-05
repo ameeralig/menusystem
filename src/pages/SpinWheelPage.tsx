@@ -89,31 +89,30 @@ const SpinWheelPage: React.FC = () => {
       darkMode={storeSettings.darkMode}
       containerHeight="100vh"
     >
-      {/* Header */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/50 -mx-4 sm:-mx-6 px-4 sm:px-6 -mt-4 sm:-mt-6 mb-8">
-        <div className="py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={goBack}
-                className="gap-2 hover:bg-muted/60"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                العودة للمتجر
-              </Button>
-            </div>
-            {/* اسم المتجر مع الانيميشن في الأعلى */}
-            <div className="flex justify-center flex-1">
-              <AnimatedStoreHeader 
-                storeName={storeSettings.storeName}
-                colorTheme={storeSettings.colorTheme}
-                fontSettings={storeSettings.fontSettings}
-              />
-            </div>
+      {/* Header مُبسط */}
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/50 -mx-4 sm:-mx-6 px-4 sm:px-6 -mt-4 sm:-mt-6 mb-4">
+        <div className="py-2">
+          <div className="flex items-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={goBack}
+              className="gap-2 hover:bg-muted/60"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              العودة للمتجر
+            </Button>
           </div>
         </div>
+      </div>
+
+      {/* اسم المتجر في وسط الصفحة */}
+      <div className="flex justify-center items-center mb-8">
+        <AnimatedStoreHeader 
+          storeName={storeSettings.storeName}
+          colorTheme={storeSettings.colorTheme}
+          fontSettings={storeSettings.fontSettings}
+        />
       </div>
 
       {/* Content */}
