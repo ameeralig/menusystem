@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -373,15 +373,20 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="text-2xl"
+                className="text-3xl"
               >
                 ⭐
               </motion.div>
             ) : (
-              <div className="text-center">
+              <motion.div 
+                className="text-center"
+                initial={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
                 <div className="text-2xl mb-1">🎯</div>
                 <div className="text-xs font-bold text-gray-700">اضغط</div>
-              </div>
+              </motion.div>
             )}
           </motion.div>
         </motion.div>
@@ -389,7 +394,12 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
 
       {/* إعادة تعيين العجلة فقط */}
       <div className="flex justify-center mt-6">
-        <Button onClick={resetWheel} variant="outline" size="lg">
+        <Button 
+          onClick={resetWheel} 
+          variant="outline" 
+          size="lg"
+          className="border-border bg-background hover:bg-muted text-foreground hover:text-foreground"
+        >
           <RotateCcw className="w-5 h-5 mr-2" />
           إعادة تعيين
         </Button>
