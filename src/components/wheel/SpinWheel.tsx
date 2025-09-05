@@ -83,23 +83,59 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
     }
   }, []);
 
-  // ألوان العجلة الثابتة للتصميم الجديد
+  // ألوان العجلة محسّنة للأداء
   const wheelColors = useMemo(() => {
-    const baseColors = [
-      '#e74c3c', // أحمر
-      '#3498db', // أزرق  
-      '#2ecc71', // أخضر
-      '#f1c40f', // أصفر
-      '#9b59b6', // بنفسجي
-      '#e67e22', // برتقالي
-      '#1abc9c', // تركواز
-      '#e91e63', // وردي
-      '#ff5722', // برتقالي محمر
-      '#607d8b'  // رمادي مزرق
-    ];
+    const colorMap: { [key: string]: string } = {
+      default: '#6E7681',
+      coral: '#ff9178',
+      purple: '#8B5CF6',
+      blue: '#3B82F6',
+      green: '#10B981',
+      pink: '#EC4899',
+      teal: '#14B8A6',
+      amber: '#F59E0B',
+      indigo: '#6366F1',
+      rose: '#F43F5E'
+    };
+
+    const mainColor = colorMap[colorTheme] || colorMap.default;
     
-    return products.map((_, i) => baseColors[i % baseColors.length]);
-  }, [products.length]);
+    // تحويل لون hex إلى HSL مُحسّن
+    const hexToHsl = (hex: string): [number, number, number] => {
+      const r = parseInt(hex.slice(1, 3), 16) / 255;
+      const g = parseInt(hex.slice(3, 5), 16) / 255;
+      const b = parseInt(hex.slice(5, 7), 16) / 255;
+      
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      let h = 0, s = 0;
+      const l = (max + min) / 2;
+      
+      if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        
+        switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+      }
+      
+      return [h * 360, s * 100, l * 100];
+    };
+
+    const [hue, saturation, lightness] = hexToHsl(mainColor);
+    
+    // إنشاء تدرجات محسّنة
+    return products.map((_, i) => {
+      const adjustedHue = (hue + (i * (360 / products.length))) % 360;
+      const adjustedSaturation = Math.max(40, saturation - (i % 3) * 10);
+      const adjustedLightness = Math.max(45, Math.min(75, lightness + (i % 4) * 8));
+      return `hsl(${adjustedHue}, ${adjustedSaturation}%, ${adjustedLightness}%)`;
+    });
+  }, [products.length, colorTheme]);
 
   // التأكد من وجود منتجات
   if (!products || products.length === 0) {
@@ -137,8 +173,8 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
       setIsSpinning(false);
       onResult?.(winner);
       
-      toast.success(`🎊 مبروك! النتيجة: ${winner.name}!`);
-    }, 4000);
+      toast.success(`🎉 النتيجة: ${winner.name}!`);
+    }, 3500);
   }, [isSpinning, rotation, sectorAngle, products, onResult, playSpinSound]);
 
   const resetWheel = useCallback(() => {
@@ -150,78 +186,148 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
     <div className="flex flex-col items-center gap-6 p-6">
       {/* العجلة */}
       <div className="relative">
-        {/* المؤشر الجديد */}
-        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-5 z-20">
-          <div 
-            className="w-0 h-0 border-l-5 border-r-5 border-b-7"
-            style={{
-              borderLeftColor: 'transparent',
-              borderRightColor: 'transparent', 
-              borderBottomColor: '#333',
-              borderLeftWidth: '20px',
-              borderRightWidth: '20px',
-              borderBottomWidth: '30px'
-            }}
-          />
+        {/* المؤشر المحسّن */}
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-4 z-10">
+          <div className="flex flex-col items-center">
+            <div 
+              className="w-0 h-0 border-l-8 border-r-8 border-b-16 border-l-transparent border-r-transparent"
+              style={{
+                borderBottomColor: 'gold',
+                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4)) drop-shadow(0 0 10px rgba(255,215,0,0.6))'
+              }}
+            ></div>
+            <div 
+              className="w-6 h-8 rounded-b-md"
+              style={{
+                background: 'linear-gradient(180deg, gold 0%, #DAA520 50%, #B8860B 100%)',
+                boxShadow: '0 4px 8px rgba(0,0,0,0.3), 0 0 15px rgba(255,215,0,0.4)'
+              }}
+            ></div>
+          </div>
         </div>
         
-        {/* العجلة الدوارة الجديدة */}
+        {/* العجلة الدوارة المحسّنة */}
         <motion.div
           ref={wheelRef}
-          className="relative w-96 h-96 rounded-full overflow-hidden"
+          className="relative w-96 h-96 rounded-full shadow-2xl overflow-hidden"
           animate={{ rotate: rotation }}
           transition={{ 
-            duration: isSpinning ? 4 : 0,
-            ease: isSpinning ? "easeOut" : "linear",
+            duration: isSpinning ? 3.5 : 0,
+            ease: isSpinning ? [0.23, 1, 0.32, 1] : "linear",
+            type: "spring"
           }}
-          style={{
-            border: '8px solid #333',
-            background: '#fff'
-          }}
+          style={useMemo(() => ({
+            background: `conic-gradient(${products.map((_, index) => {
+              const startAngle = (index * sectorAngle);
+              const endAngle = ((index + 1) * sectorAngle);
+              const color1 = wheelColors[index] || wheelColors[index % wheelColors.length];
+              // تدرج لوني متقدم مع تأثيرات إضاءة
+              const hslMatch = color1.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
+              if (hslMatch) {
+                const [h, s, l] = hslMatch.slice(1, 4).map(Number);
+                const color2 = `hsl(${h}, ${Math.min(100, s + 15)}%, ${Math.min(85, l + 15)}%)`;
+                const color3 = `hsl(${h}, ${Math.max(30, s - 10)}%, ${Math.max(30, l - 15)}%)`;
+                return `${color3} ${startAngle}deg, ${color1} ${startAngle + (sectorAngle/3)}deg, ${color2} ${startAngle + (2*sectorAngle/3)}deg, ${color1} ${endAngle}deg`;
+              }
+              return `${color1} ${startAngle}deg, ${color1} ${endAngle}deg`;
+            }).join(', ')})`,
+            border: '6px solid rgba(255, 255, 255, 0.3)',
+            boxShadow: `
+              0 0 50px rgba(255, 255, 255, 0.2),
+              0 0 100px rgba(255, 255, 255, 0.1),
+              inset 0 0 30px rgba(255, 255, 255, 0.1),
+              0 20px 40px rgba(0, 0, 0, 0.3)
+            `
+          }), [products.length, sectorAngle, wheelColors])}
         >
-          {/* الشرائح المثلثية */}
+          {/* خطوط فاصلة محسّنة بين القطاعات */}
+          {products.map((_, index) => {
+            const angle = index * sectorAngle;
+            const radian = (angle * Math.PI) / 180;
+            const x1 = Math.cos(radian - Math.PI/2) * 20 + 192;
+            const y1 = Math.sin(radian - Math.PI/2) * 20 + 192;
+            const x2 = Math.cos(radian - Math.PI/2) * 192 + 192;
+            const y2 = Math.sin(radian - Math.PI/2) * 192 + 192;
+            
+            return (
+              <div
+                key={`line-${index}`}
+                className="absolute w-1 origin-bottom"
+                style={{
+                  left: x1,
+                  top: y1,
+                  height: Math.sqrt((x2-x1)**2 + (y2-y1)**2),
+                  transform: `rotate(${angle + 90}deg)`,
+                  transformOrigin: 'bottom',
+                  background: 'linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.3), rgba(255,255,255,0.1))',
+                  boxShadow: '0 0 4px rgba(255,255,255,0.5)'
+                }}
+              />
+            );
+          })}
+
+          {/* أسماء المنتجات المحسّنة */}
           {products.map((product, index) => {
-            const angle = (index * sectorAngle);
-            const color = wheelColors[index];
-            const textColor = color === '#f1c40f' ? '#333' : '#fff';
+            const angle = (index * sectorAngle) + (sectorAngle / 2);
             
             return (
               <div
                 key={product.id}
                 className="absolute"
                 style={{
-                  width: '50%',
-                  height: '50%',
-                  top: '50%',
                   left: '50%',
-                  transformOrigin: '0% 0%',
+                  top: '50%',
                   transform: `rotate(${angle}deg)`,
-                  background: color,
-                  clipPath: 'polygon(0 0, 100% 0, 0 100%)',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                  color: textColor
+                  transformOrigin: '0 0',
+                  width: '140px',
+                  height: '20px'
                 }}
               >
+                {/* النص من المنتصف للطرف مع تأثيرات محسّنة */}
                 <div 
-                  className="absolute"
+                  className="absolute flex items-center justify-start"
                   style={{
-                    transform: `rotate(${30}deg)`,
-                    transformOrigin: 'center',
-                    width: '100%',
-                    textAlign: 'center',
-                    top: '30%',
-                    left: '20%'
+                    left: '40px', // بداية النص من المركز
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: '130px'
                   }}
                 >
-                  {product.name.length > 8 ? product.name.substring(0, 8) + '...' : product.name}
+                  <p 
+                    className="text-sm font-bold whitespace-nowrap overflow-hidden text-ellipsis"
+                    style={{
+                      color: '#ffffff',
+                      textShadow: '2px 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5)',
+                      filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.3))'
+                    }}
+                  >
+                    {product.name.length > 12 ? product.name.substring(0, 12) + '...' : product.name}
+                  </p>
                 </div>
               </div>
             );
           })}
+          
+          {/* دائرة مركزية أنيقة بدون زر */}
+          <div 
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full"
+            style={{
+              background: `
+                radial-gradient(circle, 
+                  rgba(255,255,255,0.9) 0%, 
+                  rgba(255,255,255,0.7) 30%, 
+                  rgba(255,255,255,0.4) 70%, 
+                  rgba(255,255,255,0.1) 100%
+                )
+              `,
+              boxShadow: `
+                0 0 20px rgba(255,255,255,0.6),
+                inset 0 0 20px rgba(255,255,255,0.3),
+                0 4px 8px rgba(0,0,0,0.3)
+              `,
+              border: '2px solid rgba(255,255,255,0.8)'
+            }}
+          />
         </motion.div>
       </div>
 
@@ -245,10 +351,10 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
               جاري الدوران...
             </>
           ) : (
-              <>
-                <Play className="w-5 h-5 mr-2" />
-                🎉 جرّب حظك
-              </>
+            <>
+              <Play className="w-5 h-5 mr-2" />
+              تدوير العجلة
+            </>
           )}
         </Button>
         
