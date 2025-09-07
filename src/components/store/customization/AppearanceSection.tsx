@@ -68,14 +68,22 @@ const AppearanceSection = ({
           isLoading={isLoading}
         />
 
-        {/* قسم تخصيص الألوان الجديد */}
+        {/* قسم تخصيص لون الخلفية */}
         <div className="space-y-4">
-          <h3 className="text-lg font-medium mb-4">تخصيص ألوان المتجر</h3>
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-2 flex items-center gap-2">
+              <Palette className="h-5 w-5 text-primary" />
+              تخصيص لون الخلفية
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              اختر لوناً مخصصاً لخلفية صفحة المعاينة الخاصة بمتجرك
+            </p>
+          </div>
           
           {/* معاينة اللون الحالي */}
-          <div className="mb-6">
+          <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border">
             <h4 className="text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">
-              اللون الحالي لمتجرك
+              🎨 اللون المطبق حالياً على خلفية المعاينة
             </h4>
             <ColorPreviewCard 
               currentColor={colorTheme.startsWith('#') ? colorTheme : '#ff9178'} 
@@ -90,6 +98,13 @@ const AppearanceSection = ({
             handleSubmit={handleColorThemeSubmit}
             isLoading={isLoading}
           />
+          
+          {/* ملاحظة توضيحية */}
+          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div className="text-sm text-blue-700 dark:text-blue-300">
+              💡 <strong>ملاحظة:</strong> سيتم تطبيق اللون المختار على خلفية صفحة المعاينة فوراً، ويمكنك رؤية التغيير في المعاينة على اليسار.
+            </div>
+          </div>
         </div>
 
         {/* قسم تخصيص الخطوط */}
