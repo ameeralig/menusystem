@@ -3,6 +3,7 @@ import { ReactNode, useEffect } from "react";
 import BannerSection from "./preview/BannerSection";
 import { useImageLoading } from "@/hooks/store/useImageLoading";
 import { useCustomFonts } from "@/hooks/store/useCustomFonts";
+import { getBackgroundStyle, getThemeClasses } from "@/utils/previewStyles";
 
 interface FontSettings {
   generalText?: {
@@ -47,8 +48,12 @@ const ProductPreviewContainer = ({
     console.log("تم تحديث اللون في ProductPreviewContainer:", colorTheme);
   }, [colorTheme]);
 
+  // إنشاء الأنماط المخصصة للخلفية
+  const customBackgroundStyle = getBackgroundStyle(colorTheme, darkMode);
+  const themeClasses = getThemeClasses(colorTheme, darkMode);
+
   return (
-    <div className={`flex flex-col ${darkMode ? 'dark' : ''}`} style={getContainerStyle()}>
+    <div className={`flex flex-col ${themeClasses}`} style={getContainerStyle()}>
       <BannerSection
         bannerUrl={bannerUrl}
         imgSrc={imgSrc}
@@ -58,8 +63,11 @@ const ProductPreviewContainer = ({
         onImageLoad={() => setImageLoaded(true)}
       />
       
-      {/* الخلفية الافتراضية مع تطبيق الوضع الداكن */}
-      <div className="bg-gray-50 dark:bg-gray-900 transition-all duration-300">
+      {/* الخلفية المخصصة مع تطبيق لون المستخدم */}
+      <div 
+        className={`${colorTheme && colorTheme.startsWith('#') ? '' : 'bg-gray-50 dark:bg-gray-900'} transition-all duration-300`}
+        style={colorTheme && colorTheme.startsWith('#') ? customBackgroundStyle : undefined}
+      >
         {imgSrc && !imageError && (
           <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-black/20 to-transparent"></div>
         )}
