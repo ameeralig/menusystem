@@ -2,7 +2,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import LoadingState from "@/components/store/LoadingState";
-import { useStoreData } from "@/hooks/useStoreData";
+import { useOptimizedStoreData } from "@/hooks/store/useOptimizedStoreData";
 import { useRefreshData } from "@/hooks/useRefreshData";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -16,7 +16,14 @@ const FeedbackTrigger = lazy(() => import("@/components/store/feedback/FeedbackT
 const ProductPreview = () => {
   const { slug } = useParams<{ slug: string }>();
   const { forceRefresh, refreshData } = useRefreshData();
-  const { storeData, isLoading, storeOwnerId } = useStoreData(slug, forceRefresh);
+  const { 
+    storeData, 
+    isLoading, 
+    storeOwnerId, 
+    identificationError,
+    loadingProgress,
+    loadingStates 
+  } = useOptimizedStoreData(slug, forceRefresh);
   const [isAutoRefresh, setIsAutoRefresh] = useState<boolean>(true);
   const [lastManualRefresh, setLastManualRefresh] = useState<number>(Date.now());
 
@@ -150,8 +157,27 @@ const ProductPreview = () => {
     };
   }, [storeOwnerId, refreshData, isAutoRefresh]);
 
-  if (isLoading) {
-    return <LoadingState />;
+  // عرض رسالة خطأ إذا لم يتم العثور على المتجر
+  if (identificationError && !loadingStates.identifying) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4 p-8">
+          <div className="text-6xl">😔</div>
+          <h2 className="text-2xl font-bold text-foreground">المتجر غير موجود</h2>
+          <p className="text-muted-foreground">{identificationError}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // عرض شاشة التحميل السريع
+  if (isLoading || loadingStates.identifying) {
+    return (
+      <LoadingState 
+        progress={loadingProgress} 
+        message={loadingStates.identifying ? "جاري التعرف على المتجر..." : "جاري تحميل البيانات..."}
+      />
+    );
   }
 
   return (
