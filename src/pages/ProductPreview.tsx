@@ -176,13 +176,14 @@ const ProductPreview = () => {
       <LoadingState 
         progress={loadingProgress} 
         message={loadingStates.identifying ? "جاري التعرف على المتجر..." : "جاري تحميل البيانات..."}
+        loadingTips={storeData?.loadingTips || []}
       />
     );
   }
 
   return (
-    <>
-      <Suspense fallback={<LoadingState />}>
+      <>
+        <Suspense fallback={<LoadingState loadingTips={storeData?.loadingTips || []} />}>
         <ProductPreviewContainer 
           colorTheme={storeData.colorTheme} 
           bannerUrl={storeData.bannerUrl}

@@ -14,6 +14,7 @@ export const useStoreSettings = (slug: string | undefined) => {
     bannerUrl: null as string | null,
     fontSettings: undefined as FontSettings | undefined,
     darkMode: false,
+    loadingTips: [] as string[],
     storeOwnerId: null as string | null,
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -51,7 +52,7 @@ export const useStoreSettings = (slug: string | undefined) => {
 
         const { data: settings, error } = await supabase
           .from("store_settings")
-          .select("user_id, store_name, color_theme, social_links, banner_url, font_settings, contact_info, dark_mode")
+          .select("user_id, store_name, color_theme, social_links, banner_url, font_settings, contact_info, dark_mode, loading_tips")
           .eq("slug", slug.trim())
           .maybeSingle();
 
@@ -97,6 +98,7 @@ export const useStoreSettings = (slug: string | undefined) => {
           bannerUrl: settings.banner_url,
           fontSettings: parsedFontSettings,
           darkMode: settings.dark_mode || false,
+          loadingTips: (settings.loading_tips as string[]) || [],
           storeOwnerId: settings.user_id,
         });
 
