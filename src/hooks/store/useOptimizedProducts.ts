@@ -18,22 +18,27 @@ export const useOptimizedProducts = ({
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [visibleProducts, setVisibleProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   
   const PRODUCTS_PER_PAGE = 15; // عدد أقل لتحميل أسرع
 
-  // تحميل جميع المنتجات مرة واحدة مع التحسين
+  // تحميل جميع المنتجات مرة واحدة مع التحسين والتقدم المئوي
   const fetchAllProducts = useCallback(async () => {
     if (!userId) {
       setIsLoading(false);
+      setLoadingProgress(100);
       return;
     }
 
     try {
       setIsLoading(true);
+      setLoadingProgress(0);
       
-      // استعلام محسن مع فهرسة وترتيب
+      // مرحلة 1: جلب المنتجات (30%)
+      setLoadingProgress(10);
+      
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -43,21 +48,46 @@ export const useOptimizedProducts = ({
 
       if (error) {
         console.error('خطأ في جلب المنتجات:', error);
+        setLoadingProgress(0);
         return;
       }
 
-      // تحسين روابط الصور مسبقاً
-      const optimizedProducts = data.map(product => ({
-        ...product,
-        image_url: product.image_url ? optimizeImageUrl(product.image_url) : null
-      }));
+      setLoadingProgress(50);
 
+      // مرحلة 2: تحسين روابط الصور مع تقدم تدريجي (50% - 90%)
+      const optimizedProducts: Product[] = [];
+      const totalProducts = data.length;
+      
+      for (let i = 0; i < data.length; i++) {
+        const product = data[i];
+        optimizedProducts.push({
+          ...product,
+          image_url: product.image_url ? optimizeImageUrl(product.image_url) : null
+        });
+        
+        // تحديث التقدم
+        const progress = 50 + ((i + 1) / totalProducts) * 40;
+        setLoadingProgress(Math.round(progress));
+        
+        // إضافة تأخير صغير لإظهار التقدم
+        if (i % 5 === 0) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+      }
+
+      // مرحلة 3: الانتهاء (100%)
+      setLoadingProgress(100);
       setAllProducts(optimizedProducts);
       console.log(`تم تحميل ${optimizedProducts.length} منتج بنجاح`);
       
+      // تأخير قصير لإظهار 100% ثم إخفاء التحميل
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 200);
+      
     } catch (error) {
       console.error('خطأ غير متوقع في جلب المنتجات:', error);
-    } finally {
+      setLoadingProgress(0);
       setIsLoading(false);
     }
   }, [userId, forceRefresh]);
@@ -147,6 +177,7 @@ export const useOptimizedProducts = ({
     allProductsCount: filteredProducts.length,
     categories: allCategories,
     isLoading,
+    loadingProgress,
     hasMore,
     loadMore,
     refresh: fetchAllProducts

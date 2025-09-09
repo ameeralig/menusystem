@@ -2,8 +2,9 @@ import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Loader2 } from "lucide-react";
 import OptimizedProductGrid from "./OptimizedProductGrid";
-import CategoryGrid from "./CategoryGrid";
+import ProgressiveCategoryGrid from "./ProgressiveCategoryGrid";
 import StoreInfo from "./StoreInfo";
+import ProgressiveLoadingIndicator from "./ProgressiveLoadingIndicator";
 import BackButton from "./BackButton";
 import AdvancedSearchBar from "./AdvancedSearchBar";
 import EmptyCategoryMessage from "./EmptyCategoryMessage";
@@ -14,25 +15,7 @@ import AnimatedStoreHeader from "./AnimatedStoreHeader";
 import { useGlobalSearch } from "./hooks/useGlobalSearch";
 import { useOptimizedProducts } from "@/hooks/store/useOptimizedProducts";
 
-interface FontSettings {
-  storeName?: {
-    family: string;
-    isCustom: boolean;
-    customFontUrl: string | null;
-  };
-  categoryText?: {
-    family: string;
-    isCustom: boolean;
-    customFontUrl: string | null;
-  };
-}
-
-interface ContactInfo {
-  phone?: string;
-  email?: string;
-  address?: string;
-  website?: string;
-}
+import { FontSettings, ContactInfo } from "@/types/store";
 
 interface StoreProductsDisplayProps {
   storeName: string;
@@ -66,7 +49,8 @@ const StoreProductsDisplay = ({
     allProducts,
     allProductsCount, 
     categories,
-    isLoading, 
+    isLoading,
+    loadingProgress,
     hasMore, 
     loadMore 
   } = useOptimizedProducts({
@@ -193,12 +177,19 @@ const StoreProductsDisplay = ({
   const isCustomColor = colorTheme && colorTheme.startsWith('#');
 
   return (
-    <motion.div
-      className="container mx-auto px-4 py-8 max-w-6xl relative"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
+    <>
+      {/* مؤشر التحميل التقدمي */}
+      <ProgressiveLoadingIndicator 
+        progress={loadingProgress} 
+        isVisible={isLoading && products.length === 0} 
+      />
+
+      <motion.div
+        className="container mx-auto px-4 py-8 max-w-6xl relative"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
       {/* عنوان المتجر */}
       <motion.div
         initial={{ y: -20, opacity: 0 }}
@@ -287,11 +278,12 @@ const StoreProductsDisplay = ({
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
             >
-              <CategoryGrid 
+              <ProgressiveCategoryGrid 
                 categories={categories}
                 onCategorySelect={handleCategorySelect}
                 fontSettings={fontSettings}
                 categoryImages={categoryImages}
+                isLoading={isLoading && categories.length === 0}
               />
             </motion.div>
           )}
@@ -378,7 +370,8 @@ const StoreProductsDisplay = ({
           )}
         </AnimatePresence>
       </motion.div>
-    </motion.div>
+      </motion.div>
+    </>
   );
 };
 
