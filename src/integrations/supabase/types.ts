@@ -271,7 +271,6 @@ export type Database = {
           custom_domain: string | null
           dark_mode: boolean | null
           font_settings: Json | null
-          loading_tips: Json | null
           logo_url: string | null
           slug: string | null
           social_links: Json | null
@@ -288,7 +287,6 @@ export type Database = {
           custom_domain?: string | null
           dark_mode?: boolean | null
           font_settings?: Json | null
-          loading_tips?: Json | null
           logo_url?: string | null
           slug?: string | null
           social_links?: Json | null
@@ -305,7 +303,6 @@ export type Database = {
           custom_domain?: string | null
           dark_mode?: boolean | null
           font_settings?: Json | null
-          loading_tips?: Json | null
           logo_url?: string | null
           slug?: string | null
           social_links?: Json | null

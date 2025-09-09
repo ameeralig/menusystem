@@ -10,7 +10,6 @@ import StoreDetailsSection from "@/components/store/customization/StoreDetailsSe
 import ContactInfoSection from "@/components/store/customization/ContactInfoSection";
 import AppearanceSection from "@/components/store/customization/AppearanceSection";
 import SocialLinksSection from "@/components/store/customization/SocialLinksSection";
-import LoadingTipsSection from "@/components/store/customization/LoadingTipsSection";
 import ProductPreviewContainer from "@/components/store/ProductPreviewContainer";
 import DemoProductsDisplay from "@/components/demo/DemoProductsDisplay";
 
@@ -80,7 +79,6 @@ const StoreCustomization = () => {
   const [fontSettings, setFontSettings] = useState<FontSettings>(defaultFontSettings);
   const [contactInfo, setContactInfo] = useState<ContactInfo>(defaultContactInfo);
   const [darkMode, setDarkMode] = useState(false);
-  const [loadingTips, setLoadingTips] = useState<string[]>([]);
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({
     instagram: "",
     facebook: "",
@@ -103,7 +101,7 @@ const StoreCustomization = () => {
 
       const { data: storeSettings, error } = await supabase
         .from("store_settings")
-        .select("store_name, color_theme, slug, social_links, banner_url, font_settings, contact_info, dark_mode, loading_tips")
+        .select("store_name, color_theme, slug, social_links, banner_url, font_settings, contact_info, dark_mode")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -118,7 +116,6 @@ const StoreCustomization = () => {
         setStoreSlug(storeSettings.slug || "");
         setBannerUrl(storeSettings.banner_url || null);
         setDarkMode(storeSettings.dark_mode || false);
-        setLoadingTips((storeSettings.loading_tips as string[]) || []);
         
         if (storeSettings.social_links) {
           setSocialLinks({
@@ -185,7 +182,6 @@ const StoreCustomization = () => {
     font_settings: FontSettings;
     contact_info: ContactInfo;
     dark_mode: boolean;
-    loading_tips: string[];
   }>) => {
     setIsLoading(true);
 
@@ -244,7 +240,6 @@ const StoreCustomization = () => {
       if (updatedData.font_settings !== undefined) setFontSettings(updatedData.font_settings);
       if (updatedData.contact_info !== undefined) setContactInfo(updatedData.contact_info);
       if (updatedData.dark_mode !== undefined) setDarkMode(updatedData.dark_mode);
-      if (updatedData.loading_tips !== undefined) setLoadingTips(updatedData.loading_tips);
 
     } catch (error: any) {
       console.error("Error saving store settings:", error);
@@ -321,10 +316,6 @@ const StoreCustomization = () => {
 
   const handleContactInfoSubmit = async (info: ContactInfo) => {
     await saveStoreSettings({ contact_info: info });
-  };
-
-  const handleLoadingTipsSubmit = async (tips: string[]) => {
-    await saveStoreSettings({ loading_tips: tips });
   };
 
   return (
@@ -411,12 +402,6 @@ const StoreCustomization = () => {
             <SocialLinksSection 
               socialLinks={socialLinks}
               handleSocialLinksSubmit={handleSocialLinksSubmit}
-              isLoading={isLoading}
-            />
-
-            <LoadingTipsSection
-              loadingTips={loadingTips}
-              onLoadingTipsUpdate={handleLoadingTipsSubmit}
               isLoading={isLoading}
             />
           </motion.div>
