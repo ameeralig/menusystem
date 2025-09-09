@@ -1,7 +1,7 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search } from "lucide-react";
-import ProductGrid from "./ProductGrid";
+import { Search, Loader2 } from "lucide-react";
+import OptimizedProductGrid from "./OptimizedProductGrid";
 import CategoryGrid from "./CategoryGrid";
 import StoreInfo from "./StoreInfo";
 import BackButton from "./BackButton";
@@ -12,6 +12,7 @@ import { Product } from "@/types/product";
 import { CategoryImage } from "@/types/categoryImage";
 import AnimatedStoreHeader from "./AnimatedStoreHeader";
 import { useGlobalSearch } from "./hooks/useGlobalSearch";
+import { useOptimizedProducts } from "@/hooks/store/useOptimizedProducts";
 
 interface FontSettings {
   storeName?: {
@@ -34,28 +35,45 @@ interface ContactInfo {
 }
 
 interface StoreProductsDisplayProps {
-  products: Product[];
   storeName: string;
   colorTheme: string;
   fontSettings?: FontSettings;
   contactInfo?: ContactInfo;
   categoryImages?: CategoryImage[];
   slug?: string;
+  storeOwnerId?: string;
+  forceRefresh?: number;
 }
 
 const StoreProductsDisplay = ({
-  products,
   storeName,
   colorTheme,
   fontSettings,
   contactInfo,
   categoryImages = [],
   slug,
+  storeOwnerId,
+  forceRefresh = 0,
 }: StoreProductsDisplayProps) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [customFontFamily, setCustomFontFamily] = useState<string>("");
+  const loadMoreRef = useRef<HTMLDivElement>(null);
   
+  // استخدام المنتجات المحسنة
+  const { 
+    products, 
+    allProductsCount, 
+    isLoading, 
+    hasMore, 
+    loadMore 
+  } = useOptimizedProducts({
+    userId: storeOwnerId || null,
+    selectedCategory,
+    searchQuery,
+    forceRefresh
+  });
+
   const { categories } = useGlobalSearch(products);
 
   // تحميل الخط المخصص لاسم المتجر
@@ -133,26 +151,23 @@ const StoreProductsDisplay = ({
     return style;
   };
 
-  const filteredProducts = useMemo(() => {
-    let filtered = products;
+  // مراقب التقاطع لتحميل المزيد من المنتجات
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
 
-    // تطبيق فلتر التصنيف
-    if (selectedCategory) {
-      filtered = filtered.filter(product => product.category === selectedCategory);
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
     }
 
-    // تطبيق فلتر البحث
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(query) ||
-        product.description?.toLowerCase().includes(query) ||
-        product.category?.toLowerCase().includes(query)
-      );
-    }
-
-    return filtered;
-  }, [products, selectedCategory, searchQuery]);
+    return () => observer.disconnect();
+  }, [hasMore, isLoading, loadMore]);
 
   const handleCategorySelect = useCallback((category: string) => {
     setSelectedCategory(category);
@@ -221,6 +236,14 @@ const StoreProductsDisplay = ({
           setSearchQuery={handleSearchChange}
           products={products}
         />
+        
+        {/* مؤشر التحميل العام */}
+        {isLoading && products.length === 0 && (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <span className="mr-2 text-sm text-gray-600 dark:text-gray-400">جاري تحميل المنتجات...</span>
+          </div>
+        )}
       </motion.div>
 
       {/* زر عجلة الحظ */}
@@ -304,7 +327,7 @@ const StoreProductsDisplay = ({
                           نتائج البحث عن: "{searchQuery}"
                         </h3>
                         <p className="text-sm text-blue-600 dark:text-blue-300">
-                          تم العثور على {filteredProducts.length} نتيجة
+                          تم العثور على {allProductsCount} نتيجة {products.length < allProductsCount ? `(عرض ${products.length})` : ''}
                         </p>
                       </div>
                     </div>
@@ -319,17 +342,38 @@ const StoreProductsDisplay = ({
                 </motion.div>
               )}
 
-              {filteredProducts.length > 0 ? (
-                <ProductGrid 
-                  products={filteredProducts}
-                  colorTheme={colorTheme}
-                />
-              ) : (
+              {products.length > 0 ? (
+                <>
+                  <OptimizedProductGrid 
+                    products={products}
+                    colorTheme={colorTheme}
+                  />
+                  
+                  {/* عنصر مراقبة لتحميل المزيد */}
+                  <div ref={loadMoreRef} className="h-10">
+                    {isLoading && (
+                      <div className="flex items-center justify-center py-4">
+                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                        <span className="mr-2 text-sm text-gray-600 dark:text-gray-400">جاري التحميل...</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* مؤشر نهاية المنتجات */}
+                  {!hasMore && !isLoading && products.length > 0 && (
+                    <div className="text-center py-6">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        تم عرض جميع المنتجات ({allProductsCount} منتج)
+                      </p>
+                    </div>
+                  )}
+                </>
+              ) : !isLoading ? (
                 <EmptyCategoryMessage 
                   selectedCategory={selectedCategory}
                   searchQuery={searchQuery}
                 />
-              )}
+              ) : null}
             </motion.div>
           )}
         </AnimatePresence>

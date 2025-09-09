@@ -166,13 +166,14 @@ const ProductPreview = () => {
         >
           <Suspense fallback={<div className="animate-pulse bg-gray-200 h-64 rounded-md w-full" />}>
             <StoreProductsDisplay 
-              products={storeData.products} 
               storeName={storeData.storeName} 
               colorTheme={storeData.colorTheme}
               fontSettings={storeData.fontSettings}
               contactInfo={storeData.contactInfo}
               categoryImages={storeData.categoryImages}
               slug={slug}
+              storeOwnerId={storeOwnerId}
+              forceRefresh={forceRefresh}
             />
           </Suspense>
           <Suspense fallback={<div className="animate-pulse bg-gray-200 h-12 rounded-md w-full mt-4" />}>
