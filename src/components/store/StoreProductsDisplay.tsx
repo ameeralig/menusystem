@@ -63,7 +63,9 @@ const StoreProductsDisplay = ({
   // استخدام المنتجات المحسنة
   const { 
     products, 
+    allProducts,
     allProductsCount, 
+    categories,
     isLoading, 
     hasMore, 
     loadMore 
@@ -73,8 +75,6 @@ const StoreProductsDisplay = ({
     searchQuery,
     forceRefresh
   });
-
-  const { categories } = useGlobalSearch(products);
 
   // تحميل الخط المخصص لاسم المتجر
   useEffect(() => {
@@ -234,7 +234,7 @@ const StoreProductsDisplay = ({
         <AdvancedSearchBar
           searchQuery={searchQuery}
           setSearchQuery={handleSearchChange}
-          products={products}
+          products={allProducts || products}
         />
         
         {/* مؤشر التحميل العام */}

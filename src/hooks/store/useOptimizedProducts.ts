@@ -130,9 +130,22 @@ export const useOptimizedProducts = ({
     fetchAllProducts();
   }, [fetchAllProducts]);
 
+  // استخراج جميع التصنيفات من كل المنتجات
+  const allCategories = useMemo(() => {
+    const categories = new Set<string>();
+    allProducts.forEach(product => {
+      if (product.category && product.category.trim()) {
+        categories.add(product.category.trim());
+      }
+    });
+    return Array.from(categories).sort();
+  }, [allProducts]);
+
   return {
     products: visibleProducts,
+    allProducts: allProducts,
     allProductsCount: filteredProducts.length,
+    categories: allCategories,
     isLoading,
     hasMore,
     loadMore,
