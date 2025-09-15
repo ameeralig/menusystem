@@ -47,7 +47,7 @@ export const CategoryImageManager = ({
     window.location.reload();
   };
 
-  const handleDeleteCategory = async (category: string) => {
+  const handleDeleteCategory = async (category: string, confirmationText?: string) => {
     if (!userId) {
       toast({
         title: "خطأ",
@@ -63,20 +63,38 @@ export const CategoryImageManager = ({
         .from("products")
         .select("id")
         .eq("user_id", userId)
-        .eq("category", category)
-        .limit(1);
+        .eq("category", category);
 
       if (productsError) {
         throw productsError;
       }
 
       if (products && products.length > 0) {
-        toast({
-          title: "لا يمكن حذف التصنيف",
-          description: "يجب حذف جميع المنتجات من هذا التصنيف أولاً",
-          variant: "destructive"
-        });
-        return;
+        // إذا لم يتم تمرير نص التأكيد، فهذا يعني أن المستخدم لم يؤكد بعد
+        if (!confirmationText) {
+          return { requiresConfirmation: true, productCount: products.length };
+        }
+
+        // التحقق من نص التأكيد
+        if (confirmationText !== "احذف التصنيف") {
+          toast({
+            title: "خطأ في التأكيد",
+            description: "يجب كتابة 'احذف التصنيف' للتأكيد",
+            variant: "destructive"
+          });
+          return { requiresConfirmation: true, productCount: products.length };
+        }
+
+        // حذف جميع المنتجات في التصنيف أولاً
+        const { error: deleteProductsError } = await supabase
+          .from("products")
+          .delete()
+          .eq("user_id", userId)
+          .eq("category", category);
+
+        if (deleteProductsError) {
+          throw deleteProductsError;
+        }
       }
 
       // حذف صورة التصنيف إذا كانت موجودة
@@ -90,9 +108,13 @@ export const CategoryImageManager = ({
         throw deleteImageError;
       }
 
+      const message = products && products.length > 0 
+        ? `تم حذف التصنيف "${category}" مع ${products.length} منتج بنجاح`
+        : `تم حذف التصنيف "${category}" بنجاح`;
+
       toast({
         title: "تم حذف التصنيف",
-        description: `تم حذف التصنيف "${category}" بنجاح`,
+        description: message,
         variant: "default"
       });
 
@@ -101,6 +123,8 @@ export const CategoryImageManager = ({
         onCategoryDeleted();
       }
 
+      return { success: true };
+
     } catch (error: any) {
       console.error("خطأ في حذف التصنيف:", error);
       toast({
@@ -108,6 +132,7 @@ export const CategoryImageManager = ({
         description: error.message,
         variant: "destructive"
       });
+      return { error: error.message };
     }
   };
 
@@ -158,6 +183,7 @@ export const CategoryImageManager = ({
                   onFileUpload={handleFileUpload}
                   onRemoveImage={removeImage}
                   onDeleteCategory={userId ? handleDeleteCategory : undefined}
+                  userId={userId || undefined}
                   uploading={uploading === category}
                 />
               );

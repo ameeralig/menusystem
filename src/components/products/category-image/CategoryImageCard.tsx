@@ -8,14 +8,17 @@ import { ImageIcon, X, Loader2, Trash2 } from "lucide-react";
 import { CategoryImage } from "@/types/categoryImage";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface CategoryImageCardProps {
   category: string;
   categoryImage: CategoryImage | undefined;
   onFileUpload: (category: string, file: File) => Promise<void>;
   onRemoveImage: (category: string) => Promise<void>;
-  onDeleteCategory?: (category: string) => Promise<void>;
+  onDeleteCategory?: (category: string, confirmationText?: string) => Promise<any>;
   uploading: boolean;
+  userId?: string;
 }
 
 export const CategoryImageCard = ({
@@ -24,13 +27,18 @@ export const CategoryImageCard = ({
   onFileUpload,
   onRemoveImage,
   onDeleteCategory,
-  uploading
+  uploading,
+  userId
 }: CategoryImageCardProps) => {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [imageLoaded, setImageLoaded] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [imageSrc, setImageSrc] = useState<string | undefined>(categoryImage?.image_url);
+  const [confirmationText, setConfirmationText] = useState("");
+  const [productCount, setProductCount] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { toast } = useToast();
 
   // عند تغيير صورة التصنيف أو إعادة التحميل، نستخدم القيمة الجديدة
   useEffect(() => {
@@ -92,6 +100,56 @@ export const CategoryImageCard = ({
     }
   };
 
+  const checkProductCount = async () => {
+    if (!userId) return 0;
+    
+    try {
+      const { data: products, error } = await supabase
+        .from("products")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("category", category);
+
+      if (error) throw error;
+      return products ? products.length : 0;
+    } catch (error) {
+      console.error("خطأ في جلب عدد المنتجات:", error);
+      return 0;
+    }
+  };
+
+  const handleDeleteClick = async () => {
+    if (!onDeleteCategory) return;
+
+    const count = await checkProductCount();
+    setProductCount(count);
+
+    if (count === 0) {
+      // حذف مباشر إذا لم توجد منتجات
+      setIsDeleting(true);
+      try {
+        await onDeleteCategory(category);
+      } finally {
+        setIsDeleting(false);
+      }
+    }
+    // إذا كانت هناك منتجات، سيفتح الحوار تلقائياً
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!onDeleteCategory) return;
+
+    setIsDeleting(true);
+    try {
+      const result = await onDeleteCategory(category, confirmationText);
+      if (result?.success) {
+        setConfirmationText("");
+      }
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <Card className="overflow-hidden">
       <CardContent className="p-4 space-y-3">
@@ -124,8 +182,14 @@ export const CategoryImageCard = ({
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={handleDeleteClick}
+                        disabled={isDeleting}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        {isDeleting ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
                       </Button>
                     </AlertDialogTrigger>
                   </TooltipTrigger>
@@ -133,25 +197,52 @@ export const CategoryImageCard = ({
                     <p>حذف التصنيف</p>
                   </TooltipContent>
                 </Tooltip>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>تأكيد حذف التصنيف</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      هل أنت متأكد من حذف التصنيف "{category}"؟ 
-                      <br />
-                      <strong>تنبيه:</strong> يجب حذف جميع المنتجات من هذا التصنيف أولاً.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => onDeleteCategory(category)}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      حذف التصنيف
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
+                {productCount > 0 && (
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>تأكيد حذف التصنيف والمنتجات</AlertDialogTitle>
+                      <AlertDialogDescription className="space-y-3">
+                        <p>
+                          التصنيف "{category}" يحتوي على <strong>{productCount}</strong> منتج.
+                        </p>
+                        <p className="text-destructive font-medium">
+                          تحذير: سيتم حذف جميع المنتجات في هذا التصنيف نهائياً!
+                        </p>
+                        <div className="space-y-2">
+                          <Label htmlFor="confirmation">
+                            للمتابعة، اكتب: <strong>احذف التصنيف</strong>
+                          </Label>
+                          <Input
+                            id="confirmation"
+                            value={confirmationText}
+                            onChange={(e) => setConfirmationText(e.target.value)}
+                            placeholder="احذف التصنيف"
+                            className="text-center"
+                          />
+                        </div>
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel onClick={() => setConfirmationText("")}>
+                        إلغاء
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleConfirmDelete}
+                        disabled={confirmationText !== "احذف التصنيف" || isDeleting}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {isDeleting ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            جاري الحذف...
+                          </>
+                        ) : (
+                          "حذف التصنيف والمنتجات"
+                        )}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                )}
               </AlertDialog>
             )}
           </div>
