@@ -21,9 +21,20 @@ const ProgressiveCategoryGrid = ({
   const [visibleCategories, setVisibleCategories] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  // ترتيب التصنيفات حسب display_order
+  const sortedCategories = [...categories].sort((a, b) => {
+    const aImage = categoryImages.find(img => img.category === a);
+    const bImage = categoryImages.find(img => img.category === b);
+    
+    const aOrder = aImage?.display_order || 999;
+    const bOrder = bImage?.display_order || 999;
+    
+    return aOrder - bOrder;
+  });
+
   // تحميل التصنيفات تدريجياً
   useEffect(() => {
-    if (categories.length === 0 || isLoading) {
+    if (sortedCategories.length === 0 || isLoading) {
       setVisibleCategories([]);
       setCurrentIndex(0);
       return;
@@ -32,8 +43,8 @@ const ProgressiveCategoryGrid = ({
     const timer = setInterval(() => {
       setCurrentIndex(prev => {
         const next = prev + 1;
-        if (next <= categories.length) {
-          setVisibleCategories(categories.slice(0, next));
+        if (next <= sortedCategories.length) {
+          setVisibleCategories(sortedCategories.slice(0, next));
           return next;
         } else {
           clearInterval(timer);
@@ -43,7 +54,7 @@ const ProgressiveCategoryGrid = ({
     }, 150); // تأخير 150ms بين كل تصنيف
 
     return () => clearInterval(timer);
-  }, [categories, isLoading]);
+  }, [sortedCategories, isLoading]);
 
   const getCategoryImage = (category: string) => {
     return categoryImages.find(img => img.category === category)?.image_url;
@@ -111,7 +122,7 @@ const ProgressiveCategoryGrid = ({
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full border border-primary/20">
           <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
           <span className="text-sm font-medium text-primary">
-            {visibleCategories.length} من {categories.length} تصنيف
+            {visibleCategories.length} من {sortedCategories.length} تصنيف
           </span>
         </div>
       </motion.div>
@@ -207,7 +218,7 @@ const ProgressiveCategoryGrid = ({
       </div>
 
       {/* مؤشر التحميل المتبقي */}
-      {visibleCategories.length < categories.length && (
+      {visibleCategories.length < sortedCategories.length && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

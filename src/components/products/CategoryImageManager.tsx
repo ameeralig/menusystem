@@ -171,8 +171,17 @@ export const CategoryImageManager = ({
             </p>
           </div>
           
+          {/* ترتيب التصنيفات حسب display_order */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {categories.map((category) => {
+            {[...categories].sort((a, b) => {
+              const aImage = categoryImages.find(img => img.category === a);
+              const bImage = categoryImages.find(img => img.category === b);
+              
+              const aOrder = aImage?.display_order || 999;
+              const bOrder = bImage?.display_order || 999;
+              
+              return aOrder - bOrder;
+            }).map((category) => {
               const categoryImage = categoryImages.find(img => img.category === category);
               
               return (
