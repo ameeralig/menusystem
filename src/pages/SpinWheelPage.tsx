@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import SpinWheel from '@/components/wheel/SpinWheel';
 import ProductPreviewContainer from '@/components/store/ProductPreviewContainer';
 import AnimatedStoreHeader from '@/components/store/AnimatedStoreHeader';
@@ -19,6 +20,9 @@ const SpinWheelPage: React.FC = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const { storeSettings, isLoading } = useStoreSettings(slug);
   const [productsLoading, setProductsLoading] = useState(true);
@@ -43,7 +47,26 @@ const SpinWheelPage: React.FC = () => {
 
       if (productsError) throw productsError;
       
-      setProducts(productsData || []);
+      const products = productsData || [];
+      setAllProducts(products);
+      
+      // استخراج التصنيفات الفريدة
+      const uniqueCategories = [...new Set(products
+        .map(product => product.category)
+        .filter(Boolean) as string[])]
+        .sort();
+      
+      setCategories(uniqueCategories);
+      
+      // إذا لم يتم اختيار تصنيف بعد، اختر الأول
+      if (!selectedCategory && uniqueCategories.length > 0) {
+        setSelectedCategory(uniqueCategories[0]);
+        setProducts(products.filter(product => product.category === uniqueCategories[0]));
+      } else if (selectedCategory) {
+        setProducts(products.filter(product => product.category === selectedCategory));
+      } else {
+        setProducts(products);
+      }
       
     } catch (error) {
       console.error('Error loading products:', error);
@@ -51,10 +74,17 @@ const SpinWheelPage: React.FC = () => {
     } finally {
       setProductsLoading(false);
     }
-  }, [storeSettings.storeOwnerId]);
+  }, [storeSettings.storeOwnerId, selectedCategory]);
 
   const handleWheelResult = (product: Product) => {
     setSelectedProduct(product);
+  };
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setSelectedProduct(null); // إعادة تعيين النتيجة عند تغيير التصنيف
+    const filteredProducts = allProducts.filter(product => product.category === category);
+    setProducts(filteredProducts);
   };
 
   const goBack = () => {
@@ -136,10 +166,43 @@ const SpinWheelPage: React.FC = () => {
           </motion.div>
           <h2 className="text-3xl font-bold mb-2 text-foreground">عجلة الحظ</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            اضغط على وسط العجلة واكتشف المنتج المحظوظ! 
-            {products.length > 0 && ` يوجد ${products.length} منتج متاح في العجلة`}
+            اختر تصنيفاً واضغط على وسط العجلة لاكتشاف المنتج المحظوظ!
           </p>
         </div>
+
+        {/* اختيار التصنيف */}
+        {categories.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="mb-8 max-w-md mx-auto"
+          >
+            <Card className="p-6 border-border/50 bg-card/50 backdrop-blur-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <Filter className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-semibold text-foreground">اختر التصنيف</h3>
+              </div>
+              <Select value={selectedCategory} onValueChange={handleCategoryChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="اختر تصنيف..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category} ({allProducts.filter(p => p.category === category).length} منتج)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedCategory && (
+                <p className="text-sm text-muted-foreground mt-2 text-center">
+                  يوجد {products.length} منتج في تصنيف "{selectedCategory}"
+                </p>
+              )}
+            </Card>
+          </motion.div>
+        )}
 
         {/* العجلة */}
         {products.length > 0 ? (
