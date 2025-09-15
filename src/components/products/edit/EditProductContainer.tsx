@@ -14,6 +14,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { CategoryImageManager } from "@/components/products/CategoryImageManager";
 import { uploadImage } from "@/utils/storageHelpers";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Package, FolderOpen } from "lucide-react";
 
 const EditProductContainer = () => {
   const navigate = useNavigate();
@@ -311,22 +313,61 @@ const EditProductContainer = () => {
         )}
 
         {!selectedProduct ? (
-          <>
-            <ProductsList 
-              products={products}
-              onSelectProduct={handleSelectProduct}
-              onDeleteProduct={handleDelete}
-            />
+          <Accordion 
+            type="multiple" 
+            defaultValue={["products-list"]} 
+            className="w-full space-y-6"
+          >
+            <AccordionItem value="products-list" className="border rounded-xl bg-card shadow-sm">
+              <AccordionTrigger className="px-6 py-5 hover:no-underline hover:bg-muted/50 rounded-t-xl [&[data-state=open]]:rounded-b-none transition-all duration-300 group">
+                <div className="flex items-center gap-4 text-right">
+                  <div className="p-3 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors duration-200">
+                    <Package className="h-6 w-6 text-primary" />
+                  </div>
+                  <div className="text-right">
+                    <h3 className="text-xl font-semibold mb-1">قائمة المنتجات</h3>
+                    <p className="text-sm text-muted-foreground">عرض وتعديل المنتجات ({products.length} منتج)</p>
+                  </div>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6 animate-accordion-down animate-fade-in overflow-hidden">
+                <div className="pt-4 border-t border-muted animate-scale-in">
+                  <ProductsList 
+                    products={products}
+                    onSelectProduct={handleSelectProduct}
+                    onDeleteProduct={handleDelete}
+                  />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
             {uniqueCategories.length > 0 && (
-              <CategoryImageManager
-                categories={uniqueCategories}
-                categoryImages={categoryImages}
-                onUpdateImages={handleUpdateCategoryImages}
-                userId={userId || undefined}
-                onCategoryDeleted={fetchProducts}
-              />
+              <AccordionItem value="category-management" className="border rounded-xl bg-card shadow-sm">
+                <AccordionTrigger className="px-6 py-5 hover:no-underline hover:bg-muted/50 rounded-t-xl [&[data-state=open]]:rounded-b-none transition-all duration-300 group">
+                  <div className="flex items-center gap-4 text-right">
+                    <div className="p-3 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors duration-200">
+                      <FolderOpen className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="text-right">
+                      <h3 className="text-xl font-semibold mb-1">إدارة التصنيفات</h3>
+                      <p className="text-sm text-muted-foreground">ترتيب وإدارة صور التصنيفات ({uniqueCategories.length} تصنيف)</p>
+                    </div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-6 animate-accordion-down animate-fade-in overflow-hidden">
+                  <div className="pt-4 border-t border-muted animate-scale-in">
+                    <CategoryImageManager
+                      categories={uniqueCategories}
+                      categoryImages={categoryImages}
+                      onUpdateImages={handleUpdateCategoryImages}
+                      userId={userId || undefined}
+                      onCategoryDeleted={fetchProducts}
+                    />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
             )}
-          </>
+          </Accordion>
         ) : (
           <EditProductForm
             product={selectedProduct}
