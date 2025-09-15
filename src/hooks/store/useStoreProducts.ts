@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
+import { useCleanupEmptyCategories } from "./useCleanupEmptyCategories";
 
 // تحسين URL الصور باستخدام WebP و تقليل الجودة للتحميل السريع
 const optimizeImageUrl = (url: string, forceRefresh: number): string => {
@@ -31,6 +32,9 @@ export const useStoreProducts = (
   const [isLoading, setIsLoading] = useState(true);
   const [totalProducts, setTotalProducts] = useState(0);
   const { toast } = useToast();
+  
+  // استخدام خطاف تنظيف التصنيفات الفارغة
+  const { cleanupEmptyCategories } = useCleanupEmptyCategories(userId);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -80,6 +84,12 @@ export const useStoreProducts = (
         });
 
         setProducts(updatedProducts);
+        
+        // تنظيف التصنيفات الفارغة بعد تحميل المنتجات
+        setTimeout(() => {
+          cleanupEmptyCategories();
+        }, 1000);
+        
       } catch (error: any) {
         console.error("خطأ في جلب المنتجات:", error);
         toast({

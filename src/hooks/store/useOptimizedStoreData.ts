@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
 import { useFastStoreIdentification } from "./useFastStoreIdentification";
 import { useStoreSettings } from "./useStoreSettings";
-import { useOptimizedProducts } from "./useOptimizedProducts";
+import { useCleanupEmptyCategories } from "./useCleanupEmptyCategories";
 import { useCategoryImages } from "./useCategoryImages";
+import { useOptimizedProducts } from "./useOptimizedProducts";
+import { deleteSpecificEmptyCategory } from "@/utils/categoryCleanup";
 
 export const useOptimizedStoreData = (slug: string | undefined, forceRefresh: number) => {
   // الخطوة 1: التعرف السريع على المستخدم
   const { userId, isLoading: identifyingUser, error: identificationError } = useFastStoreIdentification(slug);
+  
+  // استخدام خطاف تنظيف التصنيفات الفارغة
+  const { cleanupEmptyCategories } = useCleanupEmptyCategories(userId);
   
   // الخطوة 2: جلب البيانات المفصلة بمجرد التعرف على المستخدم
   const { storeSettings, isLoading: settingsLoading } = useStoreSettings(slug);
@@ -39,11 +44,26 @@ export const useOptimizedStoreData = (slug: string | undefined, forceRefresh: nu
       // نعتبر التحميل منتهياً عندما تكون البيانات الأساسية جاهزة
       const isDataReady = !settingsLoading && (!productsLoading || products.length > 0);
       setOverallLoading(!isDataReady);
+      
+      // تنظيف التصنيفات الفارغة بعد انتهاء التحميل
+      if (isDataReady) {
+        setTimeout(async () => {
+          // حذف التصنيف الفارغ المحدد أولاً
+          try {
+            await deleteSpecificEmptyCategory(userId);
+          } catch (error) {
+            console.error("خطأ في حذف التصنيف المحدد:", error);
+          }
+          
+          // ثم تنظيف باقي التصنيفات الفارغة
+          cleanupEmptyCategories();
+        }, 1000);
+      }
     } else if (!identifyingUser && !userId) {
       // إذا لم يتم العثور على المستخدم
       setOverallLoading(false);
     }
-  }, [identifyingUser, userId, settingsLoading, productsLoading, products.length]);
+  }, [identifyingUser, userId, settingsLoading, productsLoading, products.length, cleanupEmptyCategories]);
 
   // دمج جميع البيانات
   const storeData = {
