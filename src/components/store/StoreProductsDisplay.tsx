@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef, Suspense, lazy } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Loader2 } from "lucide-react";
 import OptimizedProductGrid from "./OptimizedProductGrid";
@@ -14,6 +14,9 @@ import { CategoryImage } from "@/types/categoryImage";
 import AnimatedStoreHeader from "./AnimatedStoreHeader";
 import { useGlobalSearch } from "./hooks/useGlobalSearch";
 import { useOptimizedProducts } from "@/hooks/store/useOptimizedProducts";
+
+// تحميل بطيء لمكون مشاركة الرأي
+const FeedbackTrigger = lazy(() => import("./feedback/FeedbackTrigger"));
 
 import { FontSettings, ContactInfo } from "@/types/store";
 
@@ -237,15 +240,23 @@ const StoreProductsDisplay = ({
         )}
       </motion.div>
 
-      {/* زر عجلة الحظ */}
+      {/* أزرار عجلة الحظ ومشاركة الرأي */}
       {slug && !searchQuery.trim() && (
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
-          className="flex justify-center mt-6"
+          className="flex justify-center items-center gap-4 mt-6 flex-wrap"
         >
           <WheelButton slug={slug} colorTheme={colorTheme} />
+          {storeOwnerId && (
+            <Suspense fallback={<div className="animate-pulse bg-gray-200 h-10 rounded-md w-32" />}>
+              <FeedbackTrigger 
+                userId={storeOwnerId} 
+                colorTheme={colorTheme}
+              />
+            </Suspense>
+          )}
         </motion.div>
       )}
 

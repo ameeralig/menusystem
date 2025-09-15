@@ -48,12 +48,12 @@ const FeedbackTrigger = ({ colorTheme = "default", userId }: FeedbackTriggerProp
             relative overflow-hidden
             bg-gradient-to-r ${getThemeColors(colorTheme)}
             text-white font-semibold
-            px-6 py-3 rounded-full
+            px-4 py-2 rounded-full
             shadow-lg hover:shadow-xl
             border-0 transition-all duration-300
             flex items-center gap-2
-            text-sm md:text-base
-            min-w-[160px] justify-center
+            text-sm
+            min-w-[140px] justify-center
           `}
         >
           {/* خلفية متدرجة متحركة */}
@@ -75,7 +75,7 @@ const FeedbackTrigger = ({ colorTheme = "default", userId }: FeedbackTriggerProp
             animate={{ rotate: [0, 10, -10, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            <MessageCircle className="w-4 h-4 md:w-5 md:h-5" />
+            <MessageCircle className="w-4 h-4" />
           </motion.div>
           
           <span className="relative z-10">شاركنا رأيك</span>
@@ -87,7 +87,7 @@ const FeedbackTrigger = ({ colorTheme = "default", userId }: FeedbackTriggerProp
             }}
             transition={{ duration: 3, repeat: Infinity }}
           >
-            <Sparkles className="w-3 h-3 md:w-4 md:h-4" />
+            <Sparkles className="w-3 h-3" />
           </motion.div>
         </Button>
         

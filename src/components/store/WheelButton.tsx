@@ -45,7 +45,7 @@ const WheelButton: React.FC<WheelButtonProps> = ({ slug, colorTheme }) => {
       <Link to={`/store/${slug}/wheel`}>
         <Button
           className={`${buttonColors} text-white shadow-lg relative overflow-hidden group`}
-          size="lg"
+          size="default"
         >
           {/* تأثير الوهج */}
           <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse" />
