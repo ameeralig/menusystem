@@ -29,6 +29,7 @@ const EditProductContainer = () => {
   const [error, setError] = useState<string | null>(null);
   const [categoryImages, setCategoryImages] = useState<CategoryImage[]>([]);
   const [uniqueCategories, setUniqueCategories] = useState<string[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -44,6 +45,8 @@ const EditProductContainer = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("لم يتم العثور على المستخدم");
+
+      setUserId(user.id);
 
       const { data: productsData, error: productsError } = await supabase
         .from("products")
@@ -319,6 +322,8 @@ const EditProductContainer = () => {
                 categories={uniqueCategories}
                 categoryImages={categoryImages}
                 onUpdateImages={handleUpdateCategoryImages}
+                userId={userId || undefined}
+                onCategoryDeleted={fetchProducts}
               />
             )}
           </>

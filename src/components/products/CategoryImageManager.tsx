@@ -7,22 +7,29 @@ import { useCategoryImageUpload } from "./category-image/useCategoryImageUpload"
 import { CategoryOrderManager } from "./category-order/CategoryOrderManager";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface CategoryImageManagerProps {
   categories: string[];
   categoryImages: CategoryImage[];
   onUpdateImages: (images: CategoryImage[]) => void;
+  userId?: string;
+  onCategoryDeleted?: () => void;
 }
 
 export const CategoryImageManager = ({
   categories,
   categoryImages,
   onUpdateImages,
+  userId,
+  onCategoryDeleted,
 }: CategoryImageManagerProps) => {
   const { uploading, handleFileUpload, removeImage } = useCategoryImageUpload({
     categoryImages,
     onUpdateImages
   });
+  const { toast } = useToast();
   
   // تسجيل معلومات حول صور التصنيفات عند تغيرها
   useEffect(() => {
@@ -38,6 +45,70 @@ export const CategoryImageManager = ({
   const handleOrderUpdate = () => {
     // إعادة تحميل صور التصنيفات بعد تحديث الترتيب
     window.location.reload();
+  };
+
+  const handleDeleteCategory = async (category: string) => {
+    if (!userId) {
+      toast({
+        title: "خطأ",
+        description: "لم يتم العثور على معرف المستخدم",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // التحقق من وجود منتجات في هذا التصنيف
+      const { data: products, error: productsError } = await supabase
+        .from("products")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("category", category)
+        .limit(1);
+
+      if (productsError) {
+        throw productsError;
+      }
+
+      if (products && products.length > 0) {
+        toast({
+          title: "لا يمكن حذف التصنيف",
+          description: "يجب حذف جميع المنتجات من هذا التصنيف أولاً",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // حذف صورة التصنيف إذا كانت موجودة
+      const { error: deleteImageError } = await supabase
+        .from("category_images")
+        .delete()
+        .eq("user_id", userId)
+        .eq("category", category);
+
+      if (deleteImageError) {
+        throw deleteImageError;
+      }
+
+      toast({
+        title: "تم حذف التصنيف",
+        description: `تم حذف التصنيف "${category}" بنجاح`,
+        variant: "default"
+      });
+
+      // إعادة تحميل البيانات
+      if (onCategoryDeleted) {
+        onCategoryDeleted();
+      }
+
+    } catch (error: any) {
+      console.error("خطأ في حذف التصنيف:", error);
+      toast({
+        title: "خطأ في حذف التصنيف",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
   };
 
   if (categories.length === 0) {
@@ -86,6 +157,7 @@ export const CategoryImageManager = ({
                   categoryImage={categoryImage}
                   onFileUpload={handleFileUpload}
                   onRemoveImage={removeImage}
+                  onDeleteCategory={userId ? handleDeleteCategory : undefined}
                   uploading={uploading === category}
                 />
               );

@@ -4,15 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { ImageIcon, X, Loader2 } from "lucide-react";
+import { ImageIcon, X, Loader2, Trash2 } from "lucide-react";
 import { CategoryImage } from "@/types/categoryImage";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface CategoryImageCardProps {
   category: string;
   categoryImage: CategoryImage | undefined;
   onFileUpload: (category: string, file: File) => Promise<void>;
   onRemoveImage: (category: string) => Promise<void>;
+  onDeleteCategory?: (category: string) => Promise<void>;
   uploading: boolean;
 }
 
@@ -21,6 +23,7 @@ export const CategoryImageCard = ({
   categoryImage,
   onFileUpload,
   onRemoveImage,
+  onDeleteCategory,
   uploading
 }: CategoryImageCardProps) => {
   const [imageError, setImageError] = useState(false);
@@ -94,23 +97,64 @@ export const CategoryImageCard = ({
       <CardContent className="p-4 space-y-3">
         <div className="flex items-center justify-between">
           <Label className="text-base font-medium">{category}</Label>
-          {imageSrc && !imageError && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onRemoveImage(category)}
-                  className="h-8 w-8"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>إزالة الصورة</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
+          <div className="flex items-center gap-1">
+            {imageSrc && !imageError && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onRemoveImage(category)}
+                    className="h-8 w-8"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>إزالة الصورة</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {onDeleteCategory && (
+              <AlertDialog>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>حذف التصنيف</p>
+                  </TooltipContent>
+                </Tooltip>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>تأكيد حذف التصنيف</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      هل أنت متأكد من حذف التصنيف "{category}"؟ 
+                      <br />
+                      <strong>تنبيه:</strong> يجب حذف جميع المنتجات من هذا التصنيف أولاً.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => onDeleteCategory(category)}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      حذف التصنيف
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
         </div>
 
         {imageSrc && !imageError ? (
