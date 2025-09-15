@@ -201,10 +201,12 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
     
     // تحديد المنتج الفائز بعد انتهاء الدوران - حساب صحيح للمنتج تحت السهم
     setTimeout(() => {
-      // السهم في الأعلى، نحتاج لحساب أي منتج يكون تحت السهم بعد التوقف
-      // نعكس الدوران لأن العجلة تدور والسهم ثابت
+      // السهم في الأعلى، يجب تعويض إزاحة اتجاه conic-gradient (تبدأ من اليمين 0°)
+      // نحسب زاوية الإزاحة بحيث يشير السهم للأعلى (270° من المرجع الافتراضي)
       const adjustedRotation = (360 - (totalRotation % 360)) % 360;
-      const winnerIndex = Math.floor(adjustedRotation / sectorAngle) % products.length;
+      const pointerOffsetDeg = 270; // أعلى العجلة
+      const adjustedWithOffset = (adjustedRotation + pointerOffsetDeg) % 360;
+      const winnerIndex = Math.floor(adjustedWithOffset / sectorAngle) % products.length;
       const winner = products[winnerIndex];
       
       setResult(winner);
