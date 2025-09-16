@@ -6,6 +6,9 @@ import { Link } from "react-router-dom";
 import QRColorController from "@/components/qr/QRColorController";
 import QRLogoUploader from "@/components/qr/QRLogoUploader";
 import QRPreview from "@/components/qr/QRPreview";
+import QRShapeController from "@/components/qr/QRShapeController";
+import QRAdvancedColorController from "@/components/qr/QRAdvancedColorController";
+import QRTemplateSelector from "@/components/qr/QRTemplateSelector";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +22,14 @@ export interface QRSettings {
   text: string;
   size: number;
   errorLevel: 'L' | 'M' | 'Q' | 'H';
+  // أشكال الأجزاء
+  dotsType?: string;
+  cornerSquareType?: string;
+  cornerDotType?: string;
+  // ألوان متقدمة
+  dotsColor?: string;
+  cornerSquareColor?: string;
+  cornerDotColor?: string;
 }
 
 const QRGenerator = () => {
@@ -29,13 +40,28 @@ const QRGenerator = () => {
     logoSize: 20,
     text: 'https://example.com',
     size: 300,
-    errorLevel: 'M'
+    errorLevel: 'M',
+    // أشكال الأجزاء
+    dotsType: 'square',
+    cornerSquareType: 'square',
+    cornerDotType: 'square',
+    // ألوان متقدمة
+    dotsColor: '#000000',
+    cornerSquareColor: '#000000',
+    cornerDotColor: '#000000'
   });
 
   const handleSettingsChange = useCallback((key: keyof QRSettings, value: any) => {
     setQRSettings(prev => ({
       ...prev,
       [key]: value
+    }));
+  }, []);
+
+  const handleApplyTemplate = useCallback((template: Partial<QRSettings>) => {
+    setQRSettings(prev => ({
+      ...prev,
+      ...template
     }));
   }, []);
 
@@ -125,8 +151,23 @@ const QRGenerator = () => {
 
             <Separator />
 
-            {/* تحكم الألوان */}
-            <QRColorController
+            {/* القوالب الجاهزة */}
+            <QRTemplateSelector
+              onApplyTemplate={handleApplyTemplate}
+            />
+
+            <Separator />
+
+            {/* أشكال الأجزاء */}
+            <QRShapeController
+              settings={qrSettings}
+              onSettingsChange={handleSettingsChange}
+            />
+
+            <Separator />
+
+            {/* تحكم متقدم في الألوان */}
+            <QRAdvancedColorController
               settings={qrSettings}
               onSettingsChange={handleSettingsChange}
             />

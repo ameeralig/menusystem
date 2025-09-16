@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Download, Eye, Loader2 } from "lucide-react";
 import { QRSettings } from "@/pages/QRGenerator";
 import QRCode from "qrcode";
+import QRCodeStyling from "qr-code-styling";
 import { toast } from "sonner";
 
 interface QRPreviewProps {
@@ -20,28 +21,69 @@ const QRPreview = ({ settings }: QRPreviewProps) => {
 
     setIsGenerating(true);
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
 
     try {
-      // إنشاء QR code
-      await QRCode.toCanvas(canvas, settings.text, {
+      // استخدام QRCodeStyling للميزات المتقدمة
+      const qrCode = new QRCodeStyling({
         width: settings.size,
-        color: {
-          dark: settings.foregroundColor,
-          light: settings.backgroundColor,
+        height: settings.size,
+        data: settings.text,
+        margin: 10,
+        qrOptions: {
+          typeNumber: 0,
+          mode: "Byte",
+          errorCorrectionLevel: settings.errorLevel
         },
-        errorCorrectionLevel: settings.errorLevel,
-        margin: 2,
+        imageOptions: {
+          hideBackgroundDots: true,
+          imageSize: (settings.logoSize / 100) * settings.size,
+          margin: 5
+        },
+        dotsOptions: {
+          type: (settings.dotsType as any) || "square",
+          color: settings.dotsColor || settings.foregroundColor
+        },
+        backgroundOptions: {
+          color: settings.backgroundColor
+        },
+        cornersSquareOptions: {
+          type: (settings.cornerSquareType as any) || "square",
+          color: settings.cornerSquareColor || settings.foregroundColor
+        },
+        cornersDotOptions: {
+          type: (settings.cornerDotType as any) || "square",
+          color: settings.cornerDotColor || settings.foregroundColor
+        }
       });
 
       // إضافة اللوجو إذا كان موجوداً
       if (settings.logoFile) {
-        await addLogoToCanvas(canvas, ctx);
+        const logoUrl = URL.createObjectURL(settings.logoFile);
+        qrCode.update({
+          image: logoUrl
+        });
       }
 
-      // حفظ النتيجة
-      setQrDataUrl(canvas.toDataURL('image/png'));
+      // رسم على Canvas
+      const blob = await qrCode.getRawData("png");
+      if (blob && blob instanceof Blob) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              canvas.width = settings.size;
+              canvas.height = settings.size;
+              ctx.drawImage(img, 0, 0);
+              setQrDataUrl(canvas.toDataURL('image/png'));
+            }
+          };
+          img.src = reader.result as string;
+        };
+        reader.readAsDataURL(blob);
+      }
+
     } catch (error) {
       console.error('Error generating QR code:', error);
       toast.error("حدث خطأ في توليد رمز QR");
