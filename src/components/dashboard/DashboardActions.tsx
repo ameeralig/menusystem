@@ -1,4 +1,4 @@
-import { Plus, Edit, Eye, Link2, Settings, MessageSquare, QrCode } from "lucide-react";
+import { Plus, Edit, Eye, Link2, Settings, MessageSquare, QrCode, Palette } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -263,6 +263,11 @@ const DashboardActions = () => {
       icon: QrCode,
       label: "إنشاء رمز QR",
       onClick: showQrCode,
+    },
+    {
+      icon: Palette,
+      label: "مولد QR متقدم",
+      onClick: () => navigate("/qr-generator"),
     },
     {
       icon: MessageSquare,

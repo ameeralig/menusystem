@@ -15,6 +15,7 @@ import ProductPreview from "./pages/ProductPreview";
 import ProductsDemo from "./pages/ProductsDemo";
 import EditProduct from "./pages/EditProduct";
 import SpinWheelPage from "./pages/SpinWheelPage";
+import QRGenerator from "./pages/QRGenerator";
 import StoreCustomization from "./pages/StoreCustomization";
 import Profile from "./pages/Profile";
 import Feedback from "./pages/Feedback";
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/add-product" element={<AddProduct />} />
             <Route path="/products" element={<ProductsDemo />} />
             <Route path="/store/:slug/wheel" element={<SpinWheelPage />} />
+            <Route path="/qr-generator" element={<QRGenerator />} />
             <Route path="/:slug" element={<ProductPreview />} />
             <Route path="/edit-product" element={<EditProduct />} />
             <Route path="/edit-product/:productId" element={<EditProduct />} />
