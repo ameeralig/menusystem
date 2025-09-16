@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { QrCode, ArrowLeft, Download } from "lucide-react";
+import { QrCode, ArrowLeft, Download, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import QRColorController from "@/components/qr/QRColorController";
@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export interface QRSettings {
   foregroundColor: string;
@@ -50,6 +51,22 @@ const QRGenerator = () => {
     cornerSquareColor: '#000000',
     cornerDotColor: '#000000'
   });
+
+  // حالات طي الأقسام
+  const [openSections, setOpenSections] = useState({
+    content: false,
+    templates: false,
+    shapes: false,
+    colors: false,
+    logo: false
+  });
+
+  const toggleSection = (section: keyof typeof openSections) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
 
   const handleSettingsChange = useCallback((key: keyof QRSettings, value: any) => {
     setQRSettings(prev => ({
@@ -101,84 +118,155 @@ const QRGenerator = () => {
             className="space-y-6"
           >
             {/* النص المراد تحويله */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">محتوى الرمز</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="qr-text">النص أو الرابط</Label>
-                  <Input
-                    id="qr-text"
-                    value={qrSettings.text}
-                    onChange={(e) => handleSettingsChange('text', e.target.value)}
-                    placeholder="أدخل النص أو الرابط المراد تحويله"
-                    className="mt-2"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="qr-size">حجم الرمز</Label>
-                    <Input
-                      id="qr-size"
-                      type="number"
-                      min="200"
-                      max="800"
-                      value={qrSettings.size}
-                      onChange={(e) => handleSettingsChange('size', parseInt(e.target.value))}
-                      className="mt-2"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="error-level">مستوى تصحيح الأخطاء</Label>
-                    <select
-                      id="error-level"
-                      value={qrSettings.errorLevel}
-                      onChange={(e) => handleSettingsChange('errorLevel', e.target.value as 'L' | 'M' | 'Q' | 'H')}
-                      className="mt-2 w-full p-2 border border-input bg-background rounded-md text-sm"
-                    >
-                      <option value="L">منخفض (7%)</option>
-                      <option value="M">متوسط (15%)</option>
-                      <option value="Q">عالي (25%)</option>
-                      <option value="H">عالي جداً (30%)</option>
-                    </select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <Collapsible open={openSections.content} onOpenChange={() => toggleSection('content')}>
+              <Card>
+                <CollapsibleTrigger asChild>
+                  <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                    <CardTitle className="text-lg flex items-center justify-between">
+                      محتوى الرمز
+                      {openSections.content ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </CardTitle>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label htmlFor="qr-text">النص أو الرابط</Label>
+                      <Input
+                        id="qr-text"
+                        value={qrSettings.text}
+                        onChange={(e) => handleSettingsChange('text', e.target.value)}
+                        placeholder="أدخل النص أو الرابط المراد تحويله"
+                        className="mt-2"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="qr-size">حجم الرمز</Label>
+                        <Input
+                          id="qr-size"
+                          type="number"
+                          min="200"
+                          max="800"
+                          value={qrSettings.size}
+                          onChange={(e) => handleSettingsChange('size', parseInt(e.target.value))}
+                          className="mt-2"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="error-level">مستوى تصحيح الأخطاء</Label>
+                        <select
+                          id="error-level"
+                          value={qrSettings.errorLevel}
+                          onChange={(e) => handleSettingsChange('errorLevel', e.target.value as 'L' | 'M' | 'Q' | 'H')}
+                          className="mt-2 w-full p-2 border border-input bg-background rounded-md text-sm"
+                        >
+                          <option value="L">منخفض (7%)</option>
+                          <option value="M">متوسط (15%)</option>
+                          <option value="Q">عالي (25%)</option>
+                          <option value="H">عالي جداً (30%)</option>
+                        </select>
+                      </div>
+                    </div>
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
 
             <Separator />
 
             {/* القوالب الجاهزة */}
-            <QRTemplateSelector
-              onApplyTemplate={handleApplyTemplate}
-            />
+            <Collapsible open={openSections.templates} onOpenChange={() => toggleSection('templates')}>
+              <Card>
+                <CollapsibleTrigger asChild>
+                  <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                    <CardTitle className="text-lg flex items-center justify-between">
+                      القوالب الجاهزة
+                      {openSections.templates ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </CardTitle>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent>
+                    <QRTemplateSelector onApplyTemplate={handleApplyTemplate} />
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
 
             <Separator />
 
             {/* أشكال الأجزاء */}
-            <QRShapeController
-              settings={qrSettings}
-              onSettingsChange={handleSettingsChange}
-            />
+            <Collapsible open={openSections.shapes} onOpenChange={() => toggleSection('shapes')}>
+              <Card>
+                <CollapsibleTrigger asChild>
+                  <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                    <CardTitle className="text-lg flex items-center justify-between">
+                      أشكال الأجزاء
+                      {openSections.shapes ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </CardTitle>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent>
+                    <QRShapeController
+                      settings={qrSettings}
+                      onSettingsChange={handleSettingsChange}
+                    />
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
 
             <Separator />
 
             {/* تحكم متقدم في الألوان */}
-            <QRAdvancedColorController
-              settings={qrSettings}
-              onSettingsChange={handleSettingsChange}
-            />
+            <Collapsible open={openSections.colors} onOpenChange={() => toggleSection('colors')}>
+              <Card>
+                <CollapsibleTrigger asChild>
+                  <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                    <CardTitle className="text-lg flex items-center justify-between">
+                      تحكم متقدم في الألوان
+                      {openSections.colors ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </CardTitle>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent>
+                    <QRAdvancedColorController
+                      settings={qrSettings}
+                      onSettingsChange={handleSettingsChange}
+                    />
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
 
             <Separator />
 
             {/* رفع اللوجو */}
-            <QRLogoUploader
-              settings={qrSettings}
-              onSettingsChange={handleSettingsChange}
-            />
+            <Collapsible open={openSections.logo} onOpenChange={() => toggleSection('logo')}>
+              <Card>
+                <CollapsibleTrigger asChild>
+                  <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                    <CardTitle className="text-lg flex items-center justify-between">
+                      إضافة لوجو
+                      {openSections.logo ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </CardTitle>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent>
+                    <QRLogoUploader
+                      settings={qrSettings}
+                      onSettingsChange={handleSettingsChange}
+                    />
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
           </motion.div>
 
           {/* معاينة وتحميل */}

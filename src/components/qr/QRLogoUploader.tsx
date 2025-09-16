@@ -108,7 +108,7 @@ const QRLogoUploader = ({ settings, onSettingsChange }: QRLogoUploaderProps) => 
                 <Input
                   id="logo-size"
                   type="range"
-                  min="10"
+                  min="1"
                   max="40"
                   value={settings.logoSize}
                   onChange={(e) => onSettingsChange('logoSize', parseInt(e.target.value))}
@@ -117,7 +117,7 @@ const QRLogoUploader = ({ settings, onSettingsChange }: QRLogoUploaderProps) => 
                 <span className="text-sm w-12 text-center">{settings.logoSize}%</span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                يُنصح بحجم بين 15-25% للحصول على أفضل نتيجة
+                يُنصح بحجم بين 15-25% للحصول على أفضل نتيجة (1-40%)
               </p>
             </div>
 

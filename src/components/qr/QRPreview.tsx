@@ -37,7 +37,8 @@ const QRPreview = ({ settings }: QRPreviewProps) => {
         imageOptions: {
           hideBackgroundDots: true,
           imageSize: (settings.logoSize / 100) * settings.size,
-          margin: 5
+          margin: 2,
+          crossOrigin: "anonymous"
         },
         dotsOptions: {
           type: (settings.dotsType as any) || "square",
@@ -64,25 +65,11 @@ const QRPreview = ({ settings }: QRPreviewProps) => {
         });
       }
 
-      // رسم على Canvas
-      const blob = await qrCode.getRawData("png");
-      if (blob && blob instanceof Blob) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const img = new Image();
-          img.onload = () => {
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              canvas.width = settings.size;
-              canvas.height = settings.size;
-              ctx.drawImage(img, 0, 0);
-              setQrDataUrl(canvas.toDataURL('image/png'));
-            }
-          };
-          img.src = reader.result as string;
-        };
-        reader.readAsDataURL(blob);
-      }
+      // رسم مباشرة على Canvas
+      canvas.width = settings.size;
+      canvas.height = settings.size;
+      await qrCode.append(canvas);
+      setQrDataUrl(canvas.toDataURL('image/png'));
 
     } catch (error) {
       console.error('Error generating QR code:', error);
