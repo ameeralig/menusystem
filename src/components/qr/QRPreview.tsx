@@ -144,7 +144,18 @@ const QRPreview = ({ settings }: QRPreviewProps) => {
         } else if (settings.frameType === 'rounded') {
           const radius = 20;
           ctx.beginPath();
-          ctx.roundRect(frameX, frameY, frameSize, frameSize, radius);
+          // رسم مستطيل بزوايا مدورة بدون roundRect لضمان التوافق
+          const r = Math.min(radius, frameSize / 2);
+          ctx.moveTo(frameX + r, frameY);
+          ctx.lineTo(frameX + frameSize - r, frameY);
+          ctx.quadraticCurveTo(frameX + frameSize, frameY, frameX + frameSize, frameY + r);
+          ctx.lineTo(frameX + frameSize, frameY + frameSize - r);
+          ctx.quadraticCurveTo(frameX + frameSize, frameY + frameSize, frameX + frameSize - r, frameY + frameSize);
+          ctx.lineTo(frameX + r, frameY + frameSize);
+          ctx.quadraticCurveTo(frameX, frameY + frameSize, frameX, frameY + frameSize - r);
+          ctx.lineTo(frameX, frameY + r);
+          ctx.quadraticCurveTo(frameX, frameY, frameX + r, frameY);
+          ctx.closePath();
           ctx.stroke();
         } else if (settings.frameType === 'double') {
           ctx.strokeRect(frameX, frameY, frameSize, frameSize);

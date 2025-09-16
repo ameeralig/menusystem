@@ -9,13 +9,9 @@ interface QRFrameSelectorProps {
 }
 
 const frameTypes = [
-  { id: 'none', name: 'بدون إطار', preview: '⚪' },
-  { id: 'simple', name: 'إطار بسيط', preview: '🔲' },
-  { id: 'rounded', name: 'إطار مستدير', preview: '🔘' },
-  { id: 'elegant', name: 'إطار أنيق', preview: '◈' },
-  { id: 'modern', name: 'إطار عصري', preview: '◇' },
-  { id: 'classic', name: 'إطار كلاسيكي', preview: '◆' },
-  { id: 'gradient', name: 'إطار متدرج', preview: '◉' },
+  { id: 'none', name: 'بدون إطار', preview: '◌' },
+  { id: 'simple', name: 'إطار بسيط', preview: '▢' },
+  { id: 'rounded', name: 'إطار مستدير', preview: '⬚' },
   { id: 'double', name: 'إطار مزدوج', preview: '◎' },
 ];
 

@@ -25,81 +25,27 @@ const dotStyles = [
   },
   { 
     id: "rounded", 
-    name: "مربع مدور", 
+    name: "مدور الحواف", 
     preview: <div className="w-3 h-3 bg-current rounded-sm" />,
-    description: "مربعات بزوايا مدورة"
+    description: "نقاط مربعة بحواف ناعمة"
   },
   { 
     id: "extra-rounded", 
-    name: "مدور جداً", 
+    name: "مدور جدًا", 
     preview: <div className="w-3 h-3 bg-current rounded-lg" />,
-    description: "مربعات بزوايا مدورة جداً"
+    description: "نقاط مدورة جدًا"
   },
   { 
     id: "classy", 
     name: "كلاسيكي", 
     preview: <div className="w-3 h-3 bg-current transform rotate-45" />,
-    description: "أشكال ماسية كلاسيكية"
+    description: "نقاط كلاسيكية ماسية"
   },
   { 
     id: "classy-rounded", 
     name: "كلاسيكي مدور", 
-    preview: <div className="w-3 h-3 bg-current rounded-sm transform rotate-45" />,
-    description: "أشكال ماسية مدورة"
-  },
-  { 
-    id: "diamond", 
-    name: "ماسي حاد", 
-    preview: <div className="w-3 h-3 bg-current transform rotate-45 border" />,
-    description: "أشكال ماسية حادة"
-  },
-  { 
-    id: "star", 
-    name: "نجمي", 
-    preview: <div className="w-3 h-3 bg-current" style={{clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)'}}/>,
-    description: "نقاط على شكل نجوم"
-  },
-  { 
-    id: "heart", 
-    name: "قلب", 
-    preview: <div className="w-3 h-3 bg-current" style={{clipPath: 'polygon(50% 15%, 70% 0%, 85% 15%, 85% 40%, 50% 100%, 15% 40%, 15% 15%, 30% 0%)'}}/>,
-    description: "نقاط على شكل قلب"
-  },
-  { 
-    id: "triangle", 
-    name: "مثلث", 
-    preview: <div className="w-3 h-3 bg-current" style={{clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)'}}/>,
-    description: "نقاط مثلثة"
-  },
-  { 
-    id: "hexagon", 
-    name: "سداسي", 
-    preview: <div className="w-3 h-3 bg-current" style={{clipPath: 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)'}}/>,
-    description: "نقاط سداسية"
-  },
-  { 
-    id: "cross", 
-    name: "صليب", 
-    preview: <div className="w-3 h-3 bg-current" style={{clipPath: 'polygon(33% 0%, 67% 0%, 67% 33%, 100% 33%, 100% 67%, 67% 67%, 67% 100%, 33% 100%, 33% 67%, 0% 67%, 0% 33%, 33% 33%)'}}/>,
-    description: "نقاط صليبية"
-  },
-  { 
-    id: "oval", 
-    name: "بيضاوي", 
-    preview: <div className="w-3 h-2 bg-current rounded-full" />,
-    description: "نقاط بيضاوية"
-  },
-  { 
-    id: "rhombus", 
-    name: "معين", 
     preview: <div className="w-3 h-3 bg-current transform rotate-45 rounded-sm" />,
-    description: "نقاط معينية"
-  },
-  { 
-    id: "arrow", 
-    name: "سهم", 
-    preview: <div className="w-3 h-3 bg-current" style={{clipPath: 'polygon(0% 20%, 60% 20%, 60% 0%, 100% 50%, 60% 100%, 60% 80%, 0% 80%)'}}/>,
-    description: "نقاط سهمية"
+    description: "نقاط ماسية بحواف ناعمة"
   }
 ];
 
@@ -111,52 +57,10 @@ const cornerSquareStyles = [
     description: "إطار مربع تقليدي"
   },
   { 
-    id: "dot", 
-    name: "دائري", 
-    preview: <div className="w-4 h-4 border-2 border-current rounded-full" />,
-    description: "إطار دائري"
-  },
-  { 
     id: "extra-rounded", 
     name: "مدور", 
     preview: <div className="w-4 h-4 border-2 border-current rounded-lg" />,
     description: "إطار مدور الزوايا"
-  },
-  { 
-    id: "classy", 
-    name: "كلاسيكي", 
-    preview: <div className="w-4 h-4 border-2 border-current transform rotate-45" />,
-    description: "إطار ماسي"
-  },
-  { 
-    id: "rounded", 
-    name: "نصف مدور", 
-    preview: <div className="w-4 h-4 border-2 border-current rounded-md" />,
-    description: "إطار نصف مدور"
-  },
-  { 
-    id: "heavy", 
-    name: "سميك", 
-    preview: <div className="w-4 h-4 border-4 border-current" />,
-    description: "إطار سميك"
-  },
-  { 
-    id: "double", 
-    name: "مزدوج", 
-    preview: <div className="w-4 h-4 border-2 border-current relative"><div className="absolute inset-1 border border-current" /></div>,
-    description: "إطار مزدوج"
-  },
-  { 
-    id: "dashed", 
-    name: "متقطع", 
-    preview: <div className="w-4 h-4 border-2 border-current border-dashed" />,
-    description: "إطار متقطع"
-  },
-  { 
-    id: "star", 
-    name: "نجمي", 
-    preview: <div className="w-4 h-4 border-2 border-current" style={{clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)'}}/>,
-    description: "إطار نجمي"
   }
 ];
 
@@ -172,36 +76,6 @@ const cornerDotStyles = [
     name: "دائري", 
     preview: <div className="w-2 h-2 bg-current rounded-full" />,
     description: "نقطة دائرية في المركز"
-  },
-  { 
-    id: "diamond", 
-    name: "ماسي", 
-    preview: <div className="w-2 h-2 bg-current transform rotate-45" />,
-    description: "نقطة ماسية في المركز"
-  },
-  { 
-    id: "heart", 
-    name: "قلب", 
-    preview: <div className="w-2 h-2 bg-current" style={{clipPath: 'polygon(50% 15%, 70% 0%, 85% 15%, 85% 40%, 50% 100%, 15% 40%, 15% 15%, 30% 0%)'}}/>,
-    description: "نقطة قلبية في المركز"
-  },
-  { 
-    id: "star", 
-    name: "نجمة", 
-    preview: <div className="w-2 h-2 bg-current" style={{clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)'}}/>,
-    description: "نقطة نجمية في المركز"
-  },
-  { 
-    id: "cross", 
-    name: "صليب", 
-    preview: <div className="w-2 h-2 bg-current" style={{clipPath: 'polygon(33% 0%, 67% 0%, 67% 33%, 100% 33%, 100% 67%, 67% 67%, 67% 100%, 33% 100%, 33% 67%, 0% 67%, 0% 33%, 33% 33%)'}}/>,
-    description: "نقطة صليبية في المركز"
-  },
-  { 
-    id: "triangle", 
-    name: "مثلث", 
-    preview: <div className="w-2 h-2 bg-current" style={{clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)'}}/>,
-    description: "نقطة مثلثية في المركز"
   }
 ];
 
