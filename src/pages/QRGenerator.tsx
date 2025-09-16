@@ -115,7 +115,7 @@ const QRGenerator = () => {
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="space-y-6"
+            className="space-y-3"
           >
             {/* النص المراد تحويله */}
             <Collapsible open={openSections.content} onOpenChange={() => toggleSection('content')}>
@@ -175,7 +175,7 @@ const QRGenerator = () => {
               </Card>
             </Collapsible>
 
-            <Separator />
+            <Separator className="my-2" />
 
             {/* القوالب الجاهزة */}
             <Collapsible open={openSections.templates} onOpenChange={() => toggleSection('templates')}>
@@ -196,7 +196,7 @@ const QRGenerator = () => {
               </Card>
             </Collapsible>
 
-            <Separator />
+            <Separator className="my-2" />
 
             {/* أشكال الأجزاء */}
             <Collapsible open={openSections.shapes} onOpenChange={() => toggleSection('shapes')}>
@@ -220,7 +220,7 @@ const QRGenerator = () => {
               </Card>
             </Collapsible>
 
-            <Separator />
+            <Separator className="my-2" />
 
             {/* تحكم متقدم في الألوان */}
             <Collapsible open={openSections.colors} onOpenChange={() => toggleSection('colors')}>
@@ -244,7 +244,7 @@ const QRGenerator = () => {
               </Card>
             </Collapsible>
 
-            <Separator />
+            <Separator className="my-2" />
 
             {/* رفع اللوجو */}
             <Collapsible open={openSections.logo} onOpenChange={() => toggleSection('logo')}>
