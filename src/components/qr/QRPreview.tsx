@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Eye, Loader2 } from "lucide-react";
 import { QRSettings } from "@/pages/QRGenerator";
-import QRCode from "qrcode";
+
 import QRCodeStyling from "qr-code-styling";
 import { toast } from "sonner";
 
@@ -12,117 +12,132 @@ interface QRPreviewProps {
 }
 
 const QRPreview = ({ settings }: QRPreviewProps) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const qrRef = useRef<QRCodeStyling | null>(null);
+  const prevUrlRef = useRef<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
-
   const generateQR = async () => {
-    if (!canvasRef.current || !settings.text.trim()) return;
+    if (!settings.text.trim()) return;
 
     setIsGenerating(true);
-    const canvas = canvasRef.current;
 
     try {
-      // استخدام QRCodeStyling للميزات المتقدمة
-      const qrCode = new QRCodeStyling({
+      // إنشاء أو تحديث نسخة واحدة فقط من QRCodeStyling وإرفاقها بحاوية div
+      if (!qrRef.current) {
+        qrRef.current = new QRCodeStyling({
+          width: settings.size,
+          height: settings.size,
+          data: settings.text,
+          type: 'canvas',
+          margin: 10,
+          qrOptions: {
+            typeNumber: 0,
+            mode: 'Byte',
+            errorCorrectionLevel: settings.errorLevel,
+          },
+          imageOptions: {
+            hideBackgroundDots: true,
+            imageSize: settings.logoSize / 100, // نسبة مئوية (1% -> 0.01)
+            margin: 2,
+            crossOrigin: 'anonymous',
+          },
+          dotsOptions: {
+            type: (settings.dotsType as any) || 'square',
+            color: settings.dotsColor || settings.foregroundColor,
+          },
+          backgroundOptions: {
+            color: settings.backgroundColor,
+          },
+          cornersSquareOptions: {
+            type: (settings.cornerSquareType as any) || 'square',
+            color: settings.cornerSquareColor || settings.foregroundColor,
+          },
+          cornersDotOptions: {
+            type: (settings.cornerDotType as any) || 'square',
+            color: settings.cornerDotColor || settings.foregroundColor,
+          },
+        });
+
+        if (containerRef.current) {
+          containerRef.current.innerHTML = '';
+          await qrRef.current.append(containerRef.current);
+        }
+      }
+
+      const logoUrl = settings.logoFile ? URL.createObjectURL(settings.logoFile) : undefined;
+
+      await qrRef.current.update({
         width: settings.size,
         height: settings.size,
         data: settings.text,
-        margin: 10,
+        image: logoUrl,
         qrOptions: {
           typeNumber: 0,
-          mode: "Byte",
-          errorCorrectionLevel: settings.errorLevel
+          mode: 'Byte',
+          errorCorrectionLevel: settings.errorLevel,
         },
         imageOptions: {
           hideBackgroundDots: true,
-          imageSize: (settings.logoSize / 100) * settings.size,
+          imageSize: settings.logoSize / 100,
           margin: 2,
-          crossOrigin: "anonymous"
+          crossOrigin: 'anonymous',
         },
         dotsOptions: {
-          type: (settings.dotsType as any) || "square",
-          color: settings.dotsColor || settings.foregroundColor
+          type: (settings.dotsType as any) || 'square',
+          color: settings.dotsColor || settings.foregroundColor,
         },
         backgroundOptions: {
-          color: settings.backgroundColor
+          color: settings.backgroundColor,
         },
         cornersSquareOptions: {
-          type: (settings.cornerSquareType as any) || "square",
-          color: settings.cornerSquareColor || settings.foregroundColor
+          type: (settings.cornerSquareType as any) || 'square',
+          color: settings.cornerSquareColor || settings.foregroundColor,
         },
         cornersDotOptions: {
-          type: (settings.cornerDotType as any) || "square",
-          color: settings.cornerDotColor || settings.foregroundColor
-        }
+          type: (settings.cornerDotType as any) || 'square',
+          color: settings.cornerDotColor || settings.foregroundColor,
+        },
       });
 
-      // إضافة اللوجو إذا كان موجوداً
-      if (settings.logoFile) {
-        const logoUrl = URL.createObjectURL(settings.logoFile);
-        qrCode.update({
-          image: logoUrl
-        });
+      // توليد رابط تحميل آمن من Blob
+      if (qrRef.current && (qrRef.current as any).getRawData) {
+        const blob = await (qrRef.current as any).getRawData('png');
+        if (blob) {
+          const url = URL.createObjectURL(blob as Blob);
+          if (prevUrlRef.current) URL.revokeObjectURL(prevUrlRef.current);
+          prevUrlRef.current = url;
+          setQrDataUrl(url);
+        }
       }
-
-      // رسم مباشرة على Canvas
-      canvas.width = settings.size;
-      canvas.height = settings.size;
-      await qrCode.append(canvas);
-      setQrDataUrl(canvas.toDataURL('image/png'));
-
     } catch (error) {
       console.error('Error generating QR code:', error);
-      toast.error("حدث خطأ في توليد رمز QR");
+      toast.error('حدث خطأ في توليد رمز QR');
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const addLogoToCanvas = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      if (!settings.logoFile) {
-        resolve();
-        return;
-      }
 
-      const img = new Image();
-      img.onload = () => {
-        try {
-          const logoSizeRatio = settings.logoSize / 100;
-          const logoSize = canvas.width * logoSizeRatio;
-          const x = (canvas.width - logoSize) / 2;
-          const y = (canvas.height - logoSize) / 2;
-
-          // إضافة خلفية بيضاء خلف اللوجو
-          ctx.fillStyle = settings.backgroundColor;
-          ctx.fillRect(x - 5, y - 5, logoSize + 10, logoSize + 10);
-
-          // رسم اللوجو
-          ctx.drawImage(img, x, y, logoSize, logoSize);
-          resolve();
-        } catch (error) {
-          reject(error);
-        }
-      };
-      img.onerror = reject;
-      img.src = URL.createObjectURL(settings.logoFile);
-    });
-  };
-
-  const downloadQR = () => {
-    if (!qrDataUrl) {
-      toast.error("لا يوجد رمز QR للتحميل");
+  const downloadQR = async () => {
+    if (qrDataUrl) {
+      const link = document.createElement('a');
+      link.download = `qr-code-${Date.now()}.png`;
+      link.href = qrDataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('تم تحميل رمز QR بنجاح');
       return;
     }
 
-    const link = document.createElement('a');
-    link.download = `qr-code-${Date.now()}.png`;
-    link.href = qrDataUrl;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success("تم تحميل رمز QR بنجاح");
+    if (qrRef.current && (qrRef.current as any).download) {
+      await (qrRef.current as any).download({ name: `qr-code-${Date.now()}`, extension: 'png' });
+      toast.success('تم تحميل رمز QR بنجاح');
+      return;
+    }
+
+    toast.error('لا يوجد رمز QR للتحميل');
   };
 
   // إعادة توليد QR عند تغيير الإعدادات
@@ -143,19 +158,20 @@ const QRPreview = ({ settings }: QRPreviewProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* منطقة المعاينة */}
-        <div className="flex justify-center p-6 bg-muted/30 rounded-lg">
-          {isGenerating ? (
-            <div className="flex flex-col items-center gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">جاري إنشاء رمز QR...</p>
+        <div className="relative flex justify-center p-6 bg-muted/30 rounded-lg">
+          <div
+            ref={containerRef}
+            className="max-w-full h-auto rounded-lg shadow-sm"
+            style={{ imageRendering: 'pixelated' }}
+          />
+
+          {isGenerating && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/50 rounded-lg">
+              <div className="flex flex-col items-center gap-3">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">جاري إنشاء رمز QR...</p>
+              </div>
             </div>
-          ) : (
-            <canvas
-              ref={canvasRef}
-              className="max-w-full h-auto rounded-lg shadow-sm"
-              style={{ imageRendering: 'pixelated' }}
-            />
           )}
         </div>
 
