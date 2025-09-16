@@ -9,6 +9,8 @@ import QRPreview from "@/components/qr/QRPreview";
 import QRShapeController from "@/components/qr/QRShapeController";
 import QRAdvancedColorController from "@/components/qr/QRAdvancedColorController";
 import QRTemplateSelector from "@/components/qr/QRTemplateSelector";
+import QRFrameSelector from "@/components/qr/QRFrameSelector";
+import QRTextController from "@/components/qr/QRTextController";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +33,19 @@ export interface QRSettings {
   dotsColor?: string;
   cornerSquareColor?: string;
   cornerDotColor?: string;
+  // إعدادات الإطار
+  frameType?: string;
+  frameColor?: string;
+  frameWidth?: number;
+  // إعدادات النص
+  textPosition?: string;
+  customText?: string;
+  textSize?: number;
+  textColor?: string;
+  textFont?: string;
+  textWeight?: string;
+  textAlign?: string;
+  textMargin?: number;
 }
 
 const QRGenerator = () => {
@@ -49,7 +64,20 @@ const QRGenerator = () => {
     // ألوان متقدمة
     dotsColor: '#000000',
     cornerSquareColor: '#000000',
-    cornerDotColor: '#000000'
+    cornerDotColor: '#000000',
+    // إعدادات الإطار
+    frameType: 'none',
+    frameColor: '#000000',
+    frameWidth: 4,
+    // إعدادات النص
+    textPosition: 'none',
+    customText: '',
+    textSize: 16,
+    textColor: '#000000',
+    textFont: 'Arial',
+    textWeight: 'normal',
+    textAlign: 'center',
+    textMargin: 10
   });
 
   // حالات طي الأقسام
@@ -58,7 +86,9 @@ const QRGenerator = () => {
     templates: false,
     shapes: false,
     colors: false,
-    logo: false
+    logo: false,
+    frame: false,
+    text: false
   });
 
   const toggleSection = (section: keyof typeof openSections) => {
@@ -244,7 +274,55 @@ const QRGenerator = () => {
               </Card>
             </Collapsible>
 
-            <Separator className="my-2" />
+            <Separator className="my-1" />
+
+            {/* إطارات الرمز */}
+            <Collapsible open={openSections.frame} onOpenChange={() => toggleSection('frame')}>
+              <Card>
+                <CollapsibleTrigger asChild>
+                  <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                    <CardTitle className="text-lg flex items-center justify-between">
+                      إطارات الرمز
+                      {openSections.frame ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </CardTitle>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent>
+                    <QRFrameSelector
+                      settings={qrSettings}
+                      onSettingsChange={handleSettingsChange}
+                    />
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
+
+            <Separator className="my-1" />
+
+            {/* النص المخصص */}
+            <Collapsible open={openSections.text} onOpenChange={() => toggleSection('text')}>
+              <Card>
+                <CollapsibleTrigger asChild>
+                  <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                    <CardTitle className="text-lg flex items-center justify-between">
+                      النص المخصص
+                      {openSections.text ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </CardTitle>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent>
+                    <QRTextController
+                      settings={qrSettings}
+                      onSettingsChange={handleSettingsChange}
+                    />
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
+
+            <Separator className="my-1" />
 
             {/* رفع اللوجو */}
             <Collapsible open={openSections.logo} onOpenChange={() => toggleSection('logo')}>

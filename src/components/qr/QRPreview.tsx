@@ -58,11 +58,6 @@ const QRPreview = ({ settings }: QRPreviewProps) => {
             color: settings.cornerDotColor || settings.foregroundColor,
           },
         });
-
-        if (containerRef.current) {
-          containerRef.current.innerHTML = '';
-          await qrRef.current.append(containerRef.current);
-        }
       }
 
       const logoUrl = settings.logoFile ? URL.createObjectURL(settings.logoFile) : undefined;
@@ -100,16 +95,137 @@ const QRPreview = ({ settings }: QRPreviewProps) => {
         },
       });
 
-      // توليد رابط تحميل آمن من Blob
-      if (qrRef.current && (qrRef.current as any).getRawData) {
-        const blob = await (qrRef.current as any).getRawData('png');
+      // إنشاء canvas مؤقت للرسم عليه
+      const tempCanvas = document.createElement('canvas');
+      const ctx = tempCanvas.getContext('2d');
+      if (!ctx) return;
+
+      // حساب الأبعاد النهائية مع الإطار والنص
+      const frameWidth = settings.frameWidth || 4;
+      const textMargin = settings.textMargin || 10;
+      const textSize = settings.textSize || 16;
+      
+      let finalWidth = settings.size;
+      let finalHeight = settings.size;
+      
+      // إضافة مساحة للإطار
+      if (settings.frameType && settings.frameType !== 'none') {
+        finalWidth += frameWidth * 2;
+        finalHeight += frameWidth * 2;
+      }
+      
+      // إضافة مساحة للنص
+      if (settings.textPosition && settings.textPosition !== 'none' && settings.customText) {
+        if (settings.textPosition === 'top' || settings.textPosition === 'bottom') {
+          finalHeight += textSize + textMargin;
+        } else if (settings.textPosition === 'left' || settings.textPosition === 'right') {
+          finalWidth += 150 + textMargin; // عرض تقديري للنص
+        }
+      }
+
+      tempCanvas.width = finalWidth;
+      tempCanvas.height = finalHeight;
+      
+      // خلفية بيضاء
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, finalWidth, finalHeight);
+
+      // رسم الإطار
+      if (settings.frameType && settings.frameType !== 'none') {
+        ctx.strokeStyle = settings.frameColor || '#000000';
+        ctx.lineWidth = frameWidth;
+        
+        const frameX = frameWidth / 2;
+        const frameY = frameWidth / 2;
+        const frameSize = settings.size + frameWidth;
+        
+        if (settings.frameType === 'simple') {
+          ctx.strokeRect(frameX, frameY, frameSize, frameSize);
+        } else if (settings.frameType === 'rounded') {
+          const radius = 20;
+          ctx.beginPath();
+          ctx.roundRect(frameX, frameY, frameSize, frameSize, radius);
+          ctx.stroke();
+        } else if (settings.frameType === 'double') {
+          ctx.strokeRect(frameX, frameY, frameSize, frameSize);
+          ctx.strokeRect(frameX + frameWidth, frameY + frameWidth, frameSize - frameWidth * 2, frameSize - frameWidth * 2);
+        }
+      }
+
+      // الحصول على صورة QR من المكتبة
+      const qrBlob = await (qrRef.current as any).getRawData('png');
+      if (qrBlob) {
+        const qrImage = new Image();
+        const qrUrl = URL.createObjectURL(qrBlob);
+        
+        await new Promise((resolve) => {
+          qrImage.onload = () => {
+            // رسم QR في المكان المناسب
+            const qrX = settings.frameType && settings.frameType !== 'none' ? frameWidth : 0;
+            const qrY = settings.frameType && settings.frameType !== 'none' ? frameWidth : 0;
+            
+            // تعديل موقع QR حسب النص
+            let adjustedX = qrX;
+            let adjustedY = qrY;
+            
+            if (settings.textPosition === 'top' && settings.customText) {
+              adjustedY += textSize + textMargin;
+            } else if (settings.textPosition === 'left' && settings.customText) {
+              adjustedX += 150 + textMargin;
+            }
+            
+            ctx.drawImage(qrImage, adjustedX, adjustedY);
+            
+            // رسم النص
+            if (settings.customText && settings.textPosition && settings.textPosition !== 'none') {
+              ctx.fillStyle = settings.textColor || '#000000';
+              ctx.font = `${settings.textWeight || 'normal'} ${textSize}px ${settings.textFont || 'Arial'}`;
+              ctx.textAlign = (settings.textAlign || 'center') as CanvasTextAlign;
+              
+              let textX = finalWidth / 2;
+              let textY = finalHeight / 2;
+              
+              if (settings.textPosition === 'bottom') {
+                textY = finalHeight - textMargin;
+              } else if (settings.textPosition === 'top') {
+                textY = textSize + textMargin;
+              } else if (settings.textPosition === 'left') {
+                textX = 75;
+                textY = finalHeight / 2;
+              } else if (settings.textPosition === 'right') {
+                textX = finalWidth - 75;
+                textY = finalHeight / 2;
+              } else if (settings.textPosition === 'center') {
+                textX = finalWidth / 2;
+                textY = finalHeight / 2;
+              }
+              
+              ctx.fillText(settings.customText, textX, textY);
+            }
+            
+            URL.revokeObjectURL(qrUrl);
+            resolve(void 0);
+          };
+          qrImage.src = qrUrl;
+        });
+      }
+
+      // عرض النتيجة النهائية
+      if (containerRef.current) {
+        containerRef.current.innerHTML = '';
+        containerRef.current.appendChild(tempCanvas);
+      }
+
+      // حفظ رابط التحميل
+      tempCanvas.toBlob((blob) => {
         if (blob) {
-          const url = URL.createObjectURL(blob as Blob);
+          const url = URL.createObjectURL(blob);
           if (prevUrlRef.current) URL.revokeObjectURL(prevUrlRef.current);
           prevUrlRef.current = url;
           setQrDataUrl(url);
         }
-      }
+      }, 'image/png');
+
     } catch (error) {
       console.error('Error generating QR code:', error);
       toast.error('حدث خطأ في توليد رمز QR');
