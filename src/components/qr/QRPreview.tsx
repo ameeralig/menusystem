@@ -114,8 +114,8 @@ const QRPreview = ({ settings }: QRPreviewProps) => {
         finalHeight += frameWidth * 2;
       }
       
-      // إضافة مساحة للنص
-      if (settings.textPosition && settings.textPosition !== 'none' && settings.customText) {
+      // إضافة مساحة للنص (فقط للمواضع المحددة مسبقاً)
+      if (!settings.enableManualPosition && settings.textPosition && settings.textPosition !== 'none' && settings.customText) {
         if (settings.textPosition === 'top' || settings.textPosition === 'bottom') {
           finalHeight += textSize + textMargin;
         } else if (settings.textPosition === 'left' || settings.textPosition === 'right') {
@@ -177,7 +177,7 @@ const QRPreview = ({ settings }: QRPreviewProps) => {
             ctx.drawImage(qrImage, adjustedX, adjustedY);
             
             // رسم النص
-            if (settings.customText && settings.textPosition && settings.textPosition !== 'none') {
+            if (settings.customText && ((settings.textPosition && settings.textPosition !== 'none') || settings.enableManualPosition)) {
               ctx.fillStyle = settings.textColor || '#000000';
               ctx.font = `${settings.textWeight || 'normal'} ${textSize}px ${settings.textFont || 'Arial'}`;
               ctx.textAlign = (settings.textAlign || 'center') as CanvasTextAlign;
@@ -185,19 +185,26 @@ const QRPreview = ({ settings }: QRPreviewProps) => {
               let textX = finalWidth / 2;
               let textY = finalHeight / 2;
               
-              if (settings.textPosition === 'bottom') {
-                textY = finalHeight - textMargin;
-              } else if (settings.textPosition === 'top') {
-                textY = textSize + textMargin;
-              } else if (settings.textPosition === 'left') {
-                textX = 75;
-                textY = finalHeight / 2;
-              } else if (settings.textPosition === 'right') {
-                textX = finalWidth - 75;
-                textY = finalHeight / 2;
-              } else if (settings.textPosition === 'center') {
-                textX = finalWidth / 2;
-                textY = finalHeight / 2;
+              if (settings.enableManualPosition) {
+                // استخدام الموضع اليدوي
+                textX = (settings.textX || 150) + adjustedX;
+                textY = (settings.textY || 350) + adjustedY;
+              } else {
+                // حساب الموضع بناءً على الموضع المحدد
+                if (settings.textPosition === 'bottom') {
+                  textY = finalHeight - textMargin;
+                } else if (settings.textPosition === 'top') {
+                  textY = textSize + textMargin;
+                } else if (settings.textPosition === 'left') {
+                  textX = 75;
+                  textY = finalHeight / 2;
+                } else if (settings.textPosition === 'right') {
+                  textX = finalWidth - 75;
+                  textY = finalHeight / 2;
+                } else if (settings.textPosition === 'center') {
+                  textX = finalWidth / 2;
+                  textY = finalHeight / 2;
+                }
               }
               
               ctx.fillText(settings.customText, textX, textY);

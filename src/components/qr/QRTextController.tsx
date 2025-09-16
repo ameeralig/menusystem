@@ -4,6 +4,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { QRSettings } from "@/pages/QRGenerator";
+import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 
 interface QRTextControllerProps {
   settings: QRSettings;
@@ -22,31 +24,68 @@ const textPositions = [
 const QRTextController = ({ settings, onSettingsChange }: QRTextControllerProps) => {
   return (
     <div className="space-y-4">
-      {/* موقع النص */}
-      <div>
-        <Label className="text-sm font-medium mb-3 block">موقع النص</Label>
-        <div className="grid grid-cols-3 gap-2">
-          {textPositions.map((position) => (
-            <Card 
-              key={position.id}
-              className={`cursor-pointer transition-all hover:shadow-md ${
-                settings.textPosition === position.id 
-                  ? 'ring-2 ring-primary bg-primary/5' 
-                  : 'hover:bg-muted/50'
-              }`}
-              onClick={() => onSettingsChange('textPosition', position.id)}
-            >
-              <CardContent className="p-2 text-center">
-                <div className="text-lg mb-1">{position.icon}</div>
-                <div className="text-xs font-medium">{position.name}</div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      {/* تبديل وضع التحكم */}
+      <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+        <Switch
+          checked={settings.enableManualPosition || false}
+          onCheckedChange={(checked) => onSettingsChange('enableManualPosition', checked)}
+        />
+        <Label>تحكم يدوي في الموضع</Label>
       </div>
 
+      {/* إعدادات الموضع */}
+      {settings.enableManualPosition ? (
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">الموضع اليدوي (بكسل)</Label>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="text-x" className="text-xs">الموضع الأفقي (X)</Label>
+              <Input
+                id="text-x"
+                type="number"
+                value={settings.textX || 150}
+                onChange={(e) => onSettingsChange('textX', parseInt(e.target.value))}
+                min="0"
+                max="400"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="text-y" className="text-xs">الموضع العمودي (Y)</Label>
+              <Input
+                id="text-y"
+                type="number"
+                value={settings.textY || 350}
+                onChange={(e) => onSettingsChange('textY', parseInt(e.target.value))}
+                min="0"
+                max="400"
+                className="mt-1"
+              />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">موضع النص</Label>
+          <div className="space-y-2">
+            {textPositions.map((position) => (
+              <Button
+                key={position.id}
+                variant={settings.textPosition === position.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => onSettingsChange('textPosition', position.id)}
+                className="w-full justify-start gap-2"
+              >
+                <span>{position.icon}</span>
+                {position.name}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* إعدادات النص */}
-      {settings.textPosition && settings.textPosition !== 'none' && (
+      {((settings.textPosition && settings.textPosition !== 'none') || settings.enableManualPosition) && (
         <div className="space-y-4 pt-3 border-t">
           <div>
             <Label htmlFor="custom-text" className="text-sm">النص المخصص</Label>

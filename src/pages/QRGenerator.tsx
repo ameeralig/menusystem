@@ -46,6 +46,10 @@ export interface QRSettings {
   textWeight?: string;
   textAlign?: string;
   textMargin?: number;
+  // إعدادات الموضع اليدوي
+  textX?: number;
+  textY?: number;
+  enableManualPosition?: boolean;
 }
 
 const QRGenerator = () => {
@@ -77,7 +81,11 @@ const QRGenerator = () => {
     textFont: 'Arial',
     textWeight: 'normal',
     textAlign: 'center',
-    textMargin: 10
+    textMargin: 10,
+    // إعدادات الموضع اليدوي
+    textX: 150,
+    textY: 350,
+    enableManualPosition: false
   });
 
   // حالات طي الأقسام
