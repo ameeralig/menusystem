@@ -132,6 +132,8 @@ export const useFeedbackForm = ({ userId, onSuccess }: UseFeedbackFormProps) => 
 
       // إرسال إشعار WhatsApp لصاحب المتجر
       try {
+        console.log("بدء إرسال إشعار WhatsApp للمستخدم:", userId);
+        
         const feedbackTypeText = formData.feedbackType === 'complaint' ? 'شكوى' :
                                 formData.feedbackType === 'suggestion' ? 'اقتراح' :
                                 formData.feedbackType === 'compliment' ? 'إطراء' :
@@ -139,7 +141,13 @@ export const useFeedbackForm = ({ userId, onSuccess }: UseFeedbackFormProps) => 
         
         const notificationMessage = `تم استلام ${feedbackTypeText} جديد من: ${formData.visitorName}`;
         
-        await supabase.functions.invoke('send-whatsapp-notification', {
+        console.log("استدعاء دالة WhatsApp مع البيانات:", {
+          userId,
+          message: notificationMessage,
+          type: 'feedback'
+        });
+
+        const { data, error } = await supabase.functions.invoke('send-whatsapp-notification', {
           body: {
             userId: userId,
             message: notificationMessage,
@@ -147,9 +155,16 @@ export const useFeedbackForm = ({ userId, onSuccess }: UseFeedbackFormProps) => 
           }
         });
         
+        if (error) {
+          console.error("خطأ من Edge Function:", error);
+          throw error;
+        }
+        
+        console.log("نتيجة إرسال WhatsApp:", data);
         console.log("تم إرسال إشعار WhatsApp بنجاح");
       } catch (whatsappError) {
         console.error("خطأ في إرسال إشعار WhatsApp:", whatsappError);
+        console.error("تفاصيل الخطأ:", JSON.stringify(whatsappError, null, 2));
         // لا نوقف العملية إذا فشل إرسال WhatsApp
       }
 
