@@ -127,6 +127,32 @@ const CustomerFeedback = () => {
 
       console.log("تم إرسال الملاحظات بنجاح");
 
+      // إرسال إشعار WhatsApp لصاحب المتجر
+      try {
+        const feedbackTypeText = formData.feedbackType === 'complaint' ? 'شكوى' :
+                                 formData.feedbackType === 'suggestion' ? 'اقتراح' :
+                                 formData.feedbackType === 'compliment' ? 'إطراء' :
+                                 formData.feedbackType === 'question' ? 'استفسار' : 'ملاحظة';
+
+        const notificationMessage = `تم استلام ${feedbackTypeText} جديد من: ${formData.visitorName}`;
+
+        const { data, error } = await supabase.functions.invoke('send-whatsapp-notification', {
+          body: {
+            userId: userId!,
+            message: notificationMessage,
+            type: 'feedback'
+          }
+        });
+
+        if (error) {
+          console.error('خطأ من Edge Function:', error);
+        } else {
+          console.log('نتيجة إرسال WhatsApp:', data);
+        }
+      } catch (whatsappError) {
+        console.error('خطأ في إرسال إشعار WhatsApp:', whatsappError);
+      }
+      
       toast({
         title: "تم الإرسال بنجاح! ✅",
         description: "شكراً لك على ملاحظاتك القيمة! سيتم مراجعتها والرد عليها قريباً.",

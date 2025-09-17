@@ -56,17 +56,29 @@ serve(async (req) => {
 
     // تنسيق الرسالة
     const formattedMessage = encodeURIComponent(`
-🔔 *إشعار من متجرك*
+    🔔 *إشعار من متجرك*
+    
+    ${message}
+    
+    يمكنك مراجعة التفاصيل الكاملة في لوحة التحكم.
+        `.trim());
 
-${message}
+    // تطبيع رقم الهاتف ليوافق تنسيق CallMeBot (أرقام فقط بدون + أو مسافات)
+    const originalPhone = String(profile.phone_number);
+    const normalizedPhone = originalPhone.replace(/[^\d]/g, '');
 
-يمكنك مراجعة التفاصيل الكاملة في لوحة التحكم.
-    `.trim());
+    if (!normalizedPhone) {
+      console.log('رقم الهاتف بعد التطبيع فارغ أو غير صالح:', { originalPhone, normalizedPhone });
+      return new Response(
+        JSON.stringify({ success: false, message: 'رقم الهاتف غير صالح' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
 
     // إرسال رسالة WhatsApp عبر CallMeBot
-    const whatsappUrl = `https://api.callmebot.com/whatsapp.php?phone=${profile.phone_number}&text=${formattedMessage}&apikey=${callmebotApiKey}`;
+    const whatsappUrl = `https://api.callmebot.com/whatsapp.php?phone=${normalizedPhone}&text=${formattedMessage}&apikey=${callmebotApiKey}`;
     
-    console.log('إرسال رسالة WhatsApp إلى:', profile.phone_number);
+    console.log('إرسال رسالة WhatsApp إلى:', { originalPhone, normalizedPhone });
     
     const response = await fetch(whatsappUrl, {
       method: 'GET',
