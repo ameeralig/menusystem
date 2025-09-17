@@ -10,6 +10,7 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 const Profile = () => {
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [callmebotApiKey, setCallmebotApiKey] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -30,7 +31,7 @@ const Profile = () => {
 
         const { data: profile, error } = await supabase
           .from("profiles")
-          .select("full_name, phone_number")
+          .select("full_name, phone_number, callmebot_api_key")
           .eq("id", user.id)
           .maybeSingle();
 
@@ -39,6 +40,7 @@ const Profile = () => {
         if (profile) {
           setFullName(profile.full_name || "");
           setPhoneNumber(profile.phone_number || "");
+          setCallmebotApiKey(profile.callmebot_api_key || "");
         }
       } catch (error: any) {
         console.error("Error fetching profile:", error);
@@ -65,7 +67,8 @@ const Profile = () => {
         .from("profiles")
         .update({ 
           full_name: fullName,
-          phone_number: phoneNumber
+          phone_number: phoneNumber,
+          callmebot_api_key: callmebotApiKey
         })
         .eq("id", user.id);
 
@@ -135,6 +138,24 @@ const Profile = () => {
                 className="text-right"
                 dir="ltr"
               />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="callmebotApiKey" className="block text-right">
+                مفتاح CallMeBot API
+              </label>
+              <Input
+                id="callmebotApiKey"
+                type="text"
+                value={callmebotApiKey}
+                onChange={(e) => setCallmebotApiKey(e.target.value)}
+                placeholder="أدخل مفتاح CallMeBot الخاص بك"
+                className="text-right"
+                dir="ltr"
+              />
+              <p className="text-sm text-muted-foreground text-right">
+                لتفعيل إشعارات WhatsApp، يجب الحصول على مفتاح من CallMeBot عبر إرسال "I allow callmebot to send me messages" للرقم +34 644 09 03 76
+              </p>
             </div>
 
             <Button 

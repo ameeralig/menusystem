@@ -28,10 +28,10 @@ serve(async (req) => {
     // إنشاء عميل Supabase مع مفتاح الخدمة
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // الحصول على رقم هاتف المستخدم
+    // الحصول على رقم هاتف المستخدم ومفتاح CallMeBot الخاص به
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('phone_number')
+      .select('phone_number, callmebot_api_key')
       .eq('id', userId)
       .single();
 
@@ -46,6 +46,20 @@ serve(async (req) => {
         JSON.stringify({ 
           success: false, 
           message: 'لا يوجد رقم هاتف مسجل' 
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        }
+      );
+    }
+
+    if (!profile?.callmebot_api_key) {
+      console.log('لا يوجد مفتاح CallMeBot مسجل للمستخدم');
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'يجب إضافة مفتاح CallMeBot الخاص بك في الملف الشخصي' 
         }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -75,8 +89,8 @@ serve(async (req) => {
       );
     }
 
-    // إرسال رسالة WhatsApp عبر CallMeBot
-    const whatsappUrl = `https://api.callmebot.com/whatsapp.php?phone=${normalizedPhone}&text=${formattedMessage}&apikey=${callmebotApiKey}`;
+    // إرسال رسالة WhatsApp عبر CallMeBot باستخدام مفتاح المستخدم
+    const whatsappUrl = `https://api.callmebot.com/whatsapp.php?phone=${normalizedPhone}&text=${formattedMessage}&apikey=${profile.callmebot_api_key}`;
     
     console.log('إرسال رسالة WhatsApp إلى:', { originalPhone, normalizedPhone });
     

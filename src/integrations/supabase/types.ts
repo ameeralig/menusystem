@@ -243,18 +243,21 @@ export type Database = {
       }
       profiles: {
         Row: {
+          callmebot_api_key: string | null
           created_at: string
           full_name: string | null
           id: string
           phone_number: string | null
         }
         Insert: {
+          callmebot_api_key?: string | null
           created_at?: string
           full_name?: string | null
           id: string
           phone_number?: string | null
         }
         Update: {
+          callmebot_api_key?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
@@ -271,6 +274,7 @@ export type Database = {
           custom_domain: string | null
           dark_mode: boolean | null
           font_settings: Json | null
+          loading_tips: Json | null
           logo_url: string | null
           slug: string | null
           social_links: Json | null
@@ -287,6 +291,7 @@ export type Database = {
           custom_domain?: string | null
           dark_mode?: boolean | null
           font_settings?: Json | null
+          loading_tips?: Json | null
           logo_url?: string | null
           slug?: string | null
           social_links?: Json | null
@@ -303,6 +308,7 @@ export type Database = {
           custom_domain?: string | null
           dark_mode?: boolean | null
           font_settings?: Json | null
+          loading_tips?: Json | null
           logo_url?: string | null
           slug?: string | null
           social_links?: Json | null
