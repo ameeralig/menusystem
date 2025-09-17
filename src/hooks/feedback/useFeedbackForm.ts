@@ -130,6 +130,29 @@ export const useFeedbackForm = ({ userId, onSuccess }: UseFeedbackFormProps) => 
 
       console.log("تم إرسال الملاحظات بنجاح");
 
+      // إرسال إشعار WhatsApp لصاحب المتجر
+      try {
+        const feedbackTypeText = formData.feedbackType === 'complaint' ? 'شكوى' :
+                                formData.feedbackType === 'suggestion' ? 'اقتراح' :
+                                formData.feedbackType === 'compliment' ? 'إطراء' :
+                                formData.feedbackType === 'question' ? 'استفسار' : 'ملاحظة';
+        
+        const notificationMessage = `تم استلام ${feedbackTypeText} جديد من: ${formData.visitorName}`;
+        
+        await supabase.functions.invoke('send-whatsapp-notification', {
+          body: {
+            userId: userId,
+            message: notificationMessage,
+            type: 'feedback'
+          }
+        });
+        
+        console.log("تم إرسال إشعار WhatsApp بنجاح");
+      } catch (whatsappError) {
+        console.error("خطأ في إرسال إشعار WhatsApp:", whatsappError);
+        // لا نوقف العملية إذا فشل إرسال WhatsApp
+      }
+
       toast({
         title: "تم الإرسال بنجاح! ✅",
         description: "شكراً لك على ملاحظاتك القيمة! سيتم مراجعتها والرد عليها قريباً.",

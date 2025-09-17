@@ -24,3 +24,6 @@ verify_jwt = true
 
 [functions."cleanup-feedback"]
 verify_jwt = false
+
+[functions."send-whatsapp-notification"]
+verify_jwt = false
