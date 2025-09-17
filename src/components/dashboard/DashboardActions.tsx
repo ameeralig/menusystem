@@ -234,42 +234,6 @@ const DashboardActions = () => {
 
   const actionButtons = [
     {
-      icon: Plus,
-      label: "إضافة منتج",
-      onClick: () => navigate("/add-product"),
-    },
-    {
-      icon: Edit,
-      label: "تعديل المنتجات",
-      onClick: handleEditProducts,
-    },
-    {
-      icon: Eye,
-      label: "معاينة المنتجات",
-      onClick: handlePreviewProducts,
-    },
-    {
-      icon: Settings,
-      label: "تخصيص الصفحة",
-      onClick: () => navigate("/store-customization"),
-    },
-    {
-      icon: Link2,
-      label: isCopying ? "تم النسخ ✅" : "نسخ رابط المنتجات",
-      onClick: copyProductLink,
-      disabled: isCopying,
-    },
-    {
-      icon: QrCode,
-      label: "إنشاء رمز QR",
-      onClick: showQrCode,
-    },
-    {
-      icon: Palette,
-      label: "مولد QR متقدم",
-      onClick: () => navigate("/qr-generator"),
-    },
-    {
       icon: MessageSquare,
       label: "الشكاوى والاقتراحات",
       onClick: () => navigate("/feedback"),
@@ -280,14 +244,13 @@ const DashboardActions = () => {
     <div className="space-y-6">
       <Card className="bg-card/50 backdrop-blur-sm border-border/60 shadow-sm">
         <CardContent className="p-6">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+          <div className="flex justify-center">
             {actionButtons.map((button, index) => (
               <DashboardActionButton
                 key={index}
                 icon={button.icon}
                 label={button.label}
                 onClick={button.onClick}
-                disabled={button.disabled}
               />
             ))}
           </div>

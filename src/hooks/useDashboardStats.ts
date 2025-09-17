@@ -9,6 +9,10 @@ export interface DashboardStats {
   activeProducts: number;
   popularProducts: number;
   newProducts: number;
+  wheelSpins: number;
+  todayViews: number;
+  weeklyViews: number;
+  monthlyViews: number;
 }
 
 export interface DailyViewData {
@@ -23,6 +27,10 @@ export const useDashboardStats = () => {
     activeProducts: 0,
     popularProducts: 0,
     newProducts: 0,
+    wheelSpins: 0,
+    todayViews: 0,
+    weeklyViews: 0,
+    monthlyViews: 0,
   });
   const [dailyViewsData, setDailyViewsData] = useState<DailyViewData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,6 +80,32 @@ export const useDashboardStats = () => {
       const popularProducts = productsData?.filter(product => product.is_popular).length || 0;
       const newProducts = productsData?.filter(product => product.is_new).length || 0;
 
+      const wheelSpins = Math.floor(totalViews / 10) || 0; // تقدير عدد دورات عجلة الحظ
+
+      // حساب المشاهدات حسب الفترة الزمنية
+      const currentDate = new Date();
+      const todayStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+      const weekStart = new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+
+      const todayViews = viewsData?.filter(view => {
+        if (!view.last_viewed_at) return false;
+        const viewDate = new Date(view.last_viewed_at);
+        return viewDate >= todayStart;
+      }).reduce((sum, view) => sum + (view.view_count || 0), 0) || 0;
+
+      const weeklyViews = viewsData?.filter(view => {
+        if (!view.last_viewed_at) return false;
+        const viewDate = new Date(view.last_viewed_at);
+        return viewDate >= weekStart;
+      }).reduce((sum, view) => sum + (view.view_count || 0), 0) || 0;
+
+      const monthlyViews = viewsData?.filter(view => {
+        if (!view.last_viewed_at) return false;
+        const viewDate = new Date(view.last_viewed_at);
+        return viewDate >= monthStart;
+      }).reduce((sum, view) => sum + (view.view_count || 0), 0) || 0;
+
       console.log("الإحصائيات المحسوبة:", {
         totalViews,
         totalProducts,
@@ -86,6 +120,10 @@ export const useDashboardStats = () => {
         activeProducts,
         popularProducts,
         newProducts,
+        wheelSpins,
+        todayViews,
+        weeklyViews,
+        monthlyViews,
       });
 
       // إنشاء بيانات المشاهدات اليومية للأسبوع الماضي

@@ -1,51 +1,135 @@
-import { LayoutDashboard, Package, Settings, BarChart3 } from "lucide-react";
+import { LayoutDashboard, Settings, BarChart3, Edit, Link2 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { copyToClipboard } from "@/utils/clipboard";
 import { cn } from "@/lib/utils";
+
+const BASE_DOMAIN = "https://qrmenuc.com";
 
 const MobileNavigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
+  const [isCopying, setIsCopying] = useState(false);
+
+  const handleEditProducts = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: "خطأ",
+        description: "يجب تسجيل الدخول أولاً",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+
+    const { data: products } = await supabase
+      .from("products")
+      .select("id")
+      .eq("user_id", user.id)
+      .limit(1);
+    
+    if (products && products.length > 0) {
+      navigate(`/edit-product/${products[0].id}`);
+    } else {
+      toast({
+        title: "لا توجد منتجات",
+        description: "قم بإضافة منتج أولاً",
+        duration: 3000,
+      });
+    }
+  };
+
+  const copyProductLink = async () => {
+    try {
+      setIsCopying(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      const { data: storeSettings } = await supabase
+        .from("store_settings")
+        .select("slug")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      
+      if (!storeSettings?.slug) {
+        toast({
+          title: "خطأ",
+          description: "يرجى إعداد رابط مخصص في صفحة تخصيص المتجر أولاً",
+          variant: "destructive",
+          duration: 5000,
+        });
+        navigate("/store-customization");
+        return;
+      }
+
+      const url = `${BASE_DOMAIN}/${storeSettings.slug}`;
+      await copyToClipboard(url);
+      toast({
+        title: "تم النسخ!",
+        description: `تم نسخ رابط المتجر: ${url}`,
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Copy link error:", error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء نسخ الرابط",
+        variant: "destructive",
+        duration: 3000,
+      });
+    } finally {
+      setTimeout(() => setIsCopying(false), 2000);
+    }
+  };
 
   const navItems = [
     {
       icon: LayoutDashboard,
       label: "الرئيسية",
       path: "/dashboard",
+      action: () => navigate("/dashboard"),
     },
     {
-      icon: Package,
-      label: "المنتجات",
-      path: "/products",
+      icon: Edit,
+      label: "تعديل المنتجات",
+      path: "/edit-products",
+      action: handleEditProducts,
     },
     {
-      icon: BarChart3,
-      label: "الإحصائيات",
-      path: "/analytics",
+      icon: Link2,
+      label: isCopying ? "تم النسخ ✅" : "نسخ الرابط",
+      path: "/copy-link", 
+      action: copyProductLink,
     },
     {
       icon: Settings,
       label: "الإعدادات",
       path: "/store-customization",
+      action: () => navigate("/store-customization"),
     },
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border/60 px-4 py-2 md:hidden">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border/60 px-4 py-2">
       <div className="flex justify-around items-center max-w-md mx-auto">
         {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
+          const isActive = location.pathname === item.path || (item.path === "/dashboard" && location.pathname === "/dashboard");
           return (
             <button
               key={item.path}
-              onClick={() => navigate(item.path)}
+              onClick={item.action}
               className={cn(
                 "flex flex-col items-center justify-center px-3 py-2 rounded-xl transition-all duration-300",
-                isActive
+                isActive && item.path === "/dashboard"
                   ? "text-primary bg-primary/10 shadow-sm"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               )}
             >
-              <item.icon className={cn("h-5 w-5 mb-1", isActive && "animate-scale-in")} />
+              <item.icon className={cn("h-5 w-5 mb-1", isActive && item.path === "/dashboard" && "animate-scale-in")} />
               <span className="text-xs font-medium">{item.label}</span>
             </button>
           );

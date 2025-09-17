@@ -1,6 +1,6 @@
 
+import { Eye, Package, CheckCircle, Star, Sparkles, Calendar, TrendingUp, RotateCcw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { BarChart3, Package, Eye, TrendingUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface DashboardStatsProps {
@@ -9,6 +9,11 @@ interface DashboardStatsProps {
     totalProducts: number;
     activeProducts: number;
     popularProducts: number;
+    newProducts: number;
+    wheelSpins: number;
+    todayViews: number;
+    weeklyViews: number;
+    monthlyViews: number;
   };
   loading: boolean;
 }
@@ -19,43 +24,79 @@ const DashboardStats = ({ stats, loading }: DashboardStatsProps) => {
       title: "إجمالي المشاهدات",
       value: stats.totalViews,
       icon: Eye,
-      color: "from-[#ff9178] to-[#ffbcad]",
-      bgLight: "bg-[#fff5f2]",
-      bgDark: "dark:bg-[#ff9178]/20",
-      iconColor: "text-[#ff9178] dark:text-[#ffbcad]",
+      color: "from-primary to-primary/80",
+      bgLight: "bg-primary/10",
+      bgDark: "dark:bg-primary/20",
+      iconColor: "text-primary",
     },
     {
-      title: "إجمالي المنتجات",
-      value: stats.totalProducts,
-      icon: Package,
+      title: "مشاهدات اليوم",
+      value: stats.todayViews,
+      icon: Calendar,
       color: "from-blue-500 to-blue-400",
       bgLight: "bg-blue-50",
       bgDark: "dark:bg-blue-500/20",
       iconColor: "text-blue-500 dark:text-blue-400",
     },
     {
-      title: "المنتجات المتاحة",
-      value: stats.activeProducts,
+      title: "مشاهدات الأسبوع",
+      value: stats.weeklyViews,
       icon: TrendingUp,
+      color: "from-emerald-500 to-emerald-400",
+      bgLight: "bg-emerald-50",
+      bgDark: "dark:bg-emerald-500/20",
+      iconColor: "text-emerald-500 dark:text-emerald-400",
+    },
+    {
+      title: "إجمالي المنتجات",
+      value: stats.totalProducts,
+      icon: Package,
       color: "from-green-500 to-green-400",
       bgLight: "bg-green-50",
       bgDark: "dark:bg-green-500/20",
       iconColor: "text-green-500 dark:text-green-400",
     },
     {
+      title: "المنتجات النشطة",
+      value: stats.activeProducts,
+      icon: CheckCircle,
+      color: "from-amber-500 to-amber-400",
+      bgLight: "bg-amber-50",
+      bgDark: "dark:bg-amber-500/20",
+      iconColor: "text-amber-500 dark:text-amber-400",
+    },
+    {
       title: "المنتجات الشائعة",
       value: stats.popularProducts,
-      icon: BarChart3,
+      icon: Star,
       color: "from-purple-500 to-purple-400",
       bgLight: "bg-purple-50",
       bgDark: "dark:bg-purple-500/20",
       iconColor: "text-purple-500 dark:text-purple-400",
     },
+    {
+      title: "المنتجات الجديدة",
+      value: stats.newProducts,
+      icon: Sparkles,
+      color: "from-pink-500 to-pink-400",
+      bgLight: "bg-pink-50",
+      bgDark: "dark:bg-pink-500/20",
+      iconColor: "text-pink-500 dark:text-pink-400",
+    },
+    {
+      title: "استخدام عجلة الحظ",
+      value: stats.wheelSpins,
+      icon: RotateCcw,
+      color: "from-orange-500 to-orange-400",
+      bgLight: "bg-orange-50",
+      bgDark: "dark:bg-orange-500/20",
+      iconColor: "text-orange-500 dark:text-orange-400",
+    },
   ];
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-      {statsItems.map((item, index) => (
+      {statsItems.slice(0, 8).map((item, index) => (
         <Card 
           key={index} 
           className="relative overflow-hidden bg-card/50 backdrop-blur-sm border-border/60 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1 group"

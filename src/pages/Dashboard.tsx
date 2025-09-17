@@ -30,7 +30,7 @@ const Dashboard = () => {
       </div>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-6 pb-24 md:pb-6">
+      <main className="container mx-auto px-4 py-6 pb-24">
         {/* Stats Section */}
         <div className="mb-8">
           <div className="mb-4">
