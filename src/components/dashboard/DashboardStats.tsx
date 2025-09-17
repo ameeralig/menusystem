@@ -54,10 +54,13 @@ const DashboardStats = ({ stats, loading }: DashboardStatsProps) => {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
       {statsItems.map((item, index) => (
-        <Card key={index} className="overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow">
-          <CardContent className="p-6">
+        <Card 
+          key={index} 
+          className="relative overflow-hidden bg-card/50 backdrop-blur-sm border-border/60 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1 group"
+        >
+          <CardContent className="p-4 md:p-6">
             {loading ? (
               <div className="space-y-3">
                 <Skeleton className="h-10 w-10 rounded-full" />
@@ -66,15 +69,27 @@ const DashboardStats = ({ stats, loading }: DashboardStatsProps) => {
               </div>
             ) : (
               <div className="flex flex-col space-y-3">
-                <div className={`inline-flex rounded-full p-2.5 w-fit ${item.bgLight} ${item.bgDark}`}>
-                  <item.icon className={`h-6 w-6 ${item.iconColor}`} />
+                {/* Icon Container */}
+                <div className={`inline-flex rounded-xl p-3 w-fit transition-all duration-300 group-hover:scale-110 ${item.bgLight} ${item.bgDark}`}>
+                  <item.icon className={`h-5 w-5 md:h-6 md:w-6 ${item.iconColor} transition-all duration-300`} />
                 </div>
-                <span className="text-sm text-muted-foreground font-medium">{item.title}</span>
-                <span className={`text-2xl font-bold bg-gradient-to-r bg-clip-text text-transparent transition-all duration-300 ease-in-out tracking-tight ${item.color}`}>
-                  {item.value}
+                
+                {/* Title */}
+                <span className="text-xs md:text-sm text-muted-foreground font-medium leading-tight">
+                  {item.title}
                 </span>
+                
+                {/* Value */}
+                <div className="flex items-baseline gap-1">
+                  <span className={`text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent transition-all duration-300 ease-in-out tracking-tight ${item.color}`}>
+                    {item.value.toLocaleString('ar-SA')}
+                  </span>
+                </div>
               </div>
             )}
+            
+            {/* Decorative Background */}
+            <div className="absolute -top-2 -right-2 w-16 h-16 rounded-full bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </CardContent>
         </Card>
       ))}

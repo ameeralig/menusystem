@@ -277,29 +277,29 @@ const DashboardActions = () => {
   ];
 
   return (
-    <Card className="border border-border/60 bg-background/95 backdrop-blur-sm shadow-md">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-xl font-bold">الإجراءات السريعة</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {actionButtons.map((button, index) => (
-            <DashboardActionButton
-              key={index}
-              icon={button.icon}
-              label={button.label}
-              onClick={button.onClick}
-              disabled={button.disabled}
-            />
-          ))}
-        </div>
-      </CardContent>
+    <div className="space-y-6">
+      <Card className="bg-card/50 backdrop-blur-sm border-border/60 shadow-sm">
+        <CardContent className="p-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+            {actionButtons.map((button, index) => (
+              <DashboardActionButton
+                key={index}
+                icon={button.icon}
+                label={button.label}
+                onClick={button.onClick}
+                disabled={button.disabled}
+              />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+      
       <QrCodeModal 
         isOpen={qrModalOpen} 
         onClose={() => setQrModalOpen(false)} 
         storeUrl={storeUrl}
       />
-    </Card>
+    </div>
   );
 };
 

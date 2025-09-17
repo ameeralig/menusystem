@@ -7,113 +7,148 @@ import DashboardStats from "@/components/dashboard/DashboardStats";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import MobileNavigation from "@/components/dashboard/MobileNavigation";
+import FloatingActionButton from "@/components/dashboard/FloatingActionButton";
 
 const Dashboard = () => {
   const { stats, dailyViewsData, loading } = useDashboardStats();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <DashboardHeader />
-      <main className="container mx-auto p-6">
-        <div className="mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gradient">لوحة التحكم</h1>
-            <p className="text-muted-foreground">مرحبًا بك في لوحة تحكم متجرك الإلكتروني</p>
+      
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-background border-b border-border/50">
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              لوحة التحكم
+            </h1>
+            <p className="text-muted-foreground text-lg">إدارة متجرك الإلكتروني بسهولة وفعالية</p>
           </div>
-          <Card className="w-full md:w-auto bg-primary/5 border-primary/20">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-primary">
-                <LayoutDashboard className="h-5 w-5" />
-                <span className="font-medium">نظرة عامة لمتجرك</span>
-              </div>
-            </CardContent>
-          </Card>
         </div>
+      </div>
 
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-6 pb-24 md:pb-6">
+        {/* Stats Section */}
         <div className="mb-8">
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold text-foreground mb-2">الإحصائيات</h2>
+            <p className="text-sm text-muted-foreground">نظرة سريعة على أداء متجرك</p>
+          </div>
           <DashboardStats stats={stats} loading={loading} />
         </div>
 
-        <Tabs defaultValue="actions" className="mb-8">
-          <TabsList className="mb-4 w-full md:w-auto">
-            <TabsTrigger value="actions">الإجراءات السريعة</TabsTrigger>
-            <TabsTrigger value="analytics">الإحصائيات</TabsTrigger>
-          </TabsList>
-          <TabsContent value="actions" className="mt-0">
-            <DashboardActions />
-          </TabsContent>
-          <TabsContent value="analytics" className="mt-0">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-primary" />
-                  إحصائيات الزيارات اليومية
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                    جاري تحميل الإحصائيات...
-                  </div>
-                ) : (
-                  <div className="h-[300px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={dailyViewsData}
-                        margin={{
-                          top: 20,
-                          right: 20,
-                          left: 20,
-                          bottom: 20,
-                        }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                        <XAxis 
-                          dataKey="date" 
-                          tick={{ fill: '#888' }}
-                          axisLine={{ stroke: '#e0e0e0' }}
-                        />
-                        <YAxis 
-                          tick={{ fill: '#888' }}
-                          axisLine={{ stroke: '#e0e0e0' }}
-                        />
-                        <Tooltip
-                          content={({ active, payload }) => {
-                            if (active && payload && payload.length) {
-                              return (
-                                <div className="rounded-lg border bg-background p-2 shadow-md">
-                                  <div className="flex flex-col">
-                                    <span className="text-sm font-bold">
-                                      {payload[0].payload.date}
-                                    </span>
-                                    <span className="flex items-center gap-1 text-sm">
-                                      <span className="h-2 w-2 rounded-full bg-[#ff9178]"></span>
-                                      <span className="text-muted-foreground">
-                                        الزيارات:
-                                      </span>{" "}
-                                      {payload[0].value}
-                                    </span>
-                                  </div>
-                                </div>
-                              );
-                            }
-                            return null;
+        {/* Actions and Analytics */}
+        <div className="space-y-6">
+          <Tabs defaultValue="actions" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted/50 p-1 rounded-xl">
+              <TabsTrigger 
+                value="actions" 
+                className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
+              >
+                الإجراءات السريعة
+              </TabsTrigger>
+              <TabsTrigger 
+                value="analytics"
+                className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
+              >
+                الإحصائيات التفصيلية
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="actions" className="mt-0 space-y-4">
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold text-foreground mb-2">الإجراءات السريعة</h2>
+                <p className="text-sm text-muted-foreground">أدوات سريعة لإدارة متجرك</p>
+              </div>
+              <DashboardActions />
+            </TabsContent>
+            
+            <TabsContent value="analytics" className="mt-0">
+              <Card className="bg-card/50 backdrop-blur-sm border-border/60 shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-3 text-lg">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <BarChart3 className="h-5 w-5 text-primary" />
+                    </div>
+                    إحصائيات الزيارات اليومية
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {loading ? (
+                    <div className="h-[300px] flex items-center justify-center">
+                      <div className="text-center space-y-2">
+                        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                        <p className="text-muted-foreground text-sm">جاري تحميل الإحصائيات...</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="h-[300px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={dailyViewsData}
+                          margin={{
+                            top: 20,
+                            right: 20,
+                            left: 20,
+                            bottom: 20,
                           }}
-                        />
-                        <Bar 
-                          dataKey="views" 
-                          fill="#ff9178" 
-                          radius={[4, 4, 0, 0]}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                        >
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                          <XAxis 
+                            dataKey="date" 
+                            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                            axisLine={{ stroke: 'hsl(var(--border))' }}
+                          />
+                          <YAxis 
+                            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                            axisLine={{ stroke: 'hsl(var(--border))' }}
+                          />
+                          <Tooltip
+                            content={({ active, payload }) => {
+                              if (active && payload && payload.length) {
+                                return (
+                                  <div className="rounded-xl border bg-background/95 backdrop-blur-sm p-3 shadow-xl border-border/60">
+                                    <div className="flex flex-col space-y-1">
+                                      <span className="text-sm font-semibold text-foreground">
+                                        {payload[0].payload.date}
+                                      </span>
+                                      <div className="flex items-center gap-2 text-sm">
+                                        <div className="h-2 w-2 rounded-full bg-primary"></div>
+                                        <span className="text-muted-foreground">الزيارات:</span>
+                                        <span className="font-medium text-foreground">{payload[0].value}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
+                          <Bar 
+                            dataKey="views" 
+                            fill="hsl(var(--primary))" 
+                            radius={[6, 6, 0, 0]}
+                            opacity={0.8}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
       </main>
+
+      {/* Mobile Navigation */}
+      <MobileNavigation />
+      
+      {/* Floating Action Button */}
+      <FloatingActionButton />
     </div>
   );
 };
