@@ -15,6 +15,7 @@ interface CategoryImageCardProps {
   category: string;
   categoryImage: CategoryImage | undefined;
   onFileUpload: (category: string, file: File) => Promise<void>;
+  onUrlUpload: (category: string, url: string) => Promise<void>;
   onRemoveImage: (category: string) => Promise<void>;
   onDeleteCategory?: (category: string, confirmationText?: string) => Promise<any>;
   uploading: boolean;
@@ -25,6 +26,7 @@ export const CategoryImageCard = ({
   category,
   categoryImage,
   onFileUpload,
+  onUrlUpload,
   onRemoveImage,
   onDeleteCategory,
   uploading,
@@ -38,6 +40,8 @@ export const CategoryImageCard = ({
   const [confirmationText, setConfirmationText] = useState("");
   const [productCount, setProductCount] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [uploadMethod, setUploadMethod] = useState<"file" | "url">("file");
+  const [imageUrl, setImageUrl] = useState("");
   const { toast } = useToast();
 
   // عند تغيير صورة التصنيف أو إعادة التحميل، نستخدم القيمة الجديدة
@@ -278,7 +282,7 @@ export const CategoryImageCard = ({
           </div>
         )}
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           <input
             ref={fileInputRef}
             type="file"
@@ -287,7 +291,29 @@ export const CategoryImageCard = ({
             className="hidden"
           />
           
-          <div className="flex items-center gap-2">
+          {/* طريقة الرفع */}
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={uploadMethod === "file" ? "default" : "outline"}
+              size="sm"
+              className="flex-1"
+              onClick={() => setUploadMethod("file")}
+            >
+              رفع من الجهاز
+            </Button>
+            <Button
+              type="button"
+              variant={uploadMethod === "url" ? "default" : "outline"}
+              size="sm"
+              className="flex-1"
+              onClick={() => setUploadMethod("url")}
+            >
+              رابط الصورة
+            </Button>
+          </div>
+
+          {uploadMethod === "file" ? (
             <Button
               type="button"
               variant="outline"
@@ -305,7 +331,38 @@ export const CategoryImageCard = ({
                 <>اختيار صورة</>
               )}
             </Button>
-          </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <Input
+                placeholder="أدخل رابط الصورة"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                disabled={uploading}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  if (imageUrl.trim()) {
+                    onUrlUpload(category, imageUrl.trim());
+                    setImageUrl("");
+                  }
+                }}
+                disabled={uploading || !imageUrl.trim()}
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    جاري الحفظ...
+                  </>
+                ) : (
+                  <>حفظ الصورة</>
+                )}
+              </Button>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -25,7 +25,12 @@ export const CategoryImageManager = ({
   userId,
   onCategoryDeleted,
 }: CategoryImageManagerProps) => {
-  const { uploading, handleFileUpload, removeImage } = useCategoryImageUpload({
+  const { 
+    uploading, 
+    handleFileUpload, 
+    handleUrlUpload,
+    removeImage 
+  } = useCategoryImageUpload({
     categoryImages,
     onUpdateImages
   });
@@ -190,6 +195,7 @@ export const CategoryImageManager = ({
                   category={category}
                   categoryImage={categoryImage}
                   onFileUpload={handleFileUpload}
+                  onUrlUpload={handleUrlUpload}
                   onRemoveImage={removeImage}
                   onDeleteCategory={userId ? handleDeleteCategory : undefined}
                   userId={userId || undefined}

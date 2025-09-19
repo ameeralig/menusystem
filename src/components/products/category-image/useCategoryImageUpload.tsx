@@ -155,9 +155,94 @@ export const useCategoryImageUpload = ({
     }
   };
 
+  // حفظ صورة من رابط للتصنيف
+  const handleUrlUpload = async (category: string, url: string) => {
+    try {
+      console.log(`بدء حفظ صورة من رابط للتصنيف: ${category}`);
+      setUploading(category);
+
+      // التأكد من وجود مستخدم
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) {
+        throw new Error("يجب تسجيل الدخول أولاً");
+      }
+
+      const userId = userData.user.id;
+      
+      // الحصول على الصورة الحالية إن وجدت
+      const existingImage = categoryImages.find(img => img.category === category);
+      
+      // إذا كانت هناك صورة موجودة من رفع ملف، نحذفها
+      if (existingImage?.image_url && existingImage.image_url.includes('supabase')) {
+        console.log(`حذف الصورة السابقة للتصنيف: ${category}`);
+        const filePath = extractFilePathFromUrl(existingImage.image_url, "category-images");
+        if (filePath) {
+          await deleteImage("category-images", filePath);
+        }
+      }
+
+      // تحديث أو إنشاء سجل لصورة التصنيف
+      if (existingImage) {
+        console.log(`تحديث صورة التصنيف: ${category}`);
+        const { data, error } = await supabase
+          .from("category_images")
+          .update({ image_url: url })
+          .eq("id", existingImage.id)
+          .select("*");
+
+        if (error) {
+          throw error;
+        }
+
+        if (data?.[0]) {
+          const updatedImages = categoryImages.map(img => 
+            img.id === existingImage.id ? data[0] : img
+          );
+          onUpdateImages(updatedImages);
+        }
+      } else {
+        console.log(`إنشاء صورة جديدة للتصنيف: ${category}`);
+        const { data, error } = await supabase
+          .from("category_images")
+          .insert({
+            user_id: userId,
+            category: category,
+            image_url: url,
+          })
+          .select("*");
+
+        if (error) {
+          throw error;
+        }
+
+        if (data?.[0]) {
+          onUpdateImages([...categoryImages, data[0]]);
+        }
+      }
+
+      console.log(`تم حفظ صورة الرابط للتصنيف ${category} بنجاح`);
+      
+      toast({
+        title: "تم حفظ الصورة بنجاح",
+        description: `تم تحديث صورة التصنيف ${category}`,
+      });
+
+    } catch (error: any) {
+      console.error(`خطأ في حفظ صورة الرابط للتصنيف ${category}:`, error);
+      toast({
+        title: "فشل حفظ الصورة",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(null);
+    }
+  };
+
   return {
     uploading,
     handleFileUpload,
+    handleUrlUpload,
     removeImage
   };
 };
