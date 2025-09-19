@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
+import { useStoreCache } from "./useStoreCache";
 
 interface UseOptimizedProductsProps {
   userId: string | null;
@@ -15,6 +16,7 @@ export const useOptimizedProducts = ({
   searchQuery, 
   forceRefresh 
 }: UseOptimizedProductsProps) => {
+  const { getCachedData, setCachedData, isCached } = useStoreCache();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [visibleProducts, setVisibleProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -30,6 +32,19 @@ export const useOptimizedProducts = ({
       setIsLoading(false);
       setLoadingProgress(100);
       return;
+    }
+
+    // التحقق من وجود بيانات محفوظة في الـ cache
+    const cacheKey = `products_${userId}`;
+    if (isCached(cacheKey) && forceRefresh === 0) {
+      const cachedProducts = getCachedData(cacheKey);
+      if (cachedProducts) {
+        console.log("تم تحميل المنتجات من الـ cache:", userId);
+        setAllProducts(cachedProducts);
+        setLoadingProgress(100);
+        setIsLoading(false);
+        return;
+      }
     }
 
     try {
@@ -78,7 +93,10 @@ export const useOptimizedProducts = ({
       // مرحلة 3: الانتهاء (100%)
       setLoadingProgress(100);
       setAllProducts(optimizedProducts);
-      console.log(`تم تحميل ${optimizedProducts.length} منتج بنجاح`);
+      
+      // حفظ البيانات في الـ cache لمدة 15 دقيقة
+      setCachedData(cacheKey, optimizedProducts, 15 * 60 * 1000);
+      console.log(`تم تحميل وحفظ ${optimizedProducts.length} منتج بنجاح في الـ cache`);
       
       // تأخير قصير لإظهار 100% ثم إخفاء التحميل
       setTimeout(() => {

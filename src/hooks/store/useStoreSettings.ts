@@ -4,8 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
+import { useStoreCache } from "./useStoreCache";
 
 export const useStoreSettings = (slug: string | undefined) => {
+  const { getCachedData, setCachedData, isCached } = useStoreCache();
   const [storeSettings, setStoreSettings] = useState({
     storeName: null as string | null,
     colorTheme: "default",
@@ -49,6 +51,18 @@ export const useStoreSettings = (slug: string | undefined) => {
           return;
         }
 
+        // التحقق من وجود بيانات محفوظة في الـ cache
+        const cacheKey = `store_settings_${slug}`;
+        if (isCached(cacheKey)) {
+          const cachedSettings = getCachedData(cacheKey);
+          if (cachedSettings) {
+            console.log("تم تحميل إعدادات المتجر من الـ cache:", slug);
+            setStoreSettings(cachedSettings);
+            setIsLoading(false);
+            return;
+          }
+        }
+
         const { data: settings, error } = await supabase
           .from("store_settings")
           .select("user_id, store_name, color_theme, social_links, banner_url, font_settings, contact_info, dark_mode")
@@ -89,7 +103,7 @@ export const useStoreSettings = (slug: string | undefined) => {
           }
         }
 
-        setStoreSettings({
+        const newSettings = {
           storeName: settings.store_name,
           colorTheme: settings.color_theme || "default",
           socialLinks: settings.social_links as SocialLinks || {},
@@ -98,7 +112,12 @@ export const useStoreSettings = (slug: string | undefined) => {
           fontSettings: parsedFontSettings,
           darkMode: settings.dark_mode || false,
           storeOwnerId: settings.user_id,
-        });
+        };
+
+        setStoreSettings(newSettings);
+        // حفظ البيانات في الـ cache لمدة 10 دقائق
+        setCachedData(cacheKey, newSettings, 10 * 60 * 1000);
+        console.log("تم حفظ إعدادات المتجر في الـ cache:", slug);
 
       } catch (error: any) {
         console.error("Error fetching settings:", error);

@@ -10,6 +10,7 @@ import ProductPreviewContainer from '@/components/store/ProductPreviewContainer'
 import AnimatedStoreHeader from '@/components/store/AnimatedStoreHeader';
 import { Product } from '@/types/product';
 import { useStoreSettings } from '@/hooks/store/useStoreSettings';
+import { useStoreCache } from '@/hooks/store/useStoreCache';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -19,6 +20,7 @@ const FeedbackTrigger = lazy(() => import('@/components/store/feedback/FeedbackT
 const SpinWheelPage: React.FC = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const { getCachedData, setCachedData, isCached } = useStoreCache();
   const [products, setProducts] = useState<Product[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -34,6 +36,23 @@ const SpinWheelPage: React.FC = () => {
   }, [storeSettings.storeOwnerId, isLoading]);
 
   const fetchProducts = useCallback(async () => {
+    // التحقق من الـ cache أولاً
+    const cacheKey = `wheel_products_${storeSettings.storeOwnerId}`;
+    if (isCached(cacheKey)) {
+      const cachedData = getCachedData(cacheKey);
+      if (cachedData) {
+        console.log("تم تحميل منتجات العجلة من الـ cache");
+        setAllProducts(cachedData.allProducts);
+        setCategories(cachedData.categories);
+        if (cachedData.selectedCategory) {
+          setSelectedCategory(cachedData.selectedCategory);
+          setProducts(cachedData.products);
+        }
+        setProductsLoading(false);
+        return;
+      }
+    }
+
     try {
       setProductsLoading(true);
 
@@ -59,14 +78,24 @@ const SpinWheelPage: React.FC = () => {
       setCategories(uniqueCategories);
       
       // إذا لم يتم اختيار تصنيف بعد، اختر الأول
-      if (!selectedCategory && uniqueCategories.length > 0) {
-        setSelectedCategory(uniqueCategories[0]);
-        setProducts(products.filter(product => product.category === uniqueCategories[0]));
-      } else if (selectedCategory) {
-        setProducts(products.filter(product => product.category === selectedCategory));
-      } else {
-        setProducts(products);
+      const firstCategory = uniqueCategories.length > 0 ? uniqueCategories[0] : '';
+      const currentCategory = selectedCategory || firstCategory;
+      const filteredProducts = currentCategory 
+        ? products.filter(product => product.category === currentCategory)
+        : products;
+
+      if (!selectedCategory && firstCategory) {
+        setSelectedCategory(firstCategory);
       }
+      setProducts(filteredProducts);
+
+      // حفظ البيانات في الـ cache لمدة 10 دقائق
+      setCachedData(cacheKey, {
+        allProducts: products,
+        categories: uniqueCategories,
+        selectedCategory: currentCategory,
+        products: filteredProducts
+      }, 10 * 60 * 1000);
       
     } catch (error) {
       console.error('Error loading products:', error);
