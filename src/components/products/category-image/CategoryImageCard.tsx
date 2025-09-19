@@ -44,6 +44,13 @@ export const CategoryImageCard = ({
   const [imageUrl, setImageUrl] = useState("");
   const { toast } = useToast();
 
+  const handleUrlSubmit = () => {
+    if (imageUrl.trim()) {
+      onUrlUpload(category, imageUrl.trim());
+      setImageUrl("");
+    }
+  };
+
   // عند تغيير صورة التصنيف أو إعادة التحميل، نستخدم القيمة الجديدة
   useEffect(() => {
     if (categoryImage?.image_url) {
@@ -291,13 +298,13 @@ export const CategoryImageCard = ({
             className="hidden"
           />
           
-          {/* طريقة الرفع */}
+          {/* أزرار اختيار نوع الرفع */}
           <div className="flex gap-2">
             <Button
               type="button"
               variant={uploadMethod === "file" ? "default" : "outline"}
               size="sm"
-              className="flex-1"
+              className="flex-1 text-xs"
               onClick={() => setUploadMethod("file")}
             >
               رفع من الجهاز
@@ -306,13 +313,14 @@ export const CategoryImageCard = ({
               type="button"
               variant={uploadMethod === "url" ? "default" : "outline"}
               size="sm"
-              className="flex-1"
+              className="flex-1 text-xs"
               onClick={() => setUploadMethod("url")}
             >
               رابط الصورة
             </Button>
           </div>
 
+          {/* محتوى الرفع حسب النوع المختار */}
           {uploadMethod === "file" ? (
             <Button
               type="button"
@@ -328,28 +336,24 @@ export const CategoryImageCard = ({
                   جاري الرفع...
                 </>
               ) : (
-                <>اختيار صورة</>
+                <>اختيار ملف</>
               )}
             </Button>
           ) : (
             <div className="flex flex-col gap-2">
               <Input
-                placeholder="أدخل رابط الصورة"
+                placeholder="أدخل رابط الصورة هنا"
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
                 disabled={uploading}
+                className="w-full"
               />
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 className="w-full"
-                onClick={() => {
-                  if (imageUrl.trim()) {
-                    onUrlUpload(category, imageUrl.trim());
-                    setImageUrl("");
-                  }
-                }}
+                onClick={handleUrlSubmit}
                 disabled={uploading || !imageUrl.trim()}
               >
                 {uploading ? (
