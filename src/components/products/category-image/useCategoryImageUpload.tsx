@@ -68,12 +68,22 @@ export const useCategoryImageUpload = ({
         }
       } else {
         console.log(`إنشاء صورة جديدة للتصنيف: ${category}`);
+        
+        // تحديد display_order للسجل الجديد بناءً على الترتيب الحالي
+        let displayOrder = categoryImages.length + 1;
+        
+        // البحث عن المكان المناسب للتصنيف في الترتيب
+        const sortedImages = [...categoryImages].sort((a, b) => (a.display_order || 999) - (b.display_order || 999));
+        const maxOrder = Math.max(...sortedImages.map(img => img.display_order || 0), 0);
+        displayOrder = maxOrder + 1;
+        
         const { data, error } = await supabase
           .from("category_images")
           .insert({
             user_id: userId,
             category: category,
             image_url: imageUrl,
+            display_order: displayOrder
           })
           .select("*");
 
@@ -202,12 +212,22 @@ export const useCategoryImageUpload = ({
         }
       } else {
         console.log(`إنشاء صورة جديدة للتصنيف: ${category}`);
+        
+        // تحديد display_order للسجل الجديد بناءً على الترتيب الحالي
+        let displayOrder = categoryImages.length + 1;
+        
+        // البحث عن المكان المناسب للتصنيف في الترتيب
+        const sortedImages = [...categoryImages].sort((a, b) => (a.display_order || 999) - (b.display_order || 999));
+        const maxOrder = Math.max(...sortedImages.map(img => img.display_order || 0), 0);
+        displayOrder = maxOrder + 1;
+        
         const { data, error } = await supabase
           .from("category_images")
           .insert({
             user_id: userId,
             category: category,
             image_url: url,
+            display_order: displayOrder
           })
           .select("*");
 
