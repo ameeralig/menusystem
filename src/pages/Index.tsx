@@ -14,7 +14,7 @@ const Index = () => {
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-800 relative">
-              متجرك الرقمي
+              منيو QR الرقمي
               <div className="absolute -bottom-1 left-0 w-full h-1 bg-[#ff9178]"></div>
             </h1>
           </div>
@@ -31,7 +31,7 @@ const Index = () => {
               className="coral-button text-sm sm:text-base px-3 py-2 sm:px-6 sm:py-3"
               onClick={() => navigate("/auth/signup")}
             >
-              إنشاء متجر
+              إنشاء منيو
             </Button>
           </div>
         </div>
@@ -39,15 +39,15 @@ const Index = () => {
 
       {/* Hero Section */}
       <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-16 md:py-32">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+        <div className="grid grid-cols-1 gap-8 md:gap-12 items-center justify-center">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="text-center md:text-right"
+            className="text-center"
           >
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight">
-              <span className="text-[#ff9178]">متجر QR</span>
+              <span className="text-[#ff9178]">منيو QR رقمي</span>
               <br />
               <span className="text-gray-700">يعمل من أجلك</span>
             </h1>
@@ -56,7 +56,7 @@ const Index = () => {
               منصة متكاملة لإدارة وعرض منتجاتك بكل سهولة عبر رمز QR
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start mt-8">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
               <Button
                 onClick={() => navigate("/checkpoint")}
                 className="coral-button-outline"
@@ -70,23 +70,8 @@ const Index = () => {
                 className="coral-button"
                 size={isMobile ? "default" : "lg"}
               >
-                إنشاء متجر QR
+                إنشاء منيو QR
               </Button>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative"
-          >
-            <div className="relative aspect-[3/4] max-w-xs sm:max-w-sm md:max-w-md mx-auto">
-              <img 
-                src="/lovable-uploads/e78cce88-ead6-4a09-ba47-8f8b59485cbb.png" 
-                alt="تطبي�� متجر QR نموذج" 
-                className="w-full h-full object-contain"
-              />
             </div>
           </motion.div>
         </div>
@@ -95,7 +80,7 @@ const Index = () => {
       {/* Features Section */}
       <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-24">
         <div className="text-center mb-12 sm:mb-16">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">مميزات المتجر الرقمي</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">مميزات المنيو الرقمي</h2>
           <p className="text-gray-600 mt-4">كل ما تحتاجه لعرض منتجاتك بطريقة احترافية</p>
         </div>
 
@@ -196,12 +181,12 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Footer - تم تعديل هذا القسم */}
+      {/* Footer */}
       <footer className="bg-white py-8 mt-16">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0">
-              <h2 className="text-xl font-bold text-gray-800">متجرك الرقمي</h2>
+              <h2 className="text-xl font-bold text-gray-800">منيو QR الرقمي</h2>
             </div>
             <div className="flex justify-center">
               <a 
@@ -213,7 +198,7 @@ const Index = () => {
             </div>
           </div>
           <div className="mt-8 text-center text-gray-500 text-sm">
-            &copy; {new Date().getFullYear()} متجرك الرقمي. جميع الحقوق محفوظة.
+            &copy; {new Date().getFullYear()} منيو QR الرقمي. جميع الحقوق محفوظة.
           </div>
         </div>
       </footer>
