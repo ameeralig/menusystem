@@ -34,24 +34,44 @@ export const useEmployees = () => {
     }
   };
 
-  const addEmployee = async (employeeData: Omit<Employee, 'id' | 'store_owner_id' | 'created_at' | 'updated_at' | 'user_id'>) => {
+  const addEmployee = async (employeeData: Omit<Employee, 'id' | 'store_owner_id' | 'created_at' | 'updated_at' | 'user_id'> & { password: string }) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
+      // إنشاء حساب Auth للموظف
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: employeeData.email,
+        password: employeeData.password,
+        options: {
+          data: {
+            full_name: employeeData.full_name,
+            role: 'employee'
+          }
+        }
+      });
+
+      if (authError) throw authError;
+      if (!authData.user) throw new Error("فشل إنشاء حساب الموظف");
+
+      // إضافة الموظف لجدول employees
+      const { phone, is_active, full_name, email } = employeeData;
       const { error } = await supabase
         .from('employees')
         .insert({
           store_owner_id: user.id,
-          ...employeeData,
-          user_id: null
+          full_name,
+          email,
+          phone,
+          is_active,
+          user_id: authData.user.id
         });
 
       if (error) throw error;
 
       toast({
         title: "تم بنجاح",
-        description: "تم إضافة الموظف بنجاح"
+        description: "تم إضافة الموظف بنجاح. يمكنه الآن تسجيل الدخول."
       });
 
       await fetchEmployees();

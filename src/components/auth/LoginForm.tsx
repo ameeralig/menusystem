@@ -58,26 +58,46 @@ export function LoginForm() {
       }
 
       if (data.user) {
-        console.log("معلومات المستخدم:", data.user);
         const userData = data.user.user_metadata;
         
-        console.log("حالة الحساب:", userData?.account_status);
-        
         if (userData?.account_status === "pending") {
-          // تسجيل خروج المستخدم لأن حسابه لا يزال قيد المراجعة
           await supabase.auth.signOut();
           setUserEmail(values.email);
           setAccountPending(true);
           return;
         }
 
-        // تسجيل الدخول بنجاح
+        // التحقق من نوع المستخدم (موظف أو مستخدم عادي)
+        const { data: employeeData } = await supabase
+          .from('employees')
+          .select('store_owner_id, is_active')
+          .eq('user_id', data.user.id)
+          .eq('is_active', true)
+          .maybeSingle();
+
         toast({
           title: "تم تسجيل الدخول بنجاح",
           description: "مرحباً بك مرة أخرى!",
         });
-        
-        navigate("/dashboard");
+
+        // توجيه المستخدم حسب النوع
+        if (employeeData) {
+          // موظف - التوجيه لصفحة المتجر
+          const { data: storeData } = await supabase
+            .from('store_settings')
+            .select('slug')
+            .eq('user_id', employeeData.store_owner_id)
+            .single();
+
+          if (storeData?.slug) {
+            navigate(`/${storeData.slug}`);
+          } else {
+            navigate("/dashboard");
+          }
+        } else {
+          // مستخدم عادي - التوجيه للوحة التحكم
+          navigate("/dashboard");
+        }
       }
     } catch (error: any) {
       toast({

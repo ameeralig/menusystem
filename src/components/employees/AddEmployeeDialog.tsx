@@ -19,6 +19,7 @@ interface AddEmployeeDialogProps {
     full_name: string;
     email: string;
     phone: string | null;
+    password: string;
     is_active: boolean;
   }) => Promise<boolean>;
 }
@@ -29,6 +30,7 @@ const AddEmployeeDialog = ({ open, onOpenChange, onAdd }: AddEmployeeDialogProps
     full_name: "",
     email: "",
     phone: "",
+    password: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,13 +41,14 @@ const AddEmployeeDialog = ({ open, onOpenChange, onAdd }: AddEmployeeDialogProps
       full_name: formData.full_name,
       email: formData.email,
       phone: formData.phone || null,
+      password: formData.password,
       is_active: true,
     });
 
     setIsSubmitting(false);
 
     if (success) {
-      setFormData({ full_name: "", email: "", phone: "" });
+      setFormData({ full_name: "", email: "", phone: "", password: "" });
       onOpenChange(false);
     }
   };
@@ -94,6 +97,22 @@ const AddEmployeeDialog = ({ open, onOpenChange, onAdd }: AddEmployeeDialogProps
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 placeholder="+966xxxxxxxxx"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">كلمة المرور *</Label>
+              <Input
+                id="password"
+                type="password"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                placeholder="أدخل كلمة المرور"
+                required
+                minLength={6}
+              />
+              <p className="text-xs text-muted-foreground">
+                يجب أن تكون 6 أحرف على الأقل
+              </p>
             </div>
           </div>
 

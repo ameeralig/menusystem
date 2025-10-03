@@ -6,10 +6,7 @@ import { useOptimizedStoreData } from "@/hooks/store/useOptimizedStoreData";
 import { useRefreshData } from "@/hooks/useRefreshData";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { UserCog } from "lucide-react";
 import { useEmployeeAuth } from "@/hooks/employees/useEmployeeAuth";
-import EmployeeLoginDialog from "@/components/employees/EmployeeLoginDialog";
 import EmployeePanel from "@/components/employees/EmployeePanel";
 
 // استخدام التحميل البطيء للمكونات غير الأساسية
@@ -31,9 +28,8 @@ const ProductPreview = () => {
   } = useOptimizedStoreData(slug, forceRefresh);
   const [isAutoRefresh, setIsAutoRefresh] = useState<boolean>(true);
   const [lastManualRefresh, setLastManualRefresh] = useState<number>(Date.now());
-  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [employeeSystemEnabled, setEmployeeSystemEnabled] = useState(false);
-  const { employee, isLoading: authLoading, login, logout } = useEmployeeAuth(storeOwnerId);
+  const { employee, logout } = useEmployeeAuth(storeOwnerId);
 
   // جلب حالة نظام الموظفين
   useEffect(() => {
@@ -227,19 +223,6 @@ const ProductPreview = () => {
             darkMode={storeData.darkMode}
             containerHeight="auto"
           >
-            {employeeSystemEnabled && !employee && (
-              <div className="fixed bottom-4 right-4 z-50">
-                <Button
-                  onClick={() => setLoginDialogOpen(true)}
-                  size="lg"
-                  className="shadow-lg"
-                >
-                  <UserCog className="ml-2 h-5 w-5" />
-                  دخول الموظفين
-                </Button>
-              </div>
-            )}
-
             <Suspense fallback={<div className="animate-pulse bg-gray-200 h-64 rounded-md w-full" />}>
               <StoreProductsDisplay 
                 storeName={storeData.storeName} 
@@ -258,13 +241,6 @@ const ProductPreview = () => {
           </ProductPreviewContainer>
         </Suspense>
       </div>
-
-      <EmployeeLoginDialog
-        open={loginDialogOpen}
-        onOpenChange={setLoginDialogOpen}
-        onLogin={login}
-        isLoading={authLoading}
-      />
     </>
   );
 };
