@@ -65,6 +65,42 @@ export type Database = {
         }
         Relationships: []
       }
+      employees: {
+        Row: {
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean | null
+          phone: string | null
+          store_owner_id: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          full_name: string
+          id?: string
+          is_active?: boolean | null
+          phone?: string | null
+          store_owner_id: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean | null
+          phone?: string | null
+          store_owner_id?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       feedback: {
         Row: {
           created_at: string
@@ -127,6 +163,129 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      order_items: {
+        Row: {
+          created_at: string | null
+          id: string
+          notes: string | null
+          order_id: string
+          product_id: string
+          product_name: string
+          quantity: number
+          subtotal: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          order_id: string
+          product_id: string
+          product_name: string
+          quantity: number
+          subtotal: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string
+          product_id?: string
+          product_name?: string
+          quantity?: number
+          subtotal?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          discount_amount: number | null
+          employee_id: string | null
+          final_amount: number | null
+          id: string
+          notes: string | null
+          status: Database["public"]["Enums"]["order_status"] | null
+          store_owner_id: string
+          table_id: string | null
+          table_number: string | null
+          tax_amount: number | null
+          total_amount: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          discount_amount?: number | null
+          employee_id?: string | null
+          final_amount?: number | null
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["order_status"] | null
+          store_owner_id: string
+          table_id?: string | null
+          table_number?: string | null
+          tax_amount?: number | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          discount_amount?: number | null
+          employee_id?: string | null
+          final_amount?: number | null
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["order_status"] | null
+          store_owner_id?: string
+          table_id?: string | null
+          table_number?: string | null
+          tax_amount?: number | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_table_id_fkey"
+            columns: ["table_id"]
+            isOneToOne: false
+            referencedRelation: "tables"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       page_views: {
         Row: {
@@ -273,6 +432,7 @@ export type Database = {
           created_at: string
           custom_domain: string | null
           dark_mode: boolean | null
+          employee_system_enabled: boolean | null
           font_settings: Json | null
           loading_tips: Json | null
           logo_url: string | null
@@ -290,6 +450,7 @@ export type Database = {
           created_at?: string
           custom_domain?: string | null
           dark_mode?: boolean | null
+          employee_system_enabled?: boolean | null
           font_settings?: Json | null
           loading_tips?: Json | null
           logo_url?: string | null
@@ -307,6 +468,7 @@ export type Database = {
           created_at?: string
           custom_domain?: string | null
           dark_mode?: boolean | null
+          employee_system_enabled?: boolean | null
           font_settings?: Json | null
           loading_tips?: Json | null
           logo_url?: string | null
@@ -340,6 +502,36 @@ export type Database = {
           total_active_stores?: number | null
           total_page_views?: number | null
           total_users?: number | null
+        }
+        Relationships: []
+      }
+      tables: {
+        Row: {
+          capacity: number | null
+          created_at: string | null
+          current_order_id: string | null
+          id: string
+          is_occupied: boolean | null
+          store_owner_id: string
+          table_number: string
+        }
+        Insert: {
+          capacity?: number | null
+          created_at?: string | null
+          current_order_id?: string | null
+          id?: string
+          is_occupied?: boolean | null
+          store_owner_id: string
+          table_number: string
+        }
+        Update: {
+          capacity?: number | null
+          created_at?: string | null
+          current_order_id?: string | null
+          id?: string
+          is_occupied?: boolean | null
+          store_owner_id?: string
+          table_number?: string
         }
         Relationships: []
       }
@@ -385,9 +577,17 @@ export type Database = {
         Args: { owner_id: string }
         Returns: number
       }
+      get_employee_store_owner: {
+        Args: { user_uuid: string }
+        Returns: string
+      }
       increment_page_view: {
         Args: { store_user_id: string }
         Returns: undefined
+      }
+      is_active_employee: {
+        Args: { owner_uuid: string; user_uuid: string }
+        Returns: boolean
       }
       update_system_stats: {
         Args: Record<PropertyKey, never>
@@ -395,7 +595,13 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "employee"
+      order_status:
+        | "pending"
+        | "preparing"
+        | "ready"
+        | "completed"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -523,7 +729,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "employee"],
+      order_status: ["pending", "preparing", "ready", "completed", "cancelled"],
     },
   },
 } as const
