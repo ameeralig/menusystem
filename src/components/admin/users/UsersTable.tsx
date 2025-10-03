@@ -7,9 +7,10 @@ interface UsersTableProps {
   users: User[];
   isLoading: boolean;
   openActionDialog: (user: User, action: "ban" | "delete" | "role" | "message" | "approve") => void;
+  onToggleEmployeeSystem?: (userId: string, currentStatus: boolean) => Promise<void>;
 }
 
-const UsersTable = ({ users, isLoading, openActionDialog }: UsersTableProps) => {
+const UsersTable = ({ users, isLoading, openActionDialog, onToggleEmployeeSystem }: UsersTableProps) => {
   return (
     <div className="rounded-md border overflow-auto">
       <Table>
@@ -22,6 +23,7 @@ const UsersTable = ({ users, isLoading, openActionDialog }: UsersTableProps) => 
             <TableHead>آخر نشاط</TableHead>
             <TableHead>عدد الزوار</TableHead>
             <TableHead>عدد المنتجات</TableHead>
+            <TableHead>نظام الموظفين</TableHead>
             <TableHead>الإجراءات</TableHead>
           </TableRow>
         </TableHeader>
@@ -29,7 +31,8 @@ const UsersTable = ({ users, isLoading, openActionDialog }: UsersTableProps) => 
           <UsersList 
             users={users} 
             isLoading={isLoading} 
-            openActionDialog={openActionDialog} 
+            openActionDialog={openActionDialog}
+            onToggleEmployeeSystem={onToggleEmployeeSystem}
           />
         </TableBody>
       </Table>

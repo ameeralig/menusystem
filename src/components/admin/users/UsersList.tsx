@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { CheckCircle, Shield, ShieldX, Send, Trash, UserCheck, UserX } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { formatDate } from "@/components/admin/users/userUtils";
@@ -12,13 +13,14 @@ interface UsersListProps {
   users: User[];
   isLoading: boolean;
   openActionDialog: (user: User, action: "ban" | "delete" | "role" | "message" | "approve") => void;
+  onToggleEmployeeSystem?: (userId: string, currentStatus: boolean) => Promise<void>;
 }
 
-const UsersList = ({ users, isLoading, openActionDialog }: UsersListProps) => {
+const UsersList = ({ users, isLoading, openActionDialog, onToggleEmployeeSystem }: UsersListProps) => {
   if (isLoading) {
     return (
       <TableRow>
-        <TableCell colSpan={8} className="text-center py-10">
+        <TableCell colSpan={9} className="text-center py-10">
           <div className="flex justify-center items-center">
             <Spinner className="h-6 w-6 mr-2" />
             جاري تحميل البيانات...
@@ -31,7 +33,7 @@ const UsersList = ({ users, isLoading, openActionDialog }: UsersListProps) => {
   if (users.length === 0) {
     return (
       <TableRow>
-        <TableCell colSpan={8} className="text-center py-10">
+        <TableCell colSpan={9} className="text-center py-10">
           لم يتم العثور على مستخدمين
         </TableCell>
       </TableRow>
@@ -62,6 +64,18 @@ const UsersList = ({ users, isLoading, openActionDialog }: UsersListProps) => {
           <TableCell>{formatDate(user.lastActivity)}</TableCell>
           <TableCell>{user.visitsCount}</TableCell>
           <TableCell>{user.productsCount}</TableCell>
+          <TableCell>
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={user.employee_system_enabled || false}
+                onCheckedChange={() => onToggleEmployeeSystem?.(user.id, user.employee_system_enabled)}
+                disabled={!onToggleEmployeeSystem}
+              />
+              <span className="text-xs">
+                {user.employee_system_enabled ? 'مفعل' : 'معطل'}
+              </span>
+            </div>
+          </TableCell>
           <TableCell>
             <div className="flex gap-1">
               {user.account_status === "pending" && (

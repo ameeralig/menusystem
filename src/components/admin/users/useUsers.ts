@@ -62,7 +62,7 @@ export const useUsers = () => {
       // جلب إعدادات المتاجر للمستخدمين
       const { data: storeData, error: storeError } = await supabase
         .from('store_settings')
-        .select('user_id, store_name');
+        .select('user_id, store_name, employee_system_enabled');
 
       if (storeError) throw storeError;
       
@@ -107,6 +107,7 @@ export const useUsers = () => {
       
       // تحويل البيانات إلى خرائط للوصول السريع
       const storeMap = new Map(storeData ? storeData.map((store: any) => [store.user_id, store.store_name]) : []);
+      const employeeSystemMap = new Map(storeData ? storeData.map((store: any) => [store.user_id, store.employee_system_enabled || false]) : []);
       const productsMap = new Map(productsByUser ? productsByUser.map((product) => [product.user_id, product.count || 0]) : []);
       const viewsMap = new Map(viewsData ? viewsData.map((view: any) => [view.user_id, view.view_count]) : []);
       const rolesMap = new Map(rolesData ? rolesData.map((role: any) => [role.user_id, role.role]) : []);
@@ -123,7 +124,8 @@ export const useUsers = () => {
         visitsCount: viewsMap.get(user.id) || 0,
         productsCount: productsMap.get(user.id) || 0,
         phone: user.user_metadata?.phone || null,
-        account_status: user.user_metadata?.account_status || 'active'
+        account_status: user.user_metadata?.account_status || 'active',
+        employee_system_enabled: employeeSystemMap.get(user.id) || false
       })) : [];
 
       // طباعة بيانات المستخدمين المعالجة للتصحيح
@@ -270,6 +272,36 @@ export const useUsers = () => {
     setShowActionDialog(true);
   };
 
+  const toggleEmployeeSystem = async (userId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('store_settings')
+        .update({ employee_system_enabled: !currentStatus })
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      toast({
+        title: "تم التحديث",
+        description: `تم ${!currentStatus ? 'تفعيل' : 'تعطيل'} نظام الموظفين بنجاح`
+      });
+
+      // تحديث البيانات المحلية
+      setUsers(prev => prev.map(user => 
+        user.id === userId 
+          ? { ...user, employee_system_enabled: !currentStatus }
+          : user
+      ));
+    } catch (error: any) {
+      console.error("Error toggling employee system:", error);
+      toast({
+        variant: "destructive",
+        title: "خطأ",
+        description: "حدث خطأ أثناء تحديث حالة نظام الموظفين"
+      });
+    }
+  };
+
   return {
     users,
     filteredUsers,
@@ -289,6 +321,7 @@ export const useUsers = () => {
     setMessage,
     isProcessing,
     handleUserAction,
-    openActionDialog
+    openActionDialog,
+    toggleEmployeeSystem
   };
 };

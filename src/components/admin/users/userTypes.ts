@@ -13,4 +13,5 @@ export interface User {
   productsCount: number;
   phone: string | null;
   account_status: string | null;
+  employee_system_enabled: boolean;
 }

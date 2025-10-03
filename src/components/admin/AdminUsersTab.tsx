@@ -24,7 +24,8 @@ const AdminUsersTab = () => {
     setMessage,
     isProcessing,
     handleUserAction,
-    openActionDialog
+    openActionDialog,
+    toggleEmployeeSystem
   } = useUsers();
 
   return (
@@ -42,7 +43,8 @@ const AdminUsersTab = () => {
         <UsersTable 
           users={filteredUsers} 
           isLoading={isLoading} 
-          openActionDialog={openActionDialog} 
+          openActionDialog={openActionDialog}
+          onToggleEmployeeSystem={toggleEmployeeSystem}
         />
         
         <UserActionDialog
