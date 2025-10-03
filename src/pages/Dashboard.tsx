@@ -1,5 +1,5 @@
 
-import { BarChart3, LayoutDashboard } from "lucide-react";
+import { BarChart3, LayoutDashboard, Users, UtensilsCrossed } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import DashboardActions from "@/components/dashboard/DashboardActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,9 +9,35 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import MobileNavigation from "@/components/dashboard/MobileNavigation";
 import FloatingActionButton from "@/components/dashboard/FloatingActionButton";
+import EmployeesTab from "@/components/employees/EmployeesTab";
+import TablesTab from "@/components/employees/TablesTab";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 const Dashboard = () => {
   const { stats, dailyViewsData, loading } = useDashboardStats();
+  const [employeeSystemEnabled, setEmployeeSystemEnabled] = useState(false);
+
+  useEffect(() => {
+    const checkEmployeeSystem = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data } = await supabase
+          .from('store_settings')
+          .select('employee_system_enabled')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        setEmployeeSystemEnabled(data?.employee_system_enabled || false);
+      } catch (error) {
+        console.error("Error checking employee system:", error);
+      }
+    };
+
+    checkEmployeeSystem();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
@@ -43,7 +69,7 @@ const Dashboard = () => {
         {/* Actions and Analytics */}
         <div className="space-y-6">
           <Tabs defaultValue="actions" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted/50 p-1 rounded-xl">
+            <TabsList className={`grid w-full ${employeeSystemEnabled ? 'grid-cols-4' : 'grid-cols-2'} mb-6 bg-muted/50 p-1 rounded-xl`}>
               <TabsTrigger 
                 value="actions" 
                 className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
@@ -56,6 +82,24 @@ const Dashboard = () => {
               >
                 الإحصائيات التفصيلية
               </TabsTrigger>
+              {employeeSystemEnabled && (
+                <>
+                  <TabsTrigger 
+                    value="employees"
+                    className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                  >
+                    <Users className="h-4 w-4 ml-2" />
+                    الموظفين
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="tables"
+                    className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                  >
+                    <UtensilsCrossed className="h-4 w-4 ml-2" />
+                    الطاولات
+                  </TabsTrigger>
+                </>
+              )}
             </TabsList>
             
             <TabsContent value="actions" className="mt-0 space-y-4">
@@ -140,6 +184,18 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {employeeSystemEnabled && (
+              <>
+                <TabsContent value="employees" className="mt-0">
+                  <EmployeesTab />
+                </TabsContent>
+
+                <TabsContent value="tables" className="mt-0">
+                  <TablesTab />
+                </TabsContent>
+              </>
+            )}
           </Tabs>
         </div>
       </main>
