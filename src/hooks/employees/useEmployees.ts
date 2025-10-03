@@ -36,22 +36,35 @@ export const useEmployees = () => {
 
   const addEmployee = async (employeeData: Omit<Employee, 'id' | 'store_owner_id' | 'created_at' | 'updated_at' | 'user_id'> & { password: string }) => {
     try {
+      console.log('بدء إضافة موظف:', employeeData.email);
+      
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) throw new Error("User not authenticated");
 
+      console.log('استدعاء create-employee function...');
+      
       // استدعاء Edge Function لإنشاء الموظف
       const { data, error } = await supabase.functions.invoke('create-employee', {
         body: {
           email: employeeData.email,
           password: employeeData.password,
           full_name: employeeData.full_name,
-          phone: employeeData.phone,
-          is_active: employeeData.is_active
+          phone: employeeData.phone || null,
+          is_active: employeeData.is_active ?? true
         }
       });
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      console.log('نتيجة create-employee:', { data, error });
+
+      if (error) {
+        console.error('خطأ في استدعاء Edge Function:', error);
+        throw error;
+      }
+      
+      if (data?.error) {
+        console.error('خطأ من Edge Function:', data.error);
+        throw new Error(data.error);
+      }
 
       toast({
         title: "تم بنجاح",
