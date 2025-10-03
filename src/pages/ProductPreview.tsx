@@ -6,6 +6,11 @@ import { useOptimizedStoreData } from "@/hooks/store/useOptimizedStoreData";
 import { useRefreshData } from "@/hooks/useRefreshData";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { UserCog } from "lucide-react";
+import { useEmployeeAuth } from "@/hooks/employees/useEmployeeAuth";
+import EmployeeLoginDialog from "@/components/employees/EmployeeLoginDialog";
+import EmployeePanel from "@/components/employees/EmployeePanel";
 
 // استخدام التحميل البطيء للمكونات غير الأساسية
 const ProductPreviewContainer = lazy(() => import("@/components/store/ProductPreviewContainer"));
@@ -26,6 +31,28 @@ const ProductPreview = () => {
   } = useOptimizedStoreData(slug, forceRefresh);
   const [isAutoRefresh, setIsAutoRefresh] = useState<boolean>(true);
   const [lastManualRefresh, setLastManualRefresh] = useState<number>(Date.now());
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+  const [employeeSystemEnabled, setEmployeeSystemEnabled] = useState(false);
+  const { employee, isLoading: authLoading, login, logout } = useEmployeeAuth(storeOwnerId);
+
+  // جلب حالة نظام الموظفين
+  useEffect(() => {
+    const fetchEmployeeSystemStatus = async () => {
+      if (storeOwnerId) {
+        const { data } = await supabase
+          .from('store_settings')
+          .select('employee_system_enabled')
+          .eq('user_id', storeOwnerId)
+          .single();
+        
+        if (data) {
+          setEmployeeSystemEnabled(data.employee_system_enabled || false);
+        }
+      }
+    };
+
+    fetchEmployeeSystemStatus();
+  }, [storeOwnerId]);
 
   // تسجيل المشاهدة عند تحميل الصفحة
   useEffect(() => {
@@ -182,31 +209,62 @@ const ProductPreview = () => {
 
   return (
     <>
-      <Suspense fallback={<LoadingState />}>
-        <ProductPreviewContainer 
-          colorTheme={storeData.colorTheme} 
-          bannerUrl={storeData.bannerUrl}
-          fontSettings={storeData.fontSettings}
-          darkMode={storeData.darkMode}
-          containerHeight="auto"
-        >
-          <Suspense fallback={<div className="animate-pulse bg-gray-200 h-64 rounded-md w-full" />}>
-            <StoreProductsDisplay 
-              storeName={storeData.storeName} 
-              colorTheme={storeData.colorTheme}
-              fontSettings={storeData.fontSettings}
-              contactInfo={storeData.contactInfo}
-              categoryImages={storeData.categoryImages}
-              slug={slug}
-              storeOwnerId={storeOwnerId}
-              forceRefresh={forceRefresh}
-            />
-          </Suspense>
-          <Suspense fallback={<div className="animate-pulse bg-gray-200 h-12 rounded-md w-full mt-4" />}>
-            <SocialIcons socialLinks={storeData.socialLinks} />
-          </Suspense>
-        </ProductPreviewContainer>
-      </Suspense>
+      {employee && (
+        <EmployeePanel
+          employee={employee}
+          onLogout={logout}
+          products={storeData.products || []}
+          storeOwnerId={storeOwnerId!}
+        />
+      )}
+      
+      <div className={employee ? "mt-16" : ""}>
+        <Suspense fallback={<LoadingState />}>
+          <ProductPreviewContainer 
+            colorTheme={storeData.colorTheme} 
+            bannerUrl={storeData.bannerUrl}
+            fontSettings={storeData.fontSettings}
+            darkMode={storeData.darkMode}
+            containerHeight="auto"
+          >
+            {employeeSystemEnabled && !employee && (
+              <div className="fixed bottom-4 right-4 z-50">
+                <Button
+                  onClick={() => setLoginDialogOpen(true)}
+                  size="lg"
+                  className="shadow-lg"
+                >
+                  <UserCog className="ml-2 h-5 w-5" />
+                  دخول الموظفين
+                </Button>
+              </div>
+            )}
+
+            <Suspense fallback={<div className="animate-pulse bg-gray-200 h-64 rounded-md w-full" />}>
+              <StoreProductsDisplay 
+                storeName={storeData.storeName} 
+                colorTheme={storeData.colorTheme}
+                fontSettings={storeData.fontSettings}
+                contactInfo={storeData.contactInfo}
+                categoryImages={storeData.categoryImages}
+                slug={slug}
+                storeOwnerId={storeOwnerId}
+                forceRefresh={forceRefresh}
+              />
+            </Suspense>
+            <Suspense fallback={<div className="animate-pulse bg-gray-200 h-12 rounded-md w-full mt-4" />}>
+              <SocialIcons socialLinks={storeData.socialLinks} />
+            </Suspense>
+          </ProductPreviewContainer>
+        </Suspense>
+      </div>
+
+      <EmployeeLoginDialog
+        open={loginDialogOpen}
+        onOpenChange={setLoginDialogOpen}
+        onLogin={login}
+        isLoading={authLoading}
+      />
     </>
   );
 };
