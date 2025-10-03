@@ -39,9 +39,16 @@ const CategorySelector = ({
   const fetchCategories = async () => {
     setIsLoading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
       const { data: products } = await supabase
         .from("products")
         .select("category")
+        .eq("user_id", user.id)
         .not("category", "is", null);
 
       const uniqueCategories = Array.from(new Set(products?.map(p => p.category) || []));
