@@ -4,13 +4,19 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogOut, ShoppingCart, ClipboardList } from "lucide-react";
+import { LogOut, ShoppingCart, ClipboardList, Package, Receipt } from "lucide-react";
 import { Employee, Table } from "@/types/employee";
 import { useTables } from "@/hooks/employees/useTables";
 import { useCart } from "@/hooks/employees/useCart";
+import { useOrders } from "@/hooks/employees/useOrders";
 import Cart from "./Cart";
+import ProductsGrid from "./ProductsGrid";
+import OrderInvoice from "./OrderInvoice";
 import { Product } from "@/types/product";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface EmployeePanelProps {
   employee: Employee;
@@ -22,11 +28,49 @@ interface EmployeePanelProps {
 const EmployeePanel = ({ employee, onLogout, products, storeOwnerId }: EmployeePanelProps) => {
   const { tables, isLoading: tablesLoading } = useTables();
   const { items, addItem, updateQuantity, updateNotes, removeItem, clearCart, getTotal } = useCart();
+  const { createOrder, getOrderWithItems, isCreating } = useOrders();
   const [selectedTable, setSelectedTable] = useState<string>("");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [showProducts, setShowProducts] = useState(false);
+  const [currentOrder, setCurrentOrder] = useState<any>(null);
+  const [showInvoice, setShowInvoice] = useState(false);
 
   const availableProducts = products.filter(p => p.is_available);
+
+  const handleAddToCart = (product: Product, quantity: number) => {
+    addItem(product, quantity);
+  };
+
+  const handleCreateOrder = async () => {
+    if (!selectedTable || items.length === 0) return;
+
+    const order = await createOrder(
+      storeOwnerId,
+      employee.id,
+      selectedTable,
+      items,
+      customerName || undefined,
+      customerPhone || undefined
+    );
+
+    if (order) {
+      // جلب الطلب مع العناصر
+      const orderData = await getOrderWithItems(order.id);
+      if (orderData) {
+        setCurrentOrder(orderData);
+        setShowInvoice(true);
+        clearCart();
+        setSelectedTable("");
+        setCustomerName("");
+        setCustomerPhone("");
+      }
+    }
+  };
+
+  const handlePrintInvoice = () => {
+    window.print();
+  };
 
   return (
     <div className="fixed top-0 left-0 right-0 bg-background border-b shadow-sm z-50">
@@ -44,6 +88,11 @@ const EmployeePanel = ({ employee, onLogout, products, storeOwnerId }: EmployeeP
           </div>
 
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShowProducts(true)}>
+              <Package className="h-4 w-4 ml-2" />
+              المنتجات
+            </Button>
+
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="sm">
@@ -105,9 +154,13 @@ const EmployeePanel = ({ employee, onLogout, products, storeOwnerId }: EmployeeP
                         />
                       </div>
 
-                      <Button className="w-full" disabled={!selectedTable}>
+                      <Button 
+                        className="w-full" 
+                        disabled={!selectedTable || isCreating}
+                        onClick={handleCreateOrder}
+                      >
                         <ClipboardList className="h-4 w-4 ml-2" />
-                        إنشاء طلب
+                        {isCreating ? "جاري الإنشاء..." : "إنشاء طلب"}
                       </Button>
                     </Card>
                   )}
@@ -117,6 +170,39 @@ const EmployeePanel = ({ employee, onLogout, products, storeOwnerId }: EmployeeP
           </div>
         </div>
       </div>
+
+      {/* نافذة المنتجات */}
+      <Dialog open={showProducts} onOpenChange={setShowProducts}>
+        <DialogContent className="max-w-4xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="text-right">المنتجات المتاحة</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="h-[70vh] px-4">
+            <ProductsGrid
+              products={availableProducts}
+              onAddToCart={handleAddToCart}
+            />
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      {/* نافذة الفاتورة */}
+      <Dialog open={showInvoice} onOpenChange={setShowInvoice}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-right">الفاتورة</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="max-h-[70vh]">
+            {currentOrder && (
+              <OrderInvoice
+                order={currentOrder.order}
+                items={currentOrder.items}
+                onPrint={handlePrintInvoice}
+              />
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

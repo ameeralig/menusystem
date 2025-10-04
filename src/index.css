@@ -419,3 +419,33 @@
     transform: scale(1) rotate(180deg);
   }
 }
+
+/* أنماط الطباعة للفاتورة */
+@media print {
+  /* إخفاء كل شيء ما عدا الفاتورة */
+  body * {
+    visibility: hidden;
+  }
+  
+  #invoice-content,
+  #invoice-content * {
+    visibility: visible;
+  }
+  
+  #invoice-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  
+  /* إخفاء الأزرار عند الطباعة */
+  button {
+    display: none !important;
+  }
+  
+  /* تحسين عرض الفاتورة */
+  @page {
+    margin: 1cm;
+  }
+}
