@@ -24,6 +24,7 @@ import LegalPages from "./pages/LegalPages";
 import NotFound from "./pages/NotFound";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import UserDetailsPage from "./pages/UserDetailsPage";
 import AdminGuard from "./components/admin/AdminGuard";
 
 const queryClient = new QueryClient();
@@ -65,6 +66,7 @@ const App = () => (
             <Route path="/admin" element={<AdminLogin />} />
             <Route element={<AdminGuard />}>
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/users/:userId" element={<UserDetailsPage />} />
             </Route>
             
             <Route path="/404" element={<NotFound />} />
