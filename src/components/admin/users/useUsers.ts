@@ -274,22 +274,32 @@ export const useUsers = () => {
 
   const toggleEmployeeSystem = async (userId: string, currentStatus: boolean) => {
     try {
+      const newStatus = !currentStatus;
+      
       const { error } = await supabase
         .from('store_settings')
-        .update({ employee_system_enabled: !currentStatus })
-        .eq('user_id', userId);
+        .upsert(
+          { 
+            user_id: userId, 
+            employee_system_enabled: newStatus 
+          },
+          { 
+            onConflict: 'user_id',
+            ignoreDuplicates: false 
+          }
+        );
 
       if (error) throw error;
 
       toast({
         title: "تم التحديث",
-        description: `تم ${!currentStatus ? 'تفعيل' : 'تعطيل'} نظام الموظفين بنجاح`
+        description: `تم ${newStatus ? 'تفعيل' : 'تعطيل'} نظام الموظفين بنجاح`
       });
 
       // تحديث البيانات المحلية
       setUsers(prev => prev.map(user => 
         user.id === userId 
-          ? { ...user, employee_system_enabled: !currentStatus }
+          ? { ...user, employee_system_enabled: newStatus }
           : user
       ));
     } catch (error: any) {

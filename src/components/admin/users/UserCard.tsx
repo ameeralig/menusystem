@@ -121,7 +121,7 @@ const UserCard = ({ user, openActionDialog, onToggleEmployeeSystem }: UserCardPr
             <div className="flex items-center gap-2">
               <Switch
                 checked={user.employee_system_enabled || false}
-                onCheckedChange={() => onToggleEmployeeSystem?.(user.id, user.employee_system_enabled)}
+                onCheckedChange={() => onToggleEmployeeSystem?.(user.id, user.employee_system_enabled || false)}
                 disabled={!onToggleEmployeeSystem}
               />
               <span className="text-xs text-muted-foreground">
