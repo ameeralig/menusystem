@@ -8,7 +8,6 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useEmployeeAuth } from "@/hooks/employees/useEmployeeAuth";
 import EmployeePanel from "@/components/employees/EmployeePanel";
-import EmployeeLoginButton from "@/components/store/EmployeeLoginButton";
 
 // استخدام التحميل البطيء للمكونات غير الأساسية
 const ProductPreviewContainer = lazy(() => import("@/components/store/ProductPreviewContainer"));
@@ -30,7 +29,7 @@ const ProductPreview = () => {
   const [isAutoRefresh, setIsAutoRefresh] = useState<boolean>(true);
   const [lastManualRefresh, setLastManualRefresh] = useState<number>(Date.now());
   const [employeeSystemEnabled, setEmployeeSystemEnabled] = useState(false);
-  const { employee, logout, login, isLoading: employeeLoading } = useEmployeeAuth(storeOwnerId);
+  const { employee, logout } = useEmployeeAuth(storeOwnerId);
 
   // جلب حالة نظام الموظفين
   useEffect(() => {
@@ -212,14 +211,6 @@ const ProductPreview = () => {
           onLogout={logout}
           products={storeData.products || []}
           storeOwnerId={storeOwnerId!}
-        />
-      )}
-      
-      {/* زر تسجيل دخول الموظف */}
-      {employeeSystemEnabled && !employee && (
-        <EmployeeLoginButton
-          onLogin={login}
-          isLoading={employeeLoading}
         />
       )}
       
