@@ -19,6 +19,7 @@ const ProductFormContainer = ({ activeTab, onContinueToProduct }: ProductFormCon
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [storeOwnerId, setStoreOwnerId] = useState<string | null>(null);
   
   // بيانات التصنيف
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -41,14 +42,39 @@ const ProductFormContainer = ({ activeTab, onContinueToProduct }: ProductFormCon
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  // دالة للحصول على store_owner_id (سواء كان مالك أو موظف)
+  const getStoreOwnerId = async (): Promise<string | null> => {
+    if (storeOwnerId) return storeOwnerId;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      // التحقق إذا كان المستخدم موظف
+      const { data: employeeData } = await supabase
+        .from('employees')
+        .select('store_owner_id')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      const ownerId = employeeData?.store_owner_id || user.id;
+      setStoreOwnerId(ownerId);
+      return ownerId;
+    } catch (error) {
+      console.error("Error getting store owner id:", error);
+      return null;
+    }
+  };
+
   // معالجة اختيار التصنيف
   const handleCategorySelected = async (category: string, imageUrl?: string, selectedFile?: File | null) => {
     setSelectedCategory(category);
     console.log(`تم اختيار التصنيف: ${category}، صورة التصنيف: ${imageUrl || 'لا توجد'}`);
     
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("يجب تسجيل الدخول أولاً");
+      const ownerId = await getStoreOwnerId();
+      if (!ownerId) throw new Error("يجب تسجيل الدخول أولاً");
       
       console.log(`بدء عملية تعامل مع صورة التصنيف ${category}`);
       
@@ -71,14 +97,14 @@ const ProductFormContainer = ({ activeTab, onContinueToProduct }: ProductFormCon
           const uniqueFilePath = `${category.replace(/\s+/g, '-')}-${timestamp}-${safeFileName}`;
           
           // رفع الصورة إلى مجلد category-images
-          finalImageUrl = await uploadImage("category-images", selectedFile, user.id, uniqueFilePath);
+          finalImageUrl = await uploadImage("category-images", selectedFile, ownerId, uniqueFilePath);
           
           console.log(`تم رفع صورة التصنيف بنجاح: ${finalImageUrl}`);
         }
         
         // حفظ صورة التصنيف في قاعدة البيانات
         const { data, error } = await supabase.from("category_images").upsert({
-          user_id: user.id,
+          user_id: ownerId,
           category: category,
           image_url: finalImageUrl
         }, {
@@ -119,8 +145,8 @@ const ProductFormContainer = ({ activeTab, onContinueToProduct }: ProductFormCon
     setLoading(true);
 
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
+      const ownerId = await getStoreOwnerId();
+      if (!ownerId) {
         throw new Error("يجب تسجيل الدخول أولاً");
       }
 
@@ -138,11 +164,11 @@ const ProductFormContainer = ({ activeTab, onContinueToProduct }: ProductFormCon
         const timestamp = new Date().getTime();
         const uniqueFilePath = `${data.name?.replace(/\s+/g, '-')}-${timestamp}-${safeFileName}`;
         
-        finalImageUrl = await uploadImage("product-images", selectedFile, userData.user.id, uniqueFilePath);
+        finalImageUrl = await uploadImage("product-images", selectedFile, ownerId, uniqueFilePath);
       }
 
       const { error } = await supabase.from("products").insert({
-        user_id: userData.user.id,
+        user_id: ownerId,
         name: data.name,
         description: data.description || null,
         price: typeof data.price === 'number' ? data.price : parseFloat(data.price as string) || 0,

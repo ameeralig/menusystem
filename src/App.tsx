@@ -26,6 +26,7 @@ import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import UserDetailsPage from "./pages/UserDetailsPage";
 import AdminGuard from "./components/admin/AdminGuard";
+import EmployeeDashboard from "./pages/EmployeeDashboard";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,9 @@ const App = () => (
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/users/:userId" element={<UserDetailsPage />} />
             </Route>
+            
+            {/* لوحة التحكم الخاصة بالموظف */}
+            <Route path="/employee/dashboard" element={<EmployeeDashboard />} />
             
             <Route path="/404" element={<NotFound />} />
             <Route path="*" element={<NotFound />} />

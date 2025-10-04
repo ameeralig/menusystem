@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Employee } from "@/types/employee";
+import { useNavigate } from "react-router-dom";
 
 export const useEmployeeAuth = (storeOwnerId: string | null) => {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const login = async (email: string, password: string) => {
     if (!storeOwnerId) {
@@ -47,6 +49,10 @@ export const useEmployeeAuth = (storeOwnerId: string | null) => {
         title: "مرحباً",
         description: `أهلاً ${employeeData.full_name}`
       });
+      
+      // توجيه الموظف إلى لوحة التحكم الخاصة به
+      navigate('/employee/dashboard');
+      
       return true;
     } catch (error: any) {
       console.error("Error logging in employee:", error);
