@@ -73,10 +73,10 @@ const OrderInvoice = ({ order, items, storeName, onPrint }: OrderInvoiceProps) =
                   <p className="text-xs text-muted-foreground">ملاحظة: {item.notes}</p>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  {item.quantity} × {Number(item.unit_price).toFixed(2)} ر.س
+                  {item.quantity} × {Number(item.unit_price).toFixed(0)} د.ع
                 </p>
               </div>
-              <span className="font-medium">{Number(item.subtotal).toFixed(2)} ر.س</span>
+              <span className="font-medium">{Number(item.subtotal).toFixed(0)} د.ع</span>
             </div>
           ))}
         </div>
@@ -88,20 +88,20 @@ const OrderInvoice = ({ order, items, storeName, onPrint }: OrderInvoiceProps) =
       <div className="space-y-2">
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">المجموع الفرعي</span>
-          <span>{Number(order.total_amount).toFixed(2)} ر.س</span>
+          <span>{Number(order.total_amount).toFixed(0)} د.ع</span>
         </div>
         
         {order.tax_amount > 0 && (
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">الضريبة</span>
-            <span>{Number(order.tax_amount).toFixed(2)} ر.س</span>
+            <span>{Number(order.tax_amount).toFixed(0)} د.ع</span>
           </div>
         )}
         
         {order.discount_amount > 0 && (
           <div className="flex items-center justify-between text-sm text-green-600">
             <span>الخصم</span>
-            <span>-{Number(order.discount_amount).toFixed(2)} ر.س</span>
+            <span>-{Number(order.discount_amount).toFixed(0)} د.ع</span>
           </div>
         )}
         
@@ -109,7 +109,7 @@ const OrderInvoice = ({ order, items, storeName, onPrint }: OrderInvoiceProps) =
         
         <div className="flex items-center justify-between text-lg font-bold">
           <span>الإجمالي</span>
-          <span className="text-primary">{Number(order.final_amount).toFixed(2)} ر.س</span>
+          <span className="text-primary">{Number(order.final_amount).toFixed(0)} د.ع</span>
         </div>
       </div>
 

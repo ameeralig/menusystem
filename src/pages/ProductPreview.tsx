@@ -8,6 +8,8 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useEmployeeAuth } from "@/hooks/employees/useEmployeeAuth";
 import EmployeePanel from "@/components/employees/EmployeePanel";
+import EmployeeProductsView from "@/components/employees/EmployeeProductsView";
+import { CartProvider } from "@/contexts/CartContext";
 
 // استخدام التحميل البطيء للمكونات غير الأساسية
 const ProductPreviewContainer = lazy(() => import("@/components/store/ProductPreviewContainer"));
@@ -206,17 +208,27 @@ const ProductPreview = () => {
   return (
     <>
       {employee && (
-        <EmployeePanel
-          employee={employee}
-          onLogout={logout}
-          products={storeData.products || []}
-          storeOwnerId={storeOwnerId!}
-        />
+        <CartProvider>
+          <EmployeePanel
+            employee={employee}
+            onLogout={logout}
+            products={storeData.products || []}
+            storeOwnerId={storeOwnerId!}
+          />
+          <div className="pt-20 pb-6 px-4 container mx-auto">
+            <Suspense fallback={<div className="animate-pulse bg-gray-200 h-64 rounded-md w-full" />}>
+              <EmployeeProductsView
+                products={(storeData.products || []).filter(p => p.is_available)}
+              />
+            </Suspense>
+          </div>
+        </CartProvider>
       )}
       
-      <div className={employee ? "mt-16" : ""}>
+      {!employee && (
+      <div>
         <Suspense fallback={<LoadingState />}>
-          <ProductPreviewContainer 
+          <ProductPreviewContainer
             colorTheme={storeData.colorTheme} 
             bannerUrl={storeData.bannerUrl}
             fontSettings={storeData.fontSettings}
@@ -241,6 +253,7 @@ const ProductPreview = () => {
           </ProductPreviewContainer>
         </Suspense>
       </div>
+      )}
     </>
   );
 };

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { LogOut, ShoppingCart, ClipboardList, Package, Receipt } from "lucide-react";
 import { Employee, Table } from "@/types/employee";
 import { useTables } from "@/hooks/employees/useTables";
-import { useCart } from "@/hooks/employees/useCart";
+import { useCart } from "@/contexts/CartContext";
 import { useOrders } from "@/hooks/employees/useOrders";
 import Cart from "./Cart";
 import ProductsGrid from "./ProductsGrid";
@@ -23,24 +23,20 @@ interface EmployeePanelProps {
   onLogout: () => void;
   products: Product[];
   storeOwnerId: string;
+  onAddToCart?: (product: Product, quantity: number) => void;
 }
 
-const EmployeePanel = ({ employee, onLogout, products, storeOwnerId }: EmployeePanelProps) => {
+const EmployeePanel = ({ employee, onLogout, products, storeOwnerId, onAddToCart }: EmployeePanelProps) => {
   const { tables, isLoading: tablesLoading } = useTables();
-  const { items, addItem, updateQuantity, updateNotes, removeItem, clearCart, getTotal } = useCart();
+  const { items, updateQuantity, updateNotes, removeItem, clearCart, getTotal } = useCart();
   const { createOrder, getOrderWithItems, isCreating } = useOrders();
   const [selectedTable, setSelectedTable] = useState<string>("");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
-  const [showProducts, setShowProducts] = useState(false);
   const [currentOrder, setCurrentOrder] = useState<any>(null);
   const [showInvoice, setShowInvoice] = useState(false);
 
   const availableProducts = products.filter(p => p.is_available);
-
-  const handleAddToCart = (product: Product, quantity: number) => {
-    addItem(product, quantity);
-  };
 
   const handleCreateOrder = async () => {
     if (!selectedTable || items.length === 0) return;
@@ -88,11 +84,6 @@ const EmployeePanel = ({ employee, onLogout, products, storeOwnerId }: EmployeeP
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setShowProducts(true)}>
-              <Package className="h-4 w-4 ml-2" />
-              المنتجات
-            </Button>
-
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="sm">
@@ -170,21 +161,6 @@ const EmployeePanel = ({ employee, onLogout, products, storeOwnerId }: EmployeeP
           </div>
         </div>
       </div>
-
-      {/* نافذة المنتجات */}
-      <Dialog open={showProducts} onOpenChange={setShowProducts}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle className="text-right">المنتجات المتاحة</DialogTitle>
-          </DialogHeader>
-          <ScrollArea className="h-[70vh] px-4">
-            <ProductsGrid
-              products={availableProducts}
-              onAddToCart={handleAddToCart}
-            />
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
 
       {/* نافذة الفاتورة */}
       <Dialog open={showInvoice} onOpenChange={setShowInvoice}>

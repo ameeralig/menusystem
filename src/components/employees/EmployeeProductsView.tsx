@@ -2,42 +2,20 @@ import { Product } from "@/types/product";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Minus } from "lucide-react";
-import { useState } from "react";
+import { Plus, ShoppingCart } from "lucide-react";
+import { useCart } from "@/contexts/CartContext";
+import { toast } from "sonner";
 
-interface ProductsGridProps {
+interface EmployeeProductsViewProps {
   products: Product[];
-  onAddToCart: (product: Product, quantity: number) => void;
 }
 
-const ProductsGrid = ({ products, onAddToCart }: ProductsGridProps) => {
-  const [quantities, setQuantities] = useState<Record<string, number>>({});
-
-  const getQuantity = (productId: string) => quantities[productId] || 1;
-
-  const incrementQuantity = (productId: string) => {
-    setQuantities((prev) => ({
-      ...prev,
-      [productId]: (prev[productId] || 1) + 1,
-    }));
-  };
-
-  const decrementQuantity = (productId: string) => {
-    setQuantities((prev) => ({
-      ...prev,
-      [productId]: Math.max(1, (prev[productId] || 1) - 1),
-    }));
-  };
+const EmployeeProductsView = ({ products }: EmployeeProductsViewProps) => {
+  const { addItem } = useCart();
 
   const handleAddToCart = (product: Product) => {
-    const quantity = getQuantity(product.id);
-    onAddToCart(product, quantity);
-    // إعادة تعيين الكمية
-    setQuantities((prev) => {
-      const newQuantities = { ...prev };
-      delete newQuantities[product.id];
-      return newQuantities;
-    });
+    addItem(product, 1);
+    toast.success(`تمت إضافة ${product.name} للسلة`);
   };
 
   // تجميع المنتجات حسب التصنيف
@@ -54,12 +32,14 @@ const ProductsGrid = ({ products, onAddToCart }: ProductsGridProps) => {
     <div className="space-y-6">
       {Object.entries(groupedProducts).map(([category, categoryProducts]) => (
         <div key={category} className="space-y-3">
-          <h3 className="text-lg font-semibold text-foreground">{category}</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <h3 className="text-lg font-semibold text-foreground sticky top-20 bg-background/95 backdrop-blur-sm py-2 z-10">
+            {category}
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {categoryProducts.map((product) => (
-              <Card key={product.id} className="p-4 space-y-3">
+              <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 {product.image_url && (
-                  <div className="aspect-video w-full rounded-md overflow-hidden bg-muted">
+                  <div className="aspect-video w-full overflow-hidden bg-muted">
                     <img
                       src={product.image_url}
                       alt={product.name}
@@ -69,9 +49,9 @@ const ProductsGrid = ({ products, onAddToCart }: ProductsGridProps) => {
                   </div>
                 )}
                 
-                <div className="space-y-2">
+                <div className="p-4 space-y-3">
                   <div className="flex items-start justify-between gap-2">
-                    <h4 className="font-medium text-foreground line-clamp-1">
+                    <h4 className="font-semibold text-foreground line-clamp-2 flex-1">
                       {product.name}
                     </h4>
                     {(product.is_new || product.is_popular) && (
@@ -97,39 +77,19 @@ const ProductsGrid = ({ products, onAddToCart }: ProductsGridProps) => {
                   )}
 
                   <div className="flex items-center justify-between pt-2">
-                    <span className="text-lg font-bold text-primary">
+                    <span className="text-xl font-bold text-primary">
                       {Number(product.price).toFixed(0)} د.ع
                     </span>
-                  </div>
 
-                  <div className="flex items-center gap-2 pt-2">
                     <Button
-                      variant="outline"
                       size="sm"
-                      onClick={() => decrementQuantity(product.id)}
-                      className="h-9 flex-1"
+                      onClick={() => handleAddToCart(product)}
+                      className="gap-2"
                     >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                    <span className="text-base font-medium min-w-[30px] text-center">
-                      {getQuantity(product.id)}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => incrementQuantity(product.id)}
-                      className="h-9 flex-1"
-                    >
-                      <Plus className="h-4 w-4" />
+                      <ShoppingCart className="h-4 w-4" />
+                      إضافة للسلة
                     </Button>
                   </div>
-
-                  <Button
-                    className="w-full mt-2"
-                    onClick={() => handleAddToCart(product)}
-                  >
-                    إضافة للسلة
-                  </Button>
                 </div>
               </Card>
             ))}
@@ -146,4 +106,4 @@ const ProductsGrid = ({ products, onAddToCart }: ProductsGridProps) => {
   );
 };
 
-export default ProductsGrid;
+export default EmployeeProductsView;

@@ -37,8 +37,8 @@ const Cart = ({ items, onUpdateQuantity, onUpdateNotes, onRemoveItem, onClearCar
         </Button>
       </div>
 
-      <ScrollArea className="h-[400px] mb-4">
-        <div className="space-y-4">
+      <ScrollArea className="max-h-[calc(100vh-400px)] mb-4">
+        <div className="space-y-4 pr-4">
           {items.map((item) => (
             <Card key={item.product.id} className="p-3">
               <div className="space-y-3">
@@ -46,7 +46,7 @@ const Cart = ({ items, onUpdateQuantity, onUpdateNotes, onRemoveItem, onClearCar
                   <div className="flex-1">
                     <p className="font-medium">{item.product.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      {Number(item.product.price).toFixed(2)} ر.س
+                      {Number(item.product.price).toFixed(0)} د.ع
                     </p>
                   </div>
                   <Button
@@ -81,7 +81,7 @@ const Cart = ({ items, onUpdateQuantity, onUpdateNotes, onRemoveItem, onClearCar
                     <Plus className="h-4 w-4" />
                   </Button>
                   <p className="text-sm font-medium mr-auto">
-                    {(Number(item.product.price) * item.quantity).toFixed(2)} ر.س
+                    {(Number(item.product.price) * item.quantity).toFixed(0)} د.ع
                   </p>
                 </div>
 
@@ -98,10 +98,10 @@ const Cart = ({ items, onUpdateQuantity, onUpdateNotes, onRemoveItem, onClearCar
         </div>
       </ScrollArea>
 
-      <div className="border-t pt-4">
+      <div className="border-t pt-4 mt-4">
         <div className="flex items-center justify-between text-lg font-bold">
           <span>الإجمالي:</span>
-          <span>{total.toFixed(2)} ر.س</span>
+          <span>{total.toFixed(0)} د.ع</span>
         </div>
       </div>
     </Card>
