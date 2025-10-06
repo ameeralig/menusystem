@@ -78,7 +78,10 @@ const MobileNavigation = () => {
       icon: Store,
       label: "إدارة المبيعات",
       path: "/sales-management", 
-      action: () => navigate("/sales-management"),
+      action: () => {
+        console.log("Navigating to sales management");
+        navigate("/sales-management");
+      },
     },
     {
       icon: Settings,
