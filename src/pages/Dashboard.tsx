@@ -1,5 +1,5 @@
 
-import { BarChart3, LayoutDashboard, Users, UtensilsCrossed } from "lucide-react";
+import { BarChart3, LayoutDashboard, Store } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import DashboardActions from "@/components/dashboard/DashboardActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,9 +9,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import MobileNavigation from "@/components/dashboard/MobileNavigation";
 import FloatingActionButton from "@/components/dashboard/FloatingActionButton";
-import EmployeesTab from "@/components/employees/EmployeesTab";
-import TablesTab from "@/components/employees/TablesTab";
-import EmployeeSalesReport from "@/components/dashboard/EmployeeSalesReport";
+import SalesManagement from "@/components/dashboard/SalesManagement";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
@@ -70,7 +68,7 @@ const Dashboard = () => {
         {/* Actions and Analytics */}
         <div className="space-y-6">
           <Tabs defaultValue="actions" className="w-full">
-            <TabsList className={`grid w-full ${employeeSystemEnabled ? 'grid-cols-5' : 'grid-cols-2'} mb-6 bg-muted/50 p-1 rounded-xl`}>
+            <TabsList className={`grid w-full ${employeeSystemEnabled ? 'grid-cols-3' : 'grid-cols-2'} mb-6 bg-muted/50 p-1 rounded-xl`}>
               <TabsTrigger 
                 value="actions" 
                 className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
@@ -84,29 +82,13 @@ const Dashboard = () => {
                 الإحصائيات التفصيلية
               </TabsTrigger>
               {employeeSystemEnabled && (
-                <>
-                  <TabsTrigger 
-                    value="employees"
-                    className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
-                  >
-                    <Users className="h-4 w-4 ml-2" />
-                    الموظفين
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="tables"
-                    className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
-                  >
-                    <UtensilsCrossed className="h-4 w-4 ml-2" />
-                    الطاولات
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="sales"
-                    className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
-                  >
-                    <BarChart3 className="h-4 w-4 ml-2" />
-                    سجل المبيعات
-                  </TabsTrigger>
-                </>
+                <TabsTrigger 
+                  value="sales-management"
+                  className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                >
+                  <Store className="h-4 w-4 ml-2" />
+                  إدارة المبيعات
+                </TabsTrigger>
               )}
             </TabsList>
             
@@ -194,19 +176,9 @@ const Dashboard = () => {
             </TabsContent>
 
             {employeeSystemEnabled && (
-              <>
-                <TabsContent value="employees" className="mt-0">
-                  <EmployeesTab />
-                </TabsContent>
-
-                <TabsContent value="tables" className="mt-0">
-                  <TablesTab />
-                </TabsContent>
-
-                <TabsContent value="sales" className="mt-0">
-                  <EmployeeSalesReport />
-                </TabsContent>
-              </>
+              <TabsContent value="sales-management" className="mt-0">
+                <SalesManagement />
+              </TabsContent>
             )}
           </Tabs>
         </div>

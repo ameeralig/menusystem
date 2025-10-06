@@ -1,18 +1,36 @@
-import { LayoutDashboard, Settings, BarChart3, Edit, Link2 } from "lucide-react";
+import { LayoutDashboard, Settings, Store, Edit } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { copyToClipboard } from "@/utils/clipboard";
 import { cn } from "@/lib/utils";
-
-const BASE_DOMAIN = "https://qrmenuc.com";
 
 const MobileNavigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const [isCopying, setIsCopying] = useState(false);
+  const [employeeSystemEnabled, setEmployeeSystemEnabled] = useState(false);
+
+  useEffect(() => {
+    const checkEmployeeSystem = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data } = await supabase
+          .from('store_settings')
+          .select('employee_system_enabled')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        setEmployeeSystemEnabled(data?.employee_system_enabled || false);
+      } catch (error) {
+        console.error("Error checking employee system:", error);
+      }
+    };
+
+    checkEmployeeSystem();
+  }, []);
 
   const handleEditProducts = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -43,50 +61,7 @@ const MobileNavigation = () => {
     }
   };
 
-  const copyProductLink = async () => {
-    try {
-      setIsCopying(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      
-      const { data: storeSettings } = await supabase
-        .from("store_settings")
-        .select("slug")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      
-      if (!storeSettings?.slug) {
-        toast({
-          title: "خطأ",
-          description: "يرجى إعداد رابط مخصص في صفحة تخصيص المتجر أولاً",
-          variant: "destructive",
-          duration: 5000,
-        });
-        navigate("/store-customization");
-        return;
-      }
-
-      const url = `${BASE_DOMAIN}/${storeSettings.slug}`;
-      await copyToClipboard(url);
-      toast({
-        title: "تم النسخ!",
-        description: `تم نسخ رابط المتجر: ${url}`,
-        duration: 3000,
-      });
-    } catch (error) {
-      console.error("Copy link error:", error);
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ أثناء نسخ الرابط",
-        variant: "destructive",
-        duration: 3000,
-      });
-    } finally {
-      setTimeout(() => setIsCopying(false), 2000);
-    }
-  };
-
-  const navItems = [
+  const navItems = employeeSystemEnabled ? [
     {
       icon: LayoutDashboard,
       label: "الرئيسية",
@@ -100,10 +75,38 @@ const MobileNavigation = () => {
       action: handleEditProducts,
     },
     {
-      icon: Link2,
-      label: isCopying ? "تم النسخ ✅" : "نسخ الرابط",
-      path: "/copy-link", 
-      action: copyProductLink,
+      icon: Store,
+      label: "إدارة المبيعات",
+      path: "/sales-management", 
+      action: () => {
+        navigate("/dashboard");
+        // الانتقال إلى تبويب إدارة المبيعات
+        setTimeout(() => {
+          const salesTab = document.querySelector('[value="sales-management"]');
+          if (salesTab instanceof HTMLElement) {
+            salesTab.click();
+          }
+        }, 100);
+      },
+    },
+    {
+      icon: Settings,
+      label: "الإعدادات",
+      path: "/store-customization",
+      action: () => navigate("/store-customization"),
+    },
+  ] : [
+    {
+      icon: LayoutDashboard,
+      label: "الرئيسية",
+      path: "/dashboard",
+      action: () => navigate("/dashboard"),
+    },
+    {
+      icon: Edit,
+      label: "تعديل المنتجات",
+      path: "/edit-products",
+      action: handleEditProducts,
     },
     {
       icon: Settings,

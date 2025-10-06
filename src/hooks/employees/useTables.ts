@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Table } from "@/types/employee";
 
-export const useTables = () => {
+export const useTables = (storeOwnerId?: string) => {
   const [tables, setTables] = useState<Table[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -14,10 +14,13 @@ export const useTables = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
+      // استخدام storeOwnerId إذا تم تمريره، وإلا استخدام user.id
+      const ownerId = storeOwnerId || user.id;
+
       const { data, error } = await supabase
         .from('tables')
         .select('*')
-        .eq('store_owner_id', user.id)
+        .eq('store_owner_id', ownerId)
         .order('table_number', { ascending: true });
 
       if (error) throw error;
@@ -124,7 +127,7 @@ export const useTables = () => {
 
   useEffect(() => {
     fetchTables();
-  }, []);
+  }, [storeOwnerId]);
 
   return {
     tables,

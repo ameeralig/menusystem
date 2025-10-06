@@ -34,7 +34,14 @@ const EmployeeSalesReport = () => {
       setIsLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) return;
+      if (!user) {
+        toast({
+          variant: "destructive",
+          title: "خطأ",
+          description: "يرجى تسجيل الدخول أولاً",
+        });
+        return;
+      }
 
       let query = supabase
         .from('employee_daily_sales')
@@ -50,15 +57,19 @@ const EmployeeSalesReport = () => {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading sales:', error);
+        throw error;
+      }
 
+      console.log('Loaded sales data:', data);
       setSales(data || []);
     } catch (error: any) {
       console.error('Error loading sales:', error);
       toast({
         variant: "destructive",
         title: "خطأ",
-        description: "حدث خطأ أثناء تحميل البيانات",
+        description: error.message || "حدث خطأ أثناء تحميل البيانات",
       });
     } finally {
       setIsLoading(false);
@@ -269,8 +280,17 @@ const EmployeeSalesReport = () => {
             ))}
 
             {sales.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                لا توجد سجلات متاحة
+              <div className="text-center py-12 text-muted-foreground space-y-3">
+                <Calendar className="h-12 w-12 mx-auto opacity-50" />
+                <p className="text-lg font-medium">لا توجد سجلات متاحة</p>
+                <p className="text-sm">
+                  {selectedPeriod === 'week' 
+                    ? 'لا توجد مبيعات خلال آخر 7 أيام' 
+                    : 'لم يتم تسجيل أي مبيعات بعد'}
+                </p>
+                <p className="text-xs bg-muted/50 p-3 rounded-lg inline-block">
+                  💡 سيتم تسجيل المبيعات تلقائياً يومياً الساعة 3 صباحاً بتوقيت العراق
+                </p>
               </div>
             )}
           </div>

@@ -28,7 +28,7 @@ interface EmployeePanelProps {
 }
 
 const EmployeePanel = ({ employee, onLogout, products, storeOwnerId, onAddToCart }: EmployeePanelProps) => {
-  const { tables, isLoading: tablesLoading } = useTables();
+  const { tables, isLoading: tablesLoading } = useTables(storeOwnerId);
   const { items, updateQuantity, updateNotes, removeItem, clearCart, getTotal } = useCart();
   const { createOrder, getOrderWithItems, getEmployeeOrders, isCreating } = useOrders();
   const [selectedTable, setSelectedTable] = useState<string>("");
