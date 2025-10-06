@@ -207,53 +207,47 @@ const ProductPreview = () => {
 
   return (
     <>
-      {employee && (
-        <CartProvider>
+      <CartProvider>
+        {employee && (
           <EmployeePanel
             employee={employee}
             onLogout={logout}
             products={storeData.products || []}
             storeOwnerId={storeOwnerId!}
           />
-          <div className="pt-20 pb-6 px-4 container mx-auto">
-            <Suspense fallback={<div className="animate-pulse bg-gray-200 h-64 rounded-md w-full" />}>
-              <EmployeeProductsView
-                products={(storeData.products || []).filter(p => p.is_available)}
-              />
-            </Suspense>
-          </div>
-        </CartProvider>
-      )}
-      
-      {!employee && (
-      <div>
-        <Suspense fallback={<LoadingState />}>
-          <ProductPreviewContainer
-            colorTheme={storeData.colorTheme} 
-            bannerUrl={storeData.bannerUrl}
-            fontSettings={storeData.fontSettings}
-            darkMode={storeData.darkMode}
-            containerHeight="auto"
-          >
-            <Suspense fallback={<div className="animate-pulse bg-gray-200 h-64 rounded-md w-full" />}>
-              <StoreProductsDisplay 
-                storeName={storeData.storeName} 
-                colorTheme={storeData.colorTheme}
-                fontSettings={storeData.fontSettings}
-                contactInfo={storeData.contactInfo}
-                categoryImages={storeData.categoryImages}
-                slug={slug}
-                storeOwnerId={storeOwnerId}
-                forceRefresh={forceRefresh}
-              />
-            </Suspense>
-            <Suspense fallback={<div className="animate-pulse bg-gray-200 h-12 rounded-md w-full mt-4" />}>
-              <SocialIcons socialLinks={storeData.socialLinks} />
-            </Suspense>
-          </ProductPreviewContainer>
-        </Suspense>
-      </div>
-      )}
+        )}
+        
+        <div className={employee ? "pt-20" : ""}>
+          <Suspense fallback={<LoadingState />}>
+            <ProductPreviewContainer
+              colorTheme={storeData.colorTheme} 
+              bannerUrl={storeData.bannerUrl}
+              fontSettings={storeData.fontSettings}
+              darkMode={storeData.darkMode}
+              containerHeight="auto"
+            >
+              <Suspense fallback={<div className="animate-pulse bg-gray-200 h-64 rounded-md w-full" />}>
+                <StoreProductsDisplay 
+                  storeName={storeData.storeName} 
+                  colorTheme={storeData.colorTheme}
+                  fontSettings={storeData.fontSettings}
+                  contactInfo={storeData.contactInfo}
+                  categoryImages={storeData.categoryImages}
+                  slug={slug}
+                  storeOwnerId={storeOwnerId}
+                  forceRefresh={forceRefresh}
+                  isEmployeeView={!!employee}
+                />
+              </Suspense>
+              {!employee && (
+                <Suspense fallback={<div className="animate-pulse bg-gray-200 h-12 rounded-md w-full mt-4" />}>
+                  <SocialIcons socialLinks={storeData.socialLinks} />
+                </Suspense>
+              )}
+            </ProductPreviewContainer>
+          </Suspense>
+        </div>
+      </CartProvider>
     </>
   );
 };

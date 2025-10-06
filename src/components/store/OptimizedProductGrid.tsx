@@ -3,10 +3,15 @@ import { Product } from "@/types/product";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useRef, useEffect } from "react";
 import { formatImageUrl } from "@/utils/storageHelpers";
+import { Button } from "@/components/ui/button";
+import { ShoppingCart } from "lucide-react";
+import { useCart } from "@/contexts/CartContext";
+import { toast } from "sonner";
 
 interface ProductGridProps {
   products: Product[];
   colorTheme?: string | null;
+  isEmployeeView?: boolean;
 }
 
 interface LazyImageProps {
@@ -90,8 +95,9 @@ const LazyImage = ({ src, alt, className = "", onLoad, onError }: LazyImageProps
   );
 };
 
-const ProductCard = ({ product }: { product: Product }) => {
+const ProductCard = ({ product, isEmployeeView }: { product: Product; isEmployeeView?: boolean }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const cart = isEmployeeView ? useCart() : null;
 
   // تحسين رابط الصورة
   const getOptimizedImageUrl = (url: string | null | undefined) => {
@@ -122,6 +128,13 @@ const ProductCard = ({ product }: { product: Product }) => {
   const isAvailable = product.is_available !== false;
   const isPopular = product.is_popular;
   const isNew = product.is_new;
+
+  const handleAddToCart = () => {
+    if (cart && isAvailable) {
+      cart.addItem(product, 1);
+      toast.success(`تمت إضافة ${product.name} للسلة`);
+    }
+  };
 
   // تحديد فئات CSS للتأثيرات المختلفة
   const getCardClasses = () => {
@@ -194,16 +207,27 @@ const ProductCard = ({ product }: { product: Product }) => {
             {product.description}
           </p>
         )}
+        
+        {isEmployeeView && isAvailable && (
+          <Button
+            onClick={handleAddToCart}
+            className="w-full mt-3 gap-2"
+            size="sm"
+          >
+            <ShoppingCart className="h-4 w-4" />
+            إضافة للسلة
+          </Button>
+        )}
       </div>
     </motion.div>
   );
 };
 
-const OptimizedProductGrid = ({ products, colorTheme }: ProductGridProps) => {
+const OptimizedProductGrid = ({ products, colorTheme, isEmployeeView = false }: ProductGridProps) => {
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
       {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
+        <ProductCard key={product.id} product={product} isEmployeeView={isEmployeeView} />
       ))}
     </div>
   );

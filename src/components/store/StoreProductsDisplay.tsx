@@ -29,6 +29,7 @@ interface StoreProductsDisplayProps {
   slug?: string;
   storeOwnerId?: string;
   forceRefresh?: number;
+  isEmployeeView?: boolean;
 }
 
 const StoreProductsDisplay = ({
@@ -40,6 +41,7 @@ const StoreProductsDisplay = ({
   slug,
   storeOwnerId,
   forceRefresh = 0,
+  isEmployeeView = false,
 }: StoreProductsDisplayProps) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -350,6 +352,7 @@ const StoreProductsDisplay = ({
                   <OptimizedProductGrid 
                     products={products}
                     colorTheme={colorTheme}
+                    isEmployeeView={isEmployeeView}
                   />
                   
                   {/* عنصر مراقبة لتحميل المزيد */}
