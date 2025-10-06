@@ -78,16 +78,7 @@ const MobileNavigation = () => {
       icon: Store,
       label: "إدارة المبيعات",
       path: "/sales-management", 
-      action: () => {
-        navigate("/dashboard");
-        // الانتقال إلى تبويب إدارة المبيعات
-        setTimeout(() => {
-          const salesTab = document.querySelector('[value="sales-management"]');
-          if (salesTab instanceof HTMLElement) {
-            salesTab.click();
-          }
-        }, 100);
-      },
+      action: () => navigate("/sales-management"),
     },
     {
       icon: Settings,

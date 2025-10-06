@@ -26,6 +26,7 @@ import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import UserDetailsPage from "./pages/UserDetailsPage";
 import AdminGuard from "./components/admin/AdminGuard";
+import SalesManagement from "./pages/SalesManagement";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/customer-feedback/:userId" element={<CustomerFeedback />} />
+            <Route path="/sales-management" element={<SalesManagement />} />
             
             {/* صفحة موحدة للشروط والأحكام وسياسة الخصوصية والاتصال */}
             <Route path="/legal" element={<LegalPages />} />
