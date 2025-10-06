@@ -58,6 +58,9 @@ export const useOrders = () => {
 
       if (itemsError) throw itemsError;
 
+      // تحديث سجل المبيعات اليومي للموظف
+      await updateEmployeeDailySales(storeOwnerId, employeeId, totalAmount);
+
       toast({
         title: "تم إنشاء الطلب",
         description: "تم إنشاء الطلب بنجاح",
@@ -128,6 +131,58 @@ export const useOrders = () => {
         description: "حدث خطأ أثناء جلب الطلبات",
       });
       return [];
+    }
+  };
+
+  const updateEmployeeDailySales = async (
+    storeOwnerId: string,
+    employeeId: string,
+    orderAmount: number
+  ) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+
+      // الحصول على اسم الموظف
+      const { data: employee } = await supabase
+        .from("employees")
+        .select("full_name")
+        .eq("id", employeeId)
+        .single();
+
+      if (!employee) return;
+
+      // التحقق من وجود سجل لهذا اليوم
+      const { data: existing } = await supabase
+        .from("employee_daily_sales")
+        .select("*")
+        .eq("employee_id", employeeId)
+        .eq("sale_date", today)
+        .single();
+
+      if (existing) {
+        // تحديث السجل الموجود
+        await supabase
+          .from("employee_daily_sales")
+          .update({
+            total_orders: existing.total_orders + 1,
+            total_sales: Number(existing.total_sales) + orderAmount,
+          })
+          .eq("id", existing.id);
+      } else {
+        // إنشاء سجل جديد
+        await supabase
+          .from("employee_daily_sales")
+          .insert({
+            store_owner_id: storeOwnerId,
+            employee_id: employeeId,
+            employee_name: employee.full_name,
+            sale_date: today,
+            total_orders: 1,
+            total_sales: orderAmount,
+          });
+      }
+    } catch (error) {
+      console.error("Error updating daily sales:", error);
     }
   };
 
