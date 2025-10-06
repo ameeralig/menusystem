@@ -11,6 +11,7 @@ import MobileNavigation from "@/components/dashboard/MobileNavigation";
 import FloatingActionButton from "@/components/dashboard/FloatingActionButton";
 import EmployeesTab from "@/components/employees/EmployeesTab";
 import TablesTab from "@/components/employees/TablesTab";
+import EmployeeSalesReport from "@/components/dashboard/EmployeeSalesReport";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
@@ -69,7 +70,7 @@ const Dashboard = () => {
         {/* Actions and Analytics */}
         <div className="space-y-6">
           <Tabs defaultValue="actions" className="w-full">
-            <TabsList className={`grid w-full ${employeeSystemEnabled ? 'grid-cols-4' : 'grid-cols-2'} mb-6 bg-muted/50 p-1 rounded-xl`}>
+            <TabsList className={`grid w-full ${employeeSystemEnabled ? 'grid-cols-5' : 'grid-cols-2'} mb-6 bg-muted/50 p-1 rounded-xl`}>
               <TabsTrigger 
                 value="actions" 
                 className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
@@ -97,6 +98,13 @@ const Dashboard = () => {
                   >
                     <UtensilsCrossed className="h-4 w-4 ml-2" />
                     الطاولات
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="sales"
+                    className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                  >
+                    <BarChart3 className="h-4 w-4 ml-2" />
+                    سجل المبيعات
                   </TabsTrigger>
                 </>
               )}
@@ -193,6 +201,10 @@ const Dashboard = () => {
 
                 <TabsContent value="tables" className="mt-0">
                   <TablesTab />
+                </TabsContent>
+
+                <TabsContent value="sales" className="mt-0">
+                  <EmployeeSalesReport />
                 </TabsContent>
               </>
             )}

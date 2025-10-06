@@ -65,6 +65,47 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_daily_sales: {
+        Row: {
+          created_at: string
+          employee_id: string
+          employee_name: string
+          id: string
+          sale_date: string
+          store_owner_id: string
+          total_orders: number
+          total_sales: number
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          employee_name: string
+          id?: string
+          sale_date: string
+          store_owner_id: string
+          total_orders?: number
+          total_sales?: number
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          employee_name?: string
+          id?: string
+          sale_date?: string
+          store_owner_id?: string
+          total_orders?: number
+          total_sales?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_daily_sales_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           created_at: string | null
@@ -558,9 +599,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_employee_daily_sales: {
+        Args: { target_date?: string }
+        Returns: {
+          employee_id: string
+          employee_name: string
+          store_owner_id: string
+          total_orders: number
+          total_sales: number
+        }[]
+      }
       cleanup_expired_otps: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      cleanup_old_employee_sales: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
       cleanup_old_resolved_feedback: {
         Args: Record<PropertyKey, never>
