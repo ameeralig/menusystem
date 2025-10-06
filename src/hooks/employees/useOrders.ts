@@ -31,7 +31,6 @@ export const useOrders = () => {
           store_owner_id: storeOwnerId,
           employee_id: employeeId,
           table_id: tableId,
-          status: "pending",
           total_amount: totalAmount,
           final_amount: totalAmount,
           customer_name: customerName || null,

@@ -19,19 +19,6 @@ const OrdersHistory = ({ orders, onRefresh }: OrdersHistoryProps) => {
   const [selectedOrder, setSelectedOrder] = useState<{ order: Order; items: OrderItem[] } | null>(null);
   const [showInvoice, setShowInvoice] = useState(false);
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      pending: { label: "قيد الانتظار", variant: "secondary" as const },
-      preparing: { label: "قيد التحضير", variant: "default" as const },
-      ready: { label: "جاهز", variant: "default" as const },
-      completed: { label: "مكتمل", variant: "default" as const },
-      cancelled: { label: "ملغي", variant: "destructive" as const },
-    };
-
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
-    return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
-
   const handleViewInvoice = (order: any) => {
     setSelectedOrder({
       order: order,
@@ -81,7 +68,6 @@ const OrdersHistory = ({ orders, onRefresh }: OrdersHistoryProps) => {
                         <span className="text-sm font-medium">
                           #{order.id.slice(0, 8)}
                         </span>
-                        {getStatusBadge(order.status)}
                       </div>
                       
                       {order.table_number && (

@@ -47,16 +47,6 @@ const OrderInvoice = ({ order, items, storeName, onPrint }: OrderInvoiceProps) =
             <span className="font-medium">{order.customer_phone}</span>
           </div>
         )}
-        <div>
-          <span className="text-muted-foreground">الحالة: </span>
-          <span className="font-medium">
-            {order.status === "pending" && "قيد الانتظار"}
-            {order.status === "preparing" && "قيد التحضير"}
-            {order.status === "ready" && "جاهز"}
-            {order.status === "completed" && "مكتمل"}
-            {order.status === "cancelled" && "ملغي"}
-          </span>
-        </div>
       </div>
 
       <Separator />
