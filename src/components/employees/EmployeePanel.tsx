@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogOut, ShoppingCart, ClipboardList, Package, Receipt } from "lucide-react";
+import { LogOut, ShoppingCart, ClipboardList, Package, Receipt, History } from "lucide-react";
 import { Employee, Table } from "@/types/employee";
 import { useTables } from "@/hooks/employees/useTables";
 import { useCart } from "@/contexts/CartContext";
@@ -12,6 +12,7 @@ import { useOrders } from "@/hooks/employees/useOrders";
 import Cart from "./Cart";
 import ProductsGrid from "./ProductsGrid";
 import OrderInvoice from "./OrderInvoice";
+import OrdersHistory from "./OrdersHistory";
 import { Product } from "@/types/product";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -29,12 +30,28 @@ interface EmployeePanelProps {
 const EmployeePanel = ({ employee, onLogout, products, storeOwnerId, onAddToCart }: EmployeePanelProps) => {
   const { tables, isLoading: tablesLoading } = useTables();
   const { items, updateQuantity, updateNotes, removeItem, clearCart, getTotal } = useCart();
-  const { createOrder, getOrderWithItems, isCreating } = useOrders();
+  const { createOrder, getOrderWithItems, getEmployeeOrders, isCreating } = useOrders();
   const [selectedTable, setSelectedTable] = useState<string>("");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [currentOrder, setCurrentOrder] = useState<any>(null);
   const [showInvoice, setShowInvoice] = useState(false);
+  const [employeeOrders, setEmployeeOrders] = useState<any[]>([]);
+  const [showOrdersHistory, setShowOrdersHistory] = useState(false);
+
+  // جلب طلبات الموظف
+  useEffect(() => {
+    if (employee?.id) {
+      loadEmployeeOrders();
+    }
+  }, [employee?.id]);
+
+  const loadEmployeeOrders = async () => {
+    if (employee?.id) {
+      const orders = await getEmployeeOrders(employee.id);
+      setEmployeeOrders(orders || []);
+    }
+  };
 
   const availableProducts = products.filter(p => p.is_available);
 
@@ -60,6 +77,8 @@ const EmployeePanel = ({ employee, onLogout, products, storeOwnerId, onAddToCart
         setSelectedTable("");
         setCustomerName("");
         setCustomerPhone("");
+        // تحديث قائمة الطلبات
+        loadEmployeeOrders();
       }
     }
   };
@@ -84,6 +103,15 @@ const EmployeePanel = ({ employee, onLogout, products, storeOwnerId, onAddToCart
           </div>
 
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowOrdersHistory(true)}
+            >
+              <History className="h-4 w-4 ml-2" />
+              السجل ({employeeOrders.length})
+            </Button>
+
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="sm">
@@ -177,6 +205,19 @@ const EmployeePanel = ({ employee, onLogout, products, storeOwnerId, onAddToCart
               />
             )}
           </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      {/* نافذة سجل الطلبات */}
+      <Dialog open={showOrdersHistory} onOpenChange={setShowOrdersHistory}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="text-right">سجل الطلبات</DialogTitle>
+          </DialogHeader>
+          <OrdersHistory
+            orders={employeeOrders}
+            onRefresh={loadEmployeeOrders}
+          />
         </DialogContent>
       </Dialog>
     </div>

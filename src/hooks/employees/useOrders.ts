@@ -107,9 +107,35 @@ export const useOrders = () => {
     }
   };
 
+  const getEmployeeOrders = async (employeeId: string) => {
+    try {
+      const { data: orders, error } = await supabase
+        .from("orders")
+        .select(`
+          *,
+          order_items (*)
+        `)
+        .eq("employee_id", employeeId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      return orders;
+    } catch (error: any) {
+      console.error("Error fetching employee orders:", error);
+      toast({
+        variant: "destructive",
+        title: "خطأ",
+        description: "حدث خطأ أثناء جلب الطلبات",
+      });
+      return [];
+    }
+  };
+
   return {
     createOrder,
     getOrderWithItems,
+    getEmployeeOrders,
     isCreating,
   };
 };
