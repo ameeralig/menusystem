@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
-import qrmLogo from "@/assets/qrm-logo.jpeg";
+import qrLogo from "@/assets/qr-logo.jpeg";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -54,10 +54,13 @@ const Index = () => {
       <header className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 relative z-10">
         <div className="flex justify-between items-center backdrop-blur-sm bg-white/5 rounded-2xl p-4 border border-white/10">
           <div className="flex items-center gap-3">
-            <img src={qrmLogo} alt="QRM Logo" className="h-10 sm:h-12 w-auto" />
-            <h1 className="text-lg sm:text-xl font-bold text-white font-cyber">
-              QRM
-            </h1>
+            <img src={qrLogo} alt="QR Logo" className="h-12 sm:h-14 w-auto drop-shadow-lg" />
+            <div className="flex flex-col">
+              <h1 className="text-xl sm:text-2xl font-bold text-white font-cyber tracking-wider drop-shadow-lg">
+                QRM
+              </h1>
+              <p className="text-xs sm:text-sm text-white/80 font-arabic">خدمات المنيو والقوائم</p>
+            </div>
           </div>
           
           <div className="flex items-center gap-2 sm:gap-4">
@@ -93,12 +96,12 @@ const Index = () => {
               transition={{ delay: 0.2, duration: 0.5 }}
               className="mb-6"
             >
-              <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold leading-tight mb-4 font-cyber">
-                <span className="bg-gradient-to-r from-cyber-blue via-cyber-purple to-cyber-pink bg-clip-text text-transparent">
+              <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold leading-tight mb-4 font-cyber tracking-wider drop-shadow-2xl">
+                <span className="bg-gradient-to-r from-cyber-blue via-cyber-purple to-cyber-pink bg-clip-text text-transparent filter drop-shadow-[0_0_15px_rgba(0,156,255,0.5)]">
                   QR MENU
                 </span>
               </h1>
-              <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
+              <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-white drop-shadow-lg font-arabic">
                 خدمات المنيو والقوائم
               </p>
             </motion.div>
@@ -107,7 +110,7 @@ const Index = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.5 }}
-              className="text-lg sm:text-xl text-white/80 mt-6 max-w-2xl mx-auto"
+              className="text-lg sm:text-xl text-white/90 mt-6 max-w-2xl mx-auto font-arabic font-semibold drop-shadow-lg"
             >
               منصة متكاملة لإدارة وعرض منتجاتك بكل سهولة عبر رمز QR بتقنية متطورة
             </motion.p>
@@ -229,8 +232,8 @@ const Index = () => {
               <div className="h-16 w-16 bg-gradient-to-br from-cyber-blue to-cyber-purple rounded-2xl flex items-center justify-center mx-auto mb-4 text-white group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-cyber-purple/30">
                 {feature.icon}
               </div>
-              <h3 className="text-xl font-bold mb-2 text-white text-center">{feature.title}</h3>
-              <p className="text-white/70 text-center">{feature.description}</p>
+              <h3 className="text-xl font-bold mb-2 text-white text-center font-arabic drop-shadow-lg">{feature.title}</h3>
+              <p className="text-white/80 text-center font-arabic font-medium">{feature.description}</p>
             </motion.div>
           ))}
         </div>
@@ -241,8 +244,11 @@ const Index = () => {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0 flex items-center gap-3">
-              <img src={qrmLogo} alt="QRM Logo" className="h-10 w-auto" />
-              <h2 className="text-xl font-bold text-white font-cyber">QRM MENU SERVICES</h2>
+              <img src={qrLogo} alt="QR Logo" className="h-12 w-auto drop-shadow-lg" />
+              <div className="flex flex-col">
+                <h2 className="text-xl font-bold text-white font-cyber tracking-wider drop-shadow-lg">QRM</h2>
+                <p className="text-xs text-white/80 font-arabic">MENU SERVICES</p>
+              </div>
             </div>
             <div className="flex justify-center">
               <a 
