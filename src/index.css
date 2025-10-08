@@ -22,6 +22,12 @@
 
 @layer base {
   :root {
+    /* New Cyber Theme Colors */
+    --cyber-dark: 242 63% 13%;
+    --cyber-blue: 203 100% 50%;
+    --cyber-purple: 263 90% 67%;
+    --cyber-pink: 282 90% 67%;
+    --cyber-accent: 243 45% 37%;
     --background: 30 100% 97%;
     --foreground: 222.2 84% 4.9%;
 

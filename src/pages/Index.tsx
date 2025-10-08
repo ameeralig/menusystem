@@ -2,33 +2,74 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
+import qrmLogo from "@/assets/qrm-logo.jpeg";
 
 const Index = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
   return (
-    <div className="min-h-screen bg-[#fff0e8]">
+    <div className="min-h-screen bg-gradient-to-br from-[#0E0C35] via-[#161437] to-[#000054] relative overflow-hidden font-arabic">
+      {/* Animated Background Pattern */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.1, 0.2, 0.1],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute top-10 right-20 w-96 h-96 bg-cyber-purple/20 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.15, 0.25, 0.15],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute bottom-20 left-10 w-[500px] h-[500px] bg-cyber-blue/20 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [0.1, 0.2, 0.1],
+          }}
+          transition={{
+            duration: 12,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyber-pink/10 rounded-full blur-3xl"
+        />
+      </div>
+
       {/* Header/Navbar */}
-      <header className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-800 relative">
-              منيو QR الرقمي
-              <div className="absolute -bottom-1 left-0 w-full h-1 bg-[#ff9178]"></div>
+      <header className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 relative z-10">
+        <div className="flex justify-between items-center backdrop-blur-sm bg-white/5 rounded-2xl p-4 border border-white/10">
+          <div className="flex items-center gap-3">
+            <img src={qrmLogo} alt="QRM Logo" className="h-10 sm:h-12 w-auto" />
+            <h1 className="text-lg sm:text-xl font-bold text-white font-cyber">
+              QRM
             </h1>
           </div>
           
-          <div className="flex items-center space-x-2 sm:space-x-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Button
               variant="ghost"
-              className="text-gray-600 hover:text-gray-900 text-sm sm:text-base"
+              className="text-white/80 hover:text-white hover:bg-white/10 text-sm sm:text-base border border-white/20"
               onClick={() => navigate("/auth/login")}
             >
               تسجيل الدخول
             </Button>
             <Button
-              className="coral-button text-sm sm:text-base px-3 py-2 sm:px-6 sm:py-3"
+              className="bg-gradient-to-r from-cyber-blue to-cyber-purple hover:from-cyber-purple hover:to-cyber-pink text-white text-sm sm:text-base px-4 py-2 sm:px-6 sm:py-3 font-semibold shadow-lg shadow-cyber-blue/50 transition-all duration-300"
               onClick={() => navigate("/auth/signup")}
             >
               إنشاء منيو
@@ -38,28 +79,48 @@ const Index = () => {
       </header>
 
       {/* Hero Section */}
-      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-16 md:py-32">
+      <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-20 md:py-32 relative z-10">
         <div className="grid grid-cols-1 gap-8 md:gap-12 items-center justify-center">
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.8 }}
             className="text-center"
           >
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight">
-              <span className="text-[#ff9178]">منيو QR رقمي</span>
-              <br />
-              <span className="text-gray-700">يعمل من أجلك</span>
-            </h1>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="mb-6"
+            >
+              <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold leading-tight mb-4 font-cyber">
+                <span className="bg-gradient-to-r from-cyber-blue via-cyber-purple to-cyber-pink bg-clip-text text-transparent">
+                  QR MENU
+                </span>
+              </h1>
+              <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
+                خدمات المنيو والقوائم
+              </p>
+            </motion.div>
             
-            <p className="text-lg sm:text-xl text-gray-600 mt-6">
-              منصة متكاملة لإدارة وعرض منتجاتك بكل سهولة عبر رمز QR
-            </p>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              className="text-lg sm:text-xl text-white/80 mt-6 max-w-2xl mx-auto"
+            >
+              منصة متكاملة لإدارة وعرض منتجاتك بكل سهولة عبر رمز QR بتقنية متطورة
+            </motion.p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center mt-10"
+            >
               <Button
                 onClick={() => navigate("/checkpoint")}
-                className="coral-button-outline"
+                className="bg-transparent border-2 border-cyber-blue text-cyber-blue hover:bg-cyber-blue hover:text-white text-base sm:text-lg px-8 py-6 font-semibold transition-all duration-300 shadow-lg shadow-cyber-blue/30"
                 size={isMobile ? "default" : "lg"}
               >
                 عرض نموذج
@@ -67,138 +128,133 @@ const Index = () => {
 
               <Button
                 onClick={() => navigate("/auth/signup")}
-                className="coral-button"
+                className="bg-gradient-to-r from-cyber-blue to-cyber-purple hover:from-cyber-purple hover:to-cyber-pink text-white text-base sm:text-lg px-8 py-6 font-semibold shadow-xl shadow-cyber-purple/50 transition-all duration-300"
                 size={isMobile ? "default" : "lg"}
               >
                 إنشاء منيو QR
               </Button>
-            </div>
+            </motion.div>
           </motion.div>
         </div>
       </div>
 
       {/* Features Section */}
-      <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-24">
+      <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-24 relative z-10">
         <div className="text-center mb-12 sm:mb-16">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">مميزات المنيو الرقمي</h2>
-          <p className="text-gray-600 mt-4">كل ما تحتاجه لعرض منتجاتك بطريقة احترافية</p>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 font-cyber"
+          >
+            مميزات <span className="bg-gradient-to-r from-cyber-blue to-cyber-purple bg-clip-text text-transparent">المنيو الرقمي</span>
+          </motion.h2>
+          <p className="text-white/70 text-lg">كل ما تحتاجه لعرض منتجاتك بطريقة احترافية</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="p-6 bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg shadow-[0_8px_32px_0_rgba(31,18,38,0.37)] hover:shadow-[0_8px_32px_0_rgba(31,18,38,0.47)] transition-all duration-300 text-center transform hover:scale-105"
-          >
-            <div className="h-14 w-14 sm:h-16 sm:w-16 bg-[#fff0e8] rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8 text-[#ff9178]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-            </div>
-            <h3 className="text-lg sm:text-xl font-semibold mb-2">إدارة سهلة</h3>
-            <p className="text-gray-600 text-sm sm:text-base">واجهة بسيطة وسهلة لإدارة منتجاتك</p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="p-6 bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg shadow-[0_8px_32px_0_rgba(31,18,38,0.37)] hover:shadow-[0_8px_32px_0_rgba(31,18,38,0.47)] transition-all duration-300 text-center transform hover:scale-105"
-          >
-            <div className="h-14 w-14 sm:h-16 sm:w-16 bg-[#fff0e8] rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8 text-[#ff9178]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h3 className="text-lg sm:text-xl font-semibold mb-2">تصميم متجاوب</h3>
-            <p className="text-gray-600 text-sm sm:text-base">يعمل على جميع الأجهزة بشكل مثالي</p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="p-6 bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg shadow-[0_8px_32px_0_rgba(31,18,38,0.37)] hover:shadow-[0_8px_32px_0_rgba(31,18,38,0.47)] transition-all duration-300 text-center transform hover:scale-105"
-          >
-            <div className="h-14 w-14 sm:h-16 sm:w-16 bg-[#fff0e8] rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8 text-[#ff9178]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h3 className="text-lg sm:text-xl font-semibold mb-2">تحكم كامل</h3>
-            <p className="text-gray-600 text-sm sm:text-base">تحكم في جميع تفاصيل منتجاتك</p>
-          </motion.div>
-        </div>
-
-        {/* Additional Features */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 mt-8 sm:mt-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-            className="p-6 bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg shadow-[0_8px_32px_0_rgba(31,18,38,0.37)] hover:shadow-[0_8px_32px_0_rgba(31,18,38,0.47)] transition-all duration-300 text-center transform hover:scale-105"
-          >
-            <div className="h-14 w-14 sm:h-16 sm:w-16 bg-[#fff0e8] rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8 text-[#ff9178]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h3 className="text-lg sm:text-xl font-semibold mb-2">التخلص من القوائم الورقية</h3>
-            <p className="text-gray-600 text-sm sm:text-base">استبدل القوائم الورقية برمز QR سهل المسح</p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.0 }}
-            className="p-6 bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg shadow-[0_8px_32px_0_rgba(31,18,38,0.37)] hover:shadow-[0_8px_32px_0_rgba(31,18,38,0.47)] transition-all duration-300 text-center transform hover:scale-105"
-          >
-            <div className="h-14 w-14 sm:h-16 sm:w-16 bg-[#fff0e8] rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8 text-[#ff9178]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-            </div>
-            <h3 className="text-lg sm:text-xl font-semibold mb-2">سهولة التعديل</h3>
-            <p className="text-gray-600 text-sm sm:text-base">حدّث منتجاتك وأسعارك في أي وقت بسهولة</p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2 }}
-            className="p-6 bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg shadow-[0_8px_32px_0_rgba(31,18,38,0.37)] hover:shadow-[0_8px_32px_0_rgba(31,18,38,0.47)] transition-all duration-300 text-center transform hover:scale-105"
-          >
-            <div className="h-14 w-14 sm:h-16 sm:w-16 bg-[#fff0e8] rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8 text-[#ff9178]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-            </div>
-            <h3 className="text-lg sm:text-xl font-semibold mb-2">تجربة مستخدم سلسة</h3>
-            <p className="text-gray-600 text-sm sm:text-base">واجهة سهلة الاستخدام تعزز من تجربة العميل</p>
-          </motion.div>
+          {[
+            {
+              title: "إدارة سهلة",
+              description: "واجهة بسيطة وسهلة لإدارة منتجاتك",
+              icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              ),
+              delay: 0.2
+            },
+            {
+              title: "تصميم متجاوب",
+              description: "يعمل على جميع الأجهزة بشكل مثالي",
+              icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              ),
+              delay: 0.3
+            },
+            {
+              title: "تحكم كامل",
+              description: "تحكم في جميع تفاصيل منتجاتك",
+              icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              ),
+              delay: 0.4
+            },
+            {
+              title: "التخلص من القوائم الورقية",
+              description: "استبدل القوائم الورقية برمز QR سهل المسح",
+              icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              ),
+              delay: 0.5
+            },
+            {
+              title: "سهولة التعديل",
+              description: "حدّث منتجاتك وأسعارك في أي وقت بسهولة",
+              icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              ),
+              delay: 0.6
+            },
+            {
+              title: "تجربة مستخدم سلسة",
+              description: "واجهة سهلة الاستخدام تعزز من تجربة العميل",
+              icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              ),
+              delay: 0.7
+            },
+          ].map((feature, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: feature.delay, duration: 0.5 }}
+              viewport={{ once: true }}
+              whileHover={{ scale: 1.05, y: -5 }}
+              className="group p-6 backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-2xl shadow-xl hover:shadow-cyber-blue/30 transition-all duration-300"
+            >
+              <div className="h-16 w-16 bg-gradient-to-br from-cyber-blue to-cyber-purple rounded-2xl flex items-center justify-center mx-auto mb-4 text-white group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-cyber-purple/30">
+                {feature.icon}
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-white text-center">{feature.title}</h3>
+              <p className="text-white/70 text-center">{feature.description}</p>
+            </motion.div>
+          ))}
         </div>
       </div>
 
       {/* Footer */}
-      <footer className="bg-white py-8 mt-16">
+      <footer className="relative z-10 backdrop-blur-xl bg-white/5 border-t border-white/10 py-8 mt-16">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
-              <h2 className="text-xl font-bold text-gray-800">منيو QR الرقمي</h2>
+            <div className="mb-4 md:mb-0 flex items-center gap-3">
+              <img src={qrmLogo} alt="QRM Logo" className="h-10 w-auto" />
+              <h2 className="text-xl font-bold text-white font-cyber">QRM MENU SERVICES</h2>
             </div>
             <div className="flex justify-center">
               <a 
                 href="/legal" 
-                className="text-gray-600 hover:text-gray-900 text-sm sm:text-base hover-scale transition-all"
+                className="text-white/70 hover:text-white text-sm sm:text-base transition-all duration-300"
               >
                 معلومات المنصة
               </a>
             </div>
           </div>
-          <div className="mt-8 text-center text-gray-500 text-sm">
-            &copy; {new Date().getFullYear()} منيو QR الرقمي. جميع الحقوق محفوظة.
+          <div className="mt-8 text-center text-white/50 text-sm">
+            &copy; {new Date().getFullYear()} QRM Menu Services. جميع الحقوق محفوظة.
           </div>
         </div>
       </footer>
