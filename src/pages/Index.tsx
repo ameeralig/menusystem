@@ -167,65 +167,112 @@ const Index = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
           {[
             {
-              title: "إدارة سهلة مع QRM",
-              description: "واجهة بسيطة وسهلة لإدارة منتجاتك عبر نظام QRM",
-              icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              ),
+              title: "إدارة المنتجات والفئات",
+              description: "إضافة وتعديل منتجاتك بسهولة مع تنظيم تلقائي حسب الفئات",
+              icon: "📦",
+              delay: 0.1
+            },
+            {
+              title: "رمز QR مخصص",
+              description: "أنشئ رمز QR احترافي بألوان وأشكال مخصصة لعلامتك التجارية",
+              icon: "📱",
               delay: 0.2
             },
             {
-              title: "تصميم متجاوب",
-              description: "يعمل على جميع الأجهزة بشكل مثالي",
-              icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-              ),
+              title: "تخصيص المتجر",
+              description: "صمم متجرك بألوان وخطوط وصور خاصة تناسب هويتك",
+              icon: "🎨",
               delay: 0.3
             },
             {
-              title: "تحكم كامل",
-              description: "تحكم في جميع تفاصيل منتجاتك",
-              icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-              ),
+              title: "نظام الموظفين",
+              description: "إضافة موظفين مع صلاحيات وتتبع مبيعات كل موظف",
+              icon: "👥",
               delay: 0.4
             },
             {
-              title: "التخلص من القوائم الورقية مع QRM",
-              description: "استبدل القوائم الورقية برمز QR سهل المسح عبر QRM Menu",
-              icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              ),
+              title: "إدارة الطاولات",
+              description: "نظام متكامل لإدارة طاولات المطعم أو المقهى",
+              icon: "🪑",
               delay: 0.5
             },
             {
-              title: "سهولة التعديل",
-              description: "حدّث منتجاتك وأسعارك في أي وقت بسهولة",
-              icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              ),
+              title: "نظام نقاط البيع POS",
+              description: "سلة تسوق متقدمة للموظفين مع طباعة فواتير احترافية",
+              icon: "💳",
               delay: 0.6
             },
             {
-              title: "تجربة مستخدم سلسة QRM",
-              description: "واجهة QRM سهلة الاستخدام تعزز من تجربة العميل",
-              icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-              ),
+              title: "تقارير المبيعات",
+              description: "تتبع المبيعات اليومية والشهرية مع إحصائيات تفصيلية",
+              icon: "📊",
               delay: 0.7
+            },
+            {
+              title: "نظام التقييمات",
+              description: "اجمع آراء العملاء وتقييماتهم لتحسين خدماتك",
+              icon: "⭐",
+              delay: 0.8
+            },
+            {
+              title: "معاينة مباشرة",
+              description: "شاهد متجرك كما يراه العملاء قبل النشر",
+              icon: "👁️",
+              delay: 0.9
+            },
+            {
+              title: "تصميم متجاوب",
+              description: "يعمل بشكل مثالي على الهواتف والأجهزة اللوحية",
+              icon: "📲",
+              delay: 1.0
+            },
+            {
+              title: "بحث متقدم",
+              description: "بحث سريع وفعال للعملاء للوصول للمنتجات بسهولة",
+              icon: "🔍",
+              delay: 1.1
+            },
+            {
+              title: "رابط مخصص",
+              description: "احصل على رابط خاص بمتجرك سهل الحفظ والمشاركة",
+              icon: "🔗",
+              delay: 1.2
+            },
+            {
+              title: "وضع الليل والنهار",
+              description: "تبديل تلقائي بين الوضع الفاتح والداكن",
+              icon: "🌙",
+              delay: 1.3
+            },
+            {
+              title: "إشعارات WhatsApp",
+              description: "إشعارات فورية عبر واتساب للطلبات الجديدة",
+              icon: "💬",
+              delay: 1.4
+            },
+            {
+              title: "تحديثات فورية",
+              description: "التعديلات تظهر مباشرة للعملاء بدون تأخير",
+              icon: "⚡",
+              delay: 1.5
+            },
+            {
+              title: "لوحة تحكم شاملة",
+              description: "إدارة كاملة لكل جوانب متجرك من مكان واحد",
+              icon: "⚙️",
+              delay: 1.6
+            },
+            {
+              title: "صور عالية الجودة",
+              description: "رفع وعرض صور منتجاتك بجودة احترافية",
+              icon: "📸",
+              delay: 1.7
+            },
+            {
+              title: "تواصل اجتماعي",
+              description: "أضف روابط حساباتك الاجتماعية لسهولة التواصل",
+              icon: "🌐",
+              delay: 1.8
             },
           ].map((feature, index) => (
             <motion.div
@@ -238,7 +285,7 @@ const Index = () => {
               className="group p-6 backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-2xl shadow-xl hover:shadow-cyber-blue/30 transition-all duration-300"
             >
               <div className="h-16 w-16 bg-gradient-to-br from-cyber-blue to-cyber-purple rounded-2xl flex items-center justify-center mx-auto mb-4 text-white group-hover:scale-110 transition-transform duration-300 shadow-xl shadow-cyber-purple/40">
-                {feature.icon}
+                <span className="text-3xl">{feature.icon}</span>
               </div>
               <h3 className="text-xl font-black mb-2 text-white text-center font-arabic drop-shadow-[0_2px_8px_rgba(255,255,255,0.4)]">{feature.title}</h3>
               <p className="text-white text-center font-arabic font-bold drop-shadow-lg">{feature.description}</p>
