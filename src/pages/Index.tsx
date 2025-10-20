@@ -105,11 +105,11 @@ const Index = () => {
               className="mb-6"
             >
               <h1 className="text-4xl sm:text-5xl md:text-7xl font-black leading-tight mb-4 font-cyber tracking-wider drop-shadow-2xl">
-                <span className="bg-gradient-to-r from-cyber-blue via-cyber-purple to-cyber-pink bg-clip-text text-transparent filter drop-shadow-[0_0_20px_rgba(0,156,255,0.8)]">
+                <span className="bg-gradient-to-r from-[#3baaff] via-[#a78bfa] to-[#f0abfc] bg-clip-text text-transparent filter drop-shadow-[0_0_30px_rgba(59,170,255,0.9)]">
                   QRM - QR MENU
                 </span>
               </h1>
-              <p className="text-2xl sm:text-3xl md:text-4xl font-black text-white drop-shadow-[0_2px_15px_rgba(255,255,255,0.5)] font-arabic">
+              <p className="text-2xl sm:text-3xl md:text-4xl font-black text-white drop-shadow-[0_4px_20px_rgba(255,255,255,0.8)] font-arabic">
                 QRM - خدمات المنيو والقوائم الرقمية
               </p>
             </motion.div>
@@ -118,7 +118,7 @@ const Index = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.5 }}
-              className="text-lg sm:text-xl text-white mt-6 max-w-2xl mx-auto font-arabic font-bold drop-shadow-[0_2px_10px_rgba(255,255,255,0.4)]"
+              className="text-lg sm:text-xl text-white/95 mt-6 max-w-2xl mx-auto font-arabic font-bold drop-shadow-[0_4px_15px_rgba(255,255,255,0.7)]"
             >
               QRM - منصة متكاملة لإدارة وعرض منتجاتك بكل سهولة عبر رمز QR بتقنية متطورة. نظام QRM للمنيو الرقمي الاحترافي
             </motion.p>
@@ -131,7 +131,7 @@ const Index = () => {
             >
               <Button
                 onClick={() => navigate("/checkpoint")}
-                className="bg-transparent border-2 border-cyber-blue text-cyber-blue hover:bg-cyber-blue hover:text-white text-base sm:text-lg px-8 py-6 font-black transition-all duration-300 shadow-lg shadow-cyber-blue/30 drop-shadow-xl"
+                className="bg-transparent border-2 border-[#3baaff] text-[#3baaff] hover:bg-[#3baaff] hover:text-white text-base sm:text-lg px-8 py-6 font-black transition-all duration-300 shadow-lg shadow-[#3baaff]/40 drop-shadow-xl"
                 size={isMobile ? "default" : "lg"}
               >
                 عرض نموذج QRM
@@ -139,7 +139,7 @@ const Index = () => {
 
               <Button
                 onClick={() => navigate("/auth/signup")}
-                className="bg-gradient-to-r from-cyber-blue to-cyber-purple hover:from-cyber-purple hover:to-cyber-pink text-white text-base sm:text-lg px-8 py-6 font-black shadow-xl shadow-cyber-purple/50 transition-all duration-300 drop-shadow-2xl"
+                className="bg-gradient-to-r from-[#3baaff] to-[#a78bfa] hover:from-[#a78bfa] hover:to-[#f0abfc] text-white text-base sm:text-lg px-8 py-6 font-black shadow-xl shadow-[#a78bfa]/60 transition-all duration-300 drop-shadow-2xl"
                 size={isMobile ? "default" : "lg"}
               >
                 إنشاء منيو QRM الآن
@@ -159,9 +159,9 @@ const Index = () => {
             viewport={{ once: true }}
             className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-4 font-cyber drop-shadow-2xl"
           >
-            مميزات <span className="bg-gradient-to-r from-cyber-blue to-cyber-purple bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(0,156,255,0.6)]">QRM المنيو الرقمي</span>
+            مميزات <span className="bg-gradient-to-r from-[#3baaff] to-[#a78bfa] bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(59,170,255,0.8)]">QRM المنيو الرقمي</span>
           </motion.h2>
-          <p className="text-white text-lg font-bold drop-shadow-lg font-arabic">كل ما تحتاجه في نظام QRM لعرض منتجاتك بطريقة احترافية</p>
+          <p className="text-white/95 text-lg font-bold drop-shadow-[0_2px_12px_rgba(255,255,255,0.7)] font-arabic">كل ما تحتاجه في نظام QRM لعرض منتجاتك بطريقة احترافية</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
@@ -284,11 +284,11 @@ const Index = () => {
               whileHover={{ scale: 1.05, y: -5 }}
               className="group p-6 backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-2xl shadow-xl hover:shadow-cyber-blue/30 transition-all duration-300"
             >
-              <div className="h-16 w-16 bg-gradient-to-br from-cyber-blue to-cyber-purple rounded-2xl flex items-center justify-center mx-auto mb-4 text-white group-hover:scale-110 transition-transform duration-300 shadow-xl shadow-cyber-purple/40">
+              <div className="h-16 w-16 bg-gradient-to-br from-[#3baaff] to-[#a78bfa] rounded-2xl flex items-center justify-center mx-auto mb-4 text-white group-hover:scale-110 transition-transform duration-300 shadow-xl shadow-[#a78bfa]/50">
                 <span className="text-3xl">{feature.icon}</span>
               </div>
-              <h3 className="text-xl font-black mb-2 text-white text-center font-arabic drop-shadow-[0_2px_8px_rgba(255,255,255,0.4)]">{feature.title}</h3>
-              <p className="text-white text-center font-arabic font-bold drop-shadow-lg">{feature.description}</p>
+              <h3 className="text-xl font-black mb-2 text-white text-center font-arabic drop-shadow-[0_3px_10px_rgba(255,255,255,0.6)]">{feature.title}</h3>
+              <p className="text-white/95 text-center font-arabic font-bold drop-shadow-[0_2px_10px_rgba(255,255,255,0.5)]">{feature.description}</p>
             </motion.div>
           ))}
         </div>

@@ -22,12 +22,12 @@
 
 @layer base {
   :root {
-    /* New Cyber Theme Colors */
+    /* New Cyber Theme Colors - Enhanced brightness and contrast */
     --cyber-dark: 242 63% 13%;
-    --cyber-blue: 203 100% 50%;
-    --cyber-purple: 263 90% 67%;
-    --cyber-pink: 282 90% 67%;
-    --cyber-accent: 243 45% 37%;
+    --cyber-blue: 203 100% 65%;
+    --cyber-purple: 263 95% 75%;
+    --cyber-pink: 282 95% 75%;
+    --cyber-accent: 243 55% 50%;
     --background: 30 100% 97%;
     --foreground: 222.2 84% 4.9%;
 
