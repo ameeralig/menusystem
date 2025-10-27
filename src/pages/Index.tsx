@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 import qrLogo from "@/assets/qr-logo.png";
 import SeoHelmet from "@/components/legal/SeoHelmet";
+import VantaBackground from "@/components/background/VantaBackground";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -17,46 +18,9 @@ const Index = () => {
         keywords="QRM, منيو QR, منيو رقمي, QR Menu, خدمات المنيو, منيو إلكتروني, QRM Menu, قائمة طعام رقمية, QR Code Menu, خدمات المنيو الإلكتروني"
         canonicalUrl="https://qrmenuc.com"
       />
-      <div className="min-h-screen bg-gradient-to-br from-[#0E0C35] via-[#161437] to-[#000054] relative overflow-hidden font-arabic">
-      {/* Animated Background Pattern */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.1, 0.2, 0.1],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          className="absolute top-10 right-20 w-96 h-96 bg-cyber-purple/20 rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{
-            scale: [1.2, 1, 1.2],
-            opacity: [0.15, 0.25, 0.15],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          className="absolute bottom-20 left-10 w-[500px] h-[500px] bg-cyber-blue/20 rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.1, 0.2, 0.1],
-          }}
-          transition={{
-            duration: 12,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyber-pink/10 rounded-full blur-3xl"
-        />
-      </div>
+      <div className="min-h-screen relative overflow-hidden font-arabic">
+      {/* Vanta Dots Background */}
+      <VantaBackground />
 
       {/* Header/Navbar */}
       <header className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 relative z-10">
