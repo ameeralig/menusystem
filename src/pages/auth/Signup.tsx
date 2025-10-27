@@ -11,7 +11,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, Mail, User, Phone } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AnimatedBackground } from "@/components/auth/AnimatedBackground";
+import VantaBackground from "@/components/background/VantaBackground";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { motion } from "framer-motion";
 
@@ -104,9 +104,7 @@ const Signup = () => {
   if (signupSuccess) {
     return (
       <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center">
-        <AnimatedBackground />
-        <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-primary/30 blur-[100px] rounded-full"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-primary/20 blur-[120px] rounded-full"></div>
+        <VantaBackground />
         
         <motion.div 
           className="auth-container z-10"
@@ -115,15 +113,15 @@ const Signup = () => {
           transition={{ duration: 0.6 }}
         >
           <motion.div 
-            className="auth-card"
+            className="auth-card backdrop-blur-xl bg-white/5 border border-white/20"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <Alert className="mb-6 bg-green-50 border-green-200">
-              <AlertCircle className="h-4 w-4 text-green-600" />
-              <AlertTitle className="text-green-600">تم إنشاء الحساب بنجاح!</AlertTitle>
-              <AlertDescription className="mt-2">
+            <Alert className="mb-6 backdrop-blur-xl bg-green-500/10 border border-green-400/30">
+              <AlertCircle className="h-4 w-4 text-green-400" />
+              <AlertTitle className="text-green-400 font-bold drop-shadow-lg">تم إنشاء الحساب بنجاح!</AlertTitle>
+              <AlertDescription className="mt-2 text-white/90 drop-shadow-lg">
                 شكراً لتسجيلك في منصتنا. سيتم مراجعة حسابك قريباً وسنتواصل معك عبر الهاتف لتفعيل حسابك.
                 لن تتمكن من تسجيل الدخول حتى يتم تفعيل حسابك من قبل المشرفين.
               </AlertDescription>
@@ -143,12 +141,8 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center">
-      {/* خلفية متحركة */}
-      <AnimatedBackground />
-      
-      {/* تأثيرات نيون إضافية */}
-      <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-primary/30 blur-[100px] rounded-full"></div>
-      <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-primary/20 blur-[120px] rounded-full"></div>
+      {/* Vanta Dots Background */}
+      <VantaBackground />
       
       {/* بطاقة التسجيل */}
       <motion.div
@@ -158,11 +152,11 @@ const Signup = () => {
         transition={{ duration: 0.6 }}
       >
         <motion.div 
-          className="auth-card"
+          className="auth-card backdrop-blur-xl bg-white/5 border border-white/20"
           initial={{ scale: 0.95 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.4, delay: 0.2 }}
-          whileHover={{ boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)" }}
+          whileHover={{ boxShadow: "0 20px 60px rgba(59, 170, 255, 0.3)" }}
         >
           <motion.div 
             className="text-center"
@@ -170,12 +164,16 @@ const Signup = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.3 }}
           >
-            <h2 className="auth-title">إنشاء حساب جديد</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <h2 className="text-3xl font-black text-white mb-2 font-cyber drop-shadow-[0_0_20px_rgba(59,170,255,0.8)]">
+              <span className="bg-gradient-to-r from-[#3baaff] via-[#a78bfa] to-[#f0abfc] bg-clip-text text-transparent">
+                إنشاء حساب جديد
+              </span>
+            </h2>
+            <p className="mt-2 text-sm text-white/90 drop-shadow-[0_2px_10px_rgba(255,255,255,0.5)]">
               لديك حساب بالفعل؟{" "}
               <button
                 onClick={() => navigate("/auth/login")}
-                className="font-medium text-primary hover:text-primary/80"
+                className="font-medium text-[#3baaff] hover:text-[#a78bfa] transition-colors"
               >
                 تسجيل الدخول
               </button>

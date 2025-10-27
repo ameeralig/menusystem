@@ -1,8 +1,7 @@
-
 import { useNavigate } from "react-router-dom";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { Button } from "@/components/ui/button";
-import { AnimatedBackground } from "@/components/auth/AnimatedBackground";
+import VantaBackground from "@/components/background/VantaBackground";
 import { motion } from "framer-motion";
 
 const Login = () => {
@@ -10,12 +9,8 @@ const Login = () => {
 
   return (
     <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center">
-      {/* خلفية متحركة */}
-      <AnimatedBackground />
-      
-      {/* تأثيرات نيون إضافية في الخلفية */}
-      <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/30 blur-[100px] rounded-full"></div>
-      <div className="absolute bottom-1/3 right-1/3 w-96 h-96 bg-primary/20 blur-[120px] rounded-full"></div>
+      {/* Vanta Dots Background */}
+      <VantaBackground />
       
       {/* بطاقة تسجيل الدخول */}
       <motion.div
@@ -25,19 +20,21 @@ const Login = () => {
         transition={{ duration: 0.6, ease: "easeOut" }}
       >
         <motion.div 
-          className="auth-card backdrop-blur-xl bg-white/10 dark:bg-black/10 border border-white/20 dark:border-white/10"
+          className="auth-card backdrop-blur-xl bg-white/5 border border-white/20"
           initial={{ scale: 0.95 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.4, delay: 0.2 }}
-          whileHover={{ boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)" }}
+          whileHover={{ boxShadow: "0 20px 60px rgba(59, 170, 255, 0.3)" }}
         >
           <motion.h2 
-            className="auth-title"
+            className="text-3xl font-black text-white mb-6 text-center font-cyber drop-shadow-[0_0_20px_rgba(59,170,255,0.8)]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            تسجيل الدخول
+            <span className="bg-gradient-to-r from-[#3baaff] via-[#a78bfa] to-[#f0abfc] bg-clip-text text-transparent">
+              تسجيل الدخول
+            </span>
           </motion.h2>
 
           <LoginForm />
@@ -50,7 +47,7 @@ const Login = () => {
           >
             <Button
               variant="link"
-              className="text-sm text-primary hover:text-primary/80"
+              className="text-sm text-white hover:text-[#3baaff] drop-shadow-[0_2px_10px_rgba(255,255,255,0.5)]"
               onClick={() => navigate("/auth/reset-password")}
             >
               نسيت كلمة السر؟
@@ -58,7 +55,7 @@ const Login = () => {
 
             <button
               onClick={() => navigate("/auth/signup")}
-              className="text-sm text-primary hover:text-primary/80"
+              className="text-sm text-white hover:text-[#3baaff] transition-colors drop-shadow-[0_2px_10px_rgba(255,255,255,0.5)]"
             >
               إنشاء حساب جديد
             </button>
