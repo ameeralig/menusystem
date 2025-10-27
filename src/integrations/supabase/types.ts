@@ -609,30 +609,12 @@ export type Database = {
           total_sales: number
         }[]
       }
-      cleanup_expired_otps: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      cleanup_old_employee_sales: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      cleanup_old_resolved_feedback: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      create_notifications_table_if_not_exists: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      delete_resolved_feedback: {
-        Args: { owner_id: string }
-        Returns: number
-      }
-      get_employee_store_owner: {
-        Args: { user_uuid: string }
-        Returns: string
-      }
+      cleanup_expired_otps: { Args: never; Returns: undefined }
+      cleanup_old_employee_sales: { Args: never; Returns: number }
+      cleanup_old_resolved_feedback: { Args: never; Returns: number }
+      create_notifications_table_if_not_exists: { Args: never; Returns: string }
+      delete_resolved_feedback: { Args: { owner_id: string }; Returns: number }
+      get_employee_store_owner: { Args: { user_uuid: string }; Returns: string }
       increment_page_view: {
         Args: { store_user_id: string }
         Returns: undefined
@@ -641,10 +623,7 @@ export type Database = {
         Args: { owner_uuid: string; user_uuid: string }
         Returns: boolean
       }
-      update_system_stats: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      update_system_stats: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "user" | "employee"
