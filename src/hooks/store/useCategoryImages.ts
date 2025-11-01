@@ -35,9 +35,6 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
 
         console.log(`تم استلام صور التصنيفات بنجاح، عددها: ${data?.length || 0}`);
         
-        // إنشاء طابع زمني فريد لجميع الصور (نفس منطق صور المنتجات)
-        const uniqueTimestamp = forceRefresh || Date.now();
-        
         if (data && data.length > 0) {
           const updatedImages = data.map(img => {
             if (img.image_url) {
@@ -49,11 +46,24 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
                                     baseUrl.includes('supabase.in') || 
                                     baseUrl.includes('zqlckixwpyrwdwrsuhsg') ||
                                     baseUrl.includes('lovable-app');
-                                    
-              // إنشاء رابط محسّن مع منع الكاش (نفس معاملات صور المنتجات)
-              const updatedUrl = isSupabaseUrl 
-                ? `${baseUrl}?format=webp&quality=85&width=600&t=${uniqueTimestamp}`
-                : `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}t=${uniqueTimestamp}`;
+              
+              // إضافة timestamp فقط عند forceRefresh (تحديث يدوي)
+              // في الحالات العادية نستخدم رابط ثابت للاستفادة من الكاش
+              let updatedUrl: string;
+              
+              if (forceRefresh && forceRefresh > 0) {
+                // عند التحديث اليدوي فقط نضيف timestamp جديد
+                updatedUrl = isSupabaseUrl 
+                  ? `${baseUrl}?format=webp&quality=85&width=600&t=${forceRefresh}`
+                  : `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}t=${forceRefresh}`;
+                console.log(`🔄 تحديث يدوي: إضافة timestamp جديد للصورة ${img.category}`);
+              } else {
+                // في الحالات العادية نستخدم رابط ثابت مع معاملات التحسين فقط
+                updatedUrl = isSupabaseUrl 
+                  ? `${baseUrl}?format=webp&quality=85&width=600`
+                  : baseUrl;
+                console.log(`💾 استخدام الكاش: رابط ثابت للصورة ${img.category}`);
+              }
                 
               return {
                 ...img,
@@ -63,15 +73,15 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
             return img;
           });
           
-          console.log(`✅ تم تحديث ${updatedImages.length} صورة تصنيف بطابع زمني: ${uniqueTimestamp}`);
+          console.log(`✅ تم معالجة ${updatedImages.length} صورة تصنيف (forceRefresh: ${forceRefresh})`);
 
-          // تحميل مسبق وفوري للصور (eager loading كما في صور المنتجات)
+          // تحميل مسبق للصور مع الاستفادة من الكاش
           updatedImages.forEach(img => {
             if (img.image_url) {
               const preloadImage = new Image();
               preloadImage.src = img.image_url;
-              preloadImage.loading = "eager"; // تحميل فوري
-              console.log(`🖼️ تحميل مسبق لصورة التصنيف: ${img.category}`);
+              // السماح بالتحميل البطيء للاستفادة من الكاش
+              preloadImage.loading = "lazy";
             }
           });
           

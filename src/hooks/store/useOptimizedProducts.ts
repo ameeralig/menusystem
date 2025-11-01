@@ -110,13 +110,21 @@ export const useOptimizedProducts = ({
     }
   }, [userId, forceRefresh]);
 
-  // تحسين رابط الصورة
+  // تحسين رابط الصورة مع الاحتفاظ بالكاش
   const optimizeImageUrl = (url: string): string => {
     if (!url) return url;
     
     const baseUrl = url.split('?')[0];
+    
+    // إضافة timestamp فقط عند forceRefresh (تحديث يدوي)
     if (baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')) {
-      return `${baseUrl}?format=webp&quality=85&width=400`;
+      if (forceRefresh && forceRefresh > 0) {
+        // عند التحديث اليدوي نضيف timestamp
+        return `${baseUrl}?format=webp&quality=85&width=400&t=${forceRefresh}`;
+      } else {
+        // في الحالات العادية رابط ثابت للاستفادة من الكاش
+        return `${baseUrl}?format=webp&quality=85&width=400`;
+      }
     }
     return url;
   };
