@@ -35,13 +35,13 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
 
         console.log(`تم استلام صور التصنيفات بنجاح، عددها: ${data?.length || 0}`);
         
-        // إنشاء طابع زمني فريد لجميع الصور
+        // إنشاء طابع زمني فريد لجميع الصور (نفس منطق صور المنتجات)
         const uniqueTimestamp = forceRefresh || Date.now();
         
         if (data && data.length > 0) {
           const updatedImages = data.map(img => {
             if (img.image_url) {
-              // استخراج الرابط الأساسي وإضافة طابع زمني
+              // استخراج الرابط الأساسي (إزالة أي query parameters قديمة)
               const baseUrl = img.image_url.split('?')[0];
               
               // التحقق من نوع الرابط (Supabase أو غيره)
@@ -50,10 +50,10 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
                                     baseUrl.includes('zqlckixwpyrwdwrsuhsg') ||
                                     baseUrl.includes('lovable-app');
                                     
-              // إنشاء رابط جديد مع معلمات مختلفة حسب المصدر
+              // إنشاء رابط محسّن مع منع الكاش (نفس معاملات صور المنتجات)
               const updatedUrl = isSupabaseUrl 
-                ? `${baseUrl}?format=webp&quality=80&t=${uniqueTimestamp}&nocache=true&width=400`
-                : `${baseUrl}?t=${uniqueTimestamp}&nocache=true`;
+                ? `${baseUrl}?format=webp&quality=85&width=600&t=${uniqueTimestamp}`
+                : `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}t=${uniqueTimestamp}`;
                 
               return {
                 ...img,
@@ -63,14 +63,15 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
             return img;
           });
           
-          console.log(`تم تحديث ${updatedImages.length} صورة تصنيف بطابع زمني جديد`);
+          console.log(`✅ تم تحديث ${updatedImages.length} صورة تصنيف بطابع زمني: ${uniqueTimestamp}`);
 
-          // تحميل مسبق للصور (preload) لتحسين الأداء
+          // تحميل مسبق وفوري للصور (eager loading كما في صور المنتجات)
           updatedImages.forEach(img => {
             if (img.image_url) {
               const preloadImage = new Image();
               preloadImage.src = img.image_url;
-              console.log(`تحميل مسبق للصورة: ${img.category} - ${img.image_url}`);
+              preloadImage.loading = "eager"; // تحميل فوري
+              console.log(`🖼️ تحميل مسبق لصورة التصنيف: ${img.category}`);
             }
           });
           
