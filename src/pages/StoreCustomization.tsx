@@ -334,39 +334,10 @@ const StoreCustomization = () => {
 
         <h1 className="text-3xl font-bold mb-6 text-right">تخصيص المتجر</h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="max-w-4xl mx-auto">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="lg:col-span-5 order-2 lg:order-1"
-          >
-            <div className="sticky top-24">
-              <h2 className="text-xl font-semibold mb-4 text-right">معاينة المتجر</h2>
-              <div className={`border rounded-lg overflow-hidden shadow-md max-h-[600px] overflow-y-auto ${darkMode ? 'dark' : ''}`}>
-                <ProductPreviewContainer 
-                  colorTheme={colorTheme} 
-                  bannerUrl={bannerUrl}
-                  fontSettings={fontSettings}
-                  darkMode={darkMode}
-                  containerHeight="auto"
-                >
-                  <DemoProductsDisplay 
-                    products={dummyProducts} 
-                    storeName={storeName || "اسم المتجر"} 
-                    colorTheme={colorTheme}
-                    fontSettings={fontSettings}
-                    categoryImages={[]}
-                  />
-                </ProductPreviewContainer>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="lg:col-span-7 order-1 lg:order-2"
           >
             <StoreDetailsSection 
               storeName={storeName}
