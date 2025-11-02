@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,jpg,jpeg,svg,webp}'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
-        navigateFallback: null, // عدم إعادة التوجيه التلقائي
+        navigateFallback: 'index.html', // إرجاع index.html لطلبات التنقل الخاصة بالـ SPA
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/zqlckixwpyrwdwrsuhsg\.supabase\.co\/storage\/.*/i,
