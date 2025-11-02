@@ -229,17 +229,26 @@ const ProductPreview = () => {
   };
 
   const themeColor = getThemeColor(storeData.colorTheme);
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+
+  // حفظ آخر سلاج تمت زيارته لفتحه تلقائيًا في وضع PWA
+  useEffect(() => {
+    if (slug) {
+      try { localStorage.setItem('last_store_slug', slug); } catch {}
+    }
+  }, [slug]);
+  
   
   // إنشاء manifest ديناميكي لكل متجر
   useEffect(() => {
     if (!storeData.storeName || !slug) return;
 
     const manifest = {
-      id: `/products/${slug}`, // معرّف فريد لكل متجر
+      id: `/${slug}`, // معرّف فريد لكل متجر
       name: storeData.storeName,
       short_name: storeData.storeName,
       description: `تصفح منتجات ${storeData.storeName}`,
-      start_url: `/products/${slug}?source=pwa`,
+      start_url: `/${slug}?source=pwa`,
       scope: '/',
       display: 'standalone',
       background_color: '#ffffff',
@@ -316,6 +325,13 @@ const ProductPreview = () => {
         <meta name="twitter:title" content={storeData.storeName || 'متجري'} />
         <meta name="twitter:description" content={`تصفح منتجات ${storeData.storeName || 'متجرنا'}`} />
         <meta name="twitter:image" content={storeData.bannerUrl || '/qr-logo-og.png'} />
+        {/* Canonical & URL */}
+        {slug && origin && (
+          <>
+            <link rel="canonical" href={`${origin}/${slug}`} />
+            <meta property="og:url" content={`${origin}/${slug}`} />
+          </>
+        )}
       </Helmet>
       
       <CartProvider>

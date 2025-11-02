@@ -10,7 +10,7 @@
     <meta name="keywords" content="QR Menu, متجر رقمي, QR Code, مطعم إلكتروني, قائمة طعام رقمية, منيو رقمي, qrmenuc.com, متجر إلكتروني, مطعم QR">
     <meta name="author" content="QR Menu - qrmenuc.com" />
     <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://qrmenuc.com/" />
+    
     
     <!-- Open Graph Tags -->
     
@@ -64,6 +64,17 @@
 
   <body>
     <div id="root"></div>
+    <script>
+      try {
+        var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        if (isStandalone && location.pathname === '/') {
+          var lastSlug = localStorage.getItem('last_store_slug');
+          if (lastSlug) {
+            location.replace('/' + lastSlug + '?source=pwa=1');
+          }
+        }
+      } catch (e) {}
+    </script>
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
