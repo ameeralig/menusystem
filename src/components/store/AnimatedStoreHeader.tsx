@@ -155,15 +155,14 @@ const AnimatedStoreHeader = ({ storeName, colorTheme, fontSettings }: AnimatedSt
   if (!storeName) return null;
 
   return (
-    <div className="relative mb-8 h-24 flex items-center justify-center overflow-hidden">
+    <div className="relative mb-8 h-24 flex items-center justify-center overflow-hidden" dir="rtl">
       <AnimatePresence mode="wait">
         <motion.h1 
           key={storeName}
-          className="text-3xl md:text-4xl font-bold text-right relative z-10"
+          className="text-3xl md:text-4xl font-bold text-center relative z-10"
           style={getStoreNameStyle()}
           initial="initial"
           animate="animate"
-          dir="rtl"
         >
           {letters.map((letter, index) => (
             <span key={`${letter}-${index}`} className="relative inline-block">
