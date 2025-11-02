@@ -5,7 +5,7 @@ import { Helmet } from "react-helmet-async";
 import LoadingState from "@/components/store/LoadingState";
 import { useOptimizedStoreData } from "@/hooks/store/useOptimizedStoreData";
 import { useRefreshData } from "@/hooks/useRefreshData";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useEmployeeAuth } from "@/hooks/employees/useEmployeeAuth";
 import EmployeePanel from "@/components/employees/EmployeePanel";

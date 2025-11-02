@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { CategoryImage } from "@/types/categoryImage";
 
 export const useCategoryImages = (userId: string | null, forceRefresh: number) => {

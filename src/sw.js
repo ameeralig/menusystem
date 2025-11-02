@@ -26,7 +26,7 @@ registerRoute(
   ({ request }) => request.mode === 'navigate',
   new NetworkFirst({
     cacheName: 'pages',
-    networkTimeoutSeconds: 3,
+    networkTimeoutSeconds: 10,
   })
 );
 
