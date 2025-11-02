@@ -228,8 +228,62 @@ const ProductPreview = () => {
     return themeColors[theme || ''] || '#3b82f6';
   };
 
-  const manifestUrl = `/manifest-${slug}.json`;
   const themeColor = getThemeColor(storeData.colorTheme);
+  
+  // إنشاء manifest ديناميكي
+  useEffect(() => {
+    if (!storeData.storeName || !slug) return;
+
+    const manifest = {
+      name: storeData.storeName,
+      short_name: storeData.storeName,
+      description: `تصفح منتجات ${storeData.storeName}`,
+      start_url: `/products/${slug}`,
+      scope: `/products/${slug}`,
+      display: 'standalone',
+      background_color: '#ffffff',
+      theme_color: themeColor,
+      orientation: 'portrait-primary',
+      icons: [
+        {
+          src: storeData.bannerUrl || '/qr-logo-og.png',
+          sizes: '192x192',
+          type: 'image/png',
+          purpose: 'any maskable'
+        },
+        {
+          src: storeData.bannerUrl || '/qr-logo-og.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'any maskable'
+        }
+      ],
+      categories: ['shopping', 'business'],
+      dir: 'rtl',
+      lang: 'ar'
+    };
+
+    const manifestJson = JSON.stringify(manifest);
+    const blob = new Blob([manifestJson], { type: 'application/json' });
+    const manifestURL = URL.createObjectURL(blob);
+
+    // إزالة manifest القديم إن وجد
+    const existingManifest = document.querySelector('link[rel="manifest"]');
+    if (existingManifest) {
+      existingManifest.remove();
+    }
+
+    // إضافة manifest جديد
+    const link = document.createElement('link');
+    link.rel = 'manifest';
+    link.href = manifestURL;
+    document.head.appendChild(link);
+
+    return () => {
+      URL.revokeObjectURL(manifestURL);
+      link.remove();
+    };
+  }, [storeData.storeName, storeData.bannerUrl, slug, themeColor]);
 
   return (
     <>
