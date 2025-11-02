@@ -17,28 +17,11 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'qr-logo-og.png'],
-      manifest: {
-        name: 'QRM - قائمة الطعام الإلكترونية',
-        short_name: 'QRM',
-        description: 'نظام قوائم الطعام الإلكترونية الذكي',
-        theme_color: '#3baaff',
-        background_color: '#0F172A',
-        display: 'standalone',
-        orientation: 'portrait',
-        scope: '/',
-        start_url: '/',
-        icons: [
-          {
-            src: '/favicon.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ]
-      },
+      manifest: false, // سنستخدم manifest ديناميكي لكل صفحة
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,jpg,jpeg,svg,webp}'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
+        navigateFallback: null, // عدم إعادة التوجيه التلقائي
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/zqlckixwpyrwdwrsuhsg\.supabase\.co\/storage\/.*/i,
