@@ -112,7 +112,7 @@ const MobileNavigation = () => {
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-md">
-      <div className="glass-morphism rounded-2xl px-6 py-3 shadow-2xl border border-white/20">
+      <div className="glass-morphism rounded-2xl px-6 py-3 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] border border-white/20">
         <div className="flex justify-around items-center">
           {navItems.map((item) => {
           const isActive = location.pathname === item.path || (item.path === "/dashboard" && location.pathname === "/dashboard");
