@@ -111,9 +111,10 @@ const MobileNavigation = () => {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border/60 px-4 py-2">
-      <div className="flex justify-around items-center max-w-md mx-auto">
-        {navItems.map((item) => {
+    <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-md">
+      <div className="glass-morphism rounded-2xl px-6 py-3 shadow-2xl border border-white/20">
+        <div className="flex justify-around items-center">
+          {navItems.map((item) => {
           const isActive = location.pathname === item.path || (item.path === "/dashboard" && location.pathname === "/dashboard");
           return (
             <button
@@ -131,6 +132,7 @@ const MobileNavigation = () => {
             </button>
           );
         })}
+        </div>
       </div>
     </div>
   );
