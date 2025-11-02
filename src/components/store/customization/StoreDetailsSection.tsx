@@ -35,7 +35,6 @@ const StoreDetailsSection = ({
     <CustomizationSection 
       title="المعلومات الأساسية" 
       icon={<Store />}
-      defaultOpen={true}
     >
       <div className="space-y-6">
         <StoreNameEditor
