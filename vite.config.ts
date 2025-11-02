@@ -16,6 +16,9 @@ export default defineConfig(({ mode }) => ({
     componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
       includeAssets: ['favicon.png', 'qr-logo-og.png'],
       manifest: false, // سنستخدم manifest ديناميكي لكل صفحة
       workbox: {

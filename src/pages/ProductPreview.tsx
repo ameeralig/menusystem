@@ -230,59 +230,6 @@ const ProductPreview = () => {
 
   const themeColor = getThemeColor(storeData.colorTheme);
 
-  // إنشاء manifest ديناميكي لكل صفحة
-  useEffect(() => {
-    if (!slug || !storeData.storeName) return;
-
-    const manifest = {
-      name: storeData.storeName,
-      short_name: storeData.storeName,
-      start_url: `/${slug}`,
-      scope: "/",
-      display: "standalone",
-      background_color: "#ffffff",
-      theme_color: themeColor,
-      icons: [
-        {
-          src: storeData.bannerUrl || "/qr-logo-og.png",
-          sizes: "192x192",
-          type: "image/png",
-          purpose: "any maskable"
-        },
-        {
-          src: storeData.bannerUrl || "/qr-logo-og.png",
-          sizes: "512x512",
-          type: "image/png",
-          purpose: "any maskable"
-        }
-      ]
-    };
-
-    // إنشاء blob URL للـ manifest
-    const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-    const manifestURL = URL.createObjectURL(manifestBlob);
-
-    // إزالة manifest القديم إن وُجد
-    const oldLink = document.querySelector('link[rel="manifest"]');
-    if (oldLink) {
-      oldLink.remove();
-    }
-
-    // إضافة manifest الجديد
-    const link = document.createElement('link');
-    link.rel = 'manifest';
-    link.href = manifestURL;
-    document.head.appendChild(link);
-
-    // تنظيف عند إزالة المكون
-    return () => {
-      URL.revokeObjectURL(manifestURL);
-      const currentLink = document.querySelector('link[rel="manifest"]');
-      if (currentLink && currentLink.getAttribute('href') === manifestURL) {
-        currentLink.remove();
-      }
-    };
-  }, [slug, storeData.storeName, storeData.bannerUrl, themeColor]);
 
   return (
     <>
