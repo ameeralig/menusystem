@@ -230,16 +230,17 @@ const ProductPreview = () => {
 
   const themeColor = getThemeColor(storeData.colorTheme);
   
-  // إنشاء manifest ديناميكي
+  // إنشاء manifest ديناميكي لكل متجر
   useEffect(() => {
     if (!storeData.storeName || !slug) return;
 
     const manifest = {
+      id: `/products/${slug}`, // معرّف فريد لكل متجر
       name: storeData.storeName,
       short_name: storeData.storeName,
       description: `تصفح منتجات ${storeData.storeName}`,
-      start_url: `/products/${slug}`,
-      scope: `/products/${slug}`,
+      start_url: `/products/${slug}?source=pwa`,
+      scope: '/',
       display: 'standalone',
       background_color: '#ffffff',
       theme_color: themeColor,
@@ -260,7 +261,8 @@ const ProductPreview = () => {
       ],
       categories: ['shopping', 'business'],
       dir: 'rtl',
-      lang: 'ar'
+      lang: 'ar',
+      prefer_related_applications: false
     };
 
     const manifestJson = JSON.stringify(manifest);
@@ -268,7 +270,7 @@ const ProductPreview = () => {
     const manifestURL = URL.createObjectURL(blob);
 
     // إزالة manifest القديم إن وجد
-    const existingManifest = document.querySelector('link[rel="manifest"]');
+    let existingManifest = document.querySelector('link[rel="manifest"]');
     if (existingManifest) {
       existingManifest.remove();
     }
@@ -277,11 +279,17 @@ const ProductPreview = () => {
     const link = document.createElement('link');
     link.rel = 'manifest';
     link.href = manifestURL;
+    link.setAttribute('crossorigin', 'use-credentials');
     document.head.appendChild(link);
+
+    console.log('تم إنشاء manifest للمتجر:', storeData.storeName, 'مع start_url:', manifest.start_url);
 
     return () => {
       URL.revokeObjectURL(manifestURL);
-      link.remove();
+      const currentLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
+      if (currentLink && currentLink.href === manifestURL) {
+        currentLink.remove();
+      }
     };
   }, [storeData.storeName, storeData.bannerUrl, slug, themeColor]);
 
