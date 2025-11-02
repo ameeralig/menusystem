@@ -12,7 +12,6 @@ interface ProductGridProps {
   products: Product[];
   colorTheme?: string | null;
   isEmployeeView?: boolean;
-  productCardStyle?: string;
 }
 
 interface LazyImageProps {
@@ -96,7 +95,7 @@ const LazyImage = ({ src, alt, className = "", onLoad, onError }: LazyImageProps
   );
 };
 
-const ProductCard = ({ product, isEmployeeView, productCardStyle }: { product: Product; isEmployeeView?: boolean; productCardStyle?: string }) => {
+const ProductCard = ({ product, isEmployeeView }: { product: Product; isEmployeeView?: boolean }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const cart = isEmployeeView ? useCart() : null;
 
@@ -139,7 +138,7 @@ const ProductCard = ({ product, isEmployeeView, productCardStyle }: { product: P
 
   // تحديد فئات CSS للتأثيرات المختلفة
   const getCardClasses = () => {
-    let baseClasses = productCardStyle || "bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 relative";
+    let baseClasses = "bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 relative";
     
     if (isPopular) {
       baseClasses += " fire-glow-red";
@@ -224,11 +223,11 @@ const ProductCard = ({ product, isEmployeeView, productCardStyle }: { product: P
   );
 };
 
-const OptimizedProductGrid = ({ products, colorTheme, isEmployeeView = false, productCardStyle }: ProductGridProps) => {
+const OptimizedProductGrid = ({ products, colorTheme, isEmployeeView = false }: ProductGridProps) => {
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
       {products.map((product) => (
-        <ProductCard key={product.id} product={product} isEmployeeView={isEmployeeView} productCardStyle={productCardStyle} />
+        <ProductCard key={product.id} product={product} isEmployeeView={isEmployeeView} />
       ))}
     </div>
   );

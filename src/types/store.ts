@@ -40,5 +40,4 @@ export interface StoreSettings {
   fontSettings?: FontSettings;
   darkMode?: boolean;
   storeOwnerId?: string | null;
-  template?: string;
 }

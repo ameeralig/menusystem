@@ -19,7 +19,6 @@ import { useOptimizedProducts } from "@/hooks/store/useOptimizedProducts";
 const FeedbackTrigger = lazy(() => import("./feedback/FeedbackTrigger"));
 
 import { FontSettings, ContactInfo } from "@/types/store";
-import { getTemplateStyles } from "@/utils/templateStyles";
 
 interface StoreProductsDisplayProps {
   storeName: string;
@@ -31,7 +30,6 @@ interface StoreProductsDisplayProps {
   storeOwnerId?: string;
   forceRefresh?: number;
   isEmployeeView?: boolean;
-  template?: string;
 }
 
 const StoreProductsDisplay = ({
@@ -44,9 +42,7 @@ const StoreProductsDisplay = ({
   storeOwnerId,
   forceRefresh = 0,
   isEmployeeView = false,
-  template = "default",
 }: StoreProductsDisplayProps) => {
-  const templateStyles = getTemplateStyles(template);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [customFontFamily, setCustomFontFamily] = useState<string>("");
@@ -210,7 +206,6 @@ const StoreProductsDisplay = ({
           storeName={storeName}
           colorTheme={colorTheme}
           fontSettings={fontSettings}
-          headerStyle={templateStyles.headerStyle}
         />
       </motion.div>
 
@@ -302,7 +297,6 @@ const StoreProductsDisplay = ({
                 fontSettings={fontSettings}
                 categoryImages={categoryImages}
                 isLoading={isLoading && categories.length === 0}
-                categoryStyle={templateStyles.categoryStyle}
               />
             </motion.div>
           )}
@@ -359,7 +353,6 @@ const StoreProductsDisplay = ({
                     products={products}
                     colorTheme={colorTheme}
                     isEmployeeView={isEmployeeView}
-                    productCardStyle={templateStyles.productCardStyle}
                   />
                   
                   {/* عنصر مراقبة لتحميل المزيد */}

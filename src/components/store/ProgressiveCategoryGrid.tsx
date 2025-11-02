@@ -9,7 +9,6 @@ interface ProgressiveCategoryGridProps {
   fontSettings?: FontSettings;
   categoryImages?: CategoryImage[];
   isLoading?: boolean;
-  categoryStyle?: string;
 }
 
 const ProgressiveCategoryGrid = ({
@@ -17,8 +16,7 @@ const ProgressiveCategoryGrid = ({
   onCategorySelect,
   fontSettings,
   categoryImages = [],
-  isLoading = false,
-  categoryStyle
+  isLoading = false
 }: ProgressiveCategoryGridProps) => {
   const [visibleCategories, setVisibleCategories] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -152,7 +150,7 @@ const ProgressiveCategoryGrid = ({
                 onClick={() => onCategorySelect(category)}
                 className="group cursor-pointer"
               >
-                <div className={categoryStyle || "relative overflow-hidden rounded-2xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700"}>
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700">
                   
                   {/* صورة التصنيف */}
                   {imageUrl ? (
