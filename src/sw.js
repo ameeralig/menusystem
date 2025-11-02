@@ -1,19 +1,44 @@
 import { precacheAndRoute } from 'workbox-precaching';
 import { clientsClaim } from 'workbox-core';
+import { registerRoute, NavigationRoute } from 'workbox-routing';
+import { NetworkFirst, CacheFirst } from 'workbox-strategies';
 
-// مطلوب بواسطة injectManifest:
-// سيقوم vite-plugin-pwa بحقن قائمة الملفات هنا أثناء البناء
-// لا تحذف هذا السطر!
+// مطلوب بواسطة injectManifest
 precacheAndRoute(self.__WB_MANIFEST);
 
 self.skipWaiting();
 clientsClaim();
 
-// بسيط: إعادة أي ملف من الكاش وإن لم يوجد يتم الجلب من الشبكة
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
-});
+// استراتيجية للملفات الثابتة (صور، CSS، JS)
+registerRoute(
+  ({ request }) => 
+    request.destination === 'image' ||
+    request.destination === 'style' ||
+    request.destination === 'script' ||
+    request.destination === 'font',
+  new CacheFirst({
+    cacheName: 'static-resources',
+  })
+);
+
+// استراتيجية للصفحات HTML - دائماً من الشبكة أولاً
+registerRoute(
+  ({ request }) => request.mode === 'navigate',
+  new NetworkFirst({
+    cacheName: 'pages',
+    networkTimeoutSeconds: 3,
+  })
+);
+
+// السماح لطلبات API (Supabase) بالمرور مباشرة دون تخزين
+registerRoute(
+  ({ url }) => 
+    url.hostname.includes('supabase.co') ||
+    url.pathname.startsWith('/rest/') ||
+    url.pathname.startsWith('/auth/') ||
+    url.pathname.startsWith('/storage/'),
+  new NetworkFirst({
+    cacheName: 'api-cache',
+    networkTimeoutSeconds: 10,
+  })
+);
