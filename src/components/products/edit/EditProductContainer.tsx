@@ -315,7 +315,7 @@ const EditProductContainer = () => {
         {!selectedProduct ? (
           <Accordion 
             type="multiple" 
-            defaultValue={["products-list"]} 
+            defaultValue={[]} 
             className="w-full space-y-6"
           >
             <AccordionItem value="products-list" className="border rounded-xl bg-card shadow-sm">
