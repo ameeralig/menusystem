@@ -76,6 +76,18 @@ const ProductPreviewContainer = ({
             <div className="p-4 sm:p-6">
               {children}
             </div>
+            
+            {/* رابط للصفحة الرئيسية */}
+            <div className="py-4 text-center border-t border-gray-200 dark:border-gray-700">
+              <a 
+                href="https://qrmenuc.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1"
+              >
+                تحول للتجربة الرقمية مع <span className="font-semibold">QRM</span>
+              </a>
+            </div>
           </div>
         </div>
       </div>
