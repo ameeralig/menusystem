@@ -1,7 +1,7 @@
 import { precacheAndRoute } from 'workbox-precaching';
 import { clientsClaim } from 'workbox-core';
-import { registerRoute, NavigationRoute } from 'workbox-routing';
-import { NetworkFirst, CacheFirst } from 'workbox-strategies';
+import { registerRoute } from 'workbox-routing';
+import { NetworkFirst, CacheFirst, NetworkOnly } from 'workbox-strategies';
 
 // مطلوب بواسطة injectManifest
 precacheAndRoute(self.__WB_MANIFEST);
@@ -21,24 +21,15 @@ registerRoute(
   })
 );
 
-// استراتيجية للصفحات HTML - دائماً من الشبكة أولاً
-registerRoute(
-  ({ request }) => request.mode === 'navigate',
-  new NetworkFirst({
-    cacheName: 'pages',
-    networkTimeoutSeconds: 10,
-  })
-);
+// عدم اعتراض تنقلات الصفحات: اتركها للمتصفح/الخادم
+// هذا يمنع أي تعارض قد يسبب صفحة فارغة في وضع PWA
 
-// السماح لطلبات API (Supabase) بالمرور مباشرة دون تخزين
+// السماح لطلبات API (Supabase) بالمرور مباشرة دون تخزين (NetworkOnly)
 registerRoute(
   ({ url }) => 
     url.hostname.includes('supabase.co') ||
     url.pathname.startsWith('/rest/') ||
     url.pathname.startsWith('/auth/') ||
     url.pathname.startsWith('/storage/'),
-  new NetworkFirst({
-    cacheName: 'api-cache',
-    networkTimeoutSeconds: 10,
-  })
+  new NetworkOnly()
 );
