@@ -235,6 +235,7 @@ const ProductPreview = () => {
     if (!slug || !storeData.storeName) return;
 
     const manifest = {
+      id: window.location.pathname,
       name: storeData.storeName,
       short_name: storeData.storeName,
       start_url: window.location.pathname,
