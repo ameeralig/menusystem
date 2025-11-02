@@ -5,7 +5,7 @@ import { Helmet } from "react-helmet-async";
 import LoadingState from "@/components/store/LoadingState";
 import { useOptimizedStoreData } from "@/hooks/store/useOptimizedStoreData";
 import { useRefreshData } from "@/hooks/useRefreshData";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useEmployeeAuth } from "@/hooks/employees/useEmployeeAuth";
 import EmployeePanel from "@/components/employees/EmployeePanel";
@@ -228,52 +228,8 @@ const ProductPreview = () => {
     return themeColors[theme || ''] || '#3b82f6';
   };
 
+  const manifestUrl = `/manifest-${slug}.json`;
   const themeColor = getThemeColor(storeData.colorTheme);
-
-  // إنشاء manifest ديناميكي لكل صفحة معاينة
-  useEffect(() => {
-    if (!slug || !storeData.storeName) return;
-
-    const manifest = {
-      id: window.location.pathname,
-      name: storeData.storeName,
-      short_name: storeData.storeName,
-      start_url: window.location.pathname,
-      scope: "/",
-      display: "standalone",
-      background_color: "#ffffff",
-      theme_color: themeColor,
-      icons: [
-        {
-          src: storeData.bannerUrl || "/qr-logo-og.png",
-          sizes: "192x192",
-          type: "image/png",
-          purpose: "any maskable"
-        },
-        {
-          src: storeData.bannerUrl || "/qr-logo-og.png",
-          sizes: "512x512",
-          type: "image/png",
-          purpose: "any maskable"
-        }
-      ]
-    };
-
-    const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-    const manifestURL = URL.createObjectURL(manifestBlob);
-
-    const oldLinks = document.querySelectorAll('link[rel="manifest"]');
-    oldLinks.forEach(link => link.remove());
-
-    const link = document.createElement('link');
-    link.rel = 'manifest';
-    link.href = manifestURL;
-    document.head.appendChild(link);
-
-    return () => {
-      URL.revokeObjectURL(manifestURL);
-    };
-  }, [slug, storeData.storeName, storeData.bannerUrl, themeColor]);
 
   return (
     <>
