@@ -30,6 +30,7 @@ interface ProductPreviewContainerProps {
   fontSettings?: FontSettings;
   containerHeight?: string;
   darkMode?: boolean;
+  template?: string;
 }
 
 const ProductPreviewContainer = ({ 

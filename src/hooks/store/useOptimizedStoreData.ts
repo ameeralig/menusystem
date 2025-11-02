@@ -71,7 +71,8 @@ export const useOptimizedStoreData = (slug: string | undefined, forceRefresh: nu
     products: allProducts, // استخدام جميع المنتجات
     visibleProducts: products, // المنتجات المرئية حالياً
     categoryImages,
-    categories
+    categories,
+    template: storeSettings.template || 'default'
   };
 
   return {

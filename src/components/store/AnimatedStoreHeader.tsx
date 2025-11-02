@@ -13,9 +13,10 @@ interface AnimatedStoreHeaderProps {
   storeName: string | null;
   colorTheme: string | null;
   fontSettings?: FontSettings;
+  headerStyle?: string;
 }
 
-const AnimatedStoreHeader = ({ storeName, colorTheme, fontSettings }: AnimatedStoreHeaderProps) => {
+const AnimatedStoreHeader = ({ storeName, colorTheme, fontSettings, headerStyle }: AnimatedStoreHeaderProps) => {
   const [fontFaceLoaded, setFontFaceLoaded] = useState(false);
   const [fontId, setFontId] = useState<string>("");
   const [isAnimating, setIsAnimating] = useState(true);
@@ -159,7 +160,7 @@ const AnimatedStoreHeader = ({ storeName, colorTheme, fontSettings }: AnimatedSt
       <AnimatePresence mode="wait">
         <motion.h1 
           key={storeName}
-          className="text-3xl md:text-4xl font-bold text-center relative z-10"
+          className={headerStyle || "text-3xl md:text-4xl font-bold text-center relative z-10"}
           style={getStoreNameStyle()}
           initial="initial"
           animate="animate"

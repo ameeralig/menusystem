@@ -274,6 +274,7 @@ const ProductPreview = () => {
               fontSettings={storeData.fontSettings}
               darkMode={storeData.darkMode}
               containerHeight="auto"
+              template={storeData.template}
             >
               <Suspense fallback={<div className="animate-pulse bg-gray-200 h-64 rounded-md w-full" />}>
                 <StoreProductsDisplay 
@@ -286,6 +287,7 @@ const ProductPreview = () => {
                   storeOwnerId={storeOwnerId}
                   forceRefresh={forceRefresh}
                   isEmployeeView={!!employee}
+                  template={storeData.template}
                 />
               </Suspense>
               {!employee && (
