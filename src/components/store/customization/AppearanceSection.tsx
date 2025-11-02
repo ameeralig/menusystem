@@ -1,5 +1,5 @@
 
-import { Palette, Moon, Image as ImageIcon, Type, Info } from "lucide-react";
+import { Palette, Moon, Image as ImageIcon, Type, Info, Layout } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import CustomizationSection from "./CustomizationSection";
@@ -8,6 +8,7 @@ import BannerImageUploader from "@/components/store/BannerImageUploader";
 import DirectColorPicker from "./color-picker/DirectColorPicker";
 import ColorPreviewCard from "./color-picker/ColorPreviewCard";
 import FontStyleSelector from "@/components/store/FontStyleSelector";
+import TemplateSelector from "./TemplateSelector";
 import { FontSettings } from "@/types/store";
 
 interface AppearanceSectionProps {
@@ -19,10 +20,13 @@ interface AppearanceSectionProps {
   setFontSettings: (value: FontSettings) => void;
   darkMode: boolean;
   setDarkMode: (value: boolean) => void;
+  template: string;
+  setTemplate: (value: string) => void;
   handleColorThemeSubmit: () => Promise<void>;
   handleBannerSubmit: () => Promise<void>;
   handleFontSettingsSubmit: () => Promise<void>;
   handleDarkModeSubmit: (newValue: boolean) => Promise<void>;
+  handleTemplateSubmit: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -35,10 +39,13 @@ const AppearanceSection = ({
   setFontSettings,
   darkMode,
   setDarkMode,
+  template,
+  setTemplate,
   handleColorThemeSubmit,
   handleBannerSubmit,
   handleFontSettingsSubmit,
   handleDarkModeSubmit,
+  handleTemplateSubmit,
   isLoading
 }: AppearanceSectionProps) => {
   
@@ -61,6 +68,19 @@ const AppearanceSection = ({
       icon={<Palette />}
     >
       <div className="space-y-8">
+        {/* قسم القوالب */}
+        <CollapsibleSubSection
+          title="القوالب والتصاميم"
+          icon={<Layout className="h-5 w-5" />}
+        >
+          <TemplateSelector
+            currentTemplate={template}
+            setCurrentTemplate={setTemplate}
+            handleSubmit={handleTemplateSubmit}
+            isLoading={isLoading}
+          />
+        </CollapsibleSubSection>
+
         {/* رفع صورة البانر */}
         <CollapsibleSubSection
           title="صورة البانر"
