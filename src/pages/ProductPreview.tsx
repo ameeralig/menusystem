@@ -228,79 +228,8 @@ const ProductPreview = () => {
     return themeColors[theme || ''] || '#3b82f6';
   };
 
+  const manifestUrl = `/manifest-${slug}.json`;
   const themeColor = getThemeColor(storeData.colorTheme);
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
-
-  // حفظ آخر سلاج تمت زيارته لفتحه تلقائيًا في وضع PWA
-  useEffect(() => {
-    if (slug) {
-      try { localStorage.setItem('last_store_slug', slug); } catch {}
-    }
-  }, [slug]);
-  
-  
-  // إنشاء manifest ديناميكي لكل متجر
-  useEffect(() => {
-    if (!storeData.storeName || !slug) return;
-
-    const manifest = {
-      id: `/${slug}`, // معرّف فريد لكل متجر
-      name: storeData.storeName,
-      short_name: storeData.storeName,
-      description: `تصفح منتجات ${storeData.storeName}`,
-      start_url: `/${slug}?source=pwa`,
-      scope: '/',
-      display: 'standalone',
-      background_color: '#ffffff',
-      theme_color: themeColor,
-      orientation: 'portrait-primary',
-      icons: [
-        {
-          src: storeData.bannerUrl || '/qr-logo-og.png',
-          sizes: '192x192',
-          type: 'image/png',
-          purpose: 'any maskable'
-        },
-        {
-          src: storeData.bannerUrl || '/qr-logo-og.png',
-          sizes: '512x512',
-          type: 'image/png',
-          purpose: 'any maskable'
-        }
-      ],
-      categories: ['shopping', 'business'],
-      dir: 'rtl',
-      lang: 'ar',
-      prefer_related_applications: false
-    };
-
-    const manifestJson = JSON.stringify(manifest);
-    const blob = new Blob([manifestJson], { type: 'application/json' });
-    const manifestURL = URL.createObjectURL(blob);
-
-    // إزالة manifest القديم إن وجد
-    let existingManifest = document.querySelector('link[rel="manifest"]');
-    if (existingManifest) {
-      existingManifest.remove();
-    }
-
-    // إضافة manifest جديد
-    const link = document.createElement('link');
-    link.rel = 'manifest';
-    link.href = manifestURL;
-    link.setAttribute('crossorigin', 'use-credentials');
-    document.head.appendChild(link);
-
-    console.log('تم إنشاء manifest للمتجر:', storeData.storeName, 'مع start_url:', manifest.start_url);
-
-    return () => {
-      URL.revokeObjectURL(manifestURL);
-      const currentLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
-      if (currentLink && currentLink.href === manifestURL) {
-        currentLink.remove();
-      }
-    };
-  }, [storeData.storeName, storeData.bannerUrl, slug, themeColor]);
 
   return (
     <>
@@ -325,13 +254,6 @@ const ProductPreview = () => {
         <meta name="twitter:title" content={storeData.storeName || 'متجري'} />
         <meta name="twitter:description" content={`تصفح منتجات ${storeData.storeName || 'متجرنا'}`} />
         <meta name="twitter:image" content={storeData.bannerUrl || '/qr-logo-og.png'} />
-        {/* Canonical & URL */}
-        {slug && origin && (
-          <>
-            <link rel="canonical" href={`${origin}/${slug}`} />
-            <meta property="og:url" content={`${origin}/${slug}`} />
-          </>
-        )}
       </Helmet>
       
       <CartProvider>
