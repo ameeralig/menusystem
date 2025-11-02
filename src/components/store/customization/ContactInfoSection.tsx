@@ -1,7 +1,8 @@
 
 import ContactInfoEditor from "@/components/store/ContactInfoEditor";
-import { Info } from "lucide-react";
+import { Info, MapPin, Phone, Wifi, Clock } from "lucide-react";
 import CustomizationSection from "./CustomizationSection";
+import CollapsibleSubSection from "./CollapsibleSubSection";
 
 type ContactInfo = {
   description: string;
@@ -27,11 +28,16 @@ const ContactInfoSection = ({
       title="معلومات المتجر" 
       icon={<Info />}
     >
-      <ContactInfoEditor
-        initialContactInfo={contactInfo}
-        onSave={handleContactInfoSubmit}
-        isLoading={isLoading}
-      />
+      <CollapsibleSubSection
+        title="معلومات الاتصال"
+        icon={<Phone className="h-5 w-5" />}
+      >
+        <ContactInfoEditor
+          initialContactInfo={contactInfo}
+          onSave={handleContactInfoSubmit}
+          isLoading={isLoading}
+        />
+      </CollapsibleSubSection>
     </CustomizationSection>
   );
 };

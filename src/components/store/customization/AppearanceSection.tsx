@@ -1,8 +1,9 @@
 
-import { Palette, Moon } from "lucide-react";
+import { Palette, Moon, Image as ImageIcon, Type, Info } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import CustomizationSection from "./CustomizationSection";
+import CollapsibleSubSection from "./CollapsibleSubSection";
 import BannerImageUploader from "@/components/store/BannerImageUploader";
 import DirectColorPicker from "./color-picker/DirectColorPicker";
 import ColorPreviewCard from "./color-picker/ColorPreviewCard";
@@ -61,69 +62,74 @@ const AppearanceSection = ({
     >
       <div className="space-y-8">
         {/* رفع صورة البانر */}
-        <BannerImageUploader
-          bannerUrl={bannerUrl}
-          setBannerUrl={setBannerUrl}
-          handleSubmit={handleBannerSubmit}
-          isLoading={isLoading}
-        />
-
-        {/* قسم تخصيص لون الخلفية */}
-        <div className="space-y-4">
-          <div className="mb-6">
-            <h3 className="text-lg font-medium mb-2 flex items-center gap-2">
-              <Palette className="h-5 w-5 text-primary" />
-              تخصيص لون الخلفية
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              اختر لوناً مخصصاً لخلفية صفحة المعاينة الخاصة بمتجرك
-            </p>
-          </div>
-          
-          {/* معاينة اللون الحالي */}
-          <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border">
-            <h4 className="text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">
-              🎨 اللون المطبق حالياً على خلفية المعاينة
-            </h4>
-            <ColorPreviewCard 
-              currentColor={colorTheme.startsWith('#') ? colorTheme : '#ff9178'} 
-              isActive={true}
-            />
-          </div>
-
-          {/* منتقي الألوان المباشر */}
-          <DirectColorPicker 
-            colorTheme={colorTheme}
-            setColorTheme={setColorTheme}
-            handleSubmit={handleColorThemeSubmit}
+        <CollapsibleSubSection
+          title="صورة البانر"
+          icon={<ImageIcon className="h-5 w-5" />}
+        >
+          <BannerImageUploader
+            bannerUrl={bannerUrl}
+            setBannerUrl={setBannerUrl}
+            handleSubmit={handleBannerSubmit}
             isLoading={isLoading}
           />
-          
-          {/* ملاحظة توضيحية */}
-          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-            <div className="text-sm text-blue-700 dark:text-blue-300">
-              💡 <strong>ملاحظة:</strong> سيتم تطبيق اللون المختار على خلفية صفحة المعاينة فوراً، ويمكنك رؤية التغيير في المعاينة على اليسار.
+        </CollapsibleSubSection>
+
+        {/* قسم تخصيص لون الخلفية */}
+        <CollapsibleSubSection
+          title="تخصيص لون الخلفية"
+          icon={<Palette className="h-5 w-5" />}
+        >
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              اختر لوناً مخصصاً لخلفية صفحة المعاينة الخاصة بمتجرك
+            </p>
+            
+            {/* معاينة اللون الحالي */}
+            <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border">
+              <h4 className="text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">
+                🎨 اللون المطبق حالياً على خلفية المعاينة
+              </h4>
+              <ColorPreviewCard 
+                currentColor={colorTheme.startsWith('#') ? colorTheme : '#ff9178'} 
+                isActive={true}
+              />
+            </div>
+
+            {/* منتقي الألوان المباشر */}
+            <DirectColorPicker 
+              colorTheme={colorTheme}
+              setColorTheme={setColorTheme}
+              handleSubmit={handleColorThemeSubmit}
+              isLoading={isLoading}
+            />
+            
+            {/* ملاحظة توضيحية */}
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="text-sm text-blue-700 dark:text-blue-300">
+                💡 <strong>ملاحظة:</strong> سيتم تطبيق اللون المختار على خلفية صفحة المعاينة فوراً، ويمكنك رؤية التغيير في المعاينة على اليسار.
+              </div>
             </div>
           </div>
-        </div>
+        </CollapsibleSubSection>
 
         {/* قسم تخصيص الخطوط */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium mb-2">تخصيص الخطوط</h3>
+        <CollapsibleSubSection
+          title="تخصيص الخطوط"
+          icon={<Type className="h-5 w-5" />}
+        >
           <FontStyleSelector
             fontSettings={fontSettings}
             setFontSettings={setFontSettings}
             handleSubmit={handleFontSettingsSubmit}
             isLoading={isLoading}
           />
-        </div>
+        </CollapsibleSubSection>
 
         {/* قسم الوضع الداكن */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
-            <Moon className="h-5 w-5" />
-            الوضع الداكن
-          </h3>
+        <CollapsibleSubSection
+          title="الوضع الداكن"
+          icon={<Moon className="h-5 w-5" />}
+        >
           <div className="flex items-center justify-between p-4 border rounded-lg bg-white dark:bg-gray-800">
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
               <Switch
@@ -140,7 +146,7 @@ const AppearanceSection = ({
               تفعيل الوضع الداكن في صفحة المعاينة
             </Label>
           </div>
-        </div>
+        </CollapsibleSubSection>
       </div>
     </CustomizationSection>
   );

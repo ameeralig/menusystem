@@ -1,8 +1,8 @@
-
 import { useState } from "react";
 import StoreNameEditor from "@/components/store/StoreNameEditor";
-import { Store } from "lucide-react";
+import { Store, Palette } from "lucide-react";
 import CustomizationSection from "./CustomizationSection";
+import CollapsibleSubSection from "./CollapsibleSubSection";
 
 interface StoreDetailsSectionProps {
   storeName: string;
@@ -37,16 +37,21 @@ const StoreDetailsSection = ({
       icon={<Store />}
     >
       <div className="space-y-6">
-        <StoreNameEditor
-          storeName={storeName}
-          setStoreName={setStoreName}
-          storeSlug={storeSlug}
-          setStoreSlug={setStoreSlug}
-          isEditing={isEditingName}
-          setIsEditing={setIsEditingName}
-          handleSubmit={handleSubmit}
-          isLoading={isLoading}
-        />
+        <CollapsibleSubSection
+          title="اسم المتجر والرابط"
+          icon={<Store className="h-5 w-5" />}
+        >
+          <StoreNameEditor
+            storeName={storeName}
+            setStoreName={setStoreName}
+            storeSlug={storeSlug}
+            setStoreSlug={setStoreSlug}
+            isEditing={isEditingName}
+            setIsEditing={setIsEditingName}
+            handleSubmit={handleSubmit}
+            isLoading={isLoading}
+          />
+        </CollapsibleSubSection>
       </div>
     </CustomizationSection>
   );
