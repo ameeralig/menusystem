@@ -1,5 +1,7 @@
-
 project_id = "zqlckixwpyrwdwrsuhsg"
+
+[functions."store-api"]
+verify_jwt = false
 
 [functions."get-service-key"]
 verify_jwt = true
