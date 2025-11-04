@@ -111,63 +111,71 @@ serve(async (req) => {
         tools: [
           {
             type: 'function',
-            name: 'add_product',
-            description: 'إضافة منتج جديد إلى المتجر',
-            parameters: {
-              type: 'object',
-              properties: {
-                name: { type: 'string', description: 'اسم المنتج' },
-                price: { type: 'number', description: 'سعر المنتج' },
-                description: { type: 'string', description: 'وصف المنتج' },
-                category: { type: 'string', description: 'تصنيف المنتج' },
-                image_url: { type: 'string', description: 'رابط صورة المنتج' },
-                is_new: { type: 'boolean', description: 'هل المنتج جديد؟' },
-                is_popular: { type: 'boolean', description: 'هل المنتج مميز؟' }
-              },
-              required: ['name', 'price']
+            function: {
+              name: 'add_product',
+              description: 'إضافة منتج جديد إلى المتجر',
+              parameters: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string', description: 'اسم المنتج' },
+                  price: { type: 'number', description: 'سعر المنتج' },
+                  description: { type: 'string', description: 'وصف المنتج' },
+                  category: { type: 'string', description: 'تصنيف المنتج' },
+                  image_url: { type: 'string', description: 'رابط صورة المنتج' },
+                  is_new: { type: 'boolean', description: 'هل المنتج جديد؟' },
+                  is_popular: { type: 'boolean', description: 'هل المنتج مميز؟' }
+                },
+                required: ['name', 'price']
+              }
             }
           },
           {
             type: 'function',
-            name: 'update_product',
-            description: 'تعديل منتج موجود',
-            parameters: {
-              type: 'object',
-              properties: {
-                product_id: { type: 'string', description: 'معرف المنتج' },
-                name: { type: 'string', description: 'اسم المنتج الجديد' },
-                price: { type: 'number', description: 'السعر الجديد' },
-                description: { type: 'string', description: 'الوصف الجديد' },
-                category: { type: 'string', description: 'التصنيف الجديد' },
-                image_url: { type: 'string', description: 'رابط الصورة الجديد' },
-                is_available: { type: 'boolean', description: 'هل المنتج متاح؟' },
-                is_new: { type: 'boolean', description: 'هل المنتج جديد؟' },
-                is_popular: { type: 'boolean', description: 'هل المنتج مميز؟' }
-              },
-              required: ['product_id']
+            function: {
+              name: 'update_product',
+              description: 'تعديل منتج موجود',
+              parameters: {
+                type: 'object',
+                properties: {
+                  product_id: { type: 'string', description: 'معرف المنتج' },
+                  name: { type: 'string', description: 'اسم المنتج الجديد' },
+                  price: { type: 'number', description: 'السعر الجديد' },
+                  description: { type: 'string', description: 'الوصف الجديد' },
+                  category: { type: 'string', description: 'التصنيف الجديد' },
+                  image_url: { type: 'string', description: 'رابط الصورة الجديد' },
+                  is_available: { type: 'boolean', description: 'هل المنتج متاح؟' },
+                  is_new: { type: 'boolean', description: 'هل المنتج جديد؟' },
+                  is_popular: { type: 'boolean', description: 'هل المنتج مميز؟' }
+                },
+                required: ['product_id']
+              }
             }
           },
           {
             type: 'function',
-            name: 'delete_product',
-            description: 'حذف منتج من المتجر',
-            parameters: {
-              type: 'object',
-              properties: {
-                product_id: { type: 'string', description: 'معرف المنتج المراد حذفه' }
-              },
-              required: ['product_id']
+            function: {
+              name: 'delete_product',
+              description: 'حذف منتج من المتجر',
+              parameters: {
+                type: 'object',
+                properties: {
+                  product_id: { type: 'string', description: 'معرف المنتج المراد حذفه' }
+                },
+                required: ['product_id']
+              }
             }
           },
           {
             type: 'function',
-            name: 'list_products',
-            description: 'عرض قائمة المنتجات الموجودة',
-            parameters: {
-              type: 'object',
-              properties: {
-                category: { type: 'string', description: 'تصنيف محدد (اختياري)' },
-                limit: { type: 'number', description: 'عدد المنتجات المطلوبة' }
+            function: {
+              name: 'list_products',
+              description: 'عرض قائمة المنتجات الموجودة',
+              parameters: {
+                type: 'object',
+                properties: {
+                  category: { type: 'string', description: 'تصنيف محدد (اختياري)' },
+                  limit: { type: 'number', description: 'عدد المنتجات المطلوبة' }
+                }
               }
             }
           }
