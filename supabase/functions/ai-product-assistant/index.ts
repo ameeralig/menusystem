@@ -34,8 +34,8 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { message, conversationId, images } = await req.json();
-    console.log('Received message:', message, 'conversationId:', conversationId);
+    const { message, conversationId, imageUrl } = await req.json();
+    console.log('Received message:', message, 'conversationId:', conversationId, 'imageUrl:', imageUrl);
 
     // إنشاء أو الحصول على المحادثة
     let currentConversationId = conversationId;
@@ -55,7 +55,7 @@ serve(async (req) => {
       conversation_id: currentConversationId,
       role: 'user',
       content: message,
-      metadata: images ? { images } : {}
+      metadata: imageUrl ? { image_url: imageUrl } : {}
     });
 
     // جلب آخر 10 رسائل للسياق
