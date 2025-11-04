@@ -31,3 +31,6 @@ verify_jwt = false
 [functions."calculate-daily-sales"]
 verify_jwt = false
 
+[functions."ai-product-assistant"]
+verify_jwt = true
+

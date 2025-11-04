@@ -5,6 +5,7 @@ import AdminStatsTab from "@/components/admin/AdminStatsTab";
 import AdminUsersTab from "@/components/admin/AdminUsersTab";
 import UserNotificationTab from "@/components/admin/users/UserNotificationTab";
 import AdminSettingsTab from "@/components/admin/AdminSettingsTab";
+import AIAssistant from "@/components/dashboard/AIAssistant";
 
 const AdminDashboardTabs = () => {
   const [activeTab, setActiveTab] = useState('stats');
@@ -40,6 +41,12 @@ const AdminDashboardTabs = () => {
               الإشعارات
             </TabsTrigger>
             <TabsTrigger
+              value="ai"
+              className="relative h-9 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none"
+            >
+              المساعد الذكي
+            </TabsTrigger>
+            <TabsTrigger
               value="settings"
               className="relative h-9 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none"
             >
@@ -60,10 +67,14 @@ const AdminDashboardTabs = () => {
           <UserNotificationTab />
         </TabsContent>
         
-        <TabsContent value="settings" className="space-y-4">
-          <AdminSettingsTab />
-        </TabsContent>
-      </Tabs>
+      <TabsContent value="ai" className="space-y-4">
+        <AIAssistant />
+      </TabsContent>
+
+      <TabsContent value="settings" className="space-y-4">
+        <AdminSettingsTab />
+      </TabsContent>
+    </Tabs>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Bot, LayoutDashboard } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import DashboardActions from "@/components/dashboard/DashboardActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import MobileNavigation from "@/components/dashboard/MobileNavigation";
 import FloatingActionButton from "@/components/dashboard/FloatingActionButton";
+import AIAssistant from "@/components/dashboard/AIAssistant";
 
 const Dashboard = () => {
   const { stats, dailyViewsData, loading } = useDashboardStats();
@@ -31,32 +32,50 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6 pb-24">
-        {/* Stats Section */}
-        <div className="mb-8">
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold text-foreground mb-2">الإحصائيات</h2>
-            <p className="text-sm text-muted-foreground">نظرة سريعة على أداء متجرك</p>
-          </div>
-          <DashboardStats stats={stats} loading={loading} />
-        </div>
+        <Tabs defaultValue="overview" className="w-full space-y-6">
+          <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted/50 p-1 rounded-xl">
+            <TabsTrigger 
+              value="overview" 
+              className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm gap-2"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              لوحة التحكم
+            </TabsTrigger>
+            <TabsTrigger 
+              value="ai"
+              className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm gap-2"
+            >
+              <Bot className="w-4 h-4" />
+              المساعد الذكي
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Actions and Analytics */}
-        <div className="space-y-6">
-          <Tabs defaultValue="actions" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted/50 p-1 rounded-xl">
-              <TabsTrigger 
-                value="actions" 
-                className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
-              >
-                الإجراءات السريعة
-              </TabsTrigger>
-              <TabsTrigger 
-                value="analytics"
-                className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
-              >
-                الإحصائيات التفصيلية
-              </TabsTrigger>
-            </TabsList>
+          <TabsContent value="overview" className="space-y-8">
+            {/* Stats Section */}
+            <div>
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold text-foreground mb-2">الإحصائيات</h2>
+                <p className="text-sm text-muted-foreground">نظرة سريعة على أداء متجرك</p>
+              </div>
+              <DashboardStats stats={stats} loading={loading} />
+            </div>
+
+            {/* Actions and Analytics */}
+            <Tabs defaultValue="actions" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted/50 p-1 rounded-xl">
+                <TabsTrigger 
+                  value="actions" 
+                  className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                >
+                  الإجراءات السريعة
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="analytics"
+                  className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                >
+                  الإحصائيات التفصيلية
+                </TabsTrigger>
+              </TabsList>
             
             <TabsContent value="actions" className="mt-0 space-y-4">
               <div className="mb-4">
@@ -139,9 +158,14 @@ const Dashboard = () => {
                   )}
                 </CardContent>
               </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
+              </TabsContent>
+            </Tabs>
+          </TabsContent>
+
+          <TabsContent value="ai">
+            <AIAssistant />
+          </TabsContent>
+        </Tabs>
       </main>
 
       {/* Mobile Navigation */}
