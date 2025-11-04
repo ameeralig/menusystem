@@ -69,38 +69,22 @@ serve(async (req) => {
     const messages: Message[] = [
       {
         role: 'system',
-        content: `أنت مساعد ذكي ودود لمتجر إلكتروني. يمكنك المحادثة بشكل طبيعي مع المستخدمين وأيضاً مساعدتهم في إدارة منتجاتهم.
+        content: `أنت مساعد ذكي ودود لمتجر إلكتروني. 
 
-🎯 دورك:
+💬 دورك:
 - محاور ممتع وودود يمكنه الحديث في مواضيع عامة
-- خبير في إدارة المنتجات والمتجر الإلكتروني
+- خبير في تقديم نصائح حول المتجر الإلكتروني
 - مستشار لتحسين المبيعات وتنظيم المنتجات
-
-💬 كيف تتصرف:
-- تحدث بشكل طبيعي ومريح كأنك صديق
-- أجب عن الأسئلة العامة والاستفسارات
-- قدم نصائح واقتراحات لتحسين المتجر
-- اشرح كيفية استخدام المنصة عند السؤال
-
-🛠️ الأدوات المتاحة (استخدمها عند الحاجة فقط):
-1. add_product - لإضافة منتج جديد
-2. update_product - لتعديل منتج موجود
-3. delete_product - لحذف منتج
-4. list_products - لعرض قائمة المنتجات
-
-📝 عند إدارة المنتجات:
-- استخرج المعلومات بدقة (الاسم، السعر، الوصف، التصنيف)
-- السعر يجب أن يكون رقم
-- إذا أرسل صورة، استخدم رابط الصورة في image_url
-- أخبر المستخدم بالنتيجة بوضوح
 
 ✨ أسلوبك:
 - ردود قصيرة وواضحة بالعربية
 - استخدم إيموجي بشكل مناسب 🎉
 - كن مساعد حقيقي وليس مجرد روبوت
-- اطلب توضيح إذا كان الطلب غير واضح
+- قدم نصائح عملية عندما يُطلب منك
 
-معرف المستخدم: ${user.id}`
+معرف المستخدم: ${user.id}
+
+ملاحظة: حالياً يمكنني المحادثة وتقديم النصائح فقط. لإضافة/تعديل/حذف المنتجات، يحتاج المستخدم لإضافة رصيد AI.`
       },
       ...(previousMessages || []),
       { role: 'user', content: message }
@@ -111,7 +95,7 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // استدعاء Lovable AI
+    // استدعاء Lovable AI للمحادثة البسيطة
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -119,81 +103,10 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite', // نموذج أرخص
         messages,
-        tools: [
-          {
-            type: 'function',
-            function: {
-              name: 'add_product',
-              description: 'إضافة منتج جديد إلى المتجر',
-              parameters: {
-                type: 'object',
-                properties: {
-                  name: { type: 'string', description: 'اسم المنتج' },
-                  price: { type: 'number', description: 'سعر المنتج' },
-                  description: { type: 'string', description: 'وصف المنتج' },
-                  category: { type: 'string', description: 'تصنيف المنتج' },
-                  image_url: { type: 'string', description: 'رابط صورة المنتج' },
-                  is_new: { type: 'boolean', description: 'هل المنتج جديد؟' },
-                  is_popular: { type: 'boolean', description: 'هل المنتج مميز؟' }
-                },
-                required: ['name', 'price']
-              }
-            }
-          },
-          {
-            type: 'function',
-            function: {
-              name: 'update_product',
-              description: 'تعديل منتج موجود',
-              parameters: {
-                type: 'object',
-                properties: {
-                  product_id: { type: 'string', description: 'معرف المنتج' },
-                  name: { type: 'string', description: 'اسم المنتج الجديد' },
-                  price: { type: 'number', description: 'السعر الجديد' },
-                  description: { type: 'string', description: 'الوصف الجديد' },
-                  category: { type: 'string', description: 'التصنيف الجديد' },
-                  image_url: { type: 'string', description: 'رابط الصورة الجديد' },
-                  is_available: { type: 'boolean', description: 'هل المنتج متاح؟' },
-                  is_new: { type: 'boolean', description: 'هل المنتج جديد؟' },
-                  is_popular: { type: 'boolean', description: 'هل المنتج مميز؟' }
-                },
-                required: ['product_id']
-              }
-            }
-          },
-          {
-            type: 'function',
-            function: {
-              name: 'delete_product',
-              description: 'حذف منتج من المتجر',
-              parameters: {
-                type: 'object',
-                properties: {
-                  product_id: { type: 'string', description: 'معرف المنتج المراد حذفه' }
-                },
-                required: ['product_id']
-              }
-            }
-          },
-          {
-            type: 'function',
-            function: {
-              name: 'list_products',
-              description: 'عرض قائمة المنتجات الموجودة',
-              parameters: {
-                type: 'object',
-                properties: {
-                  category: { type: 'string', description: 'تصنيف محدد (اختياري)' },
-                  limit: { type: 'number', description: 'عدد المنتجات المطلوبة' }
-                }
-              }
-            }
-          }
-        ],
-        tool_choice: 'auto'
+        max_tokens: 500, // حد أقصى للرد
+        temperature: 0.7
       }),
     });
 
@@ -206,116 +119,15 @@ serve(async (req) => {
     const aiData = await aiResponse.json();
     console.log('AI Response:', JSON.stringify(aiData, null, 2));
 
-    const choice = aiData.choices[0];
-    let assistantMessage = choice.message.content || '';
-    const toolCalls = choice.message.tool_calls;
-
-    // تنفيذ Function Calls
-    if (toolCalls && toolCalls.length > 0) {
-      const toolResults = [];
-
-      for (const toolCall of toolCalls) {
-        const functionName = toolCall.function.name;
-        const args = JSON.parse(toolCall.function.arguments);
-        console.log('Executing tool:', functionName, 'with args:', args);
-
-        let result;
-        try {
-          if (functionName === 'add_product') {
-            const { data, error } = await supabase
-              .from('products')
-              .insert({
-                user_id: user.id,
-                name: args.name,
-                price: args.price,
-                description: args.description || null,
-                category: args.category || null,
-                image_url: args.image_url || null,
-                is_new: args.is_new || false,
-                is_popular: args.is_popular || false,
-                is_available: true
-              })
-              .select()
-              .single();
-
-            if (error) throw error;
-            result = { success: true, product: data };
-            assistantMessage = `✅ تم إضافة المنتج "${args.name}" بنجاح!\nالسعر: ${args.price}\n${args.description ? `الوصف: ${args.description}` : ''}`;
-
-          } else if (functionName === 'update_product') {
-            const updateData: any = {};
-            if (args.name) updateData.name = args.name;
-            if (args.price !== undefined) updateData.price = args.price;
-            if (args.description !== undefined) updateData.description = args.description;
-            if (args.category !== undefined) updateData.category = args.category;
-            if (args.image_url !== undefined) updateData.image_url = args.image_url;
-            if (args.is_available !== undefined) updateData.is_available = args.is_available;
-            if (args.is_new !== undefined) updateData.is_new = args.is_new;
-            if (args.is_popular !== undefined) updateData.is_popular = args.is_popular;
-
-            const { data, error } = await supabase
-              .from('products')
-              .update(updateData)
-              .eq('id', args.product_id)
-              .eq('user_id', user.id)
-              .select()
-              .single();
-
-            if (error) throw error;
-            result = { success: true, product: data };
-            assistantMessage = `✅ تم تعديل المنتج بنجاح!\n${Object.keys(updateData).map(k => `${k}: ${updateData[k]}`).join('\n')}`;
-
-          } else if (functionName === 'delete_product') {
-            const { error } = await supabase
-              .from('products')
-              .delete()
-              .eq('id', args.product_id)
-              .eq('user_id', user.id);
-
-            if (error) throw error;
-            result = { success: true };
-            assistantMessage = `✅ تم حذف المنتج بنجاح!`;
-
-          } else if (functionName === 'list_products') {
-            let query = supabase
-              .from('products')
-              .select('id, name, price, category, is_available')
-              .eq('user_id', user.id)
-              .order('created_at', { ascending: false });
-
-            if (args.category) {
-              query = query.eq('category', args.category);
-            }
-
-            if (args.limit) {
-              query = query.limit(args.limit);
-            }
-
-            const { data, error } = await query;
-            if (error) throw error;
-
-            result = { success: true, products: data };
-            assistantMessage = `📦 المنتجات الموجودة (${data.length}):\n\n${data.map((p: any) => 
-              `• ${p.name} - ${p.price} (${p.category || 'بدون تصنيف'})`
-            ).join('\n')}`;
-          }
-        } catch (error: any) {
-          console.error('Tool execution error:', error);
-          result = { success: false, error: error.message };
-          assistantMessage = `❌ حدث خطأ: ${error.message}`;
-        }
-
-        toolResults.push(result);
-      }
-    }
+    const assistantMessage = aiData.choices[0].message.content || 'عذراً، لم أتمكن من الرد';
 
     // حفظ رد المساعد
     await supabase.from('ai_messages').insert({
       conversation_id: currentConversationId,
       role: 'assistant',
-      content: assistantMessage,
-      metadata: toolCalls ? { tool_calls: toolCalls } : {}
+      content: assistantMessage
     });
+
 
     return new Response(
       JSON.stringify({
