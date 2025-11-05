@@ -65,7 +65,9 @@ const EditProductContainer = () => {
         const { data: imagesData, error: imagesError } = await supabase
           .from("category_images")
           .select("*")
-          .eq("user_id", user.id);
+          .eq("user_id", user.id)
+          .order('display_order', { ascending: true, nullsFirst: false })
+          .order('created_at', { ascending: false });
 
         if (!imagesError && imagesData) {
           setCategoryImages(imagesData);
@@ -251,24 +253,38 @@ const EditProductContainer = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
 
-      await supabase
+      // حفظ ترتيب التصنيفات الحالي قبل أي تعديل
+      const orderMap = new Map<string, number | null>(
+        (categoryImages || []).map(img => [img.category, img.display_order ?? null])
+      );
+      const maxExistingOrder = Math.max(0, ...((categoryImages || []).map(img => img.display_order || 0)));
+      let nextOrder = maxExistingOrder + 1;
+
+      // نبني بيانات الإدخال مع الحفاظ على display_order
+      const payload = images.map((img) => ({
+        user_id: user.id,
+        category: img.category,
+        image_url: img.image_url,
+        display_order: orderMap.get(img.category) ?? (nextOrder++)
+      }));
+
+      // نحذف السجلات القديمة ثم ندرج بالترتيب المحفوظ
+      const { error: delErr } = await supabase
         .from("category_images")
         .delete()
         .eq("user_id", user.id);
+      if (delErr) throw delErr;
 
-      if (images.length > 0) {
-        const { error } = await supabase
+      if (payload.length > 0) {
+        // إدراج بالترتيب ذاته
+        const { error: upErr } = await supabase
           .from("category_images")
-          .upsert(images.map(img => ({
-            user_id: user.id,
-            category: img.category,
-            image_url: img.image_url,
-          })));
-
-        if (error) throw error;
+          .insert(payload);
+        if (upErr) throw upErr;
       }
 
-      setCategoryImages(images);
+      // تحديث الحالة محلياً بنفس الترتيب
+      setCategoryImages(payload as any);
     } catch (error: any) {
       console.error("Error updating category images:", error);
       toast({
