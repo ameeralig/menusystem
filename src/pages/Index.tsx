@@ -54,6 +54,9 @@ const Index = () => {
         </div>
       </header>
 
+      {/* Partners Section */}
+      <PartnersSection />
+
       {/* Hero Section */}
       <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-20 md:py-32 relative z-10">
         <div className="grid grid-cols-1 gap-8 md:gap-12 items-center justify-center">
@@ -258,9 +261,6 @@ const Index = () => {
           ))}
         </div>
       </div>
-
-      {/* Partners Section */}
-      <PartnersSection />
 
       {/* Footer */}
       <footer className="relative z-10 backdrop-blur-xl bg-white/5 border-t border-white/10 py-8 mt-16">

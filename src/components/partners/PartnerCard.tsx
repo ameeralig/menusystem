@@ -30,30 +30,30 @@ const PartnerCard = ({ userId, fullName, avatarUrl, storeName, slug }: PartnerCa
 
   return (
     <Card 
-      className="group hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden border-2 border-white/20 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl hover:border-primary/50 hover:shadow-[hsl(var(--cyber-blue))]/40"
+      className="group hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden border-2 border-primary/30 bg-white hover:border-primary hover:shadow-primary/20"
       onClick={handleClick}
     >
       <CardContent className="p-6 flex flex-col items-center gap-4">
         <div className="relative">
-          <Avatar className="h-24 w-24 border-4 border-[hsl(var(--cyber-blue))]/20 group-hover:border-[hsl(var(--cyber-blue))]/50 transition-all duration-300 shadow-xl shadow-[hsl(var(--cyber-purple))]/30">
+          <Avatar className="h-24 w-24 border-4 border-primary/20 group-hover:border-primary/50 transition-all duration-300 shadow-lg">
             <AvatarImage 
               src={avatarUrl ? `${avatarUrl}?t=${Date.now()}` : undefined} 
               alt={fullName || storeName || "شريك"} 
               className="object-cover"
             />
-            <AvatarFallback className="text-2xl bg-gradient-to-br from-[hsl(var(--cyber-blue))]/30 to-[hsl(var(--cyber-purple))]/20 text-white font-black">
+            <AvatarFallback className="text-2xl bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-black">
               {getInitials(fullName || storeName || "U")}
             </AvatarFallback>
           </Avatar>
-          <div className="absolute inset-0 rounded-full bg-[hsl(var(--cyber-blue))]/0 group-hover:bg-[hsl(var(--cyber-blue))]/20 transition-all duration-300" />
+          <div className="absolute inset-0 rounded-full bg-primary/0 group-hover:bg-primary/10 transition-all duration-300" />
         </div>
         
         <div className="text-center space-y-1">
-          <h3 className="font-black text-lg text-white group-hover:text-[hsl(var(--cyber-blue))] transition-colors drop-shadow-[0_2px_10px_rgba(255,255,255,0.6)] font-arabic">
+          <h3 className="font-black text-lg text-foreground group-hover:text-primary transition-colors font-arabic">
             {fullName || storeName || "مستخدم"}
           </h3>
           {storeName && fullName && fullName !== storeName && (
-            <p className="text-sm text-white/80 font-bold drop-shadow-lg font-arabic">
+            <p className="text-sm text-muted-foreground font-bold font-arabic">
               {storeName}
             </p>
           )}
