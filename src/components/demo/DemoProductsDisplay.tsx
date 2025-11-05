@@ -71,8 +71,6 @@ const DemoProductsDisplay = ({
   // معالجة صور التصنيفات لإضافة طابع زمني
   useEffect(() => {
     if (categoryImages && categoryImages.length > 0) {
-      console.log("DemoProductsDisplay: معالجة", categoryImages.length, "صورة تصنيف");
-      
       // إضافة طابع زمني جديد للصور
       const timestamp = Date.now();
       const processed = categoryImages.map(img => {
@@ -90,11 +88,6 @@ const DemoProductsDisplay = ({
       });
       
       setProcessedCategoryImages(processed);
-      
-      // تسجيل المعلومات للتصحيح
-      processed.forEach(img => {
-        console.log(`DemoProductsDisplay: صورة تصنيف ${img.category}: ${img.image_url}`);
-      });
     } else {
       setProcessedCategoryImages([]);
     }

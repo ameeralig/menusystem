@@ -39,7 +39,6 @@ export const useOptimizedProducts = ({
     if (isCached(cacheKey) && forceRefresh === 0) {
       const cachedProducts = getCachedData(cacheKey);
       if (cachedProducts) {
-        console.log("تم تحميل المنتجات من الـ cache:", userId);
         setAllProducts(cachedProducts);
         setLoadingProgress(100);
         setIsLoading(false);
@@ -96,7 +95,6 @@ export const useOptimizedProducts = ({
       
       // حفظ البيانات في الـ cache لمدة 15 دقيقة
       setCachedData(cacheKey, optimizedProducts, 15 * 60 * 1000);
-      console.log(`تم تحميل وحفظ ${optimizedProducts.length} منتج بنجاح في الـ cache`);
       
       // تأخير قصير لإظهار 100% ثم إخفاء التحميل
       setTimeout(() => {

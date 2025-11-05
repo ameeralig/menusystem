@@ -12,13 +12,12 @@ import WheelButton from "./WheelButton";
 import { Product } from "@/types/product";
 import { CategoryImage } from "@/types/categoryImage";
 import AnimatedStoreHeader from "./AnimatedStoreHeader";
-import { useGlobalSearch } from "./hooks/useGlobalSearch";
 import { useOptimizedProducts } from "@/hooks/store/useOptimizedProducts";
+import { sortCategoriesByOrder } from "@/utils/categorySort";
+import { FontSettings, ContactInfo } from "@/types/store";
 
 // تحميل بطيء لمكون مشاركة الرأي
 const FeedbackTrigger = lazy(() => import("./feedback/FeedbackTrigger"));
-
-import { FontSettings, ContactInfo } from "@/types/store";
 
 interface StoreProductsDisplayProps {
   storeName: string;
@@ -76,7 +75,6 @@ const StoreProductsDisplay = ({
         fontFace.load().then((loadedFont) => {
           document.fonts.add(loadedFont);
           setCustomFontFamily(fontId);
-          console.log("تم تحميل خط اسم المتجر بنجاح:", fontId);
         }).catch(err => {
           console.error("خطأ في تحميل خط اسم المتجر:", err);
           setCustomFontFamily("");
@@ -180,6 +178,9 @@ const StoreProductsDisplay = ({
 
   const themeColors = getThemeColors(colorTheme);
   const isCustomColor = colorTheme && colorTheme.startsWith('#');
+
+  // ترتيب التصنيفات باستخدام الدالة الموحدة
+  const sortedCategories = sortCategoriesByOrder(categories, categoryImages);
 
   return (
     <>
@@ -292,7 +293,7 @@ const StoreProductsDisplay = ({
               transition={{ duration: 0.4, ease: "easeOut" }}
             >
               <ProgressiveCategoryGrid 
-                categories={categories}
+                categories={sortedCategories}
                 onCategorySelect={handleCategorySelect}
                 fontSettings={fontSettings}
                 categoryImages={categoryImages}

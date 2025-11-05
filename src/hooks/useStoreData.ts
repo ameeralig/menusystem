@@ -67,26 +67,10 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
     return () => window.removeEventListener("scroll", handleScroll);
   }, [loadMoreProducts, productsLoading, hasMore]);
 
-  // تسجيل معلومات تصحيح الأخطاء
-  useEffect(() => {
-    console.log("useStoreData - storeOwnerId:", storeSettings.storeOwnerId);
-    console.log("useStoreData - forceRefresh:", forceRefresh);
-    console.log("useStoreData - categoryImages:", categoryImages?.length || 0);
-    console.log("useStoreData - currentPage:", currentPage);
-    console.log("useStoreData - cachedProducts:", cachedProducts.length);
-    
-    if (categoryImages && categoryImages.length > 0) {
-      console.log("تفاصيل صور التصنيفات في useStoreData:", categoryImages.map(img => ({ 
-        category: img.category, 
-        url: img.image_url,
-        id: img.id
-      })));
-    }
-  }, [storeSettings.storeOwnerId, forceRefresh, categoryImages, currentPage, cachedProducts.length]);
+  // تحديث حالة التحميل بناءً على البيانات المتاحة
 
   useEffect(() => {
     if (storeSettings && !categoryImagesLoading && (!productsLoading || cachedProducts.length > 0)) {
-      console.log("Data loaded - stopping loading state");
       setIsLoading(false);
     }
   }, [storeSettings, productsLoading, categoryImagesLoading, cachedProducts.length]);
@@ -122,8 +106,6 @@ export const useStoreData = (slug: string | undefined, forceRefresh: number) => 
         const img = new Image();
         img.src = updatedUrl;
         img.fetchPriority = "high";
-        
-        console.log("تم تحديث صورة الغلاف:", updatedUrl);
       }
     }
   }, [storeSettings.bannerUrl, lastRefresh]);

@@ -191,28 +191,17 @@ const EditProductContainer = () => {
   };
 
   const handleDelete = async (productId: string) => {
-    console.log("Delete button clicked for product:", productId);
-    
     const confirmed = window.confirm("هل أنت متأكد من حذف هذا المنتج؟");
-    console.log("Delete confirmation:", confirmed);
-    
     if (!confirmed) return;
 
     setIsDeleting(true);
     try {
-      console.log("Attempting to delete product from database...");
-      
       const { error } = await supabase
         .from("products")
         .delete()
         .eq("id", productId);
 
-      if (error) {
-        console.error("Supabase delete error:", error);
-        throw error;
-      }
-
-      console.log("Product deleted successfully from database");
+      if (error) throw error;
 
       // تحديث قائمة المنتجات محلياً
       const updatedProducts = products.filter(p => p.id !== productId);
@@ -228,7 +217,6 @@ const EditProductContainer = () => {
         duration: 3000,
       });
     } catch (error: any) {
-      console.error("Error deleting product:", error);
       toast({
         variant: "destructive",
         title: "خطأ في حذف المنتج",
@@ -301,7 +289,6 @@ const EditProductContainer = () => {
       // تحديث الحالة محلياً بنفس الترتيب
       setCategoryImages(payload as any);
     } catch (error: any) {
-      console.error("Error updating category images:", error);
       toast({
         variant: "destructive",
         title: "خطأ في تحديث صور التصنيفات",

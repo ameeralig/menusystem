@@ -59,16 +59,11 @@ const ProductPreview = () => {
     const recordPageView = async () => {
       if (storeOwnerId) {
         try {
-          console.log("تسجيل مشاهدة جديدة لصاحب المتجر:", storeOwnerId);
-          
-          // استدعاء دالة تسجيل المشاهدة
           const { error } = await supabase
             .rpc('increment_page_view', { store_user_id: storeOwnerId });
           
           if (error) {
             console.error("خطأ في تسجيل المشاهدة:", error);
-          } else {
-            console.log("تم تسجيل المشاهدة بنجاح");
           }
         } catch (error) {
           console.error("خطأ غير متوقع في تسجيل المشاهدة:", error);

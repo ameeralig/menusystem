@@ -9,6 +9,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { sortCategoriesByOrder } from "@/utils/categorySort";
 
 interface CategoryImageManagerProps {
   categories: string[];
@@ -36,14 +37,9 @@ export const CategoryImageManager = ({
   });
   const { toast } = useToast();
   
-  // تسجيل معلومات حول صور التصنيفات عند تغيرها
   useEffect(() => {
-    console.log("CategoryImageManager: تلقي", categoryImages.length, "صورة تصنيف");
     if (categoryImages.length > 0) {
-      console.log("تفاصيل صور التصنيفات:");
-      categoryImages.forEach(img => {
-        console.log(`- التصنيف: ${img.category}, الرابط: ${img.image_url}, الترتيب: ${img.display_order}`);
-      });
+      // بيانات صور التصنيفات محدثة
     }
   }, [categoryImages]);
 
@@ -196,17 +192,9 @@ export const CategoryImageManager = ({
             </p>
           </div>
           
-          {/* ترتيب التصنيفات حسب display_order */}
+          {/* ترتيب التصنيفات حسب display_order باستخدام الدالة الموحدة */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[...categories].sort((a, b) => {
-              const aImage = categoryImages.find(img => img.category === a);
-              const bImage = categoryImages.find(img => img.category === b);
-              
-              const aOrder = aImage?.display_order || 999;
-              const bOrder = bImage?.display_order || 999;
-              
-              return aOrder - bOrder;
-            }).map((category) => {
+            {sortCategoriesByOrder(categories, categoryImages).map((category) => {
               const categoryImage = categoryImages.find(img => img.category === category);
               
               return (
