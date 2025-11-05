@@ -5,6 +5,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import qrLogo from "@/assets/qr-logo.png";
 import SeoHelmet from "@/components/legal/SeoHelmet";
 import VantaBackground from "@/components/background/VantaBackground";
+import PartnersSection from "@/components/partners/PartnersSection";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -257,6 +258,9 @@ const Index = () => {
           ))}
         </div>
       </div>
+
+      {/* Partners Section */}
+      <PartnersSection />
 
       {/* Footer */}
       <footer className="relative z-10 backdrop-blur-xl bg-white/5 border-t border-white/10 py-8 mt-16">
