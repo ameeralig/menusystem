@@ -243,13 +243,8 @@ const Index = () => {
               delay: 1.8
             },
           ].map((feature, index) => (
-            <motion.div
+            <div
               key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: feature.delay, duration: 0.5 }}
-              viewport={{ once: true }}
-              whileHover={{ scale: 1.05, y: -5 }}
               className="group p-6 backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-2xl shadow-xl hover:shadow-cyber-blue/30 transition-all duration-300"
             >
               <div className="h-16 w-16 bg-gradient-to-br from-[hsl(var(--cyber-blue))] to-[hsl(var(--cyber-purple))] rounded-2xl flex items-center justify-center mx-auto mb-4 text-white group-hover:scale-110 transition-transform duration-300 shadow-xl shadow-[hsl(var(--cyber-purple))]/50">
@@ -257,7 +252,7 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-black mb-2 text-white text-center font-arabic drop-shadow-[0_3px_10px_rgba(255,255,255,0.6)]">{feature.title}</h3>
               <p className="text-white/95 text-center font-arabic font-bold drop-shadow-[0_2px_10px_rgba(255,255,255,0.5)]">{feature.description}</p>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
