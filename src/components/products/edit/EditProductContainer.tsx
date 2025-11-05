@@ -191,36 +191,51 @@ const EditProductContainer = () => {
   };
 
   const handleDelete = async (productId: string) => {
-    if (window.confirm("هل أنت متأكد من حذف هذا المنتج؟")) {
-      setIsDeleting(true);
-      try {
-        const { error } = await supabase
-          .from("products")
-          .delete()
-          .eq("id", productId);
+    console.log("Delete button clicked for product:", productId);
+    
+    const confirmed = window.confirm("هل أنت متأكد من حذف هذا المنتج؟");
+    console.log("Delete confirmation:", confirmed);
+    
+    if (!confirmed) return;
 
-        if (error) throw error;
+    setIsDeleting(true);
+    try {
+      console.log("Attempting to delete product from database...");
+      
+      const { error } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", productId);
 
-        setProducts(products.filter(p => p.id !== productId));
-        
-        if (selectedProduct && selectedProduct.id === productId) {
-          handleCancel();
-        }
-
-        toast({
-          title: "تم حذف المنتج بنجاح",
-          duration: 3000,
-        });
-      } catch (error: any) {
-        console.error("Error deleting product:", error);
-        toast({
-          variant: "destructive",
-          title: "خطأ في حذف المنتج",
-          description: error.message,
-        });
-      } finally {
-        setIsDeleting(false);
+      if (error) {
+        console.error("Supabase delete error:", error);
+        throw error;
       }
+
+      console.log("Product deleted successfully from database");
+
+      // تحديث قائمة المنتجات محلياً
+      const updatedProducts = products.filter(p => p.id !== productId);
+      setProducts(updatedProducts);
+      
+      // إذا كان المنتج المحذوف هو المنتج المحدد حالياً، نلغي التحديد
+      if (selectedProduct && selectedProduct.id === productId) {
+        handleCancel();
+      }
+
+      toast({
+        title: "تم حذف المنتج بنجاح",
+        duration: 3000,
+      });
+    } catch (error: any) {
+      console.error("Error deleting product:", error);
+      toast({
+        variant: "destructive",
+        title: "خطأ في حذف المنتج",
+        description: error.message || "حدث خطأ أثناء حذف المنتج",
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
