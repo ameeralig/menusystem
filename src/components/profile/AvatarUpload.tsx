@@ -42,21 +42,42 @@ const AvatarUpload = ({ currentAvatarUrl, userId, userName, onAvatarUpdate }: Av
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // التحقق من نوع الملف
-    if (!file.type.startsWith("image/")) {
+    // قائمة بصيغ الصور المقبولة
+    const allowedImageTypes = [
+      'image/jpeg',
+      'image/jpg', 
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'image/svg+xml',
+      'image/bmp',
+      'image/tiff',
+      'image/heic',
+      'image/heif'
+    ];
+
+    // قائمة بالامتدادات المقبولة كنسخة احتياطية
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.tiff', '.heic', '.heif'];
+    
+    // التحقق من نوع الملف أو الامتداد
+    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    const isValidType = file.type.startsWith("image/") || allowedImageTypes.includes(file.type.toLowerCase());
+    const isValidExtension = allowedExtensions.includes(fileExtension);
+
+    if (!isValidType && !isValidExtension) {
       toast({
         title: "خطأ",
-        description: "يجب اختيار صورة فقط",
+        description: "يرجى اختيار ملف صورة صالح (JPG, PNG, GIF, WEBP, SVG, BMP, TIFF, HEIC)",
         variant: "destructive",
       });
       return;
     }
 
-    // التحقق من حجم الملف (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
+    // التحقق من حجم الملف (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
       toast({
         title: "خطأ",
-        description: "حجم الصورة يجب أن يكون أقل من 5 ميجابايت",
+        description: "حجم الصورة يجب أن يكون أقل من 10 ميجابايت",
         variant: "destructive",
       });
       return;
@@ -130,7 +151,7 @@ const AvatarUpload = ({ currentAvatarUrl, userId, userName, onAvatarUpdate }: Av
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.tiff,.heic,.heif"
           className="hidden"
           onChange={handleFileSelect}
         />
