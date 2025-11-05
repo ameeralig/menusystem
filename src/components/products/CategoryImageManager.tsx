@@ -47,9 +47,29 @@ export const CategoryImageManager = ({
     }
   }, [categoryImages]);
 
-  const handleOrderUpdate = () => {
-    // إعادة تحميل صور التصنيفات بعد تحديث الترتيب
-    window.location.reload();
+  const handleOrderUpdate = async () => {
+    // إعادة جلب صور التصنيفات بعد تحديث الترتيب
+    if (userId) {
+      try {
+        const { data, error } = await supabase
+          .from("category_images")
+          .select("*")
+          .eq("user_id", userId)
+          .order('display_order', { ascending: true });
+
+        if (error) throw error;
+        
+        if (data) {
+          onUpdateImages(data);
+          toast({
+            title: "تم التحديث",
+            description: "تم تحديث ترتيب التصنيفات بنجاح",
+          });
+        }
+      } catch (error: any) {
+        console.error("خطأ في إعادة جلب التصنيفات:", error);
+      }
+    }
   };
 
   const handleDeleteCategory = async (category: string, confirmationText?: string) => {

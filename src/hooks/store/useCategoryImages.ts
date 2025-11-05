@@ -22,11 +22,12 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
         setIsLoading(true);
         
         // استخدام استعلام مباشر بدلاً من طبقة التخزين المؤقت مع ترتيب حسب display_order
+        // ترتيب NULLS LAST لوضع التصنيفات بدون ترتيب في النهاية
         const { data, error } = await supabase
           .from("category_images")
           .select("*")
           .eq("user_id", userId)
-          .order('display_order', { ascending: true })
+          .order('display_order', { ascending: true, nullsFirst: false })
           .order('created_at', { ascending: false });
 
         if (error) {

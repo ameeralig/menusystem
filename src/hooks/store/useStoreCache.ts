@@ -11,6 +11,9 @@ interface StoreCache {
 const CACHE_KEY = 'lovable_store_cache';
 const DEFAULT_TTL = 5 * 60 * 1000; // 5 minutes
 
+// تقليل مدة الكاش لصور التصنيفات لضمان التحديث السريع
+const CATEGORY_CACHE_DURATION = 30 * 1000; // 30 ثانية فقط
+
 export const useStoreCache = () => {
   const [cache, setCache] = useState<StoreCache>({});
 

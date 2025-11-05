@@ -186,7 +186,7 @@ export const useOptimizedProducts = ({
     fetchAllProducts();
   }, [fetchAllProducts]);
 
-  // استخراج جميع التصنيفات من كل المنتجات
+  // استخراج جميع التصنيفات من كل المنتجات (بدون ترتيب أبجدي)
   const allCategories = useMemo(() => {
     const categories = new Set<string>();
     allProducts.forEach(product => {
@@ -194,7 +194,8 @@ export const useOptimizedProducts = ({
         categories.add(product.category.trim());
       }
     });
-    return Array.from(categories).sort();
+    // إرجاع التصنيفات بدون ترتيب أبجدي - سيتم ترتيبها حسب display_order في المكون
+    return Array.from(categories);
   }, [allProducts]);
 
   return {
