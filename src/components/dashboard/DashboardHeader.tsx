@@ -25,6 +25,7 @@ const DashboardHeader = () => {
   });
   const [userName, setUserName] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [notificationCount, setNotificationCount] = useState<number>(0);
   const [notifications, setNotifications] = useState<any[]>([]);
 
@@ -44,14 +45,24 @@ const DashboardHeader = () => {
         setUserEmail(user.email);
         const { data: profile } = await supabase
           .from('profiles')
-          .select('full_name')
+          .select('full_name, avatar_url')
           .eq('id', user.id)
           .maybeSingle();
         
-        if (profile && profile.full_name) {
-          setUserName(profile.full_name);
+        if (profile) {
+          if (profile.full_name) {
+            setUserName(profile.full_name);
+          } else {
+            // Use email as fallback
+            setUserName(user.email?.split('@')[0] || 'مستخدم');
+          }
+          
+          // تعيين صورة البروفايل مع timestamp لتجنب الـ cache
+          if (profile.avatar_url) {
+            const urlWithTimestamp = `${profile.avatar_url}${profile.avatar_url.includes('?') ? '&' : '?'}t=${Date.now()}`;
+            setAvatarUrl(urlWithTimestamp);
+          }
         } else {
-          // Use email as fallback
           setUserName(user.email?.split('@')[0] || 'مستخدم');
         }
 
@@ -362,7 +373,7 @@ const DashboardHeader = () => {
                   className="rounded-full pl-3 gap-2 border-muted"
                 >
                   <Avatar className="h-6 w-6">
-                    <AvatarImage src="" alt={userName || ""} />
+                    <AvatarImage src={avatarUrl || undefined} alt={userName || ""} />
                     <AvatarFallback className="bg-primary/10 text-primary">
                       {getAvatarInitials(userName)}
                     </AvatarFallback>
