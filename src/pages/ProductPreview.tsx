@@ -35,49 +35,36 @@ const ProductPreview = () => {
   const [employeeSystemEnabled, setEmployeeSystemEnabled] = useState(false);
   const { employee, logout } = useEmployeeAuth(storeOwnerId);
 
-  // جلب حالة نظام الموظفين
+  // دمج جلب حالة الموظفين وتسجيل المشاهدة في useEffect واحد
   useEffect(() => {
-    const fetchEmployeeSystemStatus = async () => {
-      if (storeOwnerId) {
-        const { data } = await supabase
-          .from('store_settings')
-          .select('employee_system_enabled')
-          .eq('user_id', storeOwnerId)
-          .single();
-        
-        if (data) {
-          setEmployeeSystemEnabled(data.employee_system_enabled || false);
-        }
+    if (!storeOwnerId || isLoading) return;
+
+    const initializeStoreData = async () => {
+      // جلب حالة نظام الموظفين
+      const { data } = await supabase
+        .from('store_settings')
+        .select('employee_system_enabled')
+        .eq('user_id', storeOwnerId)
+        .single();
+      
+      if (data) {
+        setEmployeeSystemEnabled(data.employee_system_enabled || false);
+      }
+
+      // تسجيل المشاهدة
+      try {
+        await supabase.rpc('increment_page_view', { store_user_id: storeOwnerId });
+      } catch (error) {
+        console.error("خطأ في تسجيل المشاهدة:", error);
       }
     };
 
-    fetchEmployeeSystemStatus();
-  }, [storeOwnerId]);
-
-  // تسجيل المشاهدة عند تحميل الصفحة
-  useEffect(() => {
-    const recordPageView = async () => {
-      if (storeOwnerId) {
-        try {
-          const { error } = await supabase
-            .rpc('increment_page_view', { store_user_id: storeOwnerId });
-          
-          if (error) {
-            console.error("خطأ في تسجيل المشاهدة:", error);
-          }
-        } catch (error) {
-          console.error("خطأ غير متوقع في تسجيل المشاهدة:", error);
-        }
-      }
-    };
-
-    if (storeOwnerId && !isLoading) {
-      recordPageView();
-    }
+    initializeStoreData();
   }, [storeOwnerId, isLoading]);
 
-  // إعداد meta tags لتجنب التخزين المؤقت
+  // دمج meta tags وتحميل الصور في useEffect واحد
   useEffect(() => {
+    // إعداد meta tags
     const metaTags = [
       { name: 'Cache-Control', content: 'no-cache, no-store, must-revalidate' },
       { name: 'Pragma', content: 'no-cache' },
@@ -94,88 +81,74 @@ const ProductPreview = () => {
       metaTag.setAttribute('content', tag.content);
     });
 
-    // إضافة رؤوس للتخزين المؤقت للصور والملفات الثابتة
     const cacheControlHeaders = document.createElement('meta');
     cacheControlHeaders.setAttribute('http-equiv', 'Cache-Control');
-    cacheControlHeaders.setAttribute('content', 'max-age=86400, public'); // تخزين مؤقت لمدة 24 ساعة للأصول الثابتة
+    cacheControlHeaders.setAttribute('content', 'max-age=86400, public');
     document.head.appendChild(cacheControlHeaders);
+
+    // تحميل الصور مسبقاً
+    if (storeData?.bannerUrl) {
+      const preloadImage = new Image();
+      preloadImage.src = `${storeData.bannerUrl.split('?')[0]}?t=${Date.now()}`;
+      preloadImage.loading = "eager";
+    }
 
     return () => {
       metaTags.forEach(tag => {
         const metaTag = document.querySelector(`meta[name="${tag.name}"]`);
-        if (metaTag) {
-          metaTag.remove();
-        }
+        if (metaTag) metaTag.remove();
       });
       cacheControlHeaders.remove();
     };
-  }, []);
+  }, [storeData?.bannerUrl, forceRefresh, lastManualRefresh]);
 
-  // إجبار تحميل الصور حديثاً عند تحديث البيانات
+  // تفعيل الاستماع للتحديثات المباشرة - subscription موحد مع debounce
   useEffect(() => {
-    if (storeData?.bannerUrl) {
-      const preloadImage = new Image();
-      preloadImage.src = `${storeData.bannerUrl.split('?')[0]}?t=${Date.now()}`;
-      preloadImage.loading = "eager"; // تحميل الصورة الرئيسية بشكل فوري
-    }
-  }, [storeData.bannerUrl, forceRefresh, lastManualRefresh]);
-
-  // تفعيل الاستماع للتحديثات المباشرة بشكل هادئ في الخلفية
-  useEffect(() => {
-    if (!storeOwnerId) {
-      return;
-    }
+    if (!storeOwnerId || !isAutoRefresh) return;
     
-    // اشتراك في تغييرات جدول المنتجات
-    const productsChannel = supabase
-      .channel('products-changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'products', filter: `user_id=eq.${storeOwnerId}` }, 
-        (payload) => {
-          if (isAutoRefresh) {
-            toast.info("تم تحديث المنتجات");
-            refreshData();
-            setLastManualRefresh(Date.now());
-          }
-        }
-      )
-      .subscribe();
+    let debounceTimer: NodeJS.Timeout;
     
-    // اشتراك في تغييرات إعدادات المتجر
-    const settingsChannel = supabase
-      .channel('settings-changes')
+    // دمج جميع الـ subscriptions في قناة واحدة
+    const unifiedChannel = supabase
+      .channel('store-changes')
       .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'store_settings', filter: `user_id=eq.${storeOwnerId}` }, 
-        (payload) => {
-          if (isAutoRefresh) {
-            toast.info("تم تحديث إعدادات المتجر");
+        { event: '*', schema: 'public', table: 'products', filter: `user_id=eq.${storeOwnerId}` },
+        () => {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => {
+            toast.info("تم تحديث البيانات");
             refreshData();
             setLastManualRefresh(Date.now());
-          }
+          }, 2000); // تأخير 2 ثانية
+        }
+      )
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'store_settings', filter: `user_id=eq.${storeOwnerId}` },
+        () => {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => {
+            toast.info("تم تحديث البيانات");
+            refreshData();
+            setLastManualRefresh(Date.now());
+          }, 2000);
+        }
+      )
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'category_images', filter: `user_id=eq.${storeOwnerId}` },
+        () => {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => {
+            toast.info("تم تحديث البيانات");
+            refreshData();
+            setLastManualRefresh(Date.now());
+          }, 2000);
         }
       )
       .subscribe();
 
-    // اشتراك في تغييرات صور التصنيفات
-    const categoryImagesChannel = supabase
-      .channel('categories-changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'category_images', filter: `user_id=eq.${storeOwnerId}` }, 
-        (payload) => {
-          if (isAutoRefresh) {
-            toast.info("تم تحديث التصنيفات");
-            refreshData();
-            setLastManualRefresh(Date.now());
-          }
-        }
-      )
-      .subscribe();
-
-    // تنظيف عند إزالة المكون
     return () => {
-      supabase.removeChannel(productsChannel);
-      supabase.removeChannel(settingsChannel);
-      supabase.removeChannel(categoryImagesChannel);
+      clearTimeout(debounceTimer);
+      supabase.removeChannel(unifiedChannel);
     };
   }, [storeOwnerId, refreshData, isAutoRefresh]);
 

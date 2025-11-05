@@ -56,7 +56,6 @@ export const useStoreSettings = (slug: string | undefined) => {
         if (isCached(cacheKey)) {
           const cachedSettings = getCachedData(cacheKey);
           if (cachedSettings) {
-            console.log("تم تحميل إعدادات المتجر من الـ cache:", slug);
             setStoreSettings(cachedSettings);
             setIsLoading(false);
             return;
@@ -115,9 +114,8 @@ export const useStoreSettings = (slug: string | undefined) => {
         };
 
         setStoreSettings(newSettings);
-        // حفظ البيانات في الـ cache لمدة 10 دقائق
-        setCachedData(cacheKey, newSettings, 10 * 60 * 1000);
-        console.log("تم حفظ إعدادات المتجر في الـ cache:", slug);
+        // حفظ البيانات في الـ cache لمدة 30 دقيقة (تحسين الأداء)
+        setCachedData(cacheKey, newSettings, 30 * 60 * 1000);
 
       } catch (error: any) {
         console.error("Error fetching settings:", error);

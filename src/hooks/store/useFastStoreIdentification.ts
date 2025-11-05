@@ -32,7 +32,6 @@ export const useFastStoreIdentification = (slug: string | undefined) => {
           .maybeSingle();
 
         if (error) {
-          console.error("خطأ في جلب بيانات المتجر:", error);
           setError("حدث خطأ في الوصول للمتجر");
           return;
         }
@@ -42,11 +41,9 @@ export const useFastStoreIdentification = (slug: string | undefined) => {
           return;
         }
 
-        console.log("تم التعرف على المتجر بنجاح:", data);
         setStoreData(data);
 
       } catch (error: any) {
-        console.error("خطأ غير متوقع:", error);
         setError("حدث خطأ غير متوقع");
       } finally {
         setIsLoading(false);
