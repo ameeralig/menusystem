@@ -535,6 +535,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           callmebot_api_key: string | null
           created_at: string
           full_name: string | null
@@ -542,6 +543,7 @@ export type Database = {
           phone_number: string | null
         }
         Insert: {
+          avatar_url?: string | null
           callmebot_api_key?: string | null
           created_at?: string
           full_name?: string | null
@@ -549,6 +551,7 @@ export type Database = {
           phone_number?: string | null
         }
         Update: {
+          avatar_url?: string | null
           callmebot_api_key?: string | null
           created_at?: string
           full_name?: string | null

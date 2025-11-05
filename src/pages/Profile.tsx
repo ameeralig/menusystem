@@ -6,11 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import AvatarUpload from "@/components/profile/AvatarUpload";
 
 const Profile = () => {
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [callmebotApiKey, setCallmebotApiKey] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -18,7 +21,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           toast({
             title: "خطأ في تحميل الملف الشخصي",
@@ -29,9 +32,11 @@ const Profile = () => {
           return;
         }
 
+        setUserId(user.id);
+
         const { data: profile, error } = await supabase
           .from("profiles")
-          .select("full_name, phone_number, callmebot_api_key")
+          .select("full_name, phone_number, callmebot_api_key, avatar_url")
           .eq("id", user.id)
           .maybeSingle();
 
@@ -41,6 +46,7 @@ const Profile = () => {
           setFullName(profile.full_name || "");
           setPhoneNumber(profile.phone_number || "");
           setCallmebotApiKey(profile.callmebot_api_key || "");
+          setAvatarUrl(profile.avatar_url || null);
         }
       } catch (error: any) {
         console.error("Error fetching profile:", error);
@@ -110,6 +116,15 @@ const Profile = () => {
         <div className="max-w-2xl mx-auto">
           <h1 className="text-2xl font-bold mb-6 text-right">الملف الشخصي</h1>
           
+          <div className="mb-8 flex justify-center">
+            <AvatarUpload
+              currentAvatarUrl={avatarUrl}
+              userId={userId}
+              userName={fullName}
+              onAvatarUpdate={setAvatarUrl}
+            />
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <label htmlFor="fullName" className="block text-right">
