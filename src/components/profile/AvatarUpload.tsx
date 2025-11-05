@@ -1,10 +1,10 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Camera, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { uploadImage } from "@/utils/storageHelpers";
+import { uploadImage, getUrlWithTimestamp } from "@/utils/storageHelpers";
 
 interface AvatarUploadProps {
   currentAvatarUrl: string | null;
@@ -15,9 +15,19 @@ interface AvatarUploadProps {
 
 const AvatarUpload = ({ currentAvatarUrl, userId, userName, onAvatarUpdate }: AvatarUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(currentAvatarUrl);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // تحديث معاينة الصورة عند تغيير currentAvatarUrl
+  useEffect(() => {
+    if (currentAvatarUrl) {
+      const urlWithTimestamp = getUrlWithTimestamp(currentAvatarUrl);
+      setPreviewUrl(urlWithTimestamp);
+    } else {
+      setPreviewUrl(null);
+    }
+  }, [currentAvatarUrl]);
 
   const getInitials = (name: string) => {
     if (!name) return "U";
@@ -55,10 +65,6 @@ const AvatarUpload = ({ currentAvatarUrl, userId, userName, onAvatarUpdate }: Av
     setIsUploading(true);
 
     try {
-      // إنشاء معاينة مؤقتة
-      const objectUrl = URL.createObjectURL(file);
-      setPreviewUrl(objectUrl);
-
       // رفع الصورة إلى Supabase Storage
       const avatarUrl = await uploadImage("avatars", file, userId, "");
 
@@ -69,12 +75,10 @@ const AvatarUpload = ({ currentAvatarUrl, userId, userName, onAvatarUpdate }: Av
         .eq("id", userId);
 
       if (updateError) throw updateError;
-
-      // تنظيف المعاينة المؤقتة
-      URL.revokeObjectURL(objectUrl);
       
-      // تحديث الحالة
-      setPreviewUrl(avatarUrl);
+      // تحديث الحالة بـ URL مع timestamp لتجنب الـ cache
+      const urlWithTimestamp = getUrlWithTimestamp(avatarUrl);
+      setPreviewUrl(urlWithTimestamp);
       onAvatarUpdate(avatarUrl);
 
       toast({
@@ -88,7 +92,8 @@ const AvatarUpload = ({ currentAvatarUrl, userId, userName, onAvatarUpdate }: Av
         description: error.message,
         variant: "destructive",
       });
-      setPreviewUrl(currentAvatarUrl);
+      const fallbackUrl = currentAvatarUrl ? getUrlWithTimestamp(currentAvatarUrl) : null;
+      setPreviewUrl(fallbackUrl);
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
