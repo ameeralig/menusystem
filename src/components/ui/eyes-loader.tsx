@@ -32,8 +32,8 @@ export const EyesLoader = ({ className, size = "md", ...props }: EyesLoaderProps
           display: inline-block;
           width: 48px;
           height: 48px;
-          background-color: hsl(var(--primary));
-          background-image: radial-gradient(circle 14px, hsl(var(--background)) 100%, transparent 0);
+          background-color: #000000;
+          background-image: radial-gradient(circle 14px, #FFFFFF 100%, transparent 0);
           background-repeat: no-repeat;
           border-radius: 50%;
           animation: eyeMove 10s infinite, blink 10s infinite;
@@ -42,13 +42,13 @@ export const EyesLoader = ({ className, size = "md", ...props }: EyesLoaderProps
         .eyes-loader.w-\\[54px\\]::before {
           width: 24px;
           height: 24px;
-          background-image: radial-gradient(circle 7px, hsl(var(--background)) 100%, transparent 0);
+          background-image: radial-gradient(circle 7px, #FFFFFF 100%, transparent 0);
         }
         .eyes-loader.w-\\[162px\\]::after,
         .eyes-loader.w-\\[162px\\]::before {
           width: 72px;
           height: 72px;
-          background-image: radial-gradient(circle 21px, hsl(var(--background)) 100%, transparent 0);
+          background-image: radial-gradient(circle 21px, #FFFFFF 100%, transparent 0);
         }
         @keyframes eyeMove {
           0%, 10% { background-position: 0px 0px; }
