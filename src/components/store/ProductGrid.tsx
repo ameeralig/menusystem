@@ -1,7 +1,9 @@
+
 import { motion } from "framer-motion";
 import { Product } from "@/types/product";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
 import { formatImageUrl } from "@/utils/storageHelpers";
-import { CachedImage } from "./CachedImage";
 
 interface ProductGridProps {
   products: Product[];
@@ -9,6 +11,9 @@ interface ProductGridProps {
 }
 
 const ProductCard = ({ product }: { product: Product }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
   // استخدام formatImageUrl المحسنة للحصول على روابط الصور المباشرة من أي مصدر
   const getOptimizedImageUrl = (url: string | null | undefined) => {
     if (!url) return null;
@@ -17,6 +22,17 @@ const ProductCard = ({ product }: { product: Product }) => {
     } catch (error) {
       console.error("خطأ في تحويل رابط الصورة:", error, url);
       return url; // استخدام الرابط الأصلي في حال فشل التحويل
+    }
+  };
+
+  const handleImageError = () => {
+    console.error(`فشل تحميل صورة المنتج: ${product.name}`);
+    setImageError(true);
+    
+    // محاولة تحميل الصورة مرة أخرى بعد تنظيف الرابط
+    if (product.image_url) {
+      const cleanUrl = product.image_url.split('?')[0];
+      console.log(`محاولة تحميل الصورة مرة أخرى من الرابط المنظف: ${cleanUrl}`);
     }
   };
 
@@ -75,12 +91,37 @@ const ProductCard = ({ product }: { product: Product }) => {
 
       {product.image_url && (
         <div className="aspect-[16/9] overflow-hidden relative">
-          <CachedImage
-            src={getOptimizedImageUrl(product.image_url) || product.image_url}
+          {!imageLoaded && !imageError && (
+            <Skeleton className="absolute inset-0 w-full h-full" />
+          )}
+          <img
+            src={getOptimizedImageUrl(product.image_url)}
             alt={product.name}
-            className="w-full h-full object-cover hover:scale-105"
-            isUnavailable={!isAvailable}
+            className={`w-full h-full object-cover transition-all duration-300 ${
+              imageLoaded ? "opacity-100 hover:scale-105" : "opacity-0"
+            } ${!isAvailable ? "grayscale opacity-60" : ""}`}
+            loading="lazy"
+            onLoad={() => setImageLoaded(true)}
+            onError={handleImageError}
+            decoding="async"
           />
+          
+          {/* عرض حالة عدم التوفر */}
+          {!isAvailable && imageLoaded && (
+            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+              <div className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold">
+                غير متوفر
+              </div>
+            </div>
+          )}
+          
+          {imageError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700">
+              <p className="text-sm text-gray-500 dark:text-gray-400 p-4 text-center">
+                {product.name}
+              </p>
+            </div>
+          )}
         </div>
       )}
       <div className="p-4 relative z-10">

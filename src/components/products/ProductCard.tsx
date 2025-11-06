@@ -4,8 +4,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Star, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Product as ProductType } from "@/types/product";
-import { CachedImage } from "@/components/store/CachedImage";
-import { formatImageUrl } from "@/utils/storageHelpers";
 
 interface Product {
   id: string;
@@ -84,11 +82,13 @@ export const ProductCard = ({ product, layout }: ProductCardProps) => {
 
         {product.image_url && (
           <div className="relative aspect-[4/3] overflow-hidden">
-            <CachedImage
-              src={formatImageUrl(product.image_url) || product.image_url}
+            <motion.img
+              loading="lazy"
+              src={product.image_url}
               alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-110"
-              isUnavailable={!isAvailable}
+              className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 ${
+                !isAvailable ? "grayscale opacity-60" : ""
+              }`}
             />
             
             {/* عرض حالة عدم التوفر */}

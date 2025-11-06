@@ -1,6 +1,7 @@
 
 import { ReactNode, useEffect } from "react";
 import BannerSection from "./preview/BannerSection";
+import { useImageLoading } from "@/hooks/store/useImageLoading";
 import { useCustomFonts } from "@/hooks/store/useCustomFonts";
 import { getBackgroundStyle, getThemeClasses } from "@/utils/previewStyles";
 
@@ -39,6 +40,7 @@ const ProductPreviewContainer = ({
   containerHeight = "auto",
   darkMode = false
 }: ProductPreviewContainerProps) => {
+  const { imageError, imageLoaded, imgSrc, setImageError, setImageLoaded } = useImageLoading(bannerUrl);
   const { getContainerStyle } = useCustomFonts(fontSettings);
   
   // تسجيل تغييرات اللون للتصحيح
@@ -52,18 +54,25 @@ const ProductPreviewContainer = ({
 
   return (
     <div className={`flex flex-col ${themeClasses}`} style={getContainerStyle()}>
-      <BannerSection bannerUrl={bannerUrl} />
+      <BannerSection
+        bannerUrl={bannerUrl}
+        imgSrc={imgSrc}
+        imageLoaded={imageLoaded}
+        imageError={imageError}
+        onImageError={() => setImageError(true)}
+        onImageLoad={() => setImageLoaded(true)}
+      />
       
       {/* الخلفية المخصصة مع تطبيق لون المستخدم */}
       <div 
         className={`${colorTheme && colorTheme.startsWith('#') ? '' : 'bg-gray-50 dark:bg-gray-900'} transition-all duration-300`}
         style={colorTheme && colorTheme.startsWith('#') ? customBackgroundStyle : undefined}
       >
-        {bannerUrl && (
+        {imgSrc && !imageError && (
           <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-black/20 to-transparent"></div>
         )}
         <div className="w-full relative">
-          <div className={`bg-white dark:bg-gray-800 rounded-tl-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-700 transition-all duration-300 ${bannerUrl ? 'mt-[-1rem]' : ''}`} style={{ minHeight: containerHeight }}>
+          <div className={`bg-white dark:bg-gray-800 rounded-tl-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-700 transition-all duration-300 ${imgSrc && !imageError ? 'mt-[-1rem]' : ''}`} style={{ minHeight: containerHeight }}>
             <div className="p-4 sm:p-6">
               {children}
             </div>

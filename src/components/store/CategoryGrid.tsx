@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { CSSProperties, useEffect, useState } from "react";
 import { CategoryImage } from "@/types/categoryImage";
 import { Folder } from "lucide-react";
-import { CachedImage } from "./CachedImage";
 
 interface FontSettings {
   categoryText?: {
@@ -32,12 +31,16 @@ const CategoryCard = ({
   fontStyle: CSSProperties;
 }) => {
   const [imgError, setImgError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(imageUrl);
+  const [imageLoaded, setImageLoaded] = useState(false);
   
-  // إعادة تعيين حالة الخطأ عند تغيير الرابط
+  // إعادة تعيين حالة الخطأ والتحميل عند تغيير الرابط
   useEffect(() => {
     if (imageUrl && imageUrl !== currentImageUrl) {
       setImgError(false);
+      setIsLoading(true);
+      setImageLoaded(false);
       setCurrentImageUrl(imageUrl);
       console.log(`تحديث رابط صورة التصنيف ${category}: ${imageUrl}`);
     }
@@ -49,20 +52,36 @@ const CategoryCard = ({
       className="relative overflow-hidden rounded-[30px] cursor-pointer shadow-md group"
       onClick={onClick}
     >
-      <div className="h-[140px] overflow-hidden relative">
+      <div className="h-[140px] overflow-hidden">
         {!imgError && currentImageUrl ? (
-          <CachedImage
-            src={currentImageUrl}
-            alt={category}
-            className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
-            onError={() => {
-              console.error(`خطأ في تحميل صورة التصنيف: ${category}`);
-              setImgError(true);
-            }}
-            onLoad={() => {
-              console.log(`تم تحميل صورة التصنيف بنجاح: ${category}`);
-            }}
-          />
+          <>
+            {isLoading && (
+              <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            )}
+            <img 
+              src={currentImageUrl} 
+              alt={category}
+              className={`
+                w-full h-full object-cover transition-all duration-500 group-hover:scale-110
+                ${!imageLoaded ? 'blur-md opacity-60' : 'blur-0 opacity-100'}
+              `}
+              onError={() => {
+                console.error(`خطأ في تحميل صورة التصنيف: ${category}، رابط: ${currentImageUrl}`);
+                setImgError(true);
+                setIsLoading(false);
+                setImageLoaded(false);
+              }}
+              onLoad={() => {
+                console.log(`تم تحميل صورة التصنيف بنجاح: ${category}`);
+                setIsLoading(false);
+                setImageLoaded(true);
+              }}
+              loading="lazy"
+              fetchPriority="auto"
+            />
+          </>
         ) : (
           <div className="w-full h-full bg-gray-100 flex items-center justify-center">
             <Folder className="h-12 w-12 text-gray-400" />

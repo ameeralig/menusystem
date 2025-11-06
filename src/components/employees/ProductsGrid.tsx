@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Minus } from "lucide-react";
 import { useState } from "react";
-import { CachedImage } from "@/components/store/CachedImage";
-import { formatImageUrl } from "@/utils/storageHelpers";
 
 interface ProductsGridProps {
   products: Product[];
@@ -62,11 +60,11 @@ const ProductsGrid = ({ products, onAddToCart }: ProductsGridProps) => {
               <Card key={product.id} className="p-4 space-y-3">
                 {product.image_url && (
                   <div className="aspect-video w-full rounded-md overflow-hidden bg-muted">
-                    <CachedImage
-                      src={formatImageUrl(product.image_url) || product.image_url}
+                    <img
+                      src={product.image_url}
                       alt={product.name}
                       className="w-full h-full object-cover"
-                      isUnavailable={!product.is_available}
+                      loading="lazy"
                     />
                   </div>
                 )}
