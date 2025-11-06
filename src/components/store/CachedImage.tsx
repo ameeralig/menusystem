@@ -96,10 +96,6 @@ export const CachedImage: React.FC<CachedImageProps> = ({
 
   return (
     <div className={`relative ${className}`}>
-      {isLoading && (
-        <Skeleton className="absolute inset-0 w-full h-full rounded-lg" />
-      )}
-      
       {hasError ? (
         <div className="absolute inset-0 flex items-center justify-center bg-muted rounded-lg">
           <span className="text-muted-foreground text-sm">فشل تحميل الصورة</span>
@@ -109,8 +105,8 @@ export const CachedImage: React.FC<CachedImageProps> = ({
           ref={imgRef}
           src={imageSrc || undefined}
           alt={alt}
-          className={`${className} transition-opacity duration-300 ${
-            isLoading ? "opacity-0" : "opacity-100"
+          className={`${className} transition-all duration-500 ${
+            isLoading ? "blur-lg scale-105 opacity-70" : "blur-0 scale-100 opacity-100"
           } ${isUnavailable ? "grayscale opacity-50" : ""}`}
           onLoad={handleImageLoad}
           onError={handleImageError}
