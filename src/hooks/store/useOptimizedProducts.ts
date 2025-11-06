@@ -24,7 +24,7 @@ export const useOptimizedProducts = ({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   
-  const PRODUCTS_PER_PAGE = 15; // عدد أقل لتحميل أسرع
+  const PRODUCTS_PER_PAGE = 50; // عدد كافي لعرض جميع منتجات التصنيف
 
   // تحميل جميع المنتجات مرة واحدة مع التحسين والتقدم المئوي
   const fetchAllProducts = useCallback(async () => {
