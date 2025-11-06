@@ -9,6 +9,7 @@ import { CategoryImage } from "@/types/categoryImage";
 import { uploadImage } from "@/utils/storageHelpers";
 import CategorySelector from "@/components/products/add/CategorySelector";
 import ProductDetailsForm from "@/components/products/add/ProductDetailsForm";
+import { sendN8nWebhook } from "@/utils/n8nWebhook";
 
 interface ProductFormContainerProps {
   activeTab: "category" | "product";
@@ -141,7 +142,7 @@ const ProductFormContainer = ({ activeTab, onContinueToProduct }: ProductFormCon
         finalImageUrl = await uploadImage("product-images", selectedFile, userData.user.id, uniqueFilePath);
       }
 
-      const { error } = await supabase.from("products").insert({
+      const productPayload = {
         user_id: userData.user.id,
         name: data.name,
         description: data.description || null,
@@ -150,7 +151,13 @@ const ProductFormContainer = ({ activeTab, onContinueToProduct }: ProductFormCon
         category: data.category || selectedCategory || null,
         is_new: data.is_new || false,
         is_popular: data.is_popular || false,
-      });
+      };
+
+      const { data: insertedData, error } = await supabase
+        .from("products")
+        .insert(productPayload)
+        .select()
+        .single();
 
       if (error) throw error;
 
@@ -158,6 +165,20 @@ const ProductFormContainer = ({ activeTab, onContinueToProduct }: ProductFormCon
         title: "تم إضافة المنتج بنجاح",
         duration: 3000,
       });
+
+      // إرسال webhook إلى n8n بعد نجاح الإضافة
+      if (insertedData) {
+        sendN8nWebhook("product_added", {
+          id: insertedData.id,
+          name: insertedData.name,
+          description: insertedData.description || undefined,
+          price: insertedData.price,
+          category: insertedData.category || "",
+          image_url: insertedData.image_url || undefined,
+          is_new: insertedData.is_new,
+          is_popular: insertedData.is_popular,
+        }, userData.user.id);
+      }
 
       navigate("/dashboard");
     } catch (error: any) {
