@@ -25,8 +25,10 @@ export const CachedImage: React.FC<CachedImageProps> = ({
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [showBlur, setShowBlur] = useState(true);
   const imgRef = useRef<HTMLImageElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // إعداد Intersection Observer للـ lazy loading
@@ -55,6 +57,9 @@ export const CachedImage: React.FC<CachedImageProps> = ({
     return () => {
       if (observerRef.current) {
         observerRef.current.disconnect();
+      }
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
       }
     };
   }, [src]);
@@ -90,8 +95,12 @@ export const CachedImage: React.FC<CachedImageProps> = ({
   };
 
   const handleImageLoad = () => {
-    setIsLoading(false);
-    onLoad?.();
+    // إضافة تأخير صغير لضمان رؤية تأثير blur
+    blurTimeoutRef.current = setTimeout(() => {
+      setShowBlur(false);
+      setIsLoading(false);
+      onLoad?.();
+    }, 300);
   };
 
   return (
@@ -105,8 +114,8 @@ export const CachedImage: React.FC<CachedImageProps> = ({
           ref={imgRef}
           src={imageSrc || undefined}
           alt={alt}
-          className={`${className} transition-all duration-500 ${
-            isLoading ? "blur-lg scale-105 opacity-70" : "blur-0 scale-100 opacity-100"
+          className={`${className} transition-all duration-700 ease-out ${
+            showBlur || isLoading ? "blur-md scale-105 opacity-0" : "blur-0 scale-100 opacity-100"
           } ${isUnavailable ? "grayscale opacity-50" : ""}`}
           onLoad={handleImageLoad}
           onError={handleImageError}
