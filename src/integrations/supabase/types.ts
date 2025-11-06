@@ -572,7 +572,6 @@ export type Database = {
           font_settings: Json | null
           loading_tips: Json | null
           logo_url: string | null
-          n8n_webhook_url: string | null
           slug: string | null
           social_links: Json | null
           store_name: string | null
@@ -592,7 +591,6 @@ export type Database = {
           font_settings?: Json | null
           loading_tips?: Json | null
           logo_url?: string | null
-          n8n_webhook_url?: string | null
           slug?: string | null
           social_links?: Json | null
           store_name?: string | null
@@ -612,7 +610,6 @@ export type Database = {
           font_settings?: Json | null
           loading_tips?: Json | null
           logo_url?: string | null
-          n8n_webhook_url?: string | null
           slug?: string | null
           social_links?: Json | null
           store_name?: string | null

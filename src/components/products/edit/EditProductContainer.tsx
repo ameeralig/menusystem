@@ -16,7 +16,6 @@ import { CategoryImageManager } from "@/components/products/CategoryImageManager
 import { uploadImage } from "@/utils/storageHelpers";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Package, FolderOpen } from "lucide-react";
-import { sendN8nWebhook } from "@/utils/n8nWebhook";
 
 const EditProductContainer = () => {
   const navigate = useNavigate();
@@ -141,20 +140,18 @@ const EditProductContainer = () => {
         }
       }
 
-      const updatedProductData = {
-        name,
-        description,
-        price: parseFloat(price),
-        category,
-        is_new: isNew,
-        is_popular: isPopular,
-        is_available: isAvailable,
-        image_url: finalImageUrl
-      };
-
       const { error } = await supabase
         .from("products")
-        .update(updatedProductData)
+        .update({
+          name,
+          description,
+          price: parseFloat(price),
+          category,
+          is_new: isNew,
+          is_popular: isPopular,
+          is_available: isAvailable,
+          image_url: finalImageUrl
+        })
         .eq("id", selectedProduct.id);
 
       if (error) throw error;
@@ -164,26 +161,18 @@ const EditProductContainer = () => {
         duration: 3000,
       });
 
-      // إرسال webhook إلى n8n بعد نجاح التحديث
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        sendN8nWebhook("product_updated", {
-          id: selectedProduct.id,
-          name: updatedProductData.name,
-          description: updatedProductData.description || undefined,
-          price: updatedProductData.price,
-          category: updatedProductData.category || "",
-          image_url: updatedProductData.image_url || undefined,
-          is_new: updatedProductData.is_new,
-          is_popular: updatedProductData.is_popular,
-        }, user.id);
-      }
-
       setProducts(products.map(p => 
         p.id === selectedProduct.id 
           ? { 
               ...p, 
-              ...updatedProductData
+              name, 
+              description, 
+              price: parseFloat(price), 
+              category, 
+              is_new: isNew, 
+              is_popular: isPopular, 
+              is_available: isAvailable,
+              image_url: finalImageUrl
             }
           : p
       ));

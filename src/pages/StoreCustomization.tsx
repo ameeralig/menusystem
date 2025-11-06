@@ -13,7 +13,6 @@ import AppearanceSection from "@/components/store/customization/AppearanceSectio
 import SocialLinksSection from "@/components/store/customization/SocialLinksSection";
 import ProductPreviewContainer from "@/components/store/ProductPreviewContainer";
 import DemoProductsDisplay from "@/components/demo/DemoProductsDisplay";
-import N8nWebhookSection from "@/components/store/customization/N8nWebhookSection";
 
 type SocialLinks = {
   instagram: string;
@@ -82,7 +81,6 @@ const StoreCustomization = () => {
   const [contactInfo, setContactInfo] = useState<ContactInfo>(defaultContactInfo);
   const [darkMode, setDarkMode] = useState(false);
   const [template, setTemplate] = useState("default");
-  const [n8nWebhookUrl, setN8nWebhookUrl] = useState("");
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({
     instagram: "",
     facebook: "",
@@ -105,7 +103,7 @@ const StoreCustomization = () => {
 
       const { data: storeSettings, error } = await supabase
         .from("store_settings")
-        .select("store_name, color_theme, slug, social_links, banner_url, font_settings, contact_info, dark_mode, template, n8n_webhook_url")
+        .select("store_name, color_theme, slug, social_links, banner_url, font_settings, contact_info, dark_mode, template")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -121,7 +119,6 @@ const StoreCustomization = () => {
         setBannerUrl(storeSettings.banner_url || null);
         setDarkMode(storeSettings.dark_mode || false);
         setTemplate(storeSettings.template || "default");
-        setN8nWebhookUrl(storeSettings.n8n_webhook_url || "");
         
         if (storeSettings.social_links) {
           setSocialLinks({
@@ -189,7 +186,6 @@ const StoreCustomization = () => {
     contact_info: ContactInfo;
     dark_mode: boolean;
     template: string;
-    n8n_webhook_url: string;
   }>) => {
     setIsLoading(true);
 
@@ -249,7 +245,6 @@ const StoreCustomization = () => {
       if (updatedData.contact_info !== undefined) setContactInfo(updatedData.contact_info);
       if (updatedData.dark_mode !== undefined) setDarkMode(updatedData.dark_mode);
       if (updatedData.template !== undefined) setTemplate(updatedData.template);
-      if (updatedData.n8n_webhook_url !== undefined) setN8nWebhookUrl(updatedData.n8n_webhook_url);
 
     } catch (error: any) {
       console.error("Error saving store settings:", error);
@@ -332,10 +327,6 @@ const StoreCustomization = () => {
     await saveStoreSettings({ template });
   };
 
-  const handleN8nWebhookSubmit = async (url: string) => {
-    await saveStoreSettings({ n8n_webhook_url: url });
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader />
@@ -394,12 +385,6 @@ const StoreCustomization = () => {
             <SocialLinksSection 
               socialLinks={socialLinks}
               handleSocialLinksSubmit={handleSocialLinksSubmit}
-              isLoading={isLoading}
-            />
-
-            <N8nWebhookSection
-              webhookUrl={n8nWebhookUrl}
-              onWebhookSubmit={handleN8nWebhookSubmit}
               isLoading={isLoading}
             />
 

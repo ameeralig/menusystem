@@ -17,7 +17,6 @@ export const useStoreSettings = (slug: string | undefined) => {
     fontSettings: undefined as FontSettings | undefined,
     darkMode: false,
     storeOwnerId: null as string | null,
-    n8nWebhookUrl: null as string | null,
   });
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -65,7 +64,7 @@ export const useStoreSettings = (slug: string | undefined) => {
 
         const { data: settings, error } = await supabase
           .from("store_settings")
-          .select("user_id, store_name, color_theme, social_links, banner_url, font_settings, contact_info, dark_mode, n8n_webhook_url")
+          .select("user_id, store_name, color_theme, social_links, banner_url, font_settings, contact_info, dark_mode")
           .eq("slug", slug.trim())
           .maybeSingle();
 
@@ -112,7 +111,6 @@ export const useStoreSettings = (slug: string | undefined) => {
           fontSettings: parsedFontSettings,
           darkMode: settings.dark_mode || false,
           storeOwnerId: settings.user_id,
-          n8nWebhookUrl: settings.n8n_webhook_url,
         };
 
         setStoreSettings(newSettings);
