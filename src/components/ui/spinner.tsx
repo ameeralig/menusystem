@@ -1,21 +1,10 @@
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
+import { EyesLoader } from "./eyes-loader";
 
-export interface SpinnerProps extends React.HTMLAttributes<HTMLDivElement> {}
+export interface SpinnerProps extends React.HTMLAttributes<HTMLDivElement> {
+  size?: "sm" | "md" | "lg";
+}
 
-export const Spinner = ({ className, ...props }: SpinnerProps) => {
-  return (
-    <div
-      className={cn(
-        "h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent text-primary",
-        className
-      )}
-      {...props}
-      role="status"
-      aria-label="loading"
-    >
-      <span className="sr-only">جاري التحميل...</span>
-    </div>
-  );
+export const Spinner = ({ size = "sm", ...props }: SpinnerProps) => {
+  return <EyesLoader size={size} {...props} />;
 };

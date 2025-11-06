@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
-import { Loader2, Package, Sparkles } from "lucide-react";
+import { Package, Sparkles } from "lucide-react";
+import { EyesLoader } from "@/components/ui/eyes-loader";
 
 interface ProgressiveLoadingIndicatorProps {
   progress: number;
@@ -19,7 +20,7 @@ const ProgressiveLoadingIndicator = ({ progress, isVisible }: ProgressiveLoading
   };
 
   const getLoadingIcon = () => {
-    if (progress <= 30) return <Loader2 className="w-6 h-6 animate-spin" />;
+    if (progress <= 30) return <EyesLoader size="md" />;
     if (progress <= 90) return <Package className="w-6 h-6" />;
     return <Sparkles className="w-6 h-6 text-green-500" />;
   };
