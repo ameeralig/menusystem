@@ -1,99 +1,18 @@
 import { motion } from "framer-motion";
 import { Product } from "@/types/product";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { formatImageUrl } from "@/utils/storageHelpers";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
+import { CachedImage } from "./CachedImage";
 
 interface ProductGridProps {
   products: Product[];
   colorTheme?: string | null;
   isEmployeeView?: boolean;
 }
-
-interface LazyImageProps {
-  src: string;
-  alt: string;
-  className?: string;
-  onLoad?: () => void;
-  onError?: () => void;
-}
-
-// مكون صورة محسن مع Intersection Observer
-const LazyImage = ({ src, alt, className = "", onLoad, onError }: LazyImageProps) => {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isInView, setIsInView] = useState(false);
-  const [hasError, setHasError] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // مراقب التقاطع لتحميل الصور فقط عند الحاجة
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-          observer.disconnect();
-        }
-      },
-      { 
-        threshold: 0.1,
-        rootMargin: "100px" // تحميل مسبق قبل وصول الصورة للعرض
-      }
-    );
-
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
-
-  const handleLoad = () => {
-    setIsLoaded(true);
-    onLoad?.();
-  };
-
-  const handleError = () => {
-    setHasError(true);
-    onError?.();
-  };
-
-  return (
-    <div ref={containerRef} className="aspect-[16/9] overflow-hidden relative">
-      {!isLoaded && !hasError && (
-        <Skeleton className="absolute inset-0 w-full h-full" />
-      )}
-      
-      {isInView && !hasError && (
-        <img
-          ref={imgRef}
-          src={src}
-          alt={alt}
-          className={`w-full h-full object-cover transition-all duration-300 ${
-            isLoaded ? "opacity-100 hover:scale-105" : "opacity-0"
-          } ${className}`}
-          loading="lazy"
-          decoding="async"
-          fetchPriority="auto"
-          onLoad={handleLoad}
-          onError={handleError}
-        />
-      )}
-      
-      {hasError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700">
-          <p className="text-sm text-gray-500 dark:text-gray-400 p-4 text-center">
-            {alt}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-};
 
 const ProductCard = ({ product, isEmployeeView }: { product: Product; isEmployeeView?: boolean }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -172,20 +91,14 @@ const ProductCard = ({ product, isEmployeeView }: { product: Product; isEmployee
       )}
 
       {product.image_url && (
-        <LazyImage
-          src={getOptimizedImageUrl(product.image_url) || product.image_url}
-          alt={product.name}
-          className={!isAvailable ? "grayscale opacity-60" : ""}
-          onLoad={() => setImageLoaded(true)}
-        />
-      )}
-
-      {/* عرض حالة عدم التوفر */}
-      {!isAvailable && imageLoaded && (
-        <div className="absolute top-0 right-0 left-0 bottom-[60%] bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold">
-            غير متوفر
-          </div>
+        <div className="aspect-[16/9] overflow-hidden relative">
+          <CachedImage
+            src={getOptimizedImageUrl(product.image_url) || product.image_url}
+            alt={product.name}
+            className="w-full h-full object-cover transition-all duration-300 hover:scale-105"
+            isUnavailable={!isAvailable}
+            onLoad={() => setImageLoaded(true)}
+          />
         </div>
       )}
 
