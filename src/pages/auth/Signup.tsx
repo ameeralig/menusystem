@@ -11,7 +11,6 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, Mail, User, Phone } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import VantaBackground from "@/components/background/VantaBackground";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { motion } from "framer-motion";
 
@@ -103,8 +102,7 @@ const Signup = () => {
   // إذا تم إنشاء الحساب بنجاح، نعرض رسالة تأكيد
   if (signupSuccess) {
     return (
-      <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center">
-        <VantaBackground />
+      <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center bg-gradient-to-br from-background via-background to-muted">
         
         <motion.div 
           className="auth-container z-10"
@@ -140,9 +138,7 @@ const Signup = () => {
   }
 
   return (
-    <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center">
-      {/* Vanta Dots Background */}
-      <VantaBackground />
+    <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center bg-gradient-to-br from-background via-background to-muted">
       
       {/* بطاقة التسجيل */}
       <motion.div

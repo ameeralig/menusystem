@@ -1,16 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { Button } from "@/components/ui/button";
-import VantaBackground from "@/components/background/VantaBackground";
 import { motion } from "framer-motion";
 
 const Login = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center">
-      {/* Vanta Dots Background */}
-      <VantaBackground />
+    <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center bg-gradient-to-br from-background via-background to-muted">
       
       {/* بطاقة تسجيل الدخول */}
       <motion.div

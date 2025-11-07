@@ -1,20 +1,12 @@
-
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
 import { useNavigate } from "react-router-dom";
-import { AnimatedBackground } from "@/components/auth/AnimatedBackground";
 import { motion } from "framer-motion";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center">
-      {/* خلفية متحركة */}
-      <AnimatedBackground />
-      
-      {/* تأثيرات نيون إضافية في الخلفية */}
-      <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/30 blur-[100px] rounded-full"></div>
-      <div className="absolute bottom-1/3 right-1/3 w-96 h-96 bg-primary/20 blur-[120px] rounded-full"></div>
+    <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center bg-gradient-to-br from-background via-background to-muted">
       
       {/* بطاقة إعادة تعيين كلمة المرور */}
       <motion.div
