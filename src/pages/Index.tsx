@@ -4,11 +4,11 @@ import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 import qrLogo from "@/assets/qr-logo.jpeg";
 import SeoHelmet from "@/components/legal/SeoHelmet";
-import { lazy, Suspense } from "react";
+import { lazy } from "react";
 import PartnersSection from "@/components/partners/PartnersSection";
 
-// تحميل VantaBackground بشكل lazy لتقليل عمل main-thread
-const VantaBackground = lazy(() => import("@/components/background/VantaBackground"));
+// تحميل VantaBackground بشكل lazy محسن لتقليل عمل main-thread
+const LazyVantaBackground = lazy(() => import("@/components/background/LazyVantaBackground"));
 
 const Index = () => {
   const navigate = useNavigate();
@@ -26,10 +26,8 @@ const Index = () => {
       {/* Static background - يظهر فوراً */}
       <div className="fixed inset-0 bg-gradient-to-br from-[#0E0C35] to-[#1a1547] -z-20" />
       
-      {/* Vanta Dots Background - يتم تحميله بعد FCP */}
-      <Suspense fallback={null}>
-        <VantaBackground />
-      </Suspense>
+      {/* Vanta Dots Background - يتم تحميله بعد FCP محسن */}
+      <LazyVantaBackground />
 
       {/* Header/Navbar */}
       <header className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 relative z-10">

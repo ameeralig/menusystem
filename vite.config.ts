@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
     componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'inline', // Inline SW registration to avoid render blocking
+      injectRegister: false, // Manual registration to defer loading
       includeAssets: ['favicon.png', 'qr-logo-og.png'],
       manifest: {
         name: 'QRM - قائمة الطعام الإلكترونية',
@@ -72,41 +72,53 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Core vendors - تُحمل في كل صفحة
-          if (id.includes('node_modules/react') || 
-              id.includes('node_modules/react-dom') || 
-              id.includes('node_modules/react-router-dom')) {
-            return 'react-vendor';
+          // Core vendors - الأساسيات فقط
+          if (id.includes('node_modules/react/') || 
+              id.includes('node_modules/react-dom/') ||
+              id.includes('node_modules/scheduler/')) {
+            return 'react-core';
           }
           
-          // Supabase - تُحمل عند الحاجة
-          if (id.includes('@supabase/supabase-js')) {
+          // Router - منفصل
+          if (id.includes('node_modules/react-router-dom') ||
+              id.includes('node_modules/react-router') ||
+              id.includes('node_modules/@remix-run')) {
+            return 'react-router';
+          }
+          
+          // Supabase
+          if (id.includes('@supabase')) {
             return 'supabase';
           }
           
-          // UI Components - تُحمل عند الحاجة
+          // UI Components
           if (id.includes('@radix-ui')) {
             return 'ui-vendor';
           }
           
-          // Charts - تُحمل فقط في Dashboard وSales
+          // Charts - lazy load
           if (id.includes('recharts')) {
             return 'charts';
           }
           
-          // QR - تُحمل فقط في QR Generator
+          // QR - lazy load
           if (id.includes('qrcode') || id.includes('qr-code-styling')) {
             return 'qr';
           }
           
-          // Three.js & Vanta - تُحمل فقط في الصفحات التي تستخدمها
+          // Background effects - lazy load
           if (id.includes('three') || id.includes('vanta')) {
             return 'background-effects';
           }
           
-          // Framer Motion - تُحمل عند الحاجة
+          // Animations
           if (id.includes('framer-motion')) {
             return 'animations';
+          }
+          
+          // Form libraries
+          if (id.includes('react-hook-form') || id.includes('@hookform')) {
+            return 'forms';
           }
         }
       }
