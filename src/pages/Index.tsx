@@ -78,15 +78,15 @@ const Index = () => {
       <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-20 md:py-32 relative z-10">
         <div className="grid grid-cols-1 gap-8 md:gap-12 items-center justify-center">
           <motion.div 
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.4 }}
             className="text-center"
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
+              transition={{ delay: 0.1, duration: 0.3 }}
               className="mb-6"
             >
               <h1 className="text-4xl sm:text-5xl md:text-7xl font-black leading-tight mb-4 font-cyber tracking-wider drop-shadow-2xl">
@@ -102,7 +102,7 @@ const Index = () => {
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
+              transition={{ delay: 0.2, duration: 0.3 }}
               className="text-lg sm:text-xl text-white/95 mt-6 max-w-2xl mx-auto font-arabic font-bold drop-shadow-[0_4px_15px_rgba(255,255,255,0.7)]"
             >
               QRM - منصة متكاملة لإدارة وعرض منتجاتك بكل سهولة عبر رمز QR بتقنية متطورة. نظام QRM للمنيو الرقمي الاحترافي
@@ -111,7 +111,7 @@ const Index = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.5 }}
+              transition={{ delay: 0.3, duration: 0.3 }}
               className="flex flex-col sm:flex-row gap-4 justify-center mt-10"
             >
               <Button

@@ -75,7 +75,18 @@
 </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Static content للعرض الفوري قبل React hydration -->
+      <div style="position: fixed; inset: 0; background: linear-gradient(to bottom right, #0E0C35, #1a1547); z-index: -20;"></div>
+      <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; color: white; font-family: Cairo, sans-serif; text-align: center; padding: 20px;">
+        <div>
+          <h1 style="font-size: 2.5rem; font-weight: 900; margin-bottom: 1rem; background: linear-gradient(to right, #3baaff, #a78bfa, #f0abfc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            QRM - QR MENU
+          </h1>
+          <p style="font-size: 1.5rem; font-weight: 900;">QRM - خدمات المنيو والقوائم الرقمية</p>
+        </div>
+      </div>
+    </div>
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
