@@ -4,8 +4,11 @@ import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 import qrLogo from "@/assets/qr-logo.jpeg";
 import SeoHelmet from "@/components/legal/SeoHelmet";
-import VantaBackground from "@/components/background/VantaBackground";
+import { lazy, Suspense } from "react";
 import PartnersSection from "@/components/partners/PartnersSection";
+
+// تحميل VantaBackground بشكل lazy لتقليل عمل main-thread
+const VantaBackground = lazy(() => import("@/components/background/VantaBackground"));
 
 const Index = () => {
   const navigate = useNavigate();
@@ -20,8 +23,10 @@ const Index = () => {
         canonicalUrl="https://qrmenuc.com"
       />
       <div className="min-h-screen relative overflow-hidden font-arabic">
-      {/* Vanta Dots Background */}
-      <VantaBackground />
+      {/* Vanta Dots Background - يتم تحميله بشكل lazy */}
+      <Suspense fallback={<div className="fixed inset-0 bg-gradient-to-br from-[#0E0C35] to-[#1a1547] -z-10" />}>
+        <VantaBackground />
+      </Suspense>
 
       {/* Header/Navbar */}
       <header className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 relative z-10">
