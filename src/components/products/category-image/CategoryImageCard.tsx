@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import ImageCropDialog from "@/components/shared/ImageCropDialog";
 
 interface CategoryImageCardProps {
   category: string;
@@ -42,6 +43,8 @@ export const CategoryImageCard = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [uploadMethod, setUploadMethod] = useState<"file" | "url">("file");
   const [imageUrl, setImageUrl] = useState("");
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [tempImageSrc, setTempImageSrc] = useState<string>("");
   const { toast } = useToast();
 
   const handleUrlSubmit = () => {
@@ -96,13 +99,21 @@ export const CategoryImageCard = ({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      onFileUpload(category, e.target.files[0]);
+      const file = e.target.files[0];
+      const objectUrl = URL.createObjectURL(file);
+      setTempImageSrc(objectUrl);
+      setCropDialogOpen(true);
       
       // إعادة تعيين حقل الملف بعد الرفع
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
     }
+  };
+
+  const handleCropComplete = (croppedBlob: Blob) => {
+    const croppedFile = new File([croppedBlob], "category-image.jpg", { type: "image/jpeg" });
+    onFileUpload(category, croppedFile);
   };
 
   const triggerFileInput = () => {
@@ -368,6 +379,15 @@ export const CategoryImageCard = ({
             </div>
           )}
         </div>
+
+        <ImageCropDialog
+          open={cropDialogOpen}
+          onClose={() => setCropDialogOpen(false)}
+          imageSrc={tempImageSrc}
+          onCropComplete={handleCropComplete}
+          aspect={16 / 9}
+          title={`قص صورة التصنيف: ${category}`}
+        />
       </CardContent>
     </Card>
   );
