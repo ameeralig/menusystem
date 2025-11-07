@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
-import { optimizeSupabaseImage } from "@/utils/imageOptimization";
 
 interface ProductGridProps {
   products: Product[];
@@ -30,13 +29,6 @@ const LazyImage = ({ src, alt, className = "", onLoad, onError }: LazyImageProps
   const [hasError, setHasError] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // تحسين الصورة للأبعاد المناسبة
-  const optimizedSrc = optimizeSupabaseImage(src, {
-    width: 400,
-    quality: 75,
-    format: 'webp'
-  });
 
   // مراقب التقاطع لتحميل الصور فقط عند الحاجة
   useEffect(() => {
@@ -79,7 +71,7 @@ const LazyImage = ({ src, alt, className = "", onLoad, onError }: LazyImageProps
       {isInView && !hasError && (
         <img
           ref={imgRef}
-          src={optimizedSrc}
+          src={src}
           alt={alt}
           className={`w-full h-full object-cover transition-all duration-300 ${
             isLoaded ? "opacity-100 hover:scale-105" : "opacity-0"
@@ -87,8 +79,6 @@ const LazyImage = ({ src, alt, className = "", onLoad, onError }: LazyImageProps
           loading="lazy"
           decoding="async"
           fetchPriority="auto"
-          width="400"
-          height="225"
           onLoad={handleLoad}
           onError={handleError}
         />

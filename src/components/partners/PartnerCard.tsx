@@ -1,7 +1,6 @@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { optimizeForThumbnail } from "@/utils/imageOptimization";
 
 interface PartnerCardProps {
   userId: string;
@@ -33,19 +32,14 @@ const PartnerCard = ({ userId, fullName, avatarUrl, storeName, slug }: PartnerCa
     <Card 
       className="group hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden border-2 border-primary/30 bg-white hover:border-primary hover:shadow-primary/20"
       onClick={handleClick}
-      style={{ minHeight: '200px' }}
     >
       <CardContent className="p-6 flex flex-col items-center gap-4">
-        <div className="relative w-24 h-24 flex-shrink-0" style={{ contain: 'layout' }}>
-          <Avatar className="h-full w-full border-4 border-primary/20 group-hover:border-primary/50 transition-all duration-300 shadow-lg aspect-square">
+        <div className="relative">
+          <Avatar className="h-24 w-24 border-4 border-primary/20 group-hover:border-primary/50 transition-all duration-300 shadow-lg">
             <AvatarImage 
-              src={avatarUrl ? optimizeForThumbnail(avatarUrl, 200) : undefined} 
+              src={avatarUrl ? `${avatarUrl}?t=${Date.now()}` : undefined} 
               alt={fullName || storeName || "شريك"} 
               className="object-cover"
-              loading="lazy"
-              width={96}
-              height={96}
-              decoding="async"
             />
             <AvatarFallback className="text-2xl bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-black">
               {getInitials(fullName || storeName || "U")}

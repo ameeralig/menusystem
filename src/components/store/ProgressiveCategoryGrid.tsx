@@ -2,7 +2,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { CategoryImage } from "@/types/categoryImage";
 import { FontSettings } from "@/types/store";
-import { optimizeSupabaseImage } from "@/utils/imageOptimization";
 
 interface ProgressiveCategoryGridProps {
   categories: string[];
@@ -156,29 +155,15 @@ const ProgressiveCategoryGrid = ({
                   {/* صورة التصنيف */}
                   {imageUrl ? (
                     <div className="aspect-square overflow-hidden">
-                      {(() => {
-                        const optimizedImageUrl = imageUrl
-                          ? optimizeSupabaseImage(imageUrl, {
-                              width: 300,
-                              quality: 75,
-                              format: 'webp',
-                            })
-                          : null;
-                        return (
-                          <motion.img
-                            initial={{ scale: 1.2, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 0.5 }}
-                            src={optimizedImageUrl || imageUrl}
-                            alt={category}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                            loading="lazy"
-                            decoding="async"
-                            width="300"
-                            height="300"
-                          />
-                        );
-                      })()}
+                      <motion.img
+                        initial={{ scale: 1.2, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ duration: 0.5 }}
+                        src={imageUrl}
+                        alt={category}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        loading="lazy"
+                      />
                     </div>
                   ) : (
                     <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/40">

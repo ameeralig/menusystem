@@ -8,25 +8,7 @@
   ],
   "headers": [
     {
-      "source": "/assets/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/(.*\\.(png|jpg|jpeg|gif|webp|svg|ico))",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=2592000, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/registerSW.js",
+      "source": "/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -35,7 +17,7 @@
       ]
     },
     {
-      "source": "/(.*)",
+      "source": "/(.+\\.(?:png|jpg|jpeg|gif|webp|svg)$)",
       "headers": [
         {
           "key": "Cache-Control",

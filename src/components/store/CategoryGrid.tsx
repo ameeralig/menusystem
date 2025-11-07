@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { CSSProperties, useEffect, useState } from "react";
 import { CategoryImage } from "@/types/categoryImage";
 import { Folder } from "lucide-react";
-import { optimizeSupabaseImage } from "@/utils/imageOptimization";
 
 interface FontSettings {
   categoryText?: {
@@ -36,23 +35,16 @@ const CategoryCard = ({
   const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(imageUrl);
   const [imageLoaded, setImageLoaded] = useState(false);
   
-  // تحسين الصورة
-  const optimizedImageUrl = imageUrl ? optimizeSupabaseImage(imageUrl, {
-    width: 600,
-    quality: 75,
-    format: 'webp'
-  }) : null;
-  
   // إعادة تعيين حالة الخطأ والتحميل عند تغيير الرابط
   useEffect(() => {
-    if (optimizedImageUrl && optimizedImageUrl !== currentImageUrl) {
+    if (imageUrl && imageUrl !== currentImageUrl) {
       setImgError(false);
       setIsLoading(true);
       setImageLoaded(false);
-      setCurrentImageUrl(optimizedImageUrl);
-      console.log(`تحديث رابط صورة التصنيف ${category}: ${optimizedImageUrl}`);
+      setCurrentImageUrl(imageUrl);
+      console.log(`تحديث رابط صورة التصنيف ${category}: ${imageUrl}`);
     }
-  }, [optimizedImageUrl, category, currentImageUrl]);
+  }, [imageUrl, category, currentImageUrl]);
   
   return (
     <motion.div
@@ -88,8 +80,6 @@ const CategoryCard = ({
               }}
               loading="lazy"
               fetchPriority="auto"
-              width="600"
-              height="140"
             />
           </>
         ) : (

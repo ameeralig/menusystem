@@ -2,13 +2,10 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
-import qrLogo from "@/assets/qr-logo.jpeg";
+import qrLogo from "@/assets/qr-logo.png";
 import SeoHelmet from "@/components/legal/SeoHelmet";
-import { lazy } from "react";
+import VantaBackground from "@/components/background/VantaBackground";
 import PartnersSection from "@/components/partners/PartnersSection";
-
-// تحميل VantaBackground بشكل lazy محسن لتقليل عمل main-thread
-const LazyVantaBackground = lazy(() => import("@/components/background/LazyVantaBackground"));
 
 const Index = () => {
   const navigate = useNavigate();
@@ -23,26 +20,14 @@ const Index = () => {
         canonicalUrl="https://qrmenuc.com"
       />
       <div className="min-h-screen relative overflow-hidden font-arabic">
-      {/* Static background - يظهر فوراً */}
-      <div className="fixed inset-0 bg-gradient-to-br from-[#0E0C35] to-[#1a1547] -z-20" />
-      
-      {/* Vanta Dots Background - يتم تحميله بعد FCP محسن */}
-      <LazyVantaBackground />
+      {/* Vanta Dots Background */}
+      <VantaBackground />
 
       {/* Header/Navbar */}
       <header className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 relative z-10">
         <div className="flex justify-between items-center backdrop-blur-sm bg-white/5 rounded-2xl p-4 border border-white/10">
           <div className="flex items-center gap-3">
-            <img 
-              src={qrLogo} 
-              alt="QRM - خدمات المنيو الرقمي QR" 
-              className="h-12 sm:h-14 w-auto drop-shadow-2xl"
-              width="71"
-              height="56"
-              loading="eager"
-              decoding="async"
-              fetchPriority="high"
-            />
+            <img src={qrLogo} alt="QRM - خدمات المنيو الرقمي QR" className="h-12 sm:h-14 w-auto drop-shadow-2xl" />
             <div className="flex flex-col">
               <h1 className="text-xl sm:text-2xl font-black text-white font-cyber tracking-wider drop-shadow-[0_2px_10px_rgba(0,156,255,0.8)]">
                 QRM
@@ -76,15 +61,15 @@ const Index = () => {
       <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-20 md:py-32 relative z-10">
         <div className="grid grid-cols-1 gap-8 md:gap-12 items-center justify-center">
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.8 }}
             className="text-center"
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.1, duration: 0.3 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
               className="mb-6"
             >
               <h1 className="text-4xl sm:text-5xl md:text-7xl font-black leading-tight mb-4 font-cyber tracking-wider drop-shadow-2xl">
@@ -100,7 +85,7 @@ const Index = () => {
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.3 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
               className="text-lg sm:text-xl text-white/95 mt-6 max-w-2xl mx-auto font-arabic font-bold drop-shadow-[0_4px_15px_rgba(255,255,255,0.7)]"
             >
               QRM - منصة متكاملة لإدارة وعرض منتجاتك بكل سهولة عبر رمز QR بتقنية متطورة. نظام QRM للمنيو الرقمي الاحترافي
@@ -109,7 +94,7 @@ const Index = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.3 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
               className="flex flex-col sm:flex-row gap-4 justify-center mt-10"
             >
               <Button
@@ -277,15 +262,7 @@ const Index = () => {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0 flex items-center gap-3">
-              <img 
-                src={qrLogo} 
-                alt="QRM - خدمات المنيو الرقمي" 
-                className="h-12 w-auto drop-shadow-2xl"
-                width="71"
-                height="56"
-                loading="lazy"
-                decoding="async"
-              />
+              <img src={qrLogo} alt="QRM - خدمات المنيو الرقمي" className="h-12 w-auto drop-shadow-2xl" />
               <div className="flex flex-col">
                 <h2 className="text-xl font-black text-white font-cyber tracking-wider drop-shadow-[0_2px_10px_rgba(0,156,255,0.8)]">QRM</h2>
                 <p className="text-xs text-white font-arabic font-bold drop-shadow-lg">MENU SERVICES</p>

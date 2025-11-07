@@ -67,22 +67,18 @@ const PartnersSection = () => {
 
   if (isLoading) {
     return (
-      <section className="py-12 sm:py-16 relative z-10 min-h-[440px]">
+      <section className="py-16 bg-gradient-to-b from-background to-muted/20">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-8 sm:mb-12 space-y-3">
-            <Skeleton className="h-10 w-48 mx-auto" />
-            <Skeleton className="h-6 w-96 mx-auto max-w-full" />
+          <div className="text-center mb-12">
+            <Skeleton className="h-10 w-48 mx-auto mb-4" />
+            <Skeleton className="h-6 w-96 mx-auto" />
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
             {[...Array(6)].map((_, i) => (
-              <Card key={i} className="border-2 border-primary/30" style={{ minHeight: '200px' }}>
+              <Card key={i}>
                 <CardContent className="p-6 flex flex-col items-center gap-4">
-                  <div className="relative w-24 h-24 flex-shrink-0">
-                    <Skeleton className="h-full w-full rounded-full aspect-square" />
-                  </div>
-                  <div className="text-center space-y-1 w-full">
-                    <Skeleton className="h-6 w-32 mx-auto" />
-                  </div>
+                  <Skeleton className="h-24 w-24 rounded-full" />
+                  <Skeleton className="h-6 w-32" />
                 </CardContent>
               </Card>
             ))}
@@ -97,7 +93,7 @@ const PartnersSection = () => {
   }
 
   return (
-    <section className="py-12 sm:py-16 relative z-10 min-h-[440px]">
+    <section className="py-12 sm:py-16 relative z-10">
       <div className="container mx-auto px-4">
         <div className="text-center mb-8 sm:mb-12 space-y-3">
           <motion.h2
@@ -126,16 +122,14 @@ const PartnersSection = () => {
           transition={{ delay: 0.3, duration: 0.5 }}
           viewport={{ once: true }}
           className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-6"
-          style={{ minHeight: '200px' }}
         >
           {partners.map((partner, index) => (
             <motion.div
               key={partner.id}
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05, duration: 0.5 }}
               viewport={{ once: true }}
-              style={{ willChange: 'opacity' }}
             >
               <PartnerCard
                 userId={partner.id}

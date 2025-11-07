@@ -21,22 +21,10 @@
     <meta property="og:site_name" content="QR Menu - qrmenuc.com" />
     <meta property="og:locale" content="ar_SA" />
     
-    <!-- Preconnect to critical origins -->
-    <link rel="preconnect" href="https://zqlckixwpyrwdwrsuhsg.supabase.co">
-    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
-    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
-    
-    <!-- Preload critical image -->
-    <link rel="preload" as="image" href="/assets/qr-logo-DXBA9NHA.png" fetchpriority="high">
-    
-    <!-- Google Fonts - Optimized Loading -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Load fonts asynchronously to avoid render blocking -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript>
-      <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
-    </noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     
     <!-- Twitter Card Tags -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -75,19 +63,8 @@
 </head>
 
   <body>
-    <div id="root">
-      <!-- Static content للعرض الفوري قبل React hydration -->
-      <div style="position: fixed; inset: 0; background: linear-gradient(to bottom right, #0E0C35, #1a1547); z-index: -20;"></div>
-      <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; color: white; font-family: Cairo, sans-serif; text-align: center; padding: 20px;">
-        <div>
-          <h1 style="font-size: 2.5rem; font-weight: 900; margin-bottom: 1rem; background: linear-gradient(to right, #3baaff, #a78bfa, #f0abfc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-            QRM - QR MENU
-          </h1>
-          <p style="font-size: 1.5rem; font-weight: 900;">QRM - خدمات المنيو والقوائم الرقمية</p>
-        </div>
-      </div>
-    </div>
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module" defer></script>
+    <div id="root"></div>
+    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

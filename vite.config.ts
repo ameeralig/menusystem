@@ -16,7 +16,6 @@ export default defineConfig(({ mode }) => ({
     componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: false, // Manual registration to defer loading
       includeAssets: ['favicon.png', 'qr-logo-og.png'],
       manifest: {
         name: 'QRM - قائمة الطعام الإلكترونية',
@@ -71,67 +70,15 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          // Core vendors - الأساسيات فقط
-          if (id.includes('node_modules/react/') || 
-              id.includes('node_modules/react-dom/') ||
-              id.includes('node_modules/scheduler/')) {
-            return 'react-core';
-          }
-          
-          // Router - منفصل
-          if (id.includes('node_modules/react-router-dom') ||
-              id.includes('node_modules/react-router') ||
-              id.includes('node_modules/@remix-run')) {
-            return 'react-router';
-          }
-          
-          // Supabase
-          if (id.includes('@supabase')) {
-            return 'supabase';
-          }
-          
-          // UI Components
-          if (id.includes('@radix-ui')) {
-            return 'ui-vendor';
-          }
-          
-          // Charts - lazy load
-          if (id.includes('recharts')) {
-            return 'charts';
-          }
-          
-          // QR - lazy load
-          if (id.includes('qrcode') || id.includes('qr-code-styling')) {
-            return 'qr';
-          }
-          
-          // Background effects - lazy load
-          if (id.includes('three') || id.includes('vanta')) {
-            return 'background-effects';
-          }
-          
-          // Animations
-          if (id.includes('framer-motion')) {
-            return 'animations';
-          }
-          
-          // Form libraries
-          if (id.includes('react-hook-form') || id.includes('@hookform')) {
-            return 'forms';
-          }
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs'],
+          'supabase': ['@supabase/supabase-js'],
+          'charts': ['recharts'],
+          'qr': ['qrcode', 'qr-code-styling']
         }
       }
     },
-    chunkSizeWarningLimit: 1000,
-    // تقليل حجم الملفات
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true, // إزالة console.log في production
-        drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug']
-      }
-    }
+    chunkSizeWarningLimit: 1000
   }
 }));

@@ -11,10 +11,3 @@ createRoot(document.getElementById("root")!).render(
     <SpeedInsights />
   </>
 );
-
-// تسجيل Service Worker بعد التحميل لتحسين TTI
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/registerSW.js', { scope: '/' });
-  });
-}
