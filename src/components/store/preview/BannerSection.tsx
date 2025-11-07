@@ -1,6 +1,7 @@
 
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Skeleton } from "@/components/ui/skeleton";
+import { optimizeSupabaseImage } from "@/utils/imageOptimization";
 
 interface BannerSectionProps {
   bannerUrl?: string | null;
@@ -21,6 +22,13 @@ const BannerSection = ({
 }: BannerSectionProps) => {
   if (!bannerUrl) return null;
 
+  // تحسين الصورة للأبعاد المطلوبة (16:5 ratio)
+  const optimizedSrc = imgSrc ? optimizeSupabaseImage(imgSrc, {
+    width: 1200,
+    quality: 80,
+    format: 'webp'
+  }) : imgSrc;
+
   return (
     <div className="relative w-full overflow-hidden">
       <AspectRatio ratio={16 / 5} className="w-full">
@@ -29,7 +37,7 @@ const BannerSection = ({
         )}
         {imgSrc && !imageError ? (
           <img 
-            src={imgSrc} 
+            src={optimizedSrc} 
             alt="صورة الغلاف" 
             className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
             onError={() => {
@@ -39,6 +47,8 @@ const BannerSection = ({
             onLoad={onImageLoad}
             loading="eager"
             fetchPriority="high"
+            width="1200"
+            height="375"
           />
         ) : (
           imageError && (

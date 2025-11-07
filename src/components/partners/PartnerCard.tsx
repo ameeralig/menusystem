@@ -1,6 +1,7 @@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import { optimizeForThumbnail } from "@/utils/imageOptimization";
 
 interface PartnerCardProps {
   userId: string;
@@ -37,9 +38,10 @@ const PartnerCard = ({ userId, fullName, avatarUrl, storeName, slug }: PartnerCa
         <div className="relative">
           <Avatar className="h-24 w-24 border-4 border-primary/20 group-hover:border-primary/50 transition-all duration-300 shadow-lg">
             <AvatarImage 
-              src={avatarUrl ? `${avatarUrl}?t=${Date.now()}` : undefined} 
+              src={avatarUrl ? optimizeForThumbnail(avatarUrl, 200) : undefined} 
               alt={fullName || storeName || "شريك"} 
               className="object-cover"
+              loading="lazy"
             />
             <AvatarFallback className="text-2xl bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-black">
               {getInitials(fullName || storeName || "U")}
