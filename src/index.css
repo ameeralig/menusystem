@@ -28,6 +28,11 @@
   img[width][height] {
     aspect-ratio: attr(width) / attr(height);
   }
+
+  /* Font Loading Optimization */
+  @font-face {
+    font-display: swap;
+  }
 }
 
 @layer base {
