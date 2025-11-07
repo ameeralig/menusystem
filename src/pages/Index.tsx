@@ -43,6 +43,7 @@ const Index = () => {
               height="56"
               loading="eager"
               decoding="async"
+              fetchPriority="high"
             />
             <div className="flex flex-col">
               <h1 className="text-xl sm:text-2xl font-black text-white font-cyber tracking-wider drop-shadow-[0_2px_10px_rgba(0,156,255,0.8)]">
