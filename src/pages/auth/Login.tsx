@@ -2,12 +2,14 @@ import { useNavigate } from "react-router-dom";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import SimpleBackground from "@/components/background/SimpleBackground";
 
 const Login = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center bg-gradient-to-br from-background via-background to-muted">
+    <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center">
+      <SimpleBackground />
       
       {/* بطاقة تسجيل الدخول */}
       <motion.div

@@ -5,6 +5,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import qrLogo from "@/assets/qr-logo.png";
 import SeoHelmet from "@/components/legal/SeoHelmet";
 import PartnersSection from "@/components/partners/PartnersSection";
+import SimpleBackground from "@/components/background/SimpleBackground";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -18,7 +19,8 @@ const Index = () => {
         keywords="QRM, منيو QR, منيو رقمي, QR Menu, خدمات المنيو, منيو إلكتروني, QRM Menu, قائمة طعام رقمية, QR Code Menu, خدمات المنيو الإلكتروني"
         canonicalUrl="https://qrmenuc.com"
       />
-      <div className="min-h-screen relative overflow-hidden font-arabic bg-gradient-to-br from-background via-background to-muted">
+      <SimpleBackground />
+      <div className="min-h-screen relative overflow-hidden font-arabic">
 
       {/* Header/Navbar */}
       <header className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 relative z-10">

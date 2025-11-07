@@ -1,12 +1,14 @@
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import SimpleBackground from "@/components/background/SimpleBackground";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center bg-gradient-to-br from-background via-background to-muted">
+    <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center">
+      <SimpleBackground />
       
       {/* بطاقة إعادة تعيين كلمة المرور */}
       <motion.div

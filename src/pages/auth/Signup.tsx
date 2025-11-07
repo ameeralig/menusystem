@@ -13,6 +13,7 @@ import { AlertCircle, Mail, User, Phone } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { motion } from "framer-motion";
+import SimpleBackground from "@/components/background/SimpleBackground";
 
 // تعريف مخطط التحقق من البيانات باستخدام Zod
 const signupSchema = z.object({
@@ -102,7 +103,8 @@ const Signup = () => {
   // إذا تم إنشاء الحساب بنجاح، نعرض رسالة تأكيد
   if (signupSuccess) {
     return (
-      <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center bg-gradient-to-br from-background via-background to-muted">
+      <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center">
+        <SimpleBackground />
         
         <motion.div 
           className="auth-container z-10"
@@ -138,7 +140,8 @@ const Signup = () => {
   }
 
   return (
-    <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center bg-gradient-to-br from-background via-background to-muted">
+    <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center">
+      <SimpleBackground />
       
       {/* بطاقة التسجيل */}
       <motion.div
