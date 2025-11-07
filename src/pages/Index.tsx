@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
-import qrLogo from "@/assets/qr-logo.png";
+import qrLogo from "@/assets/qr-logo.jpeg";
 import SeoHelmet from "@/components/legal/SeoHelmet";
 import VantaBackground from "@/components/background/VantaBackground";
 import PartnersSection from "@/components/partners/PartnersSection";
@@ -34,6 +34,7 @@ const Index = () => {
               width="71"
               height="56"
               loading="eager"
+              decoding="async"
             />
             <div className="flex flex-col">
               <h1 className="text-xl sm:text-2xl font-black text-white font-cyber tracking-wider drop-shadow-[0_2px_10px_rgba(0,156,255,0.8)]">
@@ -276,6 +277,7 @@ const Index = () => {
                 width="71"
                 height="56"
                 loading="lazy"
+                decoding="async"
               />
               <div className="flex flex-col">
                 <h2 className="text-xl font-black text-white font-cyber tracking-wider drop-shadow-[0_2px_10px_rgba(0,156,255,0.8)]">QRM</h2>
