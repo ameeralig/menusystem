@@ -10,7 +10,6 @@ import { Upload, ImagePlus, Link as LinkIcon, Star, TrendingUp } from "lucide-re
 import { cn } from "@/lib/utils";
 import { Product } from "@/types/product";
 import ImageUploadPreview from "@/components/products/add/ImageUploadPreview";
-import ImageCropDialog from "@/components/shared/ImageCropDialog";
 
 interface ProductDetailsFormProps {
   productData: Partial<Product>;
@@ -40,26 +39,18 @@ const ProductDetailsForm = ({
   selectedCategory
 }: ProductDetailsFormProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [cropDialogOpen, setCropDialogOpen] = useState(false);
-  const [tempImageSrc, setTempImageSrc] = useState<string>("");
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       const objectUrl = URL.createObjectURL(file);
-      setTempImageSrc(objectUrl);
-      setCropDialogOpen(true);
-    }
-  };
-
-  const handleCropComplete = (croppedBlob: Blob) => {
-    const croppedFile = new File([croppedBlob], "product-image.jpg", { type: "image/jpeg" });
-    setSelectedFile(croppedFile);
-    const objectUrl = URL.createObjectURL(croppedBlob);
-    setPreviewUrl(objectUrl);
-    
-    if (uploadMethod === "file") {
-      setProductData({ ...productData, image_url: "" });
+      setPreviewUrl(objectUrl);
+      
+      // تحديث بيانات المنتج
+      if (uploadMethod === "file") {
+        setProductData({ ...productData, image_url: "" });
+      }
     }
   };
 
@@ -260,7 +251,7 @@ const ProductDetailsForm = ({
       </div>
 
       <div className="pt-6 flex justify-end">
-          <Button 
+        <Button 
           type="submit"
           disabled={loading}
           size="lg"
@@ -269,15 +260,6 @@ const ProductDetailsForm = ({
           {loading ? "جاري الحفظ..." : "حفظ المنتج"}
         </Button>
       </div>
-
-      <ImageCropDialog
-        open={cropDialogOpen}
-        onClose={() => setCropDialogOpen(false)}
-        imageSrc={tempImageSrc}
-        onCropComplete={handleCropComplete}
-        aspect={4 / 3}
-        title="قص صورة المنتج"
-      />
     </form>
   );
 };

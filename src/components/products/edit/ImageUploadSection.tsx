@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, Link as LinkIcon, X } from "lucide-react";
 import { formatImageUrl } from "@/utils/storageHelpers";
-import ImageCropDialog from "@/components/shared/ImageCropDialog";
 
 interface ImageUploadSectionProps {
   currentImageUrl: string | null;
@@ -31,24 +30,15 @@ const ImageUploadSection = ({
   setPreviewUrl,
 }: ImageUploadSectionProps) => {
   const [imageError, setImageError] = useState(false);
-  const [cropDialogOpen, setCropDialogOpen] = useState(false);
-  const [tempImageSrc, setTempImageSrc] = useState<string>("");
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       const objectUrl = URL.createObjectURL(file);
-      setTempImageSrc(objectUrl);
-      setCropDialogOpen(true);
+      setPreviewUrl(objectUrl);
+      setImageError(false);
     }
-  };
-
-  const handleCropComplete = (croppedBlob: Blob) => {
-    const croppedFile = new File([croppedBlob], "product-image.jpg", { type: "image/jpeg" });
-    setSelectedFile(croppedFile);
-    const objectUrl = URL.createObjectURL(croppedBlob);
-    setPreviewUrl(objectUrl);
-    setImageError(false);
   };
 
   const handleUrlChange = (url: string) => {
@@ -163,15 +153,6 @@ const ImageUploadSection = ({
           )}
         </div>
       )}
-
-      <ImageCropDialog
-        open={cropDialogOpen}
-        onClose={() => setCropDialogOpen(false)}
-        imageSrc={tempImageSrc}
-        onCropComplete={handleCropComplete}
-        aspect={4 / 3}
-        title="قص صورة المنتج"
-      />
     </div>
   );
 };
