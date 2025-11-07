@@ -70,15 +70,55 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs'],
-          'supabase': ['@supabase/supabase-js'],
-          'charts': ['recharts'],
-          'qr': ['qrcode', 'qr-code-styling']
+        manualChunks(id) {
+          // Core vendors - تُحمل في كل صفحة
+          if (id.includes('node_modules/react') || 
+              id.includes('node_modules/react-dom') || 
+              id.includes('node_modules/react-router-dom')) {
+            return 'react-vendor';
+          }
+          
+          // Supabase - تُحمل عند الحاجة
+          if (id.includes('@supabase/supabase-js')) {
+            return 'supabase';
+          }
+          
+          // UI Components - تُحمل عند الحاجة
+          if (id.includes('@radix-ui')) {
+            return 'ui-vendor';
+          }
+          
+          // Charts - تُحمل فقط في Dashboard وSales
+          if (id.includes('recharts')) {
+            return 'charts';
+          }
+          
+          // QR - تُحمل فقط في QR Generator
+          if (id.includes('qrcode') || id.includes('qr-code-styling')) {
+            return 'qr';
+          }
+          
+          // Three.js & Vanta - تُحمل فقط في الصفحات التي تستخدمها
+          if (id.includes('three') || id.includes('vanta')) {
+            return 'background-effects';
+          }
+          
+          // Framer Motion - تُحمل عند الحاجة
+          if (id.includes('framer-motion')) {
+            return 'animations';
+          }
         }
       }
     },
-    chunkSizeWarningLimit: 1000
+    chunkSizeWarningLimit: 1000,
+    // تقليل حجم الملفات
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true, // إزالة console.log في production
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug']
+      }
+    }
   }
 }));
