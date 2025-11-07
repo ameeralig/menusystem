@@ -21,10 +21,14 @@
     <meta property="og:site_name" content="QR Menu - qrmenuc.com" />
     <meta property="og:locale" content="ar_SA" />
     
-    <!-- Google Fonts -->
+    <!-- Google Fonts - Optimized Loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- Load fonts asynchronously to avoid render blocking -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    </noscript>
     
     <!-- Twitter Card Tags -->
     <meta name="twitter:card" content="summary_large_image" />

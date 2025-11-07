@@ -16,6 +16,7 @@ export default defineConfig(({ mode }) => ({
     componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: 'inline', // Inline SW registration to avoid render blocking
       includeAssets: ['favicon.png', 'qr-logo-og.png'],
       manifest: {
         name: 'QRM - قائمة الطعام الإلكترونية',
