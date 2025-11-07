@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
+import BookLoader from "@/components/ui/book-loader";
 
 interface LoadingStateProps {
   progress?: number;
@@ -19,6 +19,8 @@ const LoadingState: React.FC<LoadingStateProps> = ({
         transition={{ duration: 0.4 }}
         className="flex flex-col items-center max-w-sm mx-auto text-center space-y-6"
       >
+        <BookLoader size="md" />
+        
         <div className="space-y-3 w-full">
           <h2 className="text-lg font-medium text-foreground">{message}</h2>
           
