@@ -42,30 +42,50 @@ const VantaBackground = () => {
       });
     };
 
-    // تهيئة Vanta Effect
+    // تهيئة Vanta Effect مع تحسين الأداء
     const initVanta = async () => {
       try {
+        // انتظار تحميل المكتبات
         await loadThree();
         await loadVanta();
 
-        if (vantaRef.current && !vantaEffect.current) {
-          vantaEffect.current = window.VANTA.DOTS({
-            el: vantaRef.current,
-            mouseControls: true,
-            touchControls: true,
-            gyroControls: false,
-            minHeight: 200.00,
-            minWidth: 200.00,
-            scale: 1.00,
-            scaleMobile: 1.00,
-            color: 0x3baaff, // اللون الأزرق السيبراني
-            color2: 0xa78bfa, // اللون البنفسجي
-            backgroundColor: 0x0E0C35, // لون الخلفية الداكن
-            size: 3.0,
-            spacing: 20.0,
-            showLines: true
-          });
-        }
+        // استخدام requestIdleCallback لتأجيل التهيئة حتى يكون المتصفح في وضع الخمول
+        const scheduleInit = () => {
+          if ('requestIdleCallback' in window) {
+            requestIdleCallback(() => {
+              performInit();
+            }, { timeout: 2000 });
+          } else {
+            // fallback للمتصفحات القديمة
+            setTimeout(performInit, 100);
+          }
+        };
+
+        const performInit = () => {
+          if (vantaRef.current && !vantaEffect.current) {
+            // استخدام requestAnimationFrame لتجميع التغييرات في DOM
+            requestAnimationFrame(() => {
+              vantaEffect.current = window.VANTA.DOTS({
+                el: vantaRef.current,
+                mouseControls: true,
+                touchControls: true,
+                gyroControls: false,
+                minHeight: 200.00,
+                minWidth: 200.00,
+                scale: 1.00,
+                scaleMobile: 1.00,
+                color: 0x3baaff, // اللون الأزرق السيبراني
+                color2: 0xa78bfa, // اللون البنفسجي
+                backgroundColor: 0x0E0C35, // لون الخلفية الداكن
+                size: 3.0,
+                spacing: 20.0,
+                showLines: true
+              });
+            });
+          }
+        };
+
+        scheduleInit();
       } catch (error) {
         console.error('فشل تحميل Vanta:', error);
       }
