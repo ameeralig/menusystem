@@ -12,91 +12,104 @@ const VantaBackground = () => {
   const vantaEffect = useRef<any>(null);
 
   useEffect(() => {
-    // تحميل Three.js
-    const loadThree = () => {
-      return new Promise((resolve, reject) => {
-        if (window.THREE) {
-          resolve(window.THREE);
-          return;
-        }
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js';
-        script.onload = () => resolve(window.THREE);
-        script.onerror = reject;
-        document.head.appendChild(script);
-      });
+    // تأجيل تحميل Vanta حتى بعد First Contentful Paint
+    let timeoutId: NodeJS.Timeout;
+    
+    const initAfterFCP = () => {
+      // الانتظار حتى تكتمل الصفحة بالكامل
+      if (document.readyState !== 'complete') {
+        window.addEventListener('load', initAfterFCP, { once: true });
+        return;
+      }
+
+      // تأجيل التحميل لمدة 2 ثانية بعد اكتمال الصفحة للسماح بـ FCP
+      timeoutId = setTimeout(() => {
+        loadAndInitVanta();
+      }, 2000);
     };
 
-    // تحميل Vanta Dots
-    const loadVanta = () => {
-      return new Promise((resolve, reject) => {
-        if (window.VANTA) {
-          resolve(window.VANTA);
-          return;
-        }
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.dots.min.js';
-        script.onload = () => resolve(window.VANTA);
-        script.onerror = reject;
-        document.head.appendChild(script);
-      });
-    };
-
-    // تهيئة Vanta Effect مع تحسين الأداء
-    const initVanta = async () => {
+    const loadAndInitVanta = async () => {
       try {
-        // انتظار تحميل المكتبات
-        await loadThree();
-        await loadVanta();
+        // تحميل Three.js
+        if (!window.THREE) {
+          await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js';
+            script.async = true;
+            script.onload = () => resolve(window.THREE);
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+        }
 
-        const performInit = () => {
-          if (vantaRef.current && !vantaEffect.current) {
-            vantaEffect.current = window.VANTA.DOTS({
-              el: vantaRef.current,
-              mouseControls: true,
-              touchControls: true,
-              gyroControls: false,
-              minHeight: 200.00,
-              minWidth: 200.00,
-              scale: 1.00,
-              scaleMobile: 1.00,
-              color: 0x3baaff,
-              color2: 0xa78bfa,
-              backgroundColor: 0x0E0C35,
-              size: 3.0,
-              spacing: 20.0,
-              showLines: true
-            });
-          }
-        };
+        // تحميل Vanta Dots
+        if (!window.VANTA) {
+          await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.dots.min.js';
+            script.async = true;
+            script.onload = () => resolve(window.VANTA);
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+        }
 
-        // تأجيل التهيئة حتى بعد اكتمال تحميل الصفحة بالكامل
-        if (document.readyState === 'complete') {
-          // الصفحة محملة بالكامل، نؤجل التهيئة
-          if ('requestIdleCallback' in window) {
-            requestIdleCallback(performInit, { timeout: 3000 });
-          } else {
-            setTimeout(performInit, 1000);
-          }
-        } else {
-          // ننتظر حتى تكتمل الصفحة
-          window.addEventListener('load', () => {
-            if ('requestIdleCallback' in window) {
-              requestIdleCallback(performInit, { timeout: 3000 });
-            } else {
-              setTimeout(performInit, 1000);
+        // تهيئة التأثير بعد التحميل
+        if ('requestIdleCallback' in window) {
+          requestIdleCallback(() => {
+            if (vantaRef.current && !vantaEffect.current) {
+              vantaEffect.current = window.VANTA.DOTS({
+                el: vantaRef.current,
+                mouseControls: true,
+                touchControls: true,
+                gyroControls: false,
+                minHeight: 200.00,
+                minWidth: 200.00,
+                scale: 1.00,
+                scaleMobile: 1.00,
+                color: 0x3baaff,
+                color2: 0xa78bfa,
+                backgroundColor: 0x0E0C35,
+                size: 3.0,
+                spacing: 20.0,
+                showLines: true
+              });
             }
-          }, { once: true });
+          }, { timeout: 3000 });
+        } else {
+          setTimeout(() => {
+            if (vantaRef.current && !vantaEffect.current) {
+              vantaEffect.current = window.VANTA.DOTS({
+                el: vantaRef.current,
+                mouseControls: true,
+                touchControls: true,
+                gyroControls: false,
+                minHeight: 200.00,
+                minWidth: 200.00,
+                scale: 1.00,
+                scaleMobile: 1.00,
+                color: 0x3baaff,
+                color2: 0xa78bfa,
+                backgroundColor: 0x0E0C35,
+                size: 3.0,
+                spacing: 20.0,
+                showLines: true
+              });
+            }
+          }, 500);
         }
       } catch (error) {
         console.error('فشل تحميل Vanta:', error);
       }
     };
 
-    initVanta();
+    initAfterFCP();
 
-    // تنظيف التأثير عند إلغاء التثبيت
+    // تنظيف التأثير والـ timeout عند إلغاء التثبيت
     return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
       if (vantaEffect.current) {
         vantaEffect.current.destroy();
         vantaEffect.current = null;

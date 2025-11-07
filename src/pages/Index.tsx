@@ -23,8 +23,11 @@ const Index = () => {
         canonicalUrl="https://qrmenuc.com"
       />
       <div className="min-h-screen relative overflow-hidden font-arabic">
-      {/* Vanta Dots Background - يتم تحميله بشكل lazy */}
-      <Suspense fallback={<div className="fixed inset-0 bg-gradient-to-br from-[#0E0C35] to-[#1a1547] -z-10" />}>
+      {/* Static background - يظهر فوراً */}
+      <div className="fixed inset-0 bg-gradient-to-br from-[#0E0C35] to-[#1a1547] -z-20" />
+      
+      {/* Vanta Dots Background - يتم تحميله بعد FCP */}
+      <Suspense fallback={null}>
         <VantaBackground />
       </Suspense>
 
