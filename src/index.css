@@ -18,6 +18,16 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
   }
+
+  /* Layout Stability - Prevent CLS */
+  img, video, iframe {
+    content-visibility: auto;
+  }
+  
+  /* Reserve space for images */
+  img[width][height] {
+    aspect-ratio: attr(width) / attr(height);
+  }
 }
 
 @layer base {

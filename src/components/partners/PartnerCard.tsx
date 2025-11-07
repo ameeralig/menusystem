@@ -35,13 +35,15 @@ const PartnerCard = ({ userId, fullName, avatarUrl, storeName, slug }: PartnerCa
       onClick={handleClick}
     >
       <CardContent className="p-6 flex flex-col items-center gap-4">
-        <div className="relative">
-          <Avatar className="h-24 w-24 border-4 border-primary/20 group-hover:border-primary/50 transition-all duration-300 shadow-lg">
+        <div className="relative w-24 h-24 flex-shrink-0">
+          <Avatar className="h-full w-full border-4 border-primary/20 group-hover:border-primary/50 transition-all duration-300 shadow-lg aspect-square">
             <AvatarImage 
               src={avatarUrl ? optimizeForThumbnail(avatarUrl, 200) : undefined} 
               alt={fullName || storeName || "شريك"} 
               className="object-cover"
               loading="lazy"
+              width={96}
+              height={96}
             />
             <AvatarFallback className="text-2xl bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-black">
               {getInitials(fullName || storeName || "U")}
