@@ -93,6 +93,18 @@ const templates: Template[] = [
       productCardStyle: "bg-white/70 backdrop-blur-sm rounded-3xl shadow-md hover:shadow-lg",
       categoryStyle: "text-xl font-semibold mb-5 text-gray-600"
     }
+  },
+  {
+    id: "fast-response",
+    name: "سرعة الاستجابة",
+    description: "قالب محسّن للتحميل السريع - تصنيفات نصية ومنتجات مدمجة بصور صغيرة",
+    preview: "bg-gradient-to-br from-green-50 to-emerald-50",
+    style: {
+      cardStyle: "rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200",
+      headerStyle: "text-2xl md:text-3xl font-semibold mb-4",
+      productCardStyle: "bg-white rounded-lg shadow-sm hover:shadow-md border border-gray-100",
+      categoryStyle: "text-base font-medium"
+    }
   }
 ];
 

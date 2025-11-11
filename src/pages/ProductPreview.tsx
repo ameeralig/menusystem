@@ -254,6 +254,7 @@ const ProductPreview = () => {
                   storeOwnerId={storeOwnerId}
                   forceRefresh={forceRefresh}
                   isEmployeeView={!!employee}
+                  template={storeData.template}
                 />
               </Suspense>
               {!employee && (

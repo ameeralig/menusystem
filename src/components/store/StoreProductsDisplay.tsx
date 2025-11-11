@@ -15,6 +15,7 @@ import AnimatedStoreHeader from "./AnimatedStoreHeader";
 import { useOptimizedProducts } from "@/hooks/store/useOptimizedProducts";
 import { sortCategoriesByOrder } from "@/utils/categorySort";
 import { FontSettings, ContactInfo } from "@/types/store";
+import FastResponseTemplate from "./fast-template/FastResponseTemplate";
 
 // تحميل بطيء لمكون مشاركة الرأي
 const FeedbackTrigger = lazy(() => import("./feedback/FeedbackTrigger"));
@@ -29,6 +30,7 @@ interface StoreProductsDisplayProps {
   storeOwnerId?: string;
   forceRefresh?: number;
   isEmployeeView?: boolean;
+  template?: string;
 }
 
 const StoreProductsDisplay = ({
@@ -41,6 +43,7 @@ const StoreProductsDisplay = ({
   storeOwnerId,
   forceRefresh = 0,
   isEmployeeView = false,
+  template = "default",
 }: StoreProductsDisplayProps) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -181,6 +184,26 @@ const StoreProductsDisplay = ({
 
   // ترتيب التصنيفات باستخدام الدالة الموحدة
   const sortedCategories = sortCategoriesByOrder(categories, categoryImages);
+
+  // إذا كان القالب هو "fast-response"، نعرض القالب السريع
+  if (template === "fast-response") {
+    return (
+      <>
+        {/* مؤشر التحميل التقدمي */}
+        <ProgressiveLoadingIndicator 
+          progress={loadingProgress} 
+          isVisible={isLoading && products.length === 0} 
+        />
+
+        <FastResponseTemplate
+          products={allProducts || products}
+          colorTheme={colorTheme}
+          storeName={storeName}
+          onSearchChange={handleSearchChange}
+        />
+      </>
+    );
+  }
 
   return (
     <>
