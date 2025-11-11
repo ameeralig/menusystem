@@ -90,7 +90,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 py-4">
           <div className="container mx-auto px-3">
             <h1 
-              className="text-2xl md:text-3xl font-bold text-center"
+              className="text-2xl md:text-3xl font-bold text-center text-gray-900 dark:text-white"
               style={colorTheme?.startsWith('#') ? { color: colorTheme } : undefined}
             >
               {storeName}

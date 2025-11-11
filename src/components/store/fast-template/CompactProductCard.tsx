@@ -71,7 +71,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
               color: colorTheme?.startsWith('#') ? colorTheme : undefined 
             }}
           >
-            {product.price.toFixed(2)} ر.س
+            {product.price.toFixed(2)} د.ع
           </span>
           
           {product.is_popular && (

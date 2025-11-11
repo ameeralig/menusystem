@@ -155,12 +155,12 @@ const AnimatedStoreHeader = ({ storeName, colorTheme, fontSettings }: AnimatedSt
   if (!storeName) return null;
 
   return (
-    <div className="relative mb-8 h-24 flex items-center justify-center overflow-hidden" dir="rtl">
+    <div className="relative mb-8 h-24 flex items-center justify-center overflow-hidden">
       <AnimatePresence mode="wait">
         <motion.h1 
           key={storeName}
           className="text-3xl md:text-4xl font-bold text-center relative z-10"
-          style={getStoreNameStyle()}
+          style={{...getStoreNameStyle(), direction: 'rtl', unicodeBidi: 'embed'}}
           initial="initial"
           animate="animate"
         >
