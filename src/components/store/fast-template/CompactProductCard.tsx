@@ -71,7 +71,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
         {/* السعر */}
         <div className="flex items-center gap-2">
           <span 
-            className="text-base sm:text-lg font-bold"
+            className="text-base sm:text-lg font-bold text-gray-900 dark:text-white"
             style={{ 
               color: colorTheme?.startsWith('#') ? colorTheme : undefined 
             }}
