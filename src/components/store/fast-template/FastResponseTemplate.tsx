@@ -108,6 +108,15 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         </div>
       )}
 
+      {/* تفاصيل المتجر */}
+      {contactInfo && (
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <div className="container mx-auto px-3 py-4">
+            <StoreInfo contactInfo={contactInfo} colorTheme={colorTheme} />
+          </div>
+        </div>
+      )}
+
       {/* شريط التصنيفات الثابت */}
       <CategoryTabs
         categories={categories}
@@ -168,13 +177,6 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
             searchQuery={searchQuery}
             selectedCategory={selectedCategory}
           />
-        )}
-
-        {/* تفاصيل المتجر */}
-        {contactInfo && (
-          <div className="mt-6">
-            <StoreInfo contactInfo={contactInfo} colorTheme={colorTheme} />
-          </div>
         )}
       </div>
 

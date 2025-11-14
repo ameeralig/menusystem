@@ -1,6 +1,6 @@
 import React, { Suspense, lazy } from "react";
 import { motion } from "framer-motion";
-import { Gamepad2, MessageCircle } from "lucide-react";
+import { Disc3, MessageSquare } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -42,7 +42,7 @@ const FloatingActionsBar: React.FC<FloatingActionsBarProps> = ({
       initial={{ x: -100, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.5, delay: 0.3 }}
-      className="fixed bottom-6 left-6 z-50"
+      className="fixed bottom-6 left-6 z-30"
       style={{ direction: 'ltr' }}
     >
       {/* الشريط الزجاجي العائم */}
@@ -75,7 +75,7 @@ const FloatingActionsBar: React.FC<FloatingActionsBarProps> = ({
                     repeatDelay: 3,
                   }}
                 >
-                  <Gamepad2 className="w-6 h-6" />
+                  <Disc3 className="w-6 h-6" />
                 </motion.div>
                 
                 {/* تأثير التوهج عند التمرير */}
@@ -112,7 +112,7 @@ const FloatingActionsBar: React.FC<FloatingActionsBarProps> = ({
                       repeatDelay: 3,
                     }}
                   >
-                    <MessageCircle className="w-6 h-6" />
+                    <MessageSquare className="w-6 h-6" />
                   </motion.div>
                   
                   {/* تأثير التوهج عند التمرير */}
