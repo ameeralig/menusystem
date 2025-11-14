@@ -200,6 +200,9 @@ const StoreProductsDisplay = ({
           colorTheme={colorTheme}
           storeName={storeName}
           onSearchChange={handleSearchChange}
+          contactInfo={contactInfo}
+          slug={slug}
+          storeOwnerId={storeOwnerId}
         />
       </>
     );

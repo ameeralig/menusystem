@@ -23,6 +23,11 @@ const optimizeImageUrl = (url: string | null | undefined): string => {
   return url;
 };
 
+// تنسيق السعر بفواصل
+const formatPrice = (price: number): string => {
+  return new Intl.NumberFormat('ar-IQ').format(price);
+};
+
 const CompactProductCard: React.FC<CompactProductCardProps> = ({ 
   product, 
   colorTheme 
@@ -71,7 +76,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
               color: colorTheme?.startsWith('#') ? colorTheme : undefined 
             }}
           >
-            {product.price.toFixed(2)} د.ع
+            {formatPrice(product.price)} د.ع
           </span>
           
           {product.is_popular && (
