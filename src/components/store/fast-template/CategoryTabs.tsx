@@ -33,7 +33,7 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
             variant={selectedCategory === null ? "default" : "outline"}
             size="sm"
             onClick={() => onCategorySelect(null)}
-            className="flex-shrink-0 min-w-fit whitespace-nowrap"
+            className="flex-shrink-0 min-w-fit whitespace-nowrap text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
             style={
               selectedCategory === null && colorTheme?.startsWith('#')
                 ? {
@@ -54,7 +54,7 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
               variant={selectedCategory === category ? "default" : "outline"}
               size="sm"
               onClick={() => onCategorySelect(category)}
-              className="flex-shrink-0 min-w-fit whitespace-nowrap"
+              className="flex-shrink-0 min-w-fit whitespace-nowrap text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
               style={
                 selectedCategory === category && colorTheme?.startsWith('#')
                   ? {

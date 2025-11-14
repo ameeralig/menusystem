@@ -1,23 +1,34 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, lazy, Suspense } from "react";
 import { Product } from "@/types/product";
 import CategoryTabs from "./CategoryTabs";
 import CompactProductCard from "./CompactProductCard";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import EmptyCategoryMessage from "../EmptyCategoryMessage";
+import StoreInfo from "../StoreInfo";
+import WheelButton from "../WheelButton";
+import { ContactInfo } from "@/types/store";
+
+const FeedbackTrigger = lazy(() => import("../feedback/FeedbackTrigger"));
 
 interface FastResponseTemplateProps {
   products: Product[];
   colorTheme?: string | null;
   storeName?: string | null;
   onSearchChange?: (query: string) => void;
+  contactInfo?: ContactInfo;
+  slug?: string;
+  storeOwnerId?: string;
 }
 
 const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   products,
   colorTheme,
   storeName,
-  onSearchChange
+  onSearchChange,
+  contactInfo,
+  slug,
+  storeOwnerId
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -159,6 +170,30 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
             searchQuery={searchQuery}
             selectedCategory={selectedCategory}
           />
+        )}
+
+        {/* تفاصيل المتجر */}
+        {contactInfo && (
+          <div className="mt-6">
+            <StoreInfo contactInfo={contactInfo} colorTheme={colorTheme} />
+          </div>
+        )}
+
+        {/* زر عجلة الحظ */}
+        {slug && (
+          <div className="mt-6 flex justify-center">
+            <WheelButton slug={slug} colorTheme={colorTheme} />
+          </div>
+        )}
+
+        {/* زر مشاركة الرأي */}
+        {slug && storeOwnerId && (
+          <Suspense fallback={null}>
+            <FeedbackTrigger 
+              userId={storeOwnerId}
+              colorTheme={colorTheme}
+            />
+          </Suspense>
         )}
       </div>
     </div>
