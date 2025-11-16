@@ -16,7 +16,6 @@ import InstallPWAButton from "@/components/store/InstallPWAButton";
 // استخدام التحميل البطيء للمكونات غير الأساسية
 const ProductPreviewContainer = lazy(() => import("@/components/store/ProductPreviewContainer"));
 const StoreProductsDisplay = lazy(() => import("@/components/store/StoreProductsDisplay"));
-const SocialIcons = lazy(() => import("@/components/store/SocialIcons"));
 const FeedbackTrigger = lazy(() => import("@/components/store/feedback/FeedbackTrigger"));
 
 const ProductPreview = () => {
@@ -258,11 +257,6 @@ const ProductPreview = () => {
                   socialLinks={storeData.socialLinks}
                 />
               </Suspense>
-              {!employee && (
-                <Suspense fallback={<div className="animate-pulse bg-gray-200 h-12 rounded-md w-full mt-4" />}>
-                  <SocialIcons socialLinks={storeData.socialLinks} />
-                </Suspense>
-              )}
             </ProductPreviewContainer>
           </Suspense>
           
