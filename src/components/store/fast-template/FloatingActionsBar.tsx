@@ -79,7 +79,7 @@ const FloatingActionsBar: React.FC<FloatingActionsBarProps> = ({
         <div className="flex flex-col gap-2 p-3">
           {/* زر عجلة الحظ */}
           {slug && (
-            <Link to={`/${slug}/wheel`}>
+            <Link to={`/store/${slug}/wheel`}>
               <Button
                 variant="ghost"
                 size="icon"
@@ -116,7 +116,7 @@ const FloatingActionsBar: React.FC<FloatingActionsBarProps> = ({
           {/* زر مشاركة الرأي */}
           {storeOwnerId && (
             <Suspense fallback={null}>
-              <Link to={`/feedback/${storeOwnerId}`}>
+              <Link to={`/customer-feedback/${storeOwnerId}`}>
                 <Button
                   variant="ghost"
                   size="icon"
