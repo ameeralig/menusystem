@@ -30,6 +30,7 @@ interface StoreInfoProps {
 const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
   const [isWifiCodeVisible, setIsWifiCodeVisible] = useState(false);
   const [isBusinessHoursOpen, setIsBusinessHoursOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   if (!contactInfo || Object.values(contactInfo).every(value => !value)) {
     return null;
@@ -148,6 +149,8 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
     }
   };
 
+  const hasCollapsibleDetails = contactInfo.businessHours || contactInfo.address || contactInfo.phone || contactInfo.wifi;
+
   return (
     <div className="mt-2 mb-6 text-left space-y-3">
       {contactInfo.description && (
@@ -157,58 +160,86 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
         </div>
       )}
 
-      {contactInfo.businessHours && (
-        <Collapsible
-          open={isBusinessHoursOpen}
-          onOpenChange={setIsBusinessHoursOpen}
-          className="border-b border-transparent"
-        >
-          <CollapsibleTrigger className="flex items-center justify-start gap-2 text-gray-700 dark:text-gray-300 w-full cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md p-1 transition-colors">
-            <div className="flex items-center gap-2">
-              <Clock className={`w-4 h-4 ${themeIconClasses}`} />
-              <p className="text-sm font-medium">ساعات العمل</p>
-            </div>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="mt-1">
-            {formatBusinessHours()}
-          </CollapsibleContent>
-        </Collapsible>
-      )}
+      {hasCollapsibleDetails && (
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
+          <Collapsible open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+            <CollapsibleTrigger className="flex items-center justify-between w-full group cursor-pointer">
+              <div className="flex items-center gap-2">
+                <Info className={`w-4 h-4 ${themeIconClasses}`} />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  اضغط لمعرفة تفاصيل مهمة
+                </span>
+              </div>
+              <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+                {isDetailsOpen ? 'إخفاء' : 'عرض'}
+              </span>
+            </CollapsibleTrigger>
+            
+            <CollapsibleContent className="mt-3 space-y-3">
+              {/* ساعات العمل */}
+              {contactInfo.businessHours && (
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+                  <Collapsible
+                    open={isBusinessHoursOpen}
+                    onOpenChange={setIsBusinessHoursOpen}
+                  >
+                    <CollapsibleTrigger className="flex items-center justify-between w-full cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md p-2 transition-colors group">
+                      <div className="flex items-center gap-2">
+                        <Clock className={`w-4 h-4 ${themeIconClasses}`} />
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">ساعات العمل</p>
+                      </div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300">
+                        {isBusinessHoursOpen ? 'إخفاء' : 'عرض'}
+                      </span>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2">
+                      {formatBusinessHours()}
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
+              )}
 
-      {contactInfo.address && (
-        <div 
-          className="flex items-center justify-start gap-2 text-gray-700 dark:text-gray-300 cursor-pointer hover:underline" 
-          onClick={handleGoogleMapsClick}
-        >
-          <MapPin className={`w-4 h-4 ${themeIconClasses}`} />
-          <p className="text-sm">انقر هنا لمعرفة موقع المتجر</p>
-        </div>
-      )}
+              {/* العنوان */}
+              {contactInfo.address && (
+                <div 
+                  className="flex items-center justify-start gap-2 text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md p-2 transition-colors group border-t border-gray-200 dark:border-gray-700 pt-3" 
+                  onClick={handleGoogleMapsClick}
+                >
+                  <MapPin className={`w-4 h-4 ${themeIconClasses} group-hover:scale-110 transition-transform`} />
+                  <p className="text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">انقر هنا لمعرفة موقع المتجر</p>
+                </div>
+              )}
 
-      {contactInfo.phone && (
-        <div className="flex items-center justify-start gap-2 text-gray-700 dark:text-gray-300">
-          <Phone className={`w-4 h-4 ${themeIconClasses}`} />
-          <a href={`tel:${contactInfo.phone}`} className="text-sm hover:underline">
-            {contactInfo.phone}
-          </a>
-        </div>
-      )}
+              {/* الهاتف */}
+              {contactInfo.phone && (
+                <div className="flex items-center justify-start gap-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md p-2 transition-colors group border-t border-gray-200 dark:border-gray-700 pt-3">
+                  <Phone className={`w-4 h-4 ${themeIconClasses} group-hover:scale-110 transition-transform`} />
+                  <a href={`tel:${contactInfo.phone}`} className="text-sm hover:text-blue-600 dark:hover:text-blue-400 transition-colors" dir="ltr">
+                    {contactInfo.phone}
+                  </a>
+                </div>
+              )}
 
-      {contactInfo.wifi && (
-        <div className="flex flex-col items-start">
-          <div 
-            className="flex items-center justify-start gap-2 text-gray-700 dark:text-gray-300 cursor-pointer"
-            onClick={toggleWifiCode}
-          >
-            <Wifi className={`w-4 h-4 ${themeIconClasses}`} />
-            <p className="text-sm">رمز شبكة Wifi</p>
-          </div>
-          
-          {isWifiCodeVisible && (
-            <div className="mt-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-md text-center w-full">
-              <p className="font-mono">{contactInfo.wifi}</p>
-            </div>
-          )}
+              {/* الواي فاي */}
+              {contactInfo.wifi && (
+                <div className="flex flex-col items-start border-t border-gray-200 dark:border-gray-700 pt-3">
+                  <div 
+                    className="flex items-center justify-start gap-2 text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md p-2 transition-colors w-full"
+                    onClick={toggleWifiCode}
+                  >
+                    <Wifi className={`w-4 h-4 ${themeIconClasses}`} />
+                    <p className="text-sm">رمز شبكة Wifi (اضغط للعرض)</p>
+                  </div>
+                  
+                  {isWifiCodeVisible && (
+                    <div className="mt-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-md text-center w-full">
+                      <p className="font-mono text-sm">{contactInfo.wifi}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CollapsibleContent>
+          </Collapsible>
         </div>
       )}
     </div>
