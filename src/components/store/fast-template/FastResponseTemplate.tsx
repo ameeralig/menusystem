@@ -143,13 +143,13 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
               className="w-full border-0 p-4 pr-12 pl-12 rounded-2xl text-base transition-all duration-300 outline-none focus:outline-none text-gray-700"
               style={{
                 background: '#e8e8e8',
-                boxShadow: '20px 20px 60px #c5c5c5, -20px -20px 60px #ffffff',
+                boxShadow: '5px 5px 15px #d0d0d0, -5px -5px 15px #f0f0f0',
               }}
               onFocus={(e) => {
-                e.currentTarget.style.boxShadow = 'inset 20px 20px 60px #c5c5c5, inset -20px -20px 60px #ffffff';
+                e.currentTarget.style.boxShadow = 'inset 3px 3px 8px #d0d0d0, inset -3px -3px 8px #f0f0f0';
               }}
               onBlur={(e) => {
-                e.currentTarget.style.boxShadow = '20px 20px 60px #c5c5c5, -20px -20px 60px #ffffff';
+                e.currentTarget.style.boxShadow = '5px 5px 15px #d0d0d0, -5px -5px 15px #f0f0f0';
               }}
             />
             {searchQuery && (
