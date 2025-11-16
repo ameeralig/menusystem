@@ -205,6 +205,8 @@ const StoreProductsDisplay = ({
           contactInfo={contactInfo}
           slug={slug}
           storeOwnerId={storeOwnerId}
+          fontSettings={fontSettings}
+          socialLinks={socialLinks}
         />
       </>
     );
