@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Product } from "@/types/product";
 
 interface CompactProductCardProps {
@@ -33,18 +33,34 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
   colorTheme 
 }) => {
   const optimizedImageUrl = optimizeImageUrl(product.image_url);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
   
   return (
     <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-200">
       {/* صورة المنتج - مربع صغير */}
       <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 relative overflow-hidden rounded-md bg-gray-100 dark:bg-gray-700">
+        {/* Blur placeholder */}
+        {!imageLoaded && !imageError && (
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 animate-pulse" />
+        )}
+        
         <img
           src={optimizedImageUrl}
           alt={product.name}
           loading="lazy"
           decoding="async"
-          className="w-full h-full object-cover"
+          fetchPriority="low"
+          className={`w-full h-full object-cover transition-all duration-500 ${
+            imageLoaded ? 'opacity-100 blur-0' : 'opacity-0 blur-sm'
+          }`}
+          style={{
+            // إضافة cache control للمتصفح
+            imageRendering: 'crisp-edges',
+          }}
+          onLoad={() => setImageLoaded(true)}
           onError={(e) => {
+            setImageError(true);
             e.currentTarget.src = "https://placehold.co/120x120/e2e8f0/64748b?text=No+Image";
           }}
         />
