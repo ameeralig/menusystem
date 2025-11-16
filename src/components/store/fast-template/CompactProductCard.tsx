@@ -4,6 +4,7 @@ import { Product } from "@/types/product";
 interface CompactProductCardProps {
   product: Product;
   colorTheme?: string | null;
+  onClick?: () => void;
 }
 
 // تحسين رابط الصورة لتحميل أسرع
@@ -30,14 +31,18 @@ const formatPrice = (price: number): string => {
 
 const CompactProductCard: React.FC<CompactProductCardProps> = ({ 
   product, 
-  colorTheme 
+  colorTheme,
+  onClick
 }) => {
   const optimizedImageUrl = optimizeImageUrl(product.image_url);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   
   return (
-    <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-200">
+    <div 
+      onClick={onClick}
+      className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+    >
       {/* صورة المنتج - مربع صغير */}
       <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 relative overflow-hidden rounded-md bg-gray-100 dark:bg-gray-700">
         {/* Blur placeholder */}

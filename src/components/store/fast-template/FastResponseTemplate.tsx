@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from "react";
 import { Product } from "@/types/product";
 import CategoryTabs from "./CategoryTabs";
 import CompactProductCard from "./CompactProductCard";
+import ProductDetailsModal from "./ProductDetailsModal";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import EmptyCategoryMessage from "../EmptyCategoryMessage";
@@ -35,6 +36,8 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // استخراج التصنيفات الفريدة من المنتجات
   const categories = useMemo(() => {
@@ -96,6 +99,18 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
       onSearchChange("");
     }
   }, [onSearchChange]);
+
+  // معالجة فتح تفاصيل المنتج
+  const handleProductClick = useCallback((product: Product) => {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  }, []);
+
+  // معالجة إغلاق النافذة
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+    setTimeout(() => setSelectedProduct(null), 300); // انتظار انتهاء الأنيميشن
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -183,6 +198,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
                 key={product.id}
                 product={product}
                 colorTheme={colorTheme}
+                onClick={() => handleProductClick(product)}
               />
             ))}
           </div>
@@ -200,6 +216,14 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         storeOwnerId={storeOwnerId}
         colorTheme={colorTheme}
         socialLinks={socialLinks}
+      />
+
+      {/* نافذة تفاصيل المنتج */}
+      <ProductDetailsModal
+        product={selectedProduct}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        colorTheme={colorTheme}
       />
     </div>
   );
