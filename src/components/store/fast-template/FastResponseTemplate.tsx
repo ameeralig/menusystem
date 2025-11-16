@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import EmptyCategoryMessage from "../EmptyCategoryMessage";
 import StoreInfo from "../StoreInfo";
 import FloatingActionsBar from "./FloatingActionsBar";
-import { ContactInfo } from "@/types/store";
+import AnimatedStoreHeader from "../AnimatedStoreHeader";
+import { ContactInfo, FontSettings, SocialLinks } from "@/types/store";
 
 interface FastResponseTemplateProps {
   products: Product[];
@@ -17,6 +18,8 @@ interface FastResponseTemplateProps {
   contactInfo?: ContactInfo;
   slug?: string;
   storeOwnerId?: string;
+  fontSettings?: FontSettings;
+  socialLinks?: SocialLinks;
 }
 
 const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
@@ -26,7 +29,9 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   onSearchChange,
   contactInfo,
   slug,
-  storeOwnerId
+  storeOwnerId,
+  fontSettings,
+  socialLinks
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -94,16 +99,15 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* رأس المتجر */}
+      {/* رأس المتجر مع الأنيميشن */}
       {storeName && (
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 py-4">
-          <div className="container mx-auto px-3">
-            <h1 
-              className="text-2xl md:text-3xl font-bold text-center text-gray-900 dark:text-white"
-              style={colorTheme?.startsWith('#') ? { color: colorTheme } : undefined}
-            >
-              {storeName}
-            </h1>
+          <div className="px-3">
+            <AnimatedStoreHeader
+              storeName={storeName}
+              colorTheme={colorTheme}
+              fontSettings={fontSettings}
+            />
           </div>
         </div>
       )}
@@ -111,7 +115,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
       {/* تفاصيل المتجر */}
       {contactInfo && (
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <div className="container mx-auto px-3 py-4">
+          <div className="px-3 py-4">
             <StoreInfo contactInfo={contactInfo} colorTheme={colorTheme} />
           </div>
         </div>
@@ -126,7 +130,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
       />
 
       {/* منطقة المحتوى */}
-      <div className="container mx-auto px-3 py-4">
+      <div className="px-3 py-4">
         {/* شريط البحث */}
         <div className="mb-4">
           <div className="relative">
@@ -185,6 +189,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         slug={slug}
         storeOwnerId={storeOwnerId}
         colorTheme={colorTheme}
+        socialLinks={socialLinks}
       />
     </div>
   );

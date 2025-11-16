@@ -255,6 +255,7 @@ const ProductPreview = () => {
                   forceRefresh={forceRefresh}
                   isEmployeeView={!!employee}
                   template={storeData.template}
+                  socialLinks={storeData.socialLinks}
                 />
               </Suspense>
               {!employee && (

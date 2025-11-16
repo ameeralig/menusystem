@@ -1,8 +1,9 @@
 import React, { Suspense, lazy } from "react";
 import { motion } from "framer-motion";
-import { Disc3, MessageSquare } from "lucide-react";
+import { Disc3, MessageSquare, Instagram, Facebook } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { SocialLinks } from "@/types/store";
 
 const FeedbackTrigger = lazy(() => import("../feedback/FeedbackTrigger"));
 
@@ -10,12 +11,14 @@ interface FloatingActionsBarProps {
   slug?: string;
   storeOwnerId?: string;
   colorTheme?: string | null;
+  socialLinks?: SocialLinks;
 }
 
 const FloatingActionsBar: React.FC<FloatingActionsBarProps> = ({
   slug,
   storeOwnerId,
   colorTheme,
+  socialLinks,
 }) => {
   // الحصول على لون الثيم أو استخدام اللون الافتراضي
   const getThemeColor = () => {
@@ -125,6 +128,125 @@ const FloatingActionsBar: React.FC<FloatingActionsBarProps> = ({
                 </Button>
               </Link>
             </Suspense>
+          )}
+
+          {/* أيقونات التواصل الاجتماعي */}
+          {socialLinks && (
+            <>
+              {socialLinks.instagram && (
+                <a
+                  href={socialLinks.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="w-12 h-12 rounded-xl transition-all duration-300 hover:scale-110 relative group"
+                    style={{
+                      background: `${themeColor}20`,
+                      color: themeColor,
+                    }}
+                  >
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.05, 1],
+                      }}
+                      transition={{
+                        duration: 2.5,
+                        repeat: Infinity,
+                        repeatDelay: 3,
+                      }}
+                    >
+                      <Instagram className="w-6 h-6" />
+                    </motion.div>
+                    
+                    <div 
+                      className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      style={{
+                        background: `radial-gradient(circle, ${themeColor}40 0%, transparent 70%)`,
+                      }}
+                    />
+                  </Button>
+                </a>
+              )}
+
+              {socialLinks.facebook && (
+                <a
+                  href={socialLinks.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="w-12 h-12 rounded-xl transition-all duration-300 hover:scale-110 relative group"
+                    style={{
+                      background: `${themeColor}20`,
+                      color: themeColor,
+                    }}
+                  >
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.05, 1],
+                      }}
+                      transition={{
+                        duration: 2.5,
+                        repeat: Infinity,
+                        repeatDelay: 3,
+                      }}
+                    >
+                      <Facebook className="w-6 h-6" />
+                    </motion.div>
+                    
+                    <div 
+                      className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      style={{
+                        background: `radial-gradient(circle, ${themeColor}40 0%, transparent 70%)`,
+                      }}
+                    />
+                  </Button>
+                </a>
+              )}
+
+              {socialLinks.telegram && (
+                <a
+                  href={socialLinks.telegram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="w-12 h-12 rounded-xl transition-all duration-300 hover:scale-110 relative group"
+                    style={{
+                      background: `${themeColor}20`,
+                      color: themeColor,
+                    }}
+                  >
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.05, 1],
+                      }}
+                      transition={{
+                        duration: 2.5,
+                        repeat: Infinity,
+                        repeatDelay: 3,
+                      }}
+                    >
+                      <MessageSquare className="w-6 h-6" />
+                    </motion.div>
+                    
+                    <div 
+                      className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      style={{
+                        background: `radial-gradient(circle, ${themeColor}40 0%, transparent 70%)`,
+                      }}
+                    />
+                  </Button>
+                </a>
+              )}
+            </>
           )}
         </div>
       </div>

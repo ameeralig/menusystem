@@ -31,6 +31,7 @@ interface StoreProductsDisplayProps {
   forceRefresh?: number;
   isEmployeeView?: boolean;
   template?: string;
+  socialLinks?: any;
 }
 
 const StoreProductsDisplay = ({
@@ -44,6 +45,7 @@ const StoreProductsDisplay = ({
   forceRefresh = 0,
   isEmployeeView = false,
   template = "default",
+  socialLinks,
 }: StoreProductsDisplayProps) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
