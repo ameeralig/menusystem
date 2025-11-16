@@ -1,6 +1,6 @@
 import React, { Suspense, lazy } from "react";
 import { motion } from "framer-motion";
-import { Disc3, MessageSquare, Instagram, Facebook } from "lucide-react";
+import { Disc3, MessageSquare, Instagram, Facebook, Send } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SocialLinks } from "@/types/store";
@@ -39,6 +39,27 @@ const FloatingActionsBar: React.FC<FloatingActionsBarProps> = ({
   };
 
   const themeColor = getThemeColor();
+
+  // توحيد روابط السوشيال ميديا حتى لو كانت بدون http أو بصيغة اسم مستخدم
+  const normalizeUrl = (provider: "instagram" | "facebook" | "telegram", value?: string) => {
+    if (!value) return undefined;
+    const v = value.trim();
+    if (/^https?:\/\//i.test(v)) return v;
+
+    if (provider === "instagram") {
+      const handle = v.startsWith("@") ? v.slice(1) : v.replace(/^instagram\.com\//i, "");
+      return `https://instagram.com/${handle}`;
+    }
+
+    if (provider === "facebook") {
+      const path = v.replace(/^facebook\.com\//i, "").replace(/^fb\.com\//i, "");
+      return `https://facebook.com/${path}`;
+    }
+
+    // telegram
+    const handle = v.startsWith("@") ? v.slice(1) : v.replace(/^t\.me\//i, "");
+    return `https://t.me/${handle}`;
+  };
 
   return (
     <motion.div
@@ -135,7 +156,7 @@ const FloatingActionsBar: React.FC<FloatingActionsBarProps> = ({
             <>
               {socialLinks.instagram && (
                 <a
-                  href={socialLinks.instagram}
+                  href={normalizeUrl("instagram", socialLinks.instagram)}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -173,7 +194,7 @@ const FloatingActionsBar: React.FC<FloatingActionsBarProps> = ({
 
               {socialLinks.facebook && (
                 <a
-                  href={socialLinks.facebook}
+                  href={normalizeUrl("facebook", socialLinks.facebook)}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -211,7 +232,7 @@ const FloatingActionsBar: React.FC<FloatingActionsBarProps> = ({
 
               {socialLinks.telegram && (
                 <a
-                  href={socialLinks.telegram}
+                  href={normalizeUrl("telegram", socialLinks.telegram)}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -234,7 +255,7 @@ const FloatingActionsBar: React.FC<FloatingActionsBarProps> = ({
                         repeatDelay: 3,
                       }}
                     >
-                      <MessageSquare className="w-6 h-6" />
+                      <Send className="w-6 h-6" />
                     </motion.div>
                     
                     <div 
