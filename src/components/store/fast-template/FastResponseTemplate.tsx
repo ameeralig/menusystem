@@ -134,20 +134,30 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         {/* شريط البحث */}
         <div className="mb-4">
           <div className="relative">
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
+            <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
+            <input
               type="text"
               placeholder="ابحث عن منتج..."
               value={searchQuery}
               onChange={handleSearchChange}
-              className="pr-10 pl-10"
+              className="w-full border-0 p-4 pr-12 pl-12 rounded-2xl text-base transition-all duration-300 outline-none focus:outline-none text-gray-700"
+              style={{
+                background: '#e8e8e8',
+                boxShadow: '20px 20px 60px #c5c5c5, -20px -20px 60px #ffffff',
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.boxShadow = 'inset 20px 20px 60px #c5c5c5, inset -20px -20px 60px #ffffff';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.boxShadow = '20px 20px 60px #c5c5c5, -20px -20px 60px #ffffff';
+              }}
             />
             {searchQuery && (
               <button
                 onClick={clearSearch}
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
               >
-                <X className="w-4 h-4" />
+                <X className="h-5 w-5" />
               </button>
             )}
           </div>
