@@ -4,8 +4,10 @@ import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 import qrLogo from "@/assets/qr-logo.png";
 import SeoHelmet from "@/components/legal/SeoHelmet";
-import PartnersSection from "@/components/partners/PartnersSection";
-import SimpleBackground from "@/components/background/SimpleBackground";
+import { lazy, Suspense } from "react";
+
+const PartnersSection = lazy(() => import("@/components/partners/PartnersSection"));
+const SimpleBackground = lazy(() => import("@/components/background/SimpleBackground"));
 
 const Index = () => {
   const navigate = useNavigate();
@@ -19,7 +21,9 @@ const Index = () => {
         keywords="QRM, منيو QR, منيو رقمي, QR Menu, خدمات المنيو, منيو إلكتروني, QRM Menu, قائمة طعام رقمية, QR Code Menu, خدمات المنيو الإلكتروني"
         canonicalUrl="https://qrmenuc.com"
       />
-      <SimpleBackground />
+      <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-primary via-secondary to-accent" />}>
+        <SimpleBackground />
+      </Suspense>
       <div className="min-h-screen relative overflow-hidden font-arabic">
 
       {/* Header/Navbar */}
@@ -54,7 +58,9 @@ const Index = () => {
       </header>
 
       {/* Partners Section */}
-      <PartnersSection />
+      <Suspense fallback={<div className="py-12" />}>
+        <PartnersSection />
+      </Suspense>
 
       {/* Hero Section */}
       <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-20 md:py-32 relative z-10">
