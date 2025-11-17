@@ -3,17 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Font display optimization */
-@font-face {
-  font-family: 'Cairo';
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Orbitron';
-  font-display: swap;
-}
-
 @layer utilities {
   /* Line clamp utilities */
   .line-clamp-2 {

@@ -4,10 +4,8 @@ import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 import qrLogo from "@/assets/qr-logo.png";
 import SeoHelmet from "@/components/legal/SeoHelmet";
-import { lazy, Suspense } from "react";
-
-const PartnersSection = lazy(() => import("@/components/partners/PartnersSection"));
-const SimpleBackground = lazy(() => import("@/components/background/SimpleBackground"));
+import PartnersSection from "@/components/partners/PartnersSection";
+import SimpleBackground from "@/components/background/SimpleBackground";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -21,16 +19,14 @@ const Index = () => {
         keywords="QRM, منيو QR, منيو رقمي, QR Menu, خدمات المنيو, منيو إلكتروني, QRM Menu, قائمة طعام رقمية, QR Code Menu, خدمات المنيو الإلكتروني"
         canonicalUrl="https://qrmenuc.com"
       />
-      <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-primary via-secondary to-accent" />}>
-        <SimpleBackground />
-      </Suspense>
+      <SimpleBackground />
       <div className="min-h-screen relative overflow-hidden font-arabic">
 
       {/* Header/Navbar */}
       <header className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 relative z-10">
         <div className="flex justify-between items-center backdrop-blur-sm bg-white/5 rounded-2xl p-4 border border-white/10">
           <div className="flex items-center gap-3">
-            <img src={qrLogo} alt="QRM - خدمات المنيو الرقمي QR" className="h-12 sm:h-14 w-auto drop-shadow-2xl" width="106" height="84" />
+            <img src={qrLogo} alt="QRM - خدمات المنيو الرقمي QR" className="h-12 sm:h-14 w-auto drop-shadow-2xl" />
             <div className="flex flex-col">
               <h1 className="text-xl sm:text-2xl font-black text-white font-cyber tracking-wider drop-shadow-[0_2px_10px_rgba(0,156,255,0.8)]">
                 QRM
@@ -58,9 +54,7 @@ const Index = () => {
       </header>
 
       {/* Partners Section */}
-      <Suspense fallback={<div className="py-12" />}>
-        <PartnersSection />
-      </Suspense>
+      <PartnersSection />
 
       {/* Hero Section */}
       <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-20 md:py-32 relative z-10">
@@ -267,7 +261,7 @@ const Index = () => {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0 flex items-center gap-3">
-              <img src={qrLogo} alt="QRM - خدمات المنيو الرقمي" className="h-12 w-auto drop-shadow-2xl" width="106" height="84" />
+              <img src={qrLogo} alt="QRM - خدمات المنيو الرقمي" className="h-12 w-auto drop-shadow-2xl" />
               <div className="flex flex-col">
                 <h2 className="text-xl font-black text-white font-cyber tracking-wider drop-shadow-[0_2px_10px_rgba(0,156,255,0.8)]">QRM</h2>
                 <p className="text-xs text-white font-arabic font-bold drop-shadow-lg">MENU SERVICES</p>
