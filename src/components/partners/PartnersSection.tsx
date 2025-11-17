@@ -96,24 +96,12 @@ const PartnersSection = () => {
     <section className="py-12 sm:py-16 relative z-10">
       <div className="container mx-auto px-4">
         <div className="text-center mb-8 sm:mb-12 space-y-3">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
-            className="text-3xl sm:text-4xl md:text-5xl font-black bg-gradient-to-r from-[hsl(var(--cyber-blue))] via-[hsl(var(--cyber-purple))] to-[hsl(var(--cyber-pink))] bg-clip-text text-transparent drop-shadow-2xl font-cyber"
-          >
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black bg-gradient-to-r from-[hsl(var(--cyber-blue))] via-[hsl(var(--cyber-purple))] to-[hsl(var(--cyber-pink))] bg-clip-text text-transparent drop-shadow-2xl font-cyber">
             شركاء QRM
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            viewport={{ once: true }}
-            className="text-white/95 text-base sm:text-lg max-w-2xl mx-auto font-bold drop-shadow-[0_2px_12px_rgba(255,255,255,0.7)] font-arabic"
-          >
+          </h2>
+          <p className="text-white/95 text-base sm:text-lg max-w-2xl mx-auto font-bold drop-shadow-[0_2px_12px_rgba(255,255,255,0.7)] font-arabic">
             تعرف على شركائنا المميزين وقم بزيارة متاجرهم الإلكترونية
-          </motion.p>
+          </p>
         </div>
         
         <motion.div
