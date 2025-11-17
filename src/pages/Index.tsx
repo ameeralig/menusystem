@@ -4,9 +4,10 @@ import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 import qrLogo from "@/assets/qr-logo.png";
 import SeoHelmet from "@/components/legal/SeoHelmet";
-import { Suspense } from "react";
-import PartnersSection from "@/components/partners/PartnersSection";
-import SimpleBackground from "@/components/background/SimpleBackground";
+import { lazy, Suspense } from "react";
+
+const PartnersSection = lazy(() => import("@/components/partners/PartnersSection"));
+const SimpleBackground = lazy(() => import("@/components/background/SimpleBackground"));
 
 const Index = () => {
   const navigate = useNavigate();
@@ -57,7 +58,9 @@ const Index = () => {
       </header>
 
       {/* Partners Section */}
-      <PartnersSection />
+      <Suspense fallback={<div className="py-12" />}>
+        <PartnersSection />
+      </Suspense>
 
       {/* Hero Section */}
       <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-20 md:py-32 relative z-10">
