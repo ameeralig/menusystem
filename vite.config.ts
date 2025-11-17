@@ -70,12 +70,31 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs'],
-          'supabase': ['@supabase/supabase-js'],
-          'charts': ['recharts'],
-          'qr': ['qrcode', 'qr-code-styling']
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+              return 'react-vendor';
+            }
+            if (id.includes('@radix-ui')) {
+              return 'ui-vendor';
+            }
+            if (id.includes('@supabase')) {
+              return 'supabase';
+            }
+            if (id.includes('recharts')) {
+              return 'charts';
+            }
+            if (id.includes('qrcode') || id.includes('qr-code-styling')) {
+              return 'qr';
+            }
+            if (id.includes('three') || id.includes('vanta')) {
+              return 'three-vanta';
+            }
+            if (id.includes('framer-motion')) {
+              return 'animations';
+            }
+            return 'vendor';
+          }
         }
       }
     },
@@ -85,7 +104,11 @@ export default defineConfig(({ mode }) => ({
     terserOptions: {
       compress: {
         drop_console: true,
-        drop_debugger: true
+        drop_debugger: true,
+        passes: 2
+      },
+      mangle: {
+        safari10: true
       }
     }
   }
