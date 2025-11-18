@@ -61,93 +61,112 @@ const ProductPreview = () => {
     initializeStoreData();
   }, [storeOwnerId, isLoading]);
 
-  // دمج meta tags وتحميل الصور في useEffect واحد
+  // تحسين meta tags وتحميل الصور - إنشاء مرة واحدة فقط
   useEffect(() => {
-    // إعداد meta tags
-    const metaTags = [
+    // إعداد meta tags مرة واحدة
+    const metaConfigs = [
       { name: 'Cache-Control', content: 'no-cache, no-store, must-revalidate' },
       { name: 'Pragma', content: 'no-cache' },
       { name: 'Expires', content: '0' }
     ];
 
-    metaTags.forEach(tag => {
-      let metaTag = document.querySelector(`meta[name="${tag.name}"]`);
+    const createdTags: HTMLMetaElement[] = [];
+
+    metaConfigs.forEach(config => {
+      let metaTag = document.querySelector(`meta[name="${config.name}"]`) as HTMLMetaElement;
       if (!metaTag) {
         metaTag = document.createElement('meta');
-        metaTag.setAttribute('name', tag.name);
+        metaTag.setAttribute('name', config.name);
+        metaTag.setAttribute('content', config.content);
         document.head.appendChild(metaTag);
+        createdTags.push(metaTag);
       }
-      metaTag.setAttribute('content', tag.content);
     });
 
-    const cacheControlHeaders = document.createElement('meta');
-    cacheControlHeaders.setAttribute('http-equiv', 'Cache-Control');
-    cacheControlHeaders.setAttribute('content', 'max-age=86400, public');
-    document.head.appendChild(cacheControlHeaders);
-
-    // تحميل الصور مسبقاً
+    // تحميل مسبق للصور الأولى
     if (storeData?.bannerUrl) {
-      const preloadImage = new Image();
-      preloadImage.src = `${storeData.bannerUrl.split('?')[0]}?t=${Date.now()}`;
-      preloadImage.loading = "eager";
+      const preloadBanner = new Image();
+      preloadBanner.src = `${storeData.bannerUrl.split('?')[0]}?t=${Date.now()}`;
+      preloadBanner.loading = "eager";
+      preloadBanner.fetchPriority = "high";
+    }
+
+    // تحميل مسبق لأول 3 صور منتجات
+    if (storeData?.products && storeData.products.length > 0) {
+      const firstThreeProducts = storeData.products.slice(0, 3);
+      firstThreeProducts.forEach(product => {
+        if (product.image_url) {
+          const img = new Image();
+          img.src = product.image_url;
+          img.loading = "eager";
+        }
+      });
     }
 
     return () => {
-      metaTags.forEach(tag => {
-        const metaTag = document.querySelector(`meta[name="${tag.name}"]`);
-        if (metaTag) metaTag.remove();
-      });
-      cacheControlHeaders.remove();
+      createdTags.forEach(tag => tag.remove());
     };
-  }, [storeData?.bannerUrl, forceRefresh, lastManualRefresh]);
+  }, [storeData?.bannerUrl, storeData?.products]);
 
-  // تفعيل الاستماع للتحديثات المباشرة - subscription موحد مع debounce
+  // تحسين realtime subscriptions مع debounce أطول
   useEffect(() => {
     if (!storeOwnerId || !isAutoRefresh) return;
+
+    let updateTimeout: NodeJS.Timeout;
+    let lastUpdateTime = 0;
     
-    let debounceTimer: NodeJS.Timeout;
-    
-    // دمج جميع الـ subscriptions في قناة واحدة
-    const unifiedChannel = supabase
-      .channel('store-changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'products', filter: `user_id=eq.${storeOwnerId}` },
-        () => {
-          clearTimeout(debounceTimer);
-          debounceTimer = setTimeout(() => {
-            toast.info("تم تحديث البيانات");
-            refreshData();
-            setLastManualRefresh(Date.now());
-          }, 2000); // تأخير 2 ثانية
-        }
+    const debouncedRefresh = () => {
+      const now = Date.now();
+      // منع التحديثات المتكررة جداً (أقل من 3 ثواني)
+      if (now - lastUpdateTime < 3000) return;
+      
+      clearTimeout(updateTimeout);
+      updateTimeout = setTimeout(() => {
+        lastUpdateTime = Date.now();
+        toast.info("تم تحديث البيانات");
+        refreshData();
+        setLastManualRefresh(Date.now());
+      }, 3000); // زيادة debounce من 2000ms إلى 3000ms
+    };
+
+    // دمج جميع subscriptions في channel واحد لتحسين الأداء
+    const channel = supabase
+      .channel(`store-realtime-${storeOwnerId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "products",
+          filter: `user_id=eq.${storeOwnerId}`,
+        },
+        debouncedRefresh
       )
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'store_settings', filter: `user_id=eq.${storeOwnerId}` },
-        () => {
-          clearTimeout(debounceTimer);
-          debounceTimer = setTimeout(() => {
-            toast.info("تم تحديث البيانات");
-            refreshData();
-            setLastManualRefresh(Date.now());
-          }, 2000);
-        }
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "store_settings",
+          filter: `user_id=eq.${storeOwnerId}`,
+        },
+        debouncedRefresh
       )
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'category_images', filter: `user_id=eq.${storeOwnerId}` },
-        () => {
-          clearTimeout(debounceTimer);
-          debounceTimer = setTimeout(() => {
-            toast.info("تم تحديث البيانات");
-            refreshData();
-            setLastManualRefresh(Date.now());
-          }, 2000);
-        }
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "category_images",
+          filter: `user_id=eq.${storeOwnerId}`,
+        },
+        debouncedRefresh
       )
       .subscribe();
 
     return () => {
-      clearTimeout(debounceTimer);
-      supabase.removeChannel(unifiedChannel);
+      clearTimeout(updateTimeout);
+      supabase.removeChannel(channel);
     };
   }, [storeOwnerId, refreshData, isAutoRefresh]);
 

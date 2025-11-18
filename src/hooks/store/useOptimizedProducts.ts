@@ -68,25 +68,29 @@ export const useOptimizedProducts = ({
 
       setLoadingProgress(50);
 
-      // مرحلة 2: تحسين روابط الصور مع تقدم تدريجي (50% - 90%)
+      // مرحلة 2: تحسين روابط الصور بشكل متوازي (50% - 90%)
       const optimizedProducts: Product[] = [];
       const totalProducts = data.length;
+      const CHUNK_SIZE = 20;
       
-      for (let i = 0; i < data.length; i++) {
-        const product = data[i];
-        optimizedProducts.push({
+      // تقسيم المنتجات إلى دفعات للمعالجة المتوازية
+      const chunks = [];
+      for (let i = 0; i < data.length; i += CHUNK_SIZE) {
+        chunks.push(data.slice(i, i + CHUNK_SIZE));
+      }
+      
+      // معالجة كل دفعة
+      for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+        const chunk = chunks[chunkIndex];
+        const optimizedChunk = chunk.map(product => ({
           ...product,
           image_url: product.image_url ? optimizeImageUrl(product.image_url) : null
-        });
+        }));
+        optimizedProducts.push(...optimizedChunk);
         
-        // تحديث التقدم
-        const progress = 50 + ((i + 1) / totalProducts) * 40;
+        // تحديث التقدم كل دفعة (بدلاً من كل منتج)
+        const progress = 50 + ((chunkIndex + 1) / chunks.length) * 40;
         setLoadingProgress(Math.round(progress));
-        
-        // إضافة تأخير صغير لإظهار التقدم
-        if (i % 5 === 0) {
-          await new Promise(resolve => setTimeout(resolve, 50));
-        }
       }
 
       // مرحلة 3: الانتهاء (100%)
@@ -96,10 +100,8 @@ export const useOptimizedProducts = ({
       // حفظ البيانات في الـ cache لمدة 15 دقيقة
       setCachedData(cacheKey, optimizedProducts, 15 * 60 * 1000);
       
-      // تأخير قصير لإظهار 100% ثم إخفاء التحميل
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 200);
+      // إخفاء التحميل فوراً
+      setIsLoading(false);
       
     } catch (error) {
       console.error('خطأ غير متوقع في جلب المنتجات:', error);

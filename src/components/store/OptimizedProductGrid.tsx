@@ -30,7 +30,7 @@ const LazyImage = ({ src, alt, className = "", onLoad, onError }: LazyImageProps
   const imgRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // مراقب التقاطع لتحميل الصور فقط عند الحاجة
+  // مراقب التقاطع محسّن لتحميل الصور فقط عند الحاجة
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -41,7 +41,7 @@ const LazyImage = ({ src, alt, className = "", onLoad, onError }: LazyImageProps
       },
       { 
         threshold: 0.1,
-        rootMargin: "100px" // تحميل مسبق قبل وصول الصورة للعرض
+        rootMargin: "300px" // زيادة من 100px لتحميل أبكر وأكثر سلاسة
       }
     );
 
