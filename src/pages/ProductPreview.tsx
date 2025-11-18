@@ -12,10 +12,10 @@ import EmployeePanel from "@/components/employees/EmployeePanel";
 import EmployeeProductsView from "@/components/employees/EmployeeProductsView";
 import { CartProvider } from "@/contexts/CartContext";
 import InstallPWAButton from "@/components/store/InstallPWAButton";
+import StoreProductsDisplay from "@/components/store/StoreProductsDisplay";
 
 // استخدام التحميل البطيء للمكونات غير الأساسية
 const ProductPreviewContainer = lazy(() => import("@/components/store/ProductPreviewContainer"));
-const StoreProductsDisplay = lazy(() => import("@/components/store/StoreProductsDisplay"));
 const FeedbackTrigger = lazy(() => import("@/components/store/feedback/FeedbackTrigger"));
 
 const ProductPreview = () => {
@@ -261,21 +261,19 @@ const ProductPreview = () => {
               darkMode={storeData.darkMode}
               containerHeight="auto"
             >
-              <Suspense fallback={<div className="animate-pulse bg-gray-200 h-64 rounded-md w-full" />}>
-                <StoreProductsDisplay 
-                  storeName={storeData.storeName} 
-                  colorTheme={storeData.colorTheme}
-                  fontSettings={storeData.fontSettings}
-                  contactInfo={storeData.contactInfo}
-                  categoryImages={storeData.categoryImages}
-                  slug={slug}
-                  storeOwnerId={storeOwnerId}
-                  forceRefresh={forceRefresh}
-                  isEmployeeView={!!employee}
-                  template={storeData.template}
-                  socialLinks={storeData.socialLinks}
-                />
-              </Suspense>
+              <StoreProductsDisplay 
+                storeName={storeData.storeName} 
+                colorTheme={storeData.colorTheme}
+                fontSettings={storeData.fontSettings}
+                contactInfo={storeData.contactInfo}
+                categoryImages={storeData.categoryImages}
+                slug={slug}
+                storeOwnerId={storeOwnerId}
+                forceRefresh={forceRefresh}
+                isEmployeeView={!!employee}
+                template={storeData.template}
+                socialLinks={storeData.socialLinks}
+              />
             </ProductPreviewContainer>
           </Suspense>
           
