@@ -30,7 +30,9 @@ const BannerSection = ({
         {imgSrc && !imageError ? (
           <img 
             src={imgSrc} 
-            alt="صورة الغلاف" 
+            alt="صورة الغلاف"
+            width="1600"
+            height="500"
             className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
             onError={() => {
               console.error("خطأ في عرض البانر:", imgSrc);

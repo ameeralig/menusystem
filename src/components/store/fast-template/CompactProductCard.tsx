@@ -53,6 +53,8 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
         <img
           src={optimizedImageUrl}
           alt={product.name}
+          width="120"
+          height="120"
           loading="lazy"
           decoding="async"
           fetchPriority="low"

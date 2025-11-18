@@ -73,6 +73,8 @@ const LazyImage = ({ src, alt, className = "", onLoad, onError }: LazyImageProps
           ref={imgRef}
           src={src}
           alt={alt}
+          width="400"
+          height="225"
           className={`w-full h-full object-cover transition-all duration-300 ${
             isLoaded ? "opacity-100 hover:scale-105" : "opacity-0"
           } ${className}`}
