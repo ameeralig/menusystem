@@ -220,6 +220,16 @@ const ProductPreview = () => {
   return (
     <>
       <Helmet>
+        {/* Preload Banner Image */}
+        {storeData.bannerUrl && (
+          <link 
+            rel="preload" 
+            as="image" 
+            href={storeData.bannerUrl} 
+            fetchPriority="high"
+          />
+        )}
+        
         {/* PWA Meta Tags */}
         <title>{storeData.storeName || 'متجري'}</title>
         <meta name="description" content={`تصفح منتجات ${storeData.storeName || 'متجرنا'}`} />
