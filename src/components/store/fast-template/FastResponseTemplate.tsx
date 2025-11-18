@@ -3,11 +3,10 @@ import { Product } from "@/types/product";
 import CategoryTabs from "./CategoryTabs";
 import CompactProductCard from "./CompactProductCard";
 import ProductDetailsModal from "./ProductDetailsModal";
-import { Search, X } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import EmptyCategoryMessage from "../EmptyCategoryMessage";
 import StoreInfo from "../StoreInfo";
-import FloatingActionsBar from "./FloatingActionsBar";
+import BottomActionsBar from "./BottomActionsBar";
+import SearchDrawer from "./SearchDrawer";
 import AnimatedStoreHeader from "../AnimatedStoreHeader";
 import { ContactInfo, FontSettings, SocialLinks } from "@/types/store";
 
@@ -35,9 +34,9 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   socialLinks
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSearchDrawerOpen, setIsSearchDrawerOpen] = useState(false);
 
   // استخراج التصنيفات الفريدة من المنتجات
   const categories = useMemo(() => {
@@ -50,22 +49,13 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
     return Array.from(uniqueCategories).sort();
   }, [products]);
 
-  // تصفية المنتجات حسب التصنيف والبحث
+  // تصفية المنتجات حسب التصنيف فقط
   const filteredProducts = useMemo(() => {
     let filtered = products;
 
     // تصفية حسب التصنيف
     if (selectedCategory) {
       filtered = filtered.filter(product => product.category === selectedCategory);
-    }
-
-    // تصفية حسب البحث
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(query) ||
-        product.description?.toLowerCase().includes(query)
-      );
     }
 
     // ترتيب حسب display_order إذا كان موجوداً
@@ -75,30 +65,12 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
       }
       return 0;
     });
-  }, [products, selectedCategory, searchQuery]);
+  }, [products, selectedCategory]);
 
   // معالجة تغيير التصنيف
   const handleCategorySelect = useCallback((category: string | null) => {
     setSelectedCategory(category);
-    setSearchQuery(""); // مسح البحث عند تغيير التصنيف
   }, []);
-
-  // معالجة البحث
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-    if (onSearchChange) {
-      onSearchChange(query);
-    }
-  }, [onSearchChange]);
-
-  // مسح البحث
-  const clearSearch = useCallback(() => {
-    setSearchQuery("");
-    if (onSearchChange) {
-      onSearchChange("");
-    }
-  }, [onSearchChange]);
 
   // معالجة فتح تفاصيل المنتج
   const handleProductClick = useCallback((product: Product) => {
@@ -109,7 +81,16 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   // معالجة إغلاق النافذة
   const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
-    setTimeout(() => setSelectedProduct(null), 300); // انتظار انتهاء الأنيميشن
+    setTimeout(() => setSelectedProduct(null), 300);
+  }, []);
+
+  // معالجة فتح/إغلاق Drawer البحث
+  const handleSearchClick = useCallback(() => {
+    setIsSearchDrawerOpen(true);
+  }, []);
+
+  const handleSearchDrawerClose = useCallback(() => {
+    setIsSearchDrawerOpen(false);
   }, []);
 
   return (
@@ -145,49 +126,12 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
       />
 
       {/* منطقة المحتوى */}
-      <div className="px-3 py-4">
-        {/* شريط البحث */}
-        <div className="mb-4">
-          <div className="relative">
-            <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="ابحث عن منتج..."
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="w-full border-0 p-4 pr-12 pl-12 rounded-2xl text-base transition-all duration-300 outline-none focus:outline-none text-gray-700"
-              style={{
-                background: '#e8e8e8',
-                boxShadow: '5px 5px 15px #d0d0d0, -5px -5px 15px #f0f0f0',
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.boxShadow = 'inset 3px 3px 8px #d0d0d0, inset -3px -3px 8px #f0f0f0';
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.boxShadow = '5px 5px 15px #d0d0d0, -5px -5px 15px #f0f0f0';
-              }}
-            />
-            {searchQuery && (
-              <button
-                onClick={clearSearch}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            )}
-          </div>
-        </div>
-
+      <div className="px-3 py-4 pb-24">
         {/* عرض عدد المنتجات */}
         <div className="flex items-center justify-between mb-3">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             {selectedCategory ? `${selectedCategory} (${filteredProducts.length})` : `جميع المنتجات (${filteredProducts.length})`}
           </p>
-          {searchQuery && (
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              نتائج البحث عن: "{searchQuery}"
-            </p>
-          )}
         </div>
 
         {/* قائمة المنتجات */}
@@ -204,18 +148,27 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
           </div>
         ) : (
           <EmptyCategoryMessage
-            searchQuery={searchQuery}
             selectedCategory={selectedCategory}
           />
         )}
       </div>
 
-      {/* الشريط العائم للإجراءات */}
-      <FloatingActionsBar 
+      {/* الشريط الأفقي السفلي */}
+      <BottomActionsBar
         slug={slug}
         storeOwnerId={storeOwnerId}
         colorTheme={colorTheme}
         socialLinks={socialLinks}
+        onSearchClick={handleSearchClick}
+      />
+
+      {/* Drawer البحث */}
+      <SearchDrawer
+        isOpen={isSearchDrawerOpen}
+        onClose={handleSearchDrawerClose}
+        products={products}
+        onProductSelect={handleProductClick}
+        colorTheme={colorTheme}
       />
 
       {/* نافذة تفاصيل المنتج */}
