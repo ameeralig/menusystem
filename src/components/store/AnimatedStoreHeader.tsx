@@ -25,7 +25,20 @@ const AnimatedStoreHeader = ({ storeName, colorTheme, fontSettings }: AnimatedSt
       const uniqueId = `store-name-font-${Math.random().toString(36).substring(2, 9)}`;
       setFontId(uniqueId);
       
-      const fontFace = new FontFace(uniqueId, `url(${fontSettings.storeName.customFontUrl})`);
+      // إضافة preload للخط
+      const preloadLink = document.createElement('link');
+      preloadLink.rel = 'preload';
+      preloadLink.as = 'font';
+      preloadLink.href = fontSettings.storeName.customFontUrl;
+      preloadLink.crossOrigin = 'anonymous';
+      preloadLink.id = `preload-${uniqueId}`;
+      document.head.appendChild(preloadLink);
+      
+      const fontFace = new FontFace(
+        uniqueId, 
+        `url(${fontSettings.storeName.customFontUrl})`,
+        { display: 'swap' }
+      );
       
       fontFace.load().then((loadedFontFace) => {
         document.fonts.add(loadedFontFace);
@@ -38,6 +51,10 @@ const AnimatedStoreHeader = ({ storeName, colorTheme, fontSettings }: AnimatedSt
         const styleElement = document.getElementById(`style-${uniqueId}`);
         if (styleElement) {
           styleElement.remove();
+        }
+        const preloadElement = document.getElementById(`preload-${uniqueId}`);
+        if (preloadElement) {
+          preloadElement.remove();
         }
       };
     }
@@ -82,10 +99,14 @@ const AnimatedStoreHeader = ({ storeName, colorTheme, fontSettings }: AnimatedSt
   };
 
   const getStoreNameStyle = (): CSSProperties => {
-    let style: CSSProperties = {};
+    let style: CSSProperties = {
+      fontSizeAdjust: '0.5',
+    };
     
-    if (fontSettings?.storeName?.isCustom && fontId && fontFaceLoaded) {
-      style.fontFamily = `"${fontId}", sans-serif`;
+    if (fontSettings?.storeName?.isCustom && fontId) {
+      style.fontFamily = fontFaceLoaded 
+        ? `"${fontId}", "Arial", sans-serif`
+        : `"Arial", sans-serif`;
     }
     
     return style;

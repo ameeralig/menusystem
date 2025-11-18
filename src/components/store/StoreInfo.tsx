@@ -162,7 +162,11 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
 
       {hasCollapsibleDetails && (
         <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
-          <Collapsible open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+          <Collapsible 
+            open={isDetailsOpen} 
+            onOpenChange={setIsDetailsOpen}
+            style={{ willChange: 'height' }}
+          >
             <CollapsibleTrigger className="flex items-center justify-between w-full group cursor-pointer">
               <div className="flex items-center gap-2">
                 <Info className={`w-4 h-4 ${themeIconClasses}`} />
@@ -175,13 +179,14 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
               </span>
             </CollapsibleTrigger>
             
-            <CollapsibleContent className="mt-3 space-y-3">
+            <CollapsibleContent className="mt-3 space-y-3 overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
               {/* ساعات العمل */}
               {contactInfo.businessHours && (
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
                   <Collapsible
                     open={isBusinessHoursOpen}
                     onOpenChange={setIsBusinessHoursOpen}
+                    style={{ willChange: 'height' }}
                   >
                     <CollapsibleTrigger className="flex items-center justify-between w-full cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md p-2 transition-colors group">
                       <div className="flex items-center gap-2">
@@ -192,7 +197,7 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
                         {isBusinessHoursOpen ? 'إخفاء' : 'عرض'}
                       </span>
                     </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-2">
+                    <CollapsibleContent className="mt-2 overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
                       {formatBusinessHours()}
                     </CollapsibleContent>
                   </Collapsible>
