@@ -42,16 +42,18 @@ const ProgressiveCategoryGrid = ({
 
     const timer = setInterval(() => {
       setCurrentIndex(prev => {
-        const next = prev + 1;
+        const next = prev + 3; // عرض 3 تصنيفات في كل دفعة
         if (next <= sortedCategories.length) {
           setVisibleCategories(sortedCategories.slice(0, next));
           return next;
         } else {
+          // عرض جميع التصنيفات المتبقية
+          setVisibleCategories(sortedCategories);
           clearInterval(timer);
-          return prev;
+          return sortedCategories.length;
         }
       });
-    }, 150); // تأخير 150ms بين كل تصنيف
+    }, 50); // تقليل التأخير من 150ms إلى 50ms
 
     return () => clearInterval(timer);
   }, [sortedCategories, isLoading]);

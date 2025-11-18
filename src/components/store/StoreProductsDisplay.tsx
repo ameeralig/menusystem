@@ -69,13 +69,25 @@ const StoreProductsDisplay = ({
     forceRefresh
   });
 
-  // تحميل الخط المخصص لاسم المتجر
+  // تحميل محسّن للخط المخصص مع preload
   useEffect(() => {
     if (fontSettings?.storeName?.isCustom && fontSettings?.storeName?.customFontUrl) {
       const fontId = `custom-store-font-${Date.now()}`;
+      const fontUrl = fontSettings.storeName.customFontUrl;
+      
+      // إضافة preload للخط
+      const preloadLink = document.createElement('link');
+      preloadLink.rel = 'preload';
+      preloadLink.as = 'font';
+      preloadLink.href = fontUrl;
+      preloadLink.crossOrigin = 'anonymous';
+      document.head.appendChild(preloadLink);
       
       try {
-        const fontFace = new FontFace(fontId, `url(${fontSettings.storeName.customFontUrl})`);
+        // تحميل الخط بشكل async
+        const fontFace = new FontFace(fontId, `url(${fontUrl})`, {
+          display: 'swap' // استخدام fallback font أثناء التحميل
+        });
         
         fontFace.load().then((loadedFont) => {
           document.fonts.add(loadedFont);
@@ -88,6 +100,10 @@ const StoreProductsDisplay = ({
         console.error("خطأ في إنشاء FontFace:", error);
         setCustomFontFamily("");
       }
+      
+      return () => {
+        preloadLink.remove();
+      };
     } else {
       setCustomFontFamily("");
     }
