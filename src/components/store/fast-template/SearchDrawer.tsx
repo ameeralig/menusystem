@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { Search, X, Sparkles } from "lucide-react";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Product } from "@/types/product";
@@ -88,6 +88,13 @@ const SearchDrawer: React.FC<SearchDrawerProps> = ({
     setSearchQuery("");
   }, [onProductSelect, onClose]);
 
+  const handleOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      onClose();
+      setSearchQuery("");
+    }
+  }, [onClose]);
+
   const getThemeColor = () => {
     if (colorTheme?.startsWith('#')) return colorTheme;
     
@@ -103,10 +110,10 @@ const SearchDrawer: React.FC<SearchDrawerProps> = ({
   };
 
   return (
-    <Drawer open={isOpen} onOpenChange={onClose}>
-      <DrawerContent className="max-h-[85vh]">
-        <DrawerHeader className="border-b pb-4">
-          <DrawerTitle className="text-right text-xl font-bold flex items-center justify-between">
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[85vh] p-0">
+        <DialogHeader className="border-b p-6 pb-4">
+          <DialogTitle className="text-right text-xl font-bold flex items-center justify-between">
             <Button 
               variant="ghost" 
               size="icon" 
@@ -117,10 +124,10 @@ const SearchDrawer: React.FC<SearchDrawerProps> = ({
             </Button>
             <span>البحث في المنتجات</span>
             <Search className="h-5 w-5" style={{ color: getThemeColor() }} />
-          </DrawerTitle>
-        </DrawerHeader>
+          </DialogTitle>
+        </DialogHeader>
 
-        <div className="p-4 space-y-4">
+        <div className="p-6 space-y-4">
           {/* شريط البحث */}
           <div className="relative">
             <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -230,8 +237,8 @@ const SearchDrawer: React.FC<SearchDrawerProps> = ({
             </AnimatePresence>
           </ScrollArea>
         </div>
-      </DrawerContent>
-    </Drawer>
+      </DialogContent>
+    </Dialog>
   );
 };
 
