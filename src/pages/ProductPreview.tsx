@@ -61,9 +61,8 @@ const ProductPreview = () => {
     initializeStoreData();
   }, [storeOwnerId, isLoading]);
 
-  // تحسين meta tags وتحميل الصور - إنشاء مرة واحدة فقط
+  // تحسين meta tags - إنشاء مرة واحدة فقط
   useEffect(() => {
-    // إعداد meta tags مرة واحدة
     const metaConfigs = [
       { name: 'Cache-Control', content: 'no-cache, no-store, must-revalidate' },
       { name: 'Pragma', content: 'no-cache' },
@@ -83,30 +82,10 @@ const ProductPreview = () => {
       }
     });
 
-    // تحميل مسبق للصور الأولى
-    if (storeData?.bannerUrl) {
-      const preloadBanner = new Image();
-      preloadBanner.src = `${storeData.bannerUrl.split('?')[0]}?t=${Date.now()}`;
-      preloadBanner.loading = "eager";
-      preloadBanner.fetchPriority = "high";
-    }
-
-    // تحميل مسبق لأول 3 صور منتجات
-    if (storeData?.products && storeData.products.length > 0) {
-      const firstThreeProducts = storeData.products.slice(0, 3);
-      firstThreeProducts.forEach(product => {
-        if (product.image_url) {
-          const img = new Image();
-          img.src = product.image_url;
-          img.loading = "eager";
-        }
-      });
-    }
-
     return () => {
       createdTags.forEach(tag => tag.remove());
     };
-  }, [storeData?.bannerUrl, storeData?.products]);
+  }, []);
 
   // تحسين realtime subscriptions مع debounce أطول
   useEffect(() => {
