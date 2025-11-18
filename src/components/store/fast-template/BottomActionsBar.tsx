@@ -1,11 +1,10 @@
-import React, { Suspense, lazy } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import { Disc3, MessageSquare, Search, Instagram, Facebook, Send } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SocialLinks } from "@/types/store";
-
-const FeedbackTrigger = lazy(() => import("../feedback/FeedbackTrigger"));
+import { useNavigate } from "react-router-dom";
 
 interface BottomActionsBarProps {
   slug?: string;
@@ -22,6 +21,8 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   socialLinks,
   onSearchClick,
 }) => {
+  const navigate = useNavigate();
+
   const getThemeColor = () => {
     if (colorTheme?.startsWith('#')) {
       return colorTheme;
@@ -162,25 +163,26 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                 whileTap={{ scale: 0.95 }}
                 className="flex-1 max-w-[120px]"
               >
-                <Suspense fallback={
-                  <Button
-                    variant="ghost"
-                    disabled
-                    className="w-full h-14 rounded-2xl flex flex-col items-center justify-center gap-1"
+                <Button
+                  onClick={() => navigate(`/customer-feedback/${storeOwnerId}`)}
+                  variant="ghost"
+                  className="w-full h-14 rounded-2xl transition-all duration-300 relative group flex flex-col items-center justify-center gap-1"
+                  style={{
+                    background: `${themeColor}15`,
+                    color: themeColor,
+                  }}
+                >
+                  <MessageSquare className="w-6 h-6" />
+                  <span className="text-xs font-medium">رأيك</span>
+                  
+                  {/* تأثير التوهج */}
+                  <div 
+                    className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                     style={{
-                      background: `${themeColor}15`,
-                      color: themeColor,
+                      background: `radial-gradient(circle, ${themeColor}30 0%, transparent 70%)`,
                     }}
-                  >
-                    <MessageSquare className="w-6 h-6" />
-                    <span className="text-xs font-medium">رأيك</span>
-                  </Button>
-                }>
-                  <FeedbackTrigger
-                    userId={storeOwnerId}
-                    colorTheme={colorTheme}
                   />
-                </Suspense>
+                </Button>
               </motion.div>
             )}
 
