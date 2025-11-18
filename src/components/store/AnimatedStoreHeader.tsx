@@ -96,32 +96,28 @@ const AnimatedStoreHeader = ({ storeName, colorTheme, fontSettings }: AnimatedSt
   // تقسيم اسم المتجر إلى حروف
   const letters = storeName ? storeName.split('') : [];
 
-  // انيميشن سقوط الحروف
+  // انيميشن سقوط الحروف - محسّن لمنع Layout Shifts
   const letterVariants = {
     initial: {
-      y: -100,
+      y: 0,
       opacity: 0,
-      rotate: -15,
-      scale: 0.5,
+      scale: 0.8,
     },
     animate: (i: number) => ({
       y: 0,
       opacity: 1,
-      rotate: 0,
       scale: 1,
       transition: {
-        delay: i * 0.1,
-        duration: 0.8,
-        type: "spring",
-        damping: 10,
-        stiffness: 100,
+        delay: i * 0.05,
+        duration: 0.4,
+        ease: "easeOut",
       }
     }),
     bounce: {
-      y: [0, -10, 0],
+      y: [0, -5, 0],
       transition: {
-        duration: 0.5,
-        delay: 0.2,
+        duration: 0.3,
+        delay: 0.1,
       }
     }
   };
@@ -155,12 +151,27 @@ const AnimatedStoreHeader = ({ storeName, colorTheme, fontSettings }: AnimatedSt
   if (!storeName) return null;
 
   return (
-    <div className="relative mb-8 h-24 flex items-center justify-center overflow-hidden">
+    <div 
+      className="relative mb-8"
+      style={{
+        minHeight: '3.5rem',
+        contain: 'layout',
+      }}
+    >
       <AnimatePresence mode="wait">
         <motion.h1 
           key={storeName}
           className="text-3xl md:text-4xl font-bold text-center relative z-10"
-          style={{...getStoreNameStyle(), direction: 'rtl', unicodeBidi: 'embed'}}
+          style={{
+            ...getStoreNameStyle(), 
+            direction: 'rtl', 
+            unicodeBidi: 'embed',
+            minHeight: '3.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            willChange: 'opacity, transform',
+          }}
           initial="initial"
           animate="animate"
         >
