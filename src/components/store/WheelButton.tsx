@@ -42,7 +42,7 @@ const WheelButton: React.FC<WheelButtonProps> = ({ slug, colorTheme }) => {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
     >
-      <Link to={`/store/${slug}/wheel`}>
+      <Link to={`/spin/${slug}`}>
         <Button
           className={`${buttonColors} text-white shadow-lg relative overflow-hidden group`}
           size="default"
