@@ -24,36 +24,46 @@ const StoreHeader = ({ storeName, colorTheme, fontSettings }: StoreHeaderProps) 
       const uniqueId = `store-name-font-${Math.random().toString(36).substring(2, 9)}`;
       setFontId(uniqueId);
       
-      // إضافة preload للخط
-      const preloadLink = document.createElement('link');
-      preloadLink.rel = 'preload';
-      preloadLink.as = 'font';
-      preloadLink.href = fontSettings.storeName.customFontUrl;
-      preloadLink.crossOrigin = 'anonymous';
-      preloadLink.id = `preload-${uniqueId}`;
-      document.head.appendChild(preloadLink);
+      const customFontUrl = fontSettings.storeName.customFontUrl;
+      console.log("محاولة تحميل خط اسم المتجر:", customFontUrl.substring(0, 50));
       
-      const fontFace = new FontFace(
-        uniqueId, 
-        `url(${fontSettings.storeName.customFontUrl})`,
-        { display: 'swap' }
-      );
+      // تحديد نوع الخط من Data URL
+      let fontFormat = 'truetype'; // default
+      if (customFontUrl.includes('font/woff2')) {
+        fontFormat = 'woff2';
+      } else if (customFontUrl.includes('font/woff')) {
+        fontFormat = 'woff';
+      } else if (customFontUrl.includes('font/opentype') || customFontUrl.includes('.otf')) {
+        fontFormat = 'opentype';
+      }
       
-      fontFace.load().then((loadedFontFace) => {
-        document.fonts.add(loadedFontFace);
-        setFontFaceLoaded(true);
-      }).catch(err => {
-        console.error("Error loading custom font:", err);
-      });
+      try {
+        const fontFace = new FontFace(
+          uniqueId, 
+          `url("${customFontUrl}") format("${fontFormat}")`,
+          { display: 'swap' }
+        );
+        
+        fontFace.load()
+          .then((loadedFontFace) => {
+            document.fonts.add(loadedFontFace);
+            setFontFaceLoaded(true);
+            console.log("✅ تم تحميل خط اسم المتجر بنجاح");
+          })
+          .catch(err => {
+            console.error("❌ خطأ في تحميل خط اسم المتجر:", err);
+            // استخدام الخط الافتراضي عند الفشل
+            setFontFaceLoaded(false);
+          });
+      } catch (err) {
+        console.error("❌ خطأ في إنشاء FontFace:", err);
+        setFontFaceLoaded(false);
+      }
       
       return () => {
         const styleElement = document.getElementById(`style-${uniqueId}`);
         if (styleElement) {
           styleElement.remove();
-        }
-        const preloadElement = document.getElementById(`preload-${uniqueId}`);
-        if (preloadElement) {
-          preloadElement.remove();
         }
       };
     }
