@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, Loader2 } from "lucide-react";
 import OptimizedProductGrid from "./OptimizedProductGrid";
 import ProgressiveCategoryGrid from "./ProgressiveCategoryGrid";
-import StoreInfo from "./StoreInfo";
 import ProgressiveLoadingIndicator from "./ProgressiveLoadingIndicator";
 import BackButton from "./BackButton";
 import EmptyCategoryMessage from "./EmptyCategoryMessage";
@@ -250,18 +249,6 @@ const StoreProductsDisplay = ({
           storeName={storeName}
           colorTheme={colorTheme}
           fontSettings={fontSettings}
-        />
-      </motion.div>
-
-      {/* معلومات المتجر */}
-      <motion.div
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-      >
-        <StoreInfo 
-          contactInfo={contactInfo}
-          colorTheme={colorTheme}
         />
       </motion.div>
 
