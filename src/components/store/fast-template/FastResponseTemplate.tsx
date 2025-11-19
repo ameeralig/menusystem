@@ -4,13 +4,9 @@ import CategoryTabs from "./CategoryTabs";
 import CompactProductCard from "./CompactProductCard";
 import ProductDetailsModal from "./ProductDetailsModal";
 import EmptyCategoryMessage from "../EmptyCategoryMessage";
-import StoreInfo from "../StoreInfo";
 import BottomActionsBar from "./BottomActionsBar";
 import AnimatedStoreHeader from "../AnimatedStoreHeader";
 import { ContactInfo, FontSettings, SocialLinks } from "@/types/store";
-import { Search, X } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
 interface FastResponseTemplateProps {
   products: Product[];
@@ -129,15 +125,6 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         </div>
       )}
 
-      {/* تفاصيل المتجر */}
-      {contactInfo && (
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <div className="px-3 py-4">
-            <StoreInfo contactInfo={contactInfo} colorTheme={colorTheme} />
-          </div>
-        </div>
-      )}
-
       {/* شريط التصنيفات */}
       <CategoryTabs
         categories={categories}
@@ -186,6 +173,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         storeOwnerId={storeOwnerId}
         colorTheme={colorTheme}
         socialLinks={socialLinks}
+        contactInfo={contactInfo}
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
         onClearSearch={clearSearch}
