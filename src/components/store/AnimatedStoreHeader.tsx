@@ -173,21 +173,21 @@ const AnimatedStoreHeader = ({ storeName, colorTheme, fontSettings }: AnimatedSt
 
   return (
     <div 
-      className="relative mb-8"
+      className="relative mb-3"
       style={{
-        minHeight: '3.5rem',
+        minHeight: '2.5rem',
         contain: 'layout',
       }}
     >
       <AnimatePresence mode="wait">
         <motion.h1 
           key={storeName}
-          className="text-3xl md:text-4xl font-bold text-center relative z-10"
+          className="text-xl md:text-2xl font-bold text-center relative z-10"
           style={{
             ...getStoreNameStyle(), 
             direction: 'rtl', 
             unicodeBidi: 'embed',
-            minHeight: '3.5rem',
+            minHeight: '2.5rem',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
