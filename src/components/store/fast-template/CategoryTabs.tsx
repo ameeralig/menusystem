@@ -25,61 +25,77 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
     return sortCategoriesByOrder(categories, categoryImages);
   }, [categories, categoryImages]);
 
+  // الحصول على صورة التصنيف
+  const getCategoryImage = (category: string) => {
+    return categoryImages?.find(img => img.category === category);
+  };
+
   return (
     <div className="w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
-      <div className="container mx-auto px-2 py-1.5">
+      <div className="container mx-auto px-3 py-3">
         {/* شريط التصنيفات القابل للتمرير */}
-        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
-          {/* زر الكل */}
-          <button
-            onClick={() => onCategorySelect(null)}
-            className={`
-              px-3 py-1.5 rounded-full text-xs font-medium 
-              transition-all duration-200 ease-in-out
-              flex-shrink-0 whitespace-nowrap
-              ${selectedCategory === null 
-                ? 'bg-primary text-white shadow-md scale-105' 
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-              }
-            `}
-            style={
-              selectedCategory === null && colorTheme?.startsWith('#')
-                ? {
-                    backgroundColor: colorTheme,
-                    color: 'white'
+        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+          {/* صور وأسماء التصنيفات */}
+          {sortedCategories.map((category) => {
+            const categoryImage = getCategoryImage(category);
+            const isSelected = selectedCategory === category;
+            
+            return (
+              <button
+                key={category}
+                onClick={() => onCategorySelect(category)}
+                className="flex flex-col items-center gap-1.5 flex-shrink-0 transition-all duration-200 ease-in-out group"
+              >
+                {/* الصورة الدائرية */}
+                <div className={`
+                  relative w-16 h-16 rounded-full overflow-hidden
+                  transition-all duration-200
+                  ${isSelected 
+                    ? 'ring-4 ring-primary shadow-lg scale-105' 
+                    : 'ring-2 ring-gray-200 dark:ring-gray-700 group-hover:ring-gray-300 dark:group-hover:ring-gray-600'
                   }
-                : undefined
-            }
-          >
-            الكل
-          </button>
-
-          {/* أزرار التصنيفات */}
-          {sortedCategories.map((category) => (
-            <button
-              key={category}
-              onClick={() => onCategorySelect(category)}
-              className={`
-                px-3 py-1.5 rounded-full text-xs font-medium 
-                transition-all duration-200 ease-in-out
-                flex-shrink-0 whitespace-nowrap
-                ${selectedCategory === category
-                  ? 'bg-primary text-white shadow-md scale-105' 
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                `}
+                style={
+                  isSelected && colorTheme?.startsWith('#')
+                    ? { '--tw-ring-color': colorTheme } as React.CSSProperties
+                    : undefined
                 }
-              `}
-              style={
-                selectedCategory === category && colorTheme?.startsWith('#')
-                  ? {
-                      backgroundColor: colorTheme,
-                      color: 'white'
-                    }
-                  : undefined
-              }
-            >
-              {category}
-            </button>
-          ))}
+                >
+                  {categoryImage?.image_url ? (
+                    <img
+                      src={categoryImage.image_url}
+                      alt={category}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center">
+                      <span className="text-2xl font-bold text-primary">
+                        {category.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* اسم التصنيف */}
+                <span className={`
+                  text-xs font-medium whitespace-nowrap transition-colors
+                  ${isSelected 
+                    ? 'text-primary font-semibold' 
+                    : 'text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100'
+                  }
+                `}
+                style={
+                  isSelected && colorTheme?.startsWith('#')
+                    ? { color: colorTheme }
+                    : undefined
+                }
+                >
+                  {category}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
