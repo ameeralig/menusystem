@@ -98,8 +98,8 @@ const StoreHeader = ({ storeName, colorTheme, fontSettings }: StoreHeaderProps) 
     
     if (fontSettings?.storeName?.isCustom && fontId) {
       style.fontFamily = fontFaceLoaded 
-        ? `"${fontId}", "Arial", sans-serif`
-        : `"Arial", sans-serif`;
+        ? `${fontId}, Arial, sans-serif`
+        : `Arial, sans-serif`;
     }
     
     // تطبيق اللون المخصص إذا كان موجوداً
