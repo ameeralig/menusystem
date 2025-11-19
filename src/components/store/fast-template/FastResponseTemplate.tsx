@@ -5,7 +5,7 @@ import CompactProductCard from "./CompactProductCard";
 import ProductDetailsModal from "./ProductDetailsModal";
 import EmptyCategoryMessage from "../EmptyCategoryMessage";
 import BottomActionsBar from "./BottomActionsBar";
-import AnimatedStoreHeader from "../AnimatedStoreHeader";
+import StoreHeader from "../StoreHeader";
 import { ContactInfo, FontSettings, SocialLinks } from "@/types/store";
 
 interface FastResponseTemplateProps {
@@ -116,11 +116,11 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
       {storeName && (
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 py-4">
           <div className="px-3">
-            <AnimatedStoreHeader
-              storeName={storeName}
-              colorTheme={colorTheme}
-              fontSettings={fontSettings}
-            />
+      <StoreHeader 
+        storeName={storeName} 
+        colorTheme={colorTheme}
+        fontSettings={fontSettings}
+      />
           </div>
         </div>
       )}
