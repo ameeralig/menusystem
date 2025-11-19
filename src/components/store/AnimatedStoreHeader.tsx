@@ -105,8 +105,8 @@ const AnimatedStoreHeader = ({ storeName, colorTheme, fontSettings }: AnimatedSt
     
     if (fontSettings?.storeName?.isCustom && fontId) {
       style.fontFamily = fontFaceLoaded 
-        ? `"${fontId}", "Arial", sans-serif`
-        : `"Arial", sans-serif`;
+        ? `${fontId}, Arial, sans-serif`
+        : `Arial, sans-serif`;
     }
     
     return style;
