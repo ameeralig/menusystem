@@ -8,6 +8,7 @@ import EmptyCategoryMessage from "../EmptyCategoryMessage";
 import BottomActionsBar from "./BottomActionsBar";
 import StoreHeader from "../StoreHeader";
 import { ContactInfo, FontSettings, SocialLinks } from "@/types/store";
+import { sortCategoriesByOrder } from "@/utils/categorySort";
 
 interface FastResponseTemplateProps {
   products: Product[];
@@ -39,7 +40,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // استخراج التصنيفات الفريدة من المنتجات
+  // استخراج التصنيفات الفريدة من المنتجات (بدون ترتيب أبجدي)
   const categories = useMemo(() => {
     const uniqueCategories = new Set<string>();
     products.forEach(product => {
@@ -47,25 +48,14 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         uniqueCategories.add(product.category);
       }
     });
-    return Array.from(uniqueCategories).sort();
+    return Array.from(uniqueCategories);
   }, [products]);
 
-  // تحديد أول تصنيف تلقائياً عند التحميل
+  // تحديد أول تصنيف تلقائياً عند التحميل حسب الترتيب
   React.useEffect(() => {
-    if (categories.length > 0 && selectedCategory === null) {
-      const sortedCategories = categoryImages && categoryImages.length > 0
-        ? categories.sort((a, b) => {
-            const aImage = categoryImages.find(img => img.category === a);
-            const bImage = categoryImages.find(img => img.category === b);
-            const aOrder = aImage?.display_order ?? 999999;
-            const bOrder = bImage?.display_order ?? 999999;
-            if (aOrder === bOrder) {
-              return a.localeCompare(b, 'ar');
-            }
-            return aOrder - bOrder;
-          })
-        : categories;
-      
+    if (categories.length > 0 && selectedCategory === null && categoryImages) {
+      // استخدام دالة الترتيب الموحدة
+      const sortedCategories = sortCategoriesByOrder(categories, categoryImages);
       setSelectedCategory(sortedCategories[0]);
     }
   }, [categories, categoryImages, selectedCategory]);
