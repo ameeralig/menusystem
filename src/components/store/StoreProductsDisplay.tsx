@@ -16,6 +16,7 @@ import { useOptimizedProducts } from "@/hooks/store/useOptimizedProducts";
 import { sortCategoriesByOrder } from "@/utils/categorySort";
 import { FontSettings, ContactInfo } from "@/types/store";
 import FastResponseTemplate from "./fast-template/FastResponseTemplate";
+import BottomActionsBar from "./fast-template/BottomActionsBar";
 
 // تحميل بطيء لمكون مشاركة الرأي
 const FeedbackTrigger = lazy(() => import("./feedback/FeedbackTrigger"));
@@ -238,7 +239,7 @@ const StoreProductsDisplay = ({
       />
 
       <motion.div
-        className="container mx-auto px-4 py-8 max-w-6xl relative"
+        className="container mx-auto px-4 py-8 pb-28 max-w-6xl relative"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -433,6 +434,18 @@ const StoreProductsDisplay = ({
         </AnimatePresence>
       </motion.div>
       </motion.div>
+
+      {/* شريط الإجراءات السفلي */}
+      <BottomActionsBar
+        slug={slug}
+        storeOwnerId={storeOwnerId}
+        colorTheme={colorTheme}
+        socialLinks={socialLinks}
+        contactInfo={contactInfo}
+        searchQuery={searchQuery}
+        onSearchChange={(e) => handleSearchChange(e.target.value)}
+        onClearSearch={() => handleSearchChange("")}
+      />
     </>
   );
 };
