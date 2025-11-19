@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { CategoryImage } from "@/types/categoryImage";
 import { FontSettings } from "@/types/store";
+import { sortCategoriesByOrder } from "@/utils/categorySort";
 
 interface ProgressiveCategoryGridProps {
   categories: string[];
@@ -21,16 +22,8 @@ const ProgressiveCategoryGrid = ({
   const [visibleCategories, setVisibleCategories] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // ترتيب التصنيفات حسب display_order
-  const sortedCategories = [...categories].sort((a, b) => {
-    const aImage = categoryImages.find(img => img.category === a);
-    const bImage = categoryImages.find(img => img.category === b);
-    
-    const aOrder = aImage?.display_order || 999;
-    const bOrder = bImage?.display_order || 999;
-    
-    return aOrder - bOrder;
-  });
+  // ترتيب التصنيفات حسب display_order باستخدام الدالة الموحدة
+  const sortedCategories = sortCategoriesByOrder(categories, categoryImages);
 
   // تحميل التصنيفات تدريجياً
   useEffect(() => {
