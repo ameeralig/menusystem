@@ -8,20 +8,35 @@ export const sortCategoriesByOrder = (
   categories: string[],
   categoryImages: CategoryImage[]
 ): string[] => {
+  // إنشاء Map للوصول السريع إلى display_order
+  const orderMap = new Map<string, number>();
+  categoryImages.forEach(img => {
+    if (img.display_order !== null && img.display_order !== undefined) {
+      orderMap.set(img.category, img.display_order);
+    }
+  });
+  
   return [...categories].sort((a, b) => {
-    const aImage = categoryImages.find(img => img.category === a);
-    const bImage = categoryImages.find(img => img.category === b);
+    const aOrder = orderMap.get(a);
+    const bOrder = orderMap.get(b);
     
-    // التصنيفات التي لها display_order تأتي أولاً
-    const aOrder = aImage?.display_order ?? 999999;
-    const bOrder = bImage?.display_order ?? 999999;
-    
-    // إذا كان الترتيب متساوي، نرتب أبجدياً
-    if (aOrder === bOrder) {
-      return a.localeCompare(b, 'ar');
+    // إذا كان كلاهما له ترتيب محدد
+    if (aOrder !== undefined && bOrder !== undefined) {
+      return aOrder - bOrder;
     }
     
-    return aOrder - bOrder;
+    // إذا كان فقط a له ترتيب، يأتي أولاً
+    if (aOrder !== undefined && bOrder === undefined) {
+      return -1;
+    }
+    
+    // إذا كان فقط b له ترتيب، يأتي أولاً
+    if (aOrder === undefined && bOrder !== undefined) {
+      return 1;
+    }
+    
+    // إذا لم يكن لأي منهما ترتيب، نحتفظ بالترتيب الأصلي (لا نرتب!)
+    return 0;
   });
 };
 

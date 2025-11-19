@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { CSSProperties, useEffect, useState } from "react";
 import { CategoryImage } from "@/types/categoryImage";
 import { Folder } from "lucide-react";
+import { sortCategoriesByOrder } from "@/utils/categorySort";
 
 interface FontSettings {
   categoryText?: {
@@ -159,16 +160,8 @@ const CategoryGrid = ({
     return imageData.image_url;
   };
 
-  // ترتيب التصنيفات حسب display_order
-  const sortedCategories = [...categories].sort((a, b) => {
-    const aImage = categoryImages.find(img => img.category === a);
-    const bImage = categoryImages.find(img => img.category === b);
-    
-    const aOrder = aImage?.display_order || 999;
-    const bOrder = bImage?.display_order || 999;
-    
-    return aOrder - bOrder;
-  });
+  // ترتيب التصنيفات حسب display_order باستخدام الدالة الموحدة
+  const sortedCategories = sortCategoriesByOrder(categories, categoryImages);
 
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
