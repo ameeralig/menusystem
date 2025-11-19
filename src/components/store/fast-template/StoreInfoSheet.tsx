@@ -200,7 +200,7 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
           {/* الوصف */}
           {contactInfo.description && (
             <Card 
-              className="p-4 border"
+              className="p-4 border bg-card dark:bg-card"
               style={{
                 background: `linear-gradient(135deg, ${themeColor}08, ${themeColor}15)`,
                 borderColor: `${themeColor}30`,
@@ -208,7 +208,7 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
                 borderRightColor: themeColor
               }}
             >
-              <p className="text-sm leading-relaxed text-right">{contactInfo.description}</p>
+              <p className="text-sm leading-relaxed text-right text-foreground">{contactInfo.description}</p>
             </Card>
           )}
 
@@ -222,7 +222,7 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
                   <h3 className="font-semibold">ساعات العمل</h3>
                 </div>
                 <Card 
-                  className="p-4 border"
+                  className="p-4 border bg-card dark:bg-card"
                   style={{
                     background: `linear-gradient(135deg, ${themeColor}08, ${themeColor}15)`,
                     borderColor: `${themeColor}30`,
@@ -244,13 +244,13 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
                   <h3 className="font-semibold">العنوان</h3>
                 </div>
                 <Card 
-                  className="p-4 border"
+                  className="p-4 border bg-card dark:bg-card"
                   style={{
                     background: `linear-gradient(135deg, ${themeColor}08, ${themeColor}15)`,
                     borderColor: `${themeColor}30`,
                   }}
                 >
-                  <p className="text-sm text-right mb-3">{contactInfo.address}</p>
+                  <p className="text-sm text-right mb-3 text-foreground">{contactInfo.address}</p>
                   <Button
                     onClick={handleGoogleMapsClick}
                     className="w-full shadow-md hover:shadow-lg transition-shadow"
@@ -277,13 +277,13 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
                   <h3 className="font-semibold">الهاتف</h3>
                 </div>
                 <Card 
-                  className="p-4 border"
+                  className="p-4 border bg-card dark:bg-card"
                   style={{
                     background: `linear-gradient(135deg, ${themeColor}08, ${themeColor}15)`,
                     borderColor: `${themeColor}30`,
                   }}
                 >
-                  <p className="text-sm text-right mb-3 font-mono" dir="ltr">{contactInfo.phone}</p>
+                  <p className="text-sm text-right mb-3 font-mono text-foreground" dir="ltr">{contactInfo.phone}</p>
                   <Button
                     onClick={handlePhoneCall}
                     className="w-full shadow-md hover:shadow-lg transition-shadow"
@@ -310,14 +310,14 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
                   <h3 className="font-semibold">الواي فاي</h3>
                 </div>
                 <Card 
-                  className="p-4 border"
+                  className="p-4 border bg-card dark:bg-card"
                   style={{
                     background: `linear-gradient(135deg, ${themeColor}08, ${themeColor}15)`,
                     borderColor: `${themeColor}30`,
                   }}
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-sm font-mono" dir="ltr">
+                    <p className="text-sm font-mono text-foreground" dir="ltr">
                       {isWifiVisible ? contactInfo.wifi : "••••••••"}
                     </p>
                     <Button
@@ -332,7 +332,7 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
                   <Button
                     onClick={handleCopyWifi}
                     variant="outline"
-                    className="w-full"
+                    className="w-full hover:bg-transparent"
                     style={{ borderColor: themeColor, color: themeColor }}
                   >
                     <Copy className="h-4 w-4 ml-2" />
@@ -353,7 +353,7 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
                   <h3 className="font-semibold">تابعنا على</h3>
                 </div>
                 <Card 
-                  className="p-4 border"
+                  className="p-4 border bg-card dark:bg-card"
                   style={{
                     background: `linear-gradient(135deg, ${themeColor}08, ${themeColor}15)`,
                     borderColor: `${themeColor}30`,
@@ -365,16 +365,17 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
                         href={instagramUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex flex-col items-center gap-2 p-3 rounded-xl transition-all hover:scale-110"
+                        className="flex flex-col items-center gap-2 p-3 rounded-xl transition-all hover:scale-110 bg-background/50 dark:bg-background/30"
                         style={{
-                          background: `${themeColor}10`,
+                          borderWidth: '1px',
+                          borderColor: `${themeColor}20`,
                         }}
                       >
                         <Instagram 
                           className="h-8 w-8"
                           style={{ color: themeColor }}
                         />
-                        <span className="text-xs font-medium">Instagram</span>
+                        <span className="text-xs font-medium text-foreground">Instagram</span>
                       </a>
                     )}
 
@@ -383,16 +384,17 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
                         href={facebookUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex flex-col items-center gap-2 p-3 rounded-xl transition-all hover:scale-110"
+                        className="flex flex-col items-center gap-2 p-3 rounded-xl transition-all hover:scale-110 bg-background/50 dark:bg-background/30"
                         style={{
-                          background: `${themeColor}10`,
+                          borderWidth: '1px',
+                          borderColor: `${themeColor}20`,
                         }}
                       >
                         <Facebook 
                           className="h-8 w-8"
                           style={{ color: themeColor }}
                         />
-                        <span className="text-xs font-medium">Facebook</span>
+                        <span className="text-xs font-medium text-foreground">Facebook</span>
                       </a>
                     )}
 
@@ -401,16 +403,17 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
                         href={telegramUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex flex-col items-center gap-2 p-3 rounded-xl transition-all hover:scale-110"
+                        className="flex flex-col items-center gap-2 p-3 rounded-xl transition-all hover:scale-110 bg-background/50 dark:bg-background/30"
                         style={{
-                          background: `${themeColor}10`,
+                          borderWidth: '1px',
+                          borderColor: `${themeColor}20`,
                         }}
                       >
                         <Send 
                           className="h-8 w-8"
                           style={{ color: themeColor }}
                         />
-                        <span className="text-xs font-medium">Telegram</span>
+                        <span className="text-xs font-medium text-foreground">Telegram</span>
                       </a>
                     )}
                   </div>
