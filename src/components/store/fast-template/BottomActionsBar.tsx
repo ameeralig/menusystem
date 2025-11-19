@@ -1,17 +1,19 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Disc3, MessageSquare, Search, Instagram, Facebook, Send, X } from "lucide-react";
+import { Disc3, MessageSquare, Search, Instagram, Facebook, Send, X, Info } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SocialLinks } from "@/types/store";
+import { SocialLinks, ContactInfo } from "@/types/store";
 import { useNavigate } from "react-router-dom";
+import StoreInfoSheet from "./StoreInfoSheet";
 
 interface BottomActionsBarProps {
   slug?: string;
   storeOwnerId?: string;
   colorTheme?: string | null;
   socialLinks?: SocialLinks;
+  contactInfo?: ContactInfo;
   searchQuery: string;
   onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onClearSearch: () => void;
@@ -22,11 +24,13 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   storeOwnerId,
   colorTheme,
   socialLinks,
+  contactInfo,
   searchQuery,
   onSearchChange,
   onClearSearch,
 }) => {
   const navigate = useNavigate();
+  const [isInfoSheetOpen, setIsInfoSheetOpen] = useState(false);
 
   const getThemeColor = () => {
     if (colorTheme?.startsWith('#')) {
@@ -122,139 +126,143 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
             <div className="flex items-center gap-2">
               {/* زر عجلة الحظ */}
               {slug && (
-                <Link to={`/store/${slug}/wheel`}>
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Link to={`/spin/${slug}`}>
                     <Button
-                      variant="ghost"
                       size="icon"
-                      className="w-12 h-12 rounded-2xl transition-all duration-300 relative group"
+                      className="rounded-2xl h-12 w-12 shadow-lg"
                       style={{
-                        background: `${themeColor}15`,
-                        color: themeColor,
+                        background: `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`,
+                        color: 'white',
+                        border: '2px solid rgba(255,255,255,0.3)',
                       }}
                     >
-                      <motion.div
-                        animate={{
-                          rotate: [0, 10, -10, 0],
-                        }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          repeatDelay: 3,
-                        }}
-                      >
-                        <Disc3 className="w-5 h-5" />
-                      </motion.div>
-                      
-                      <div 
-                        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        style={{
-                          background: `radial-gradient(circle, ${themeColor}30 0%, transparent 70%)`,
-                        }}
-                      />
+                      <Disc3 className="h-5 w-5" />
                     </Button>
-                  </motion.div>
-                </Link>
+                  </Link>
+                </motion.div>
               )}
 
-              {/* زر الملاحظات */}
+              {/* زر معلومات المتجر */}
+              {contactInfo && (
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    size="icon"
+                    onClick={() => setIsInfoSheetOpen(true)}
+                    className="rounded-2xl h-12 w-12 shadow-lg"
+                    style={{
+                      background: `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`,
+                      color: 'white',
+                      border: '2px solid rgba(255,255,255,0.3)',
+                    }}
+                  >
+                    <Info className="h-5 w-5" />
+                  </Button>
+                </motion.div>
+              )}
+
+              {/* زر تقييم */}
               {storeOwnerId && (
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <Button
-                    onClick={() => navigate(`/customer-feedback/${storeOwnerId}`)}
-                    variant="ghost"
                     size="icon"
-                    className="w-12 h-12 rounded-2xl transition-all duration-300 relative group"
+                    onClick={() => navigate(`/customer-feedback/${storeOwnerId}`)}
+                    className="rounded-2xl h-12 w-12 shadow-lg"
                     style={{
-                      background: `${themeColor}15`,
-                      color: themeColor,
+                      background: `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`,
+                      color: 'white',
+                      border: '2px solid rgba(255,255,255,0.3)',
                     }}
                   >
-                    <MessageSquare className="w-5 h-5" />
-                    
-                    <div 
-                      className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                      style={{
-                        background: `radial-gradient(circle, ${themeColor}30 0%, transparent 70%)`,
-                      }}
-                    />
+                    <MessageSquare className="h-5 w-5" />
                   </Button>
                 </motion.div>
               )}
 
-              {/* أيقونات السوشيال ميديا */}
-              {(instagramUrl || facebookUrl || telegramUrl) && (
-                <>
-                  <div className="w-px h-10 bg-border/50" />
-                  
-                  {instagramUrl && (
-                    <motion.a
-                      href={instagramUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="w-12 h-12 rounded-2xl"
-                        style={{ color: themeColor }}
-                      >
-                        <Instagram className="w-5 h-5" />
-                      </Button>
-                    </motion.a>
-                  )}
-                  
-                  {facebookUrl && (
-                    <motion.a
-                      href={facebookUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="w-12 h-12 rounded-2xl"
-                        style={{ color: themeColor }}
-                      >
-                        <Facebook className="w-5 h-5" />
-                      </Button>
-                    </motion.a>
-                  )}
-                  
-                  {telegramUrl && (
-                    <motion.a
-                      href={telegramUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="w-12 h-12 rounded-2xl"
-                        style={{ color: themeColor }}
-                      >
-                        <Send className="w-5 h-5" />
-                      </Button>
-                    </motion.a>
-                  )}
-                </>
-              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* StoreInfoSheet */}
+      <StoreInfoSheet
+        isOpen={isInfoSheetOpen}
+        onOpenChange={setIsInfoSheetOpen}
+        contactInfo={contactInfo}
+        colorTheme={colorTheme}
+        socialLinks={socialLinks}
+      />
+
+      {/* الروابط الاجتماعية */}
+      {(instagramUrl || facebookUrl || telegramUrl) && (
+        <div className="flex items-center justify-center gap-4 py-2 bg-background/50 backdrop-blur-sm border-t">
+          {instagramUrl && (
+            <motion.a
+              href={instagramUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-10 h-10 rounded-full"
+                style={{ color: themeColor }}
+              >
+                <Instagram className="w-5 h-5" />
+              </Button>
+            </motion.a>
+          )}
+
+          {facebookUrl && (
+            <motion.a
+              href={facebookUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-10 h-10 rounded-full"
+                style={{ color: themeColor }}
+              >
+                <Facebook className="w-5 h-5" />
+              </Button>
+            </motion.a>
+          )}
+
+          {telegramUrl && (
+            <motion.a
+              href={telegramUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-10 h-10 rounded-full"
+                style={{ color: themeColor }}
+              >
+                <Send className="w-5 h-5" />
+              </Button>
+            </motion.a>
+          )}
+        </div>
+      )}
     </motion.div>
   );
 };
