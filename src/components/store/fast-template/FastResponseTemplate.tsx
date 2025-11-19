@@ -127,7 +127,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
     <div className="min-h-screen">
       {/* رأس المتجر مع الأنيميشن */}
       {storeName && (
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 py-2 relative z-10">
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 pt-2 pb-1 relative z-10">
           <div className="px-3">
       <StoreHeader 
         storeName={storeName} 
