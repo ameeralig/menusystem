@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect, useRef, Suspense, lazy } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Loader2 } from "lucide-react";
 import OptimizedProductGrid from "./OptimizedProductGrid";
@@ -6,9 +6,7 @@ import ProgressiveCategoryGrid from "./ProgressiveCategoryGrid";
 import StoreInfo from "./StoreInfo";
 import ProgressiveLoadingIndicator from "./ProgressiveLoadingIndicator";
 import BackButton from "./BackButton";
-import AdvancedSearchBar from "./AdvancedSearchBar";
 import EmptyCategoryMessage from "./EmptyCategoryMessage";
-import WheelButton from "./WheelButton";
 import { Product } from "@/types/product";
 import { CategoryImage } from "@/types/categoryImage";
 import AnimatedStoreHeader from "./AnimatedStoreHeader";
@@ -17,9 +15,6 @@ import { sortCategoriesByOrder } from "@/utils/categorySort";
 import { FontSettings, ContactInfo } from "@/types/store";
 import FastResponseTemplate from "./fast-template/FastResponseTemplate";
 import BottomActionsBar from "./fast-template/BottomActionsBar";
-
-// تحميل بطيء لمكون مشاركة الرأي
-const FeedbackTrigger = lazy(() => import("./feedback/FeedbackTrigger"));
 
 interface StoreProductsDisplayProps {
   storeName: string;
@@ -269,47 +264,6 @@ const StoreProductsDisplay = ({
           colorTheme={colorTheme}
         />
       </motion.div>
-
-      {/* شريط البحث المتقدم */}
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-      >
-        <AdvancedSearchBar
-          searchQuery={searchQuery}
-          setSearchQuery={handleSearchChange}
-          products={allProducts || products}
-        />
-        
-        {/* مؤشر التحميل العام */}
-        {isLoading && products.length === 0 && (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <span className="mr-2 text-sm text-gray-600 dark:text-gray-400">جاري تحميل المنتجات...</span>
-          </div>
-        )}
-      </motion.div>
-
-      {/* أزرار عجلة الحظ ومشاركة الرأي */}
-      {slug && !searchQuery.trim() && (
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
-          className="flex justify-center items-center gap-4 mt-6 flex-wrap"
-        >
-          <WheelButton slug={slug} colorTheme={colorTheme} />
-          {storeOwnerId && (
-            <Suspense fallback={<div className="animate-pulse bg-gray-200 h-10 rounded-md w-32" />}>
-              <FeedbackTrigger 
-                userId={storeOwnerId} 
-                colorTheme={colorTheme}
-              />
-            </Suspense>
-          )}
-        </motion.div>
-      )}
 
       {/* زر الرجوع */}
       <AnimatePresence>
