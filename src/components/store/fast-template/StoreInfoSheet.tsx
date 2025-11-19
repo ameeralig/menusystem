@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { MapPin, Phone, Wifi, Clock, Copy, ExternalLink } from "lucide-react";
+import { MapPin, Phone, Wifi, Clock, Copy, ExternalLink, Instagram, Facebook, Send } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -161,6 +161,31 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
     }
   };
 
+  const normalizeUrl = (provider: "instagram" | "facebook" | "telegram", value?: string) => {
+    if (!value) return undefined;
+    const v = value.trim();
+    if (/^https?:\/\//i.test(v)) return v;
+
+    if (provider === "instagram") {
+      const handle = v.startsWith("@") ? v.slice(1) : v.replace(/^instagram\.com\//i, "");
+      return `https://instagram.com/${handle}`;
+    }
+
+    if (provider === "facebook") {
+      const path = v.replace(/^facebook\.com\//i, "").replace(/^fb\.com\//i, "");
+      return `https://facebook.com/${path}`;
+    }
+
+    const handle = v.startsWith("@") ? v.slice(1) : v.replace(/^t\.me\//i, "");
+    return `https://t.me/${handle}`;
+  };
+
+  const instagramUrl = normalizeUrl("instagram", socialLinks?.instagram);
+  const facebookUrl = normalizeUrl("facebook", socialLinks?.facebook);
+  const telegramUrl = normalizeUrl("telegram", socialLinks?.telegram);
+
+  const hasSocialLinks = instagramUrl || facebookUrl || telegramUrl;
+
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[85vh] overflow-y-auto">
@@ -175,10 +200,12 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
           {/* الوصف */}
           {contactInfo.description && (
             <Card 
-              className="p-4 border-0"
+              className="p-4 border"
               style={{
-                background: `${themeColor}08`,
-                borderLeft: `4px solid ${themeColor}`
+                background: `linear-gradient(135deg, ${themeColor}08, ${themeColor}15)`,
+                borderColor: `${themeColor}30`,
+                borderRightWidth: '4px',
+                borderRightColor: themeColor
               }}
             >
               <p className="text-sm leading-relaxed text-right">{contactInfo.description}</p>
@@ -194,7 +221,13 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
                   <Clock className="h-5 w-5" style={{ color: themeColor }} />
                   <h3 className="font-semibold">ساعات العمل</h3>
                 </div>
-                <Card className="p-4 backdrop-blur-lg bg-background/50">
+                <Card 
+                  className="p-4 border"
+                  style={{
+                    background: `linear-gradient(135deg, ${themeColor}08, ${themeColor}15)`,
+                    borderColor: `${themeColor}30`,
+                  }}
+                >
                   {formatBusinessHours()}
                 </Card>
               </div>
@@ -210,11 +243,17 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
                   <MapPin className="h-5 w-5" style={{ color: themeColor }} />
                   <h3 className="font-semibold">العنوان</h3>
                 </div>
-                <Card className="p-4 backdrop-blur-lg bg-background/50">
+                <Card 
+                  className="p-4 border"
+                  style={{
+                    background: `linear-gradient(135deg, ${themeColor}08, ${themeColor}15)`,
+                    borderColor: `${themeColor}30`,
+                  }}
+                >
                   <p className="text-sm text-right mb-3">{contactInfo.address}</p>
                   <Button
                     onClick={handleGoogleMapsClick}
-                    className="w-full"
+                    className="w-full shadow-md hover:shadow-lg transition-shadow"
                     style={{
                       backgroundColor: themeColor,
                       color: 'white'
@@ -237,11 +276,17 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
                   <Phone className="h-5 w-5" style={{ color: themeColor }} />
                   <h3 className="font-semibold">الهاتف</h3>
                 </div>
-                <Card className="p-4 backdrop-blur-lg bg-background/50">
+                <Card 
+                  className="p-4 border"
+                  style={{
+                    background: `linear-gradient(135deg, ${themeColor}08, ${themeColor}15)`,
+                    borderColor: `${themeColor}30`,
+                  }}
+                >
                   <p className="text-sm text-right mb-3 font-mono" dir="ltr">{contactInfo.phone}</p>
                   <Button
                     onClick={handlePhoneCall}
-                    className="w-full"
+                    className="w-full shadow-md hover:shadow-lg transition-shadow"
                     style={{
                       backgroundColor: themeColor,
                       color: 'white'
@@ -264,7 +309,13 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
                   <Wifi className="h-5 w-5" style={{ color: themeColor }} />
                   <h3 className="font-semibold">الواي فاي</h3>
                 </div>
-                <Card className="p-4 backdrop-blur-lg bg-background/50">
+                <Card 
+                  className="p-4 border"
+                  style={{
+                    background: `linear-gradient(135deg, ${themeColor}08, ${themeColor}15)`,
+                    borderColor: `${themeColor}30`,
+                  }}
+                >
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-sm font-mono" dir="ltr">
                       {isWifiVisible ? contactInfo.wifi : "••••••••"}
@@ -273,6 +324,7 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
                       variant="ghost"
                       size="sm"
                       onClick={() => setIsWifiVisible(!isWifiVisible)}
+                      style={{ color: themeColor }}
                     >
                       {isWifiVisible ? "إخفاء" : "عرض"}
                     </Button>
@@ -281,10 +333,87 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
                     onClick={handleCopyWifi}
                     variant="outline"
                     className="w-full"
+                    style={{ borderColor: themeColor, color: themeColor }}
                   >
                     <Copy className="h-4 w-4 ml-2" />
                     نسخ كلمة المرور
                   </Button>
+                </Card>
+              </div>
+            </>
+          )}
+
+          {/* حسابات التواصل الاجتماعي */}
+          {hasSocialLinks && (
+            <>
+              <Separator />
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Send className="h-5 w-5" style={{ color: themeColor }} />
+                  <h3 className="font-semibold">تابعنا على</h3>
+                </div>
+                <Card 
+                  className="p-4 border"
+                  style={{
+                    background: `linear-gradient(135deg, ${themeColor}08, ${themeColor}15)`,
+                    borderColor: `${themeColor}30`,
+                  }}
+                >
+                  <div className="flex items-center justify-center gap-4">
+                    {instagramUrl && (
+                      <a
+                        href={instagramUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center gap-2 p-3 rounded-xl transition-all hover:scale-110"
+                        style={{
+                          background: `${themeColor}10`,
+                        }}
+                      >
+                        <Instagram 
+                          className="h-8 w-8"
+                          style={{ color: themeColor }}
+                        />
+                        <span className="text-xs font-medium">Instagram</span>
+                      </a>
+                    )}
+
+                    {facebookUrl && (
+                      <a
+                        href={facebookUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center gap-2 p-3 rounded-xl transition-all hover:scale-110"
+                        style={{
+                          background: `${themeColor}10`,
+                        }}
+                      >
+                        <Facebook 
+                          className="h-8 w-8"
+                          style={{ color: themeColor }}
+                        />
+                        <span className="text-xs font-medium">Facebook</span>
+                      </a>
+                    )}
+
+                    {telegramUrl && (
+                      <a
+                        href={telegramUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center gap-2 p-3 rounded-xl transition-all hover:scale-110"
+                        style={{
+                          background: `${themeColor}10`,
+                        }}
+                      >
+                        <Send 
+                          className="h-8 w-8"
+                          style={{ color: themeColor }}
+                        />
+                        <span className="text-xs font-medium">Telegram</span>
+                      </a>
+                    )}
+                  </div>
                 </Card>
               </div>
             </>

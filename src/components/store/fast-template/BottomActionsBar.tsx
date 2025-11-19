@@ -201,68 +201,6 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
         colorTheme={colorTheme}
         socialLinks={socialLinks}
       />
-
-      {/* الروابط الاجتماعية */}
-      {(instagramUrl || facebookUrl || telegramUrl) && (
-        <div className="flex items-center justify-center gap-4 py-2 bg-background/50 backdrop-blur-sm border-t">
-          {instagramUrl && (
-            <motion.a
-              href={instagramUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <Button
-                variant="ghost"
-                size="icon"
-                className="w-10 h-10 rounded-full"
-                style={{ color: themeColor }}
-              >
-                <Instagram className="w-5 h-5" />
-              </Button>
-            </motion.a>
-          )}
-
-          {facebookUrl && (
-            <motion.a
-              href={facebookUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <Button
-                variant="ghost"
-                size="icon"
-                className="w-10 h-10 rounded-full"
-                style={{ color: themeColor }}
-              >
-                <Facebook className="w-5 h-5" />
-              </Button>
-            </motion.a>
-          )}
-
-          {telegramUrl && (
-            <motion.a
-              href={telegramUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <Button
-                variant="ghost"
-                size="icon"
-                className="w-10 h-10 rounded-full"
-                style={{ color: themeColor }}
-              >
-                <Send className="w-5 h-5" />
-              </Button>
-            </motion.a>
-          )}
-        </div>
-      )}
     </motion.div>
   );
 };
