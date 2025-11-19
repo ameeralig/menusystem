@@ -1,8 +1,9 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Disc3, MessageSquare, Search, Instagram, Facebook, Send } from "lucide-react";
+import { Disc3, MessageSquare, Search, Instagram, Facebook, Send, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { SocialLinks } from "@/types/store";
 import { useNavigate } from "react-router-dom";
 
@@ -11,7 +12,9 @@ interface BottomActionsBarProps {
   storeOwnerId?: string;
   colorTheme?: string | null;
   socialLinks?: SocialLinks;
-  onSearchClick?: () => void;
+  searchQuery: string;
+  onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onClearSearch: () => void;
 }
 
 const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
@@ -19,7 +22,9 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   storeOwnerId,
   colorTheme,
   socialLinks,
-  onSearchClick,
+  searchQuery,
+  onSearchChange,
+  onClearSearch,
 }) => {
   const navigate = useNavigate();
 
@@ -85,38 +90,94 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
           borderColor: `${themeColor}30`,
         }}
       >
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-around gap-2 max-w-2xl mx-auto">
-            {/* زر عجلة الحظ */}
-            {slug && (
-              <Link to={`/store/${slug}/wheel`} className="flex-1 max-w-[120px]">
+        <div className="container mx-auto px-3 py-3">
+          <div className="flex items-center gap-3 max-w-4xl mx-auto">
+            {/* حقل البحث - يأخذ المساحة المتبقية */}
+            <div className="flex-1 relative">
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
+              <Input
+                type="text"
+                placeholder="ابحث هنا..."
+                value={searchQuery}
+                onChange={onSearchChange}
+                className="pr-10 pl-10 h-12 rounded-2xl border-0 text-sm"
+                style={{
+                  background: `${themeColor}10`,
+                  backdropFilter: 'blur(10px)',
+                }}
+              />
+              {searchQuery && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onClearSearch}
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 h-8 w-8 z-10"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+
+            {/* الأزرار */}
+            <div className="flex items-center gap-2">
+              {/* زر عجلة الحظ */}
+              {slug && (
+                <Link to={`/store/${slug}/wheel`}>
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="w-12 h-12 rounded-2xl transition-all duration-300 relative group"
+                      style={{
+                        background: `${themeColor}15`,
+                        color: themeColor,
+                      }}
+                    >
+                      <motion.div
+                        animate={{
+                          rotate: [0, 10, -10, 0],
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          repeatDelay: 3,
+                        }}
+                      >
+                        <Disc3 className="w-5 h-5" />
+                      </motion.div>
+                      
+                      <div 
+                        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        style={{
+                          background: `radial-gradient(circle, ${themeColor}30 0%, transparent 70%)`,
+                        }}
+                      />
+                    </Button>
+                  </motion.div>
+                </Link>
+              )}
+
+              {/* زر الملاحظات */}
+              {storeOwnerId && (
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <Button
+                    onClick={() => navigate(`/customer-feedback/${storeOwnerId}`)}
                     variant="ghost"
-                    className="w-full h-14 rounded-2xl transition-all duration-300 relative group flex flex-col items-center justify-center gap-1"
+                    size="icon"
+                    className="w-12 h-12 rounded-2xl transition-all duration-300 relative group"
                     style={{
                       background: `${themeColor}15`,
                       color: themeColor,
                     }}
                   >
-                    <motion.div
-                      animate={{
-                        rotate: [0, 10, -10, 0],
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        repeatDelay: 3,
-                      }}
-                    >
-                      <Disc3 className="w-6 h-6" />
-                    </motion.div>
-                    <span className="text-xs font-medium">العجلة</span>
+                    <MessageSquare className="w-5 h-5" />
                     
-                    {/* تأثير التوهج */}
                     <div 
                       className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                       style={{
@@ -125,73 +186,13 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                     />
                   </Button>
                 </motion.div>
-              </Link>
-            )}
+              )}
 
-            {/* زر البحث */}
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex-1 max-w-[120px]"
-            >
-              <Button
-                onClick={onSearchClick}
-                variant="ghost"
-                className="w-full h-14 rounded-2xl transition-all duration-300 relative group flex flex-col items-center justify-center gap-1"
-                style={{
-                  background: `${themeColor}15`,
-                  color: themeColor,
-                }}
-              >
-                <Search className="w-6 h-6" />
-                <span className="text-xs font-medium">بحث</span>
-                
-                {/* تأثير التوهج */}
-                <div 
-                  className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  style={{
-                    background: `radial-gradient(circle, ${themeColor}30 0%, transparent 70%)`,
-                  }}
-                />
-              </Button>
-            </motion.div>
-
-            {/* زر الملاحظات */}
-            {storeOwnerId && (
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex-1 max-w-[120px]"
-              >
-                <Button
-                  onClick={() => navigate(`/customer-feedback/${storeOwnerId}`)}
-                  variant="ghost"
-                  className="w-full h-14 rounded-2xl transition-all duration-300 relative group flex flex-col items-center justify-center gap-1"
-                  style={{
-                    background: `${themeColor}15`,
-                    color: themeColor,
-                  }}
-                >
-                  <MessageSquare className="w-6 h-6" />
-                  <span className="text-xs font-medium">رأيك</span>
+              {/* أيقونات السوشيال ميديا */}
+              {(instagramUrl || facebookUrl || telegramUrl) && (
+                <>
+                  <div className="w-px h-10 bg-border/50" />
                   
-                  {/* تأثير التوهج */}
-                  <div 
-                    className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    style={{
-                      background: `radial-gradient(circle, ${themeColor}30 0%, transparent 70%)`,
-                    }}
-                  />
-                </Button>
-              </motion.div>
-            )}
-
-            {/* أيقونات السوشيال ميديا - عرض اختياري */}
-            {(instagramUrl || facebookUrl || telegramUrl) && (
-              <div className="flex items-center gap-2">
-                <div className="w-px h-10 bg-border/50" />
-                
-                <div className="flex gap-1">
                   {instagramUrl && (
                     <motion.a
                       href={instagramUrl}
@@ -203,7 +204,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="w-10 h-10 rounded-full"
+                        className="w-12 h-12 rounded-2xl"
                         style={{ color: themeColor }}
                       >
                         <Instagram className="w-5 h-5" />
@@ -222,7 +223,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="w-10 h-10 rounded-full"
+                        className="w-12 h-12 rounded-2xl"
                         style={{ color: themeColor }}
                       >
                         <Facebook className="w-5 h-5" />
@@ -241,16 +242,16 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="w-10 h-10 rounded-full"
+                        className="w-12 h-12 rounded-2xl"
                         style={{ color: themeColor }}
                       >
                         <Send className="w-5 h-5" />
                       </Button>
                     </motion.a>
                   )}
-                </div>
-              </div>
-            )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>

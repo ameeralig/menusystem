@@ -39,7 +39,6 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // استخراج التصنيفات الفريدة من المنتجات
   const categories = useMemo(() => {
@@ -115,14 +114,6 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
     setTimeout(() => setSelectedProduct(null), 300);
   }, []);
 
-  // معالجة الضغط على زر البحث - التمرير للأعلى وتفعيل حقل البحث
-  const handleSearchClick = useCallback(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    setTimeout(() => {
-      searchInputRef.current?.focus();
-    }, 300);
-  }, []);
-
   return (
     <div className="min-h-screen">
       {/* رأس المتجر مع الأنيميشن */}
@@ -146,31 +137,6 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
           </div>
         </div>
       )}
-
-      {/* شريط البحث الثابت */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b px-4 py-3 shadow-sm">
-        <div className="relative">
-          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
-          <Input
-            ref={searchInputRef}
-            type="text"
-            placeholder="ابحث عن منتج..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="pr-10 pl-10 h-12 rounded-xl text-base"
-          />
-          {searchQuery && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={clearSearch}
-              className="absolute left-2 top-1/2 transform -translate-y-1/2 h-8 w-8"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          )}
-        </div>
-      </div>
 
       {/* شريط التصنيفات */}
       <CategoryTabs
@@ -214,13 +180,15 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         )}
       </div>
 
-      {/* الشريط الأفقي السفلي */}
+      {/* الشريط الأفقي السفلي مع البحث المدمج */}
       <BottomActionsBar
         slug={slug}
         storeOwnerId={storeOwnerId}
         colorTheme={colorTheme}
         socialLinks={socialLinks}
-        onSearchClick={handleSearchClick}
+        searchQuery={searchQuery}
+        onSearchChange={handleSearchChange}
+        onClearSearch={clearSearch}
       />
 
       {/* نافذة تفاصيل المنتج */}
