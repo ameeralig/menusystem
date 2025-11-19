@@ -125,7 +125,7 @@ const StoreHeader = ({ storeName, colorTheme, fontSettings }: StoreHeaderProps) 
 
   return storeName ? (
     <h1 
-      className={`text-3xl md:text-6xl font-bold text-center mb-0 ${isCustomColor ? '' : themeColors}`}
+      className={`text-3xl md:text-10xl font-bold text-center mb-0 ${isCustomColor ? '' : themeColors}`}
       style={getStoreNameStyle()}
       dir="rtl"
     >
