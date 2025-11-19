@@ -50,6 +50,26 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
     return Array.from(uniqueCategories).sort();
   }, [products]);
 
+  // تحديد أول تصنيف تلقائياً عند التحميل
+  React.useEffect(() => {
+    if (categories.length > 0 && selectedCategory === null) {
+      const sortedCategories = categoryImages && categoryImages.length > 0
+        ? categories.sort((a, b) => {
+            const aImage = categoryImages.find(img => img.category === a);
+            const bImage = categoryImages.find(img => img.category === b);
+            const aOrder = aImage?.display_order ?? 999999;
+            const bOrder = bImage?.display_order ?? 999999;
+            if (aOrder === bOrder) {
+              return a.localeCompare(b, 'ar');
+            }
+            return aOrder - bOrder;
+          })
+        : categories;
+      
+      setSelectedCategory(sortedCategories[0]);
+    }
+  }, [categories, categoryImages, selectedCategory]);
+
   // تصفية المنتجات حسب التصنيف والبحث
   const filteredProducts = useMemo(() => {
     let filtered = products;
