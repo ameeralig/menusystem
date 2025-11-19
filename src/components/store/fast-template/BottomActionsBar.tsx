@@ -131,17 +131,16 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                   whileTap={{ scale: 0.95 }}
                 >
                   <Link to={`/store/${slug}/wheel`}>
-                    <Button
-                      size="icon"
-                      className="rounded-2xl h-12 w-12 shadow-lg"
+                    <div
+                      className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl shadow-lg"
                       style={{
                         background: `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`,
-                        color: 'white',
                         border: '2px solid rgba(255,255,255,0.3)',
                       }}
                     >
-                      <Disc3 className="h-5 w-5" />
-                    </Button>
+                      <Disc3 className="h-5 w-5 text-white" />
+                      <span className="text-[10px] font-medium text-white whitespace-nowrap">عجلة الحظ</span>
+                    </div>
                   </Link>
                 </motion.div>
               )}
@@ -152,18 +151,17 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <Button
-                    size="icon"
+                  <div
                     onClick={() => setIsInfoSheetOpen(true)}
-                    className="rounded-2xl h-12 w-12 shadow-lg"
+                    className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl shadow-lg cursor-pointer"
                     style={{
                       background: `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`,
-                      color: 'white',
                       border: '2px solid rgba(255,255,255,0.3)',
                     }}
                   >
-                    <Info className="h-5 w-5" />
-                  </Button>
+                    <Info className="h-5 w-5 text-white" />
+                    <span className="text-[10px] font-medium text-white whitespace-nowrap">معلومات</span>
+                  </div>
                 </motion.div>
               )}
 
@@ -173,18 +171,17 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <Button
-                    size="icon"
+                  <div
                     onClick={() => navigate(`/customer-feedback/${storeOwnerId}`)}
-                    className="rounded-2xl h-12 w-12 shadow-lg"
+                    className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl shadow-lg cursor-pointer"
                     style={{
                       background: `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`,
-                      color: 'white',
                       border: '2px solid rgba(255,255,255,0.3)',
                     }}
                   >
-                    <MessageSquare className="h-5 w-5" />
-                  </Button>
+                    <MessageSquare className="h-5 w-5 text-white" />
+                    <span className="text-[10px] font-medium text-white whitespace-nowrap">تقييم</span>
+                  </div>
                 </motion.div>
               )}
 
