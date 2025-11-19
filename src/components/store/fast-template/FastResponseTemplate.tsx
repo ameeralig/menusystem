@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback, useRef } from "react";
 import { Product } from "@/types/product";
+import { CategoryImage } from "@/types/categoryImage";
 import CategoryTabs from "./CategoryTabs";
 import CompactProductCard from "./CompactProductCard";
 import ProductDetailsModal from "./ProductDetailsModal";
@@ -18,6 +19,7 @@ interface FastResponseTemplateProps {
   storeOwnerId?: string;
   fontSettings?: FontSettings;
   socialLinks?: SocialLinks;
+  categoryImages?: CategoryImage[];
 }
 
 const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
@@ -29,7 +31,8 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   slug,
   storeOwnerId,
   fontSettings,
-  socialLinks
+  socialLinks,
+  categoryImages
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -131,6 +134,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         selectedCategory={selectedCategory}
         onCategorySelect={handleCategorySelect}
         colorTheme={colorTheme}
+        categoryImages={categoryImages}
       />
 
       {/* منطقة المحتوى */}

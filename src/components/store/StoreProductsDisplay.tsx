@@ -223,6 +223,7 @@ const StoreProductsDisplay = ({
           storeOwnerId={storeOwnerId}
           fontSettings={fontSettings}
           socialLinks={socialLinks}
+          categoryImages={categoryImages}
         />
       </>
     );
