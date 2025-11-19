@@ -130,7 +130,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <Link to={`/spin/${slug}`}>
+                  <Link to={`/store/${slug}/wheel`}>
                     <Button
                       size="icon"
                       className="rounded-2xl h-12 w-12 shadow-lg"
