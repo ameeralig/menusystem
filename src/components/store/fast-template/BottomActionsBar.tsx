@@ -180,7 +180,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                     }}
                   >
                     <MessageSquare className="h-5 w-5 text-white" />
-                    <span className="text-[10px] font-medium text-white whitespace-nowrap">تقييم</span>
+                    <span className="text-[10px] font-medium text-white whitespace-nowrap">شاركنا رآيك</span>
                   </div>
                 </motion.div>
               )}
