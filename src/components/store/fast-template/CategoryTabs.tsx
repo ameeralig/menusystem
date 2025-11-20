@@ -48,7 +48,7 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
               >
                 {/* الصورة الدائرية */}
                 <div className={`
-                  relative w-16 h-16 rounded-full overflow-hidden
+                  relative w-12 h-12 rounded-full overflow-hidden
                   transition-all duration-200
                   ${isSelected 
                     ? 'ring-4 ring-primary shadow-lg scale-105' 
