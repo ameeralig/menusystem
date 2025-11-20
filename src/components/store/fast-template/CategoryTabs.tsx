@@ -34,7 +34,7 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
     <div className="w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
       <div className="container mx-auto px-1 py-1">
         {/* شريط التصنيفات القابل للتمرير */}
-        <div className="flex gap-4 overflow-x-auto overflow-y-visible pb-5 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+        <div className="flex gap-4 overflow-x-auto overflow-y-visible pb-3 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
           {/* صور وأسماء التصنيفات */}
           {sortedCategories.map((category) => {
             const categoryImage = getCategoryImage(category);
@@ -48,7 +48,7 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
               >
                 {/* الصورة الدائرية */}
                 <div className={`
-                  relative w-12 h-12 rounded-full overflow-hidden
+                  relative w-16 h-16 rounded-full overflow-hidden
                   transition-all duration-200
                   ${isSelected 
                     ? 'ring-4 ring-primary shadow-lg scale-105' 
