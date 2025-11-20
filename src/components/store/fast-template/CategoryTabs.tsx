@@ -32,7 +32,7 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
 
   return (
     <div className="w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
-      <div className="container mx-auto px-1 py-1">
+      <div className="container mx-auto px-1 py-3">
         {/* شريط التصنيفات القابل للتمرير */}
         <div className="flex gap-4 overflow-x-auto overflow-y-visible pb-3 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
           {/* صور وأسماء التصنيفات */}
@@ -51,7 +51,7 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
                   relative w-16 h-16 rounded-full overflow-hidden
                   transition-all duration-200
                   ${isSelected 
-                    ? 'ring-4 ring-primary shadow-lg scale-105' 
+                    ? 'ring-4 ring-primary shadow-lg scale-105 z-20' 
                     : 'ring-2 ring-gray-200 dark:ring-gray-700 group-hover:ring-gray-300 dark:group-hover:ring-gray-600'
                   }
                 `}
