@@ -34,6 +34,10 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Progressive Loading للصورة الموجودة
+  const [displayedImage, setDisplayedImage] = useState<string>("");
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   useEffect(() => {
     if (product && isOpen) {
@@ -46,6 +50,25 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
       setIsAvailable(product.is_available !== false);
       setImagePreview(product.image_url || null);
       setImageFile(null);
+      
+      // Progressive Loading للصورة
+      if (product.image_url) {
+        const thumbnailUrl = optimizeImageUrl(product.image_url, 'thumbnail');
+        setDisplayedImage(thumbnailUrl);
+        setImageLoaded(false);
+
+        const mediumImg = new Image();
+        mediumImg.src = optimizeImageUrl(product.image_url, 'medium');
+        
+        mediumImg.onload = () => {
+          setDisplayedImage(mediumImg.src);
+          setImageLoaded(true);
+        };
+
+        mediumImg.onerror = () => {
+          setImageLoaded(true);
+        };
+      }
     }
   }, [product, isOpen]);
 
@@ -184,16 +207,19 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                   <div>
                     <Label htmlFor="product-image">صورة المنتج</Label>
                     <div className="mt-2 flex flex-col items-center gap-4">
-                      {imagePreview && (
-                        <img
-                          src={imageFile ? imagePreview : optimizeImageUrl(imagePreview, 'medium')}
-                          alt="معاينة"
-                          className="w-full h-48 object-cover rounded-lg"
-                          loading="lazy"
-                          onError={(e) => {
-                            e.currentTarget.src = optimizeImageUrl(null, 'medium');
-                          }}
-                        />
+                      {(imagePreview || displayedImage) && (
+                        <div className="relative w-full h-48 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                          <img
+                            src={imageFile ? imagePreview : displayedImage}
+                            alt="معاينة"
+                            className={`w-full h-full object-cover transition-all duration-500 ${
+                              imageFile || imageLoaded ? 'blur-0 scale-100' : 'blur-sm scale-105'
+                            }`}
+                            onError={(e) => {
+                              e.currentTarget.src = optimizeImageUrl(null, 'medium');
+                            }}
+                          />
+                        </div>
                       )}
                       <label htmlFor="product-image" className="cursor-pointer">
                         <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors">
