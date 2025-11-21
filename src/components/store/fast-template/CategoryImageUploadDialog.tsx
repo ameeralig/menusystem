@@ -33,20 +33,86 @@ const CategoryImageUploadDialog = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      toast.error("يرجى اختيار صورة صالحة");
+    // التحقق من نوع الملف والحجم
+    const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+    const maxSize = 10 * 1024 * 1024; // 10 ميجابايت
+    
+    if (!file.type.startsWith('image/') && !file.name.toLowerCase().match(/\.(jpg|jpeg|png|webp|heic|heif)$/)) {
+      toast.error("يرجى اختيار صورة صالحة (JPG, PNG, WEBP, HEIC)");
+      return;
+    }
+
+    if (file.size > maxSize) {
+      toast.error("حجم الصورة كبير جداً. الحد الأقصى 10 ميجابايت");
       return;
     }
 
     setUploading(true);
+    
     try {
-      const publicUrl = await uploadImage('صور التصنيفات', file, userId, 'categories');
+      console.log('بدء رفع صورة التصنيف:', { 
+        name: file.name, 
+        size: file.size, 
+        type: file.type 
+      });
+      
+      // معالجة صور HEIC من iPhone
+      let processedFile = file;
+      if (file.type === 'image/heic' || file.type === 'image/heif' || file.name.toLowerCase().endsWith('.heic')) {
+        toast.info("جاري تحويل الصورة...");
+        try {
+          // تحويل HEIC إلى JPEG باستخدام Canvas
+          const img = new Image();
+          const objectUrl = URL.createObjectURL(file);
+          
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = () => reject(new Error('فشل تحميل الصورة'));
+            img.src = objectUrl;
+          });
+
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0);
+          
+          const blob = await new Promise<Blob>((resolve, reject) => {
+            canvas.toBlob(
+              (b) => b ? resolve(b) : reject(new Error('فشل تحويل الصورة')),
+              'image/jpeg',
+              0.9
+            );
+          });
+          
+          URL.revokeObjectURL(objectUrl);
+          processedFile = new File([blob], file.name.replace(/\.heic$/i, '.jpg'), { 
+            type: 'image/jpeg' 
+          });
+          
+          console.log('تم تحويل HEIC إلى JPEG بنجاح');
+        } catch (conversionError) {
+          console.error('خطأ في تحويل HEIC:', conversionError);
+          toast.error("فشل تحويل الصورة. يرجى استخدام صيغة JPG أو PNG");
+          setUploading(false);
+          return;
+        }
+      }
+
+      const publicUrl = await uploadImage('صور التصنيفات', processedFile, userId, 'categories');
       await updateCategoryImage(publicUrl);
+      
+      toast.success("تم رفع الصورة بنجاح");
     } catch (error) {
       console.error('خطأ في رفع الصورة:', error);
-      toast.error("فشل رفع الصورة");
+      const errorMessage = error instanceof Error ? error.message : 'فشل رفع الصورة';
+      toast.error(`خطأ: ${errorMessage}`);
     } finally {
       setUploading(false);
+      // إعادة تعيين قيمة input للسماح برفع نفس الملف مرة أخرى
+      if (e.target) {
+        e.target.value = '';
+      }
     }
   };
 
