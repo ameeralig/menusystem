@@ -263,6 +263,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
         onClearSearch={clearSearch}
+        isStoreOwner={isStoreOwner}
       />
 
       {/* نافذة تفاصيل المنتج */}
