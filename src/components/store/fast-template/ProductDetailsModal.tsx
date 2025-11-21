@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Product } from "@/types/product";
 import { X, Edit, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -29,6 +29,33 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
   onEdit,
   onDelete,
 }) => {
+  // Progressive Loading: تحميل thumbnail أولاً ثم medium
+  const [displayedImageSrc, setDisplayedImageSrc] = useState<string>("");
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+
+  useEffect(() => {
+    if (product?.image_url && isOpen) {
+      // البدء بصورة thumbnail للعرض الفوري
+      const thumbnailUrl = optimizeImageUrl(product.image_url, 'thumbnail');
+      setDisplayedImageSrc(thumbnailUrl);
+      setIsImageLoaded(false);
+
+      // تحميل صورة medium في الخلفية
+      const mediumImg = new Image();
+      mediumImg.src = optimizeImageUrl(product.image_url, 'medium');
+      
+      mediumImg.onload = () => {
+        setDisplayedImageSrc(mediumImg.src);
+        setIsImageLoaded(true);
+      };
+
+      mediumImg.onerror = () => {
+        // في حالة الفشل، نبقى على thumbnail
+        setIsImageLoaded(true);
+      };
+    }
+  }, [product?.image_url, isOpen]);
+
   if (!product) return null;
 
   return (
@@ -63,13 +90,14 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
                 <X className="w-5 h-5 text-gray-700 dark:text-gray-300" />
               </button>
 
-              {/* صورة المنتج */}
-              <div className="relative w-full h-64 sm:h-80 bg-gray-100 dark:bg-gray-700">
+              {/* صورة المنتج مع Progressive Loading */}
+              <div className="relative w-full h-64 sm:h-80 bg-gray-100 dark:bg-gray-700 overflow-hidden">
                 <img
-                  src={optimizeImageUrl(product.image_url, 'medium')}
+                  src={displayedImageSrc || optimizeImageUrl(product.image_url, 'thumbnail')}
                   alt={product.name}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
+                  className={`w-full h-full object-cover transition-all duration-500 ${
+                    isImageLoaded ? 'blur-0 scale-100' : 'blur-sm scale-105'
+                  }`}
                   onError={(e) => {
                     e.currentTarget.src = optimizeImageUrl(null, 'medium');
                   }}
