@@ -21,6 +21,8 @@ interface FastResponseTemplateProps {
   fontSettings?: FontSettings;
   socialLinks?: SocialLinks;
   categoryImages?: CategoryImage[];
+  isStoreOwner?: boolean;
+  refreshData?: () => void;
 }
 
 const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
@@ -33,7 +35,9 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   storeOwnerId,
   fontSettings,
   socialLinks,
-  categoryImages
+  categoryImages,
+  isStoreOwner = false,
+  refreshData
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -145,6 +149,9 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         onCategorySelect={handleCategorySelect}
         colorTheme={colorTheme}
         categoryImages={categoryImages}
+        isStoreOwner={isStoreOwner}
+        storeOwnerId={storeOwnerId}
+        refreshData={refreshData}
       />
 
       {/* منطقة المحتوى */}
