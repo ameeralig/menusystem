@@ -10,7 +10,6 @@ import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ResetPassword from "./pages/auth/ResetPassword";
 import Dashboard from "./pages/Dashboard";
-import AddProduct from "./pages/AddProduct";
 import ProductPreview from "./pages/ProductPreview";
 import ProductsDemo from "./pages/ProductsDemo";
 import SpinWheelPage from "./pages/SpinWheelPage";
@@ -43,7 +42,6 @@ const App = () => (
             <Route path="/auth/signup" element={<Signup />} />
             <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/add-product" element={<AddProduct />} />
             <Route path="/products" element={<ProductsDemo />} />
             <Route path="/store/:slug/wheel" element={<SpinWheelPage />} />
             <Route path="/install" element={<InstallPWA />} />
