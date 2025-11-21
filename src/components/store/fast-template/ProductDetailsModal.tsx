@@ -3,6 +3,7 @@ import { Product } from "@/types/product";
 import { X, Edit, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { optimizeImageUrl } from "@/utils/imageOptimizer";
 
 interface ProductDetailsModalProps {
   product: Product | null;
@@ -65,11 +66,12 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
               {/* صورة المنتج */}
               <div className="relative w-full h-64 sm:h-80 bg-gray-100 dark:bg-gray-700">
                 <img
-                  src={product.image_url || "https://placehold.co/600x400/e2e8f0/64748b?text=No+Image"}
+                  src={optimizeImageUrl(product.image_url, 'medium')}
                   alt={product.name}
                   className="w-full h-full object-cover"
+                  loading="lazy"
                   onError={(e) => {
-                    e.currentTarget.src = "https://placehold.co/600x400/e2e8f0/64748b?text=No+Image";
+                    e.currentTarget.src = optimizeImageUrl(null, 'medium');
                   }}
                 />
 
