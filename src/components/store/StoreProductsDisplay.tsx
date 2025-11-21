@@ -392,6 +392,7 @@ const StoreProductsDisplay = ({
         searchQuery={searchQuery}
         onSearchChange={(e) => handleSearchChange(e.target.value)}
         onClearSearch={() => handleSearchChange("")}
+        isStoreOwner={isStoreOwner}
       />
     </>
   );
