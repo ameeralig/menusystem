@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Product } from "@/types/product";
 import { Edit, Trash2 } from "lucide-react";
+import { optimizeImageUrl } from "@/utils/imageOptimizer";
 
 interface CompactProductCardProps {
   product: Product;
@@ -10,23 +11,6 @@ interface CompactProductCardProps {
   onEdit?: () => void;
   onDelete?: () => void;
 }
-
-// تحسين رابط الصورة لتحميل أسرع
-const optimizeImageUrl = (url: string | null | undefined): string => {
-  if (!url) return "https://placehold.co/120x120/e2e8f0/64748b?text=No+Image";
-  
-  // تحويل إلى صيغة webp بجودة منخفضة للصور الصغيرة
-  if (url.includes('supabase')) {
-    const urlObj = new URL(url);
-    urlObj.searchParams.set('width', '120');
-    urlObj.searchParams.set('height', '120');
-    urlObj.searchParams.set('quality', '60');
-    urlObj.searchParams.set('format', 'webp');
-    return urlObj.toString();
-  }
-  
-  return url;
-};
 
 // تنسيق السعر بفواصل
 const formatPrice = (price: number): string => {
@@ -41,7 +25,8 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
   onEdit,
   onDelete
 }) => {
-  const optimizedImageUrl = optimizeImageUrl(product.image_url);
+  // استخدام حجم thumbnail للبطاقات الصغيرة (120x120, quality 60)
+  const optimizedImageUrl = optimizeImageUrl(product.image_url, 'thumbnail');
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   

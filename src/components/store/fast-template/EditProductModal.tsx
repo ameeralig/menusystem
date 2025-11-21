@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { optimizeImageUrl } from "@/utils/imageOptimizer";
 
 interface EditProductModalProps {
   product: Product | null;
@@ -185,9 +186,13 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                     <div className="mt-2 flex flex-col items-center gap-4">
                       {imagePreview && (
                         <img
-                          src={imagePreview}
+                          src={imageFile ? imagePreview : optimizeImageUrl(imagePreview, 'medium')}
                           alt="معاينة"
                           className="w-full h-48 object-cover rounded-lg"
+                          loading="lazy"
+                          onError={(e) => {
+                            e.currentTarget.src = optimizeImageUrl(null, 'medium');
+                          }}
                         />
                       )}
                       <label htmlFor="product-image" className="cursor-pointer">
