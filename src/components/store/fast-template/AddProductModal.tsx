@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
+import { uploadImage } from "@/utils/storageHelpers";
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -26,6 +27,10 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
   const [categories, setCategories] = useState<string[]>([]);
   const [isAddingNewCategory, setIsAddingNewCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [categoryImageUploadMethod, setCategoryImageUploadMethod] = useState<"url" | "file">("file");
+  const [categoryImageFile, setCategoryImageFile] = useState<File | null>(null);
+  const [categoryImageUrl, setCategoryImageUrl] = useState("");
+  const [categoryImagePreview, setCategoryImagePreview] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -80,17 +85,115 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
     }
   };
 
+  const handleCategoryImageFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("حجم الملف كبير جداً. الحد الأقصى هو 10MB");
+        return;
+      }
+      setCategoryImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCategoryImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleCategorySelect = (category: string) => {
     setFormData({ ...formData, category });
     setIsAddingNewCategory(false);
   };
 
-  const handleAddNewCategory = () => {
-    if (newCategoryName.trim()) {
+  const handleAddNewCategory = async () => {
+    if (!newCategoryName.trim()) {
+      toast.error("يرجى إدخال اسم التصنيف");
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("يجب تسجيل الدخول أولاً");
+        return;
+      }
+
+      let finalImageUrl = categoryImageUrl;
+
+      // رفع صورة التصنيف إذا كانت موجودة
+      if (categoryImageUploadMethod === "file" && categoryImageFile) {
+        toast.info("جاري رفع صورة التصنيف...");
+        try {
+          // معالجة صور HEIC من iPhone
+          let processedFile = categoryImageFile;
+          if (categoryImageFile.type === 'image/heic' || categoryImageFile.type === 'image/heif' || 
+              categoryImageFile.name.toLowerCase().endsWith('.heic')) {
+            toast.info("جاري تحويل الصورة...");
+            const img = new Image();
+            const objectUrl = URL.createObjectURL(categoryImageFile);
+            
+            await new Promise((resolve, reject) => {
+              img.onload = resolve;
+              img.onerror = () => reject(new Error('فشل تحميل الصورة'));
+              img.src = objectUrl;
+            });
+
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(img, 0, 0);
+            
+            const blob = await new Promise<Blob>((resolve, reject) => {
+              canvas.toBlob(
+                (b) => b ? resolve(b) : reject(new Error('فشل تحويل الصورة')),
+                'image/jpeg',
+                0.9
+              );
+            });
+            
+            URL.revokeObjectURL(objectUrl);
+            processedFile = new File([blob], categoryImageFile.name.replace(/\.heic$/i, '.jpg'), { 
+              type: 'image/jpeg' 
+            });
+          }
+
+          finalImageUrl = await uploadImage('صور التصنيفات', processedFile, user.id, 'categories');
+        } catch (error) {
+          console.error('خطأ في رفع صورة التصنيف:', error);
+          toast.error("فشل رفع صورة التصنيف");
+          return;
+        }
+      }
+
+      // حفظ صورة التصنيف في قاعدة البيانات
+      if (finalImageUrl) {
+        const { error: categoryImageError } = await supabase
+          .from('category_images')
+          .insert({
+            user_id: user.id,
+            category: newCategoryName.trim(),
+            image_url: finalImageUrl
+          });
+
+        if (categoryImageError) {
+          console.error('خطأ في حفظ صورة التصنيف:', categoryImageError);
+          // نستمر حتى لو فشل حفظ الصورة
+        }
+      }
+
       setFormData({ ...formData, category: newCategoryName.trim() });
       setCategories([...categories, newCategoryName.trim()]);
       setNewCategoryName("");
+      setCategoryImageFile(null);
+      setCategoryImageUrl("");
+      setCategoryImagePreview(null);
       setIsAddingNewCategory(false);
+      toast.success("تم إضافة التصنيف بنجاح");
+    } catch (error) {
+      console.error('خطأ في إضافة التصنيف:', error);
+      toast.error("حدث خطأ أثناء إضافة التصنيف");
     }
   };
 
@@ -164,6 +267,9 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
       setPreviewUrl(null);
       setCurrentStep(1);
       setIsAddingNewCategory(false);
+      setCategoryImageFile(null);
+      setCategoryImageUrl("");
+      setCategoryImagePreview(null);
       
       onProductAdded?.();
       onOpenChange(false);
@@ -250,6 +356,89 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
                     placeholder="مثال: مشروبات، حلويات..."
                     className="w-full"
                   />
+                  
+                  {/* رفع صورة التصنيف */}
+                  <div className="space-y-3 mt-4">
+                    <Label>صورة التصنيف (اختياري)</Label>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant={categoryImageUploadMethod === "file" ? "default" : "outline"}
+                        onClick={() => setCategoryImageUploadMethod("file")}
+                        className="flex-1"
+                        size="sm"
+                      >
+                        <Upload className="w-3 h-3 ml-2" />
+                        رفع صورة
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={categoryImageUploadMethod === "url" ? "default" : "outline"}
+                        onClick={() => setCategoryImageUploadMethod("url")}
+                        className="flex-1"
+                        size="sm"
+                      >
+                        <LinkIcon className="w-3 h-3 ml-2" />
+                        رابط صورة
+                      </Button>
+                    </div>
+
+                    {categoryImageUploadMethod === "file" ? (
+                      <div className="space-y-2">
+                        <div 
+                          className={cn(
+                            "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary transition-colors",
+                            "flex flex-col items-center justify-center gap-2"
+                          )}
+                          onClick={() => document.getElementById('category-image-upload')?.click()}
+                        >
+                          {categoryImagePreview ? (
+                            <div className="relative">
+                              <img 
+                                src={categoryImagePreview} 
+                                alt="معاينة" 
+                                className="max-h-32 rounded-lg"
+                              />
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="icon"
+                                className="absolute top-1 right-1 h-6 w-6"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setCategoryImagePreview(null);
+                                  setCategoryImageFile(null);
+                                }}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <>
+                              <ImagePlus className="w-8 h-8 text-muted-foreground" />
+                              <p className="text-sm text-muted-foreground">اضغط لاختيار صورة</p>
+                            </>
+                          )}
+                        </div>
+                        <input
+                          id="category-image-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleCategoryImageFileSelect}
+                          className="hidden"
+                        />
+                      </div>
+                    ) : (
+                      <Input
+                        type="url"
+                        value={categoryImageUrl}
+                        onChange={(e) => setCategoryImageUrl(e.target.value)}
+                        placeholder="أدخل رابط صورة التصنيف"
+                        className="w-full"
+                      />
+                    )}
+                  </div>
+
                   <div className="flex gap-2">
                     <Button
                       type="button"
@@ -265,6 +454,9 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
                       onClick={() => {
                         setIsAddingNewCategory(false);
                         setNewCategoryName("");
+                        setCategoryImageFile(null);
+                        setCategoryImageUrl("");
+                        setCategoryImagePreview(null);
                       }}
                     >
                       إلغاء
