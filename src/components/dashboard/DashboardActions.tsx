@@ -1,4 +1,4 @@
-import { Plus, Edit, Eye, Link2, Settings, MessageSquare, QrCode, Palette } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -71,35 +71,6 @@ const DashboardActions = () => {
     });
     
     return null;
-  };
-
-  const handleEditProducts = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast({
-        title: "خطأ",
-        description: "يجب تسجيل الدخول أولاً",
-        variant: "destructive",
-        duration: 3000,
-      });
-      return;
-    }
-
-    const { data: products } = await supabase
-      .from("products")
-      .select("id")
-      .eq("user_id", user.id)
-      .limit(1);
-    
-    if (products && products.length > 0) {
-      navigate(`/edit-product/${products[0].id}`);
-    } else {
-      toast({
-        title: "لا توجد منتجات",
-        description: "قم بإضافة منتج أولاً",
-        duration: 3000,
-      });
-    }
   };
 
   const handlePreviewProducts = async () => {

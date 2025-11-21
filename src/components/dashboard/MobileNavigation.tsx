@@ -1,4 +1,4 @@
-import { LayoutDashboard, Settings, Store, Edit } from "lucide-react";
+import { LayoutDashboard, Settings, Store } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -32,47 +32,12 @@ const MobileNavigation = () => {
     checkEmployeeSystem();
   }, []);
 
-  const handleEditProducts = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast({
-        title: "خطأ",
-        description: "يجب تسجيل الدخول أولاً",
-        variant: "destructive",
-        duration: 3000,
-      });
-      return;
-    }
-
-    const { data: products } = await supabase
-      .from("products")
-      .select("id")
-      .eq("user_id", user.id)
-      .limit(1);
-    
-    if (products && products.length > 0) {
-      navigate(`/edit-product/${products[0].id}`);
-    } else {
-      toast({
-        title: "لا توجد منتجات",
-        description: "قم بإضافة منتج أولاً",
-        duration: 3000,
-      });
-    }
-  };
-
   const navItems = employeeSystemEnabled ? [
     {
       icon: LayoutDashboard,
       label: "الرئيسية",
       path: "/dashboard",
       action: () => navigate("/dashboard"),
-    },
-    {
-      icon: Edit,
-      label: "تعديل المنتجات",
-      path: "/edit-products",
-      action: handleEditProducts,
     },
     {
       icon: Store,
@@ -95,12 +60,6 @@ const MobileNavigation = () => {
       label: "الرئيسية",
       path: "/dashboard",
       action: () => navigate("/dashboard"),
-    },
-    {
-      icon: Edit,
-      label: "تعديل المنتجات",
-      path: "/edit-products",
-      action: handleEditProducts,
     },
     {
       icon: Settings,
