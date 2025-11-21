@@ -4,11 +4,24 @@ import { CategoryImage } from "@/types/categoryImage";
 import CategoryTabs from "./CategoryTabs";
 import CompactProductCard from "./CompactProductCard";
 import ProductDetailsModal from "./ProductDetailsModal";
+import EditProductModal from "./EditProductModal";
 import EmptyCategoryMessage from "../EmptyCategoryMessage";
 import BottomActionsBar from "./BottomActionsBar";
 import StoreHeader from "../StoreHeader";
 import { ContactInfo, FontSettings, SocialLinks } from "@/types/store";
 import { sortCategoriesByOrder } from "@/utils/categorySort";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface FastResponseTemplateProps {
   products: Product[];
@@ -43,6 +56,10 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
   // استخراج التصنيفات الفريدة من المنتجات (بدون ترتيب أبجدي)
   const categories = useMemo(() => {
@@ -127,6 +144,51 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
     setTimeout(() => setSelectedProduct(null), 300);
   }, []);
 
+  // معالجة التعديل
+  const handleEdit = useCallback((product: Product) => {
+    setProductToEdit(product);
+    setIsEditModalOpen(true);
+  }, []);
+
+  // معالجة الحذف
+  const handleDelete = useCallback((product: Product) => {
+    setProductToDelete(product);
+    setIsDeleteDialogOpen(true);
+  }, []);
+
+  // تأكيد الحذف
+  const confirmDelete = useCallback(async () => {
+    if (!productToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productToDelete.id);
+
+      if (error) throw error;
+
+      // حذف الصورة من التخزين
+      if (productToDelete.image_url) {
+        const fileName = productToDelete.image_url.split('/').pop();
+        if (fileName) {
+          await supabase.storage
+            .from('product-images')
+            .remove([`${productToDelete.user_id}/${fileName}`]);
+        }
+      }
+
+      toast.success("تم حذف المنتج بنجاح");
+      refreshData?.();
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      toast.error("حدث خطأ أثناء حذف المنتج");
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setProductToDelete(null);
+    }
+  }, [productToDelete, refreshData]);
+
   return (
     <div className="min-h-screen">
       {/* رأس المتجر مع الأنيميشن */}
@@ -177,6 +239,9 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
                 product={product}
                 colorTheme={colorTheme}
                 onClick={() => handleProductClick(product)}
+                isStoreOwner={isStoreOwner}
+                onEdit={() => handleEdit(product)}
+                onDelete={() => handleDelete(product)}
               />
             ))}
           </div>
@@ -206,7 +271,42 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         colorTheme={colorTheme}
+        isStoreOwner={isStoreOwner}
+        onEdit={() => selectedProduct && handleEdit(selectedProduct)}
+        onDelete={() => selectedProduct && handleDelete(selectedProduct)}
       />
+
+      {/* نافذة تعديل المنتج */}
+      <EditProductModal
+        product={productToEdit}
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setProductToEdit(null);
+        }}
+        onSaved={() => {
+          refreshData?.();
+        }}
+      />
+
+      {/* مربع تأكيد الحذف */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف المنتج "{productToDelete?.name}"؟ 
+              لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -1,10 +1,14 @@
 import React, { useState } from "react";
 import { Product } from "@/types/product";
+import { Edit, Trash2 } from "lucide-react";
 
 interface CompactProductCardProps {
   product: Product;
   colorTheme?: string | null;
   onClick?: () => void;
+  isStoreOwner?: boolean;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 // تحسين رابط الصورة لتحميل أسرع
@@ -32,7 +36,10 @@ const formatPrice = (price: number): string => {
 const CompactProductCard: React.FC<CompactProductCardProps> = ({ 
   product, 
   colorTheme,
-  onClick
+  onClick,
+  isStoreOwner,
+  onEdit,
+  onDelete
 }) => {
   const optimizedImageUrl = optimizeImageUrl(product.image_url);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -40,9 +47,38 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
   
   return (
     <div 
-      onClick={onClick}
-      className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+      className="relative group flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200"
     >
+      {/* أزرار التعديل والحذف للمالك */}
+      {isStoreOwner && (
+        <div className="absolute top-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit?.();
+            }}
+            className="p-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors shadow-lg"
+            title="تعديل"
+          >
+            <Edit className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete?.();
+            }}
+            className="p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors shadow-lg"
+            title="حذف"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      <div 
+        onClick={onClick}
+        className="flex items-center gap-3 flex-1 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform"
+      >
       {/* صورة المنتج - مربع صغير */}
       <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 relative overflow-hidden rounded-md bg-gray-100 dark:bg-gray-700">
         {/* Blur placeholder */}
@@ -115,6 +151,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
             {product.description}
           </p>
         )}
+      </div>
       </div>
     </div>
   );
