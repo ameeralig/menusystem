@@ -13,7 +13,6 @@ import Dashboard from "./pages/Dashboard";
 import AddProduct from "./pages/AddProduct";
 import ProductPreview from "./pages/ProductPreview";
 import ProductsDemo from "./pages/ProductsDemo";
-import EditProduct from "./pages/EditProduct";
 import SpinWheelPage from "./pages/SpinWheelPage";
 import QRGenerator from "./pages/QRGenerator";
 import StoreCustomization from "./pages/StoreCustomization";
@@ -50,8 +49,6 @@ const App = () => (
             <Route path="/install" element={<InstallPWA />} />
             <Route path="/qr-generator" element={<QRGenerator />} />
             <Route path="/:slug" element={<ProductPreview />} />
-            <Route path="/edit-product" element={<EditProduct />} />
-            <Route path="/edit-product/:productId" element={<EditProduct />} />
             <Route path="/store-customization" element={<StoreCustomization />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/feedback" element={<Feedback />} />
