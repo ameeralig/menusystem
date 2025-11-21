@@ -1,13 +1,17 @@
 import React from "react";
 import { Product } from "@/types/product";
-import { X } from "lucide-react";
+import { X, Edit, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
 
 interface ProductDetailsModalProps {
   product: Product | null;
   isOpen: boolean;
   onClose: () => void;
   colorTheme?: string | null;
+  isStoreOwner?: boolean;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 // تنسيق السعر بفواصل
@@ -20,6 +24,9 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
   isOpen,
   onClose,
   colorTheme,
+  isStoreOwner,
+  onEdit,
+  onDelete,
 }) => {
   if (!product) return null;
 
@@ -119,6 +126,34 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
                     <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                       {product.description}
                     </p>
+                  </div>
+                )}
+
+                {/* أزرار المالك */}
+                {isStoreOwner && (
+                  <div className="flex gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <Button
+                      onClick={() => {
+                        onEdit?.();
+                        onClose();
+                      }}
+                      className="flex-1"
+                      variant="default"
+                    >
+                      <Edit className="w-4 h-4 ml-2" />
+                      تعديل المنتج
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        onDelete?.();
+                        onClose();
+                      }}
+                      className="flex-1"
+                      variant="destructive"
+                    >
+                      <Trash2 className="w-4 h-4 ml-2" />
+                      حذف المنتج
+                    </Button>
                   </div>
                 )}
               </div>
