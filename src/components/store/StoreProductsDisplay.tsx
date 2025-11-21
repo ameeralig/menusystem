@@ -27,6 +27,8 @@ interface StoreProductsDisplayProps {
   isEmployeeView?: boolean;
   template?: string;
   socialLinks?: any;
+  isStoreOwner?: boolean;
+  refreshData?: () => void;
 }
 
 const StoreProductsDisplay = ({
@@ -41,6 +43,8 @@ const StoreProductsDisplay = ({
   isEmployeeView = false,
   template = "default",
   socialLinks,
+  isStoreOwner = false,
+  refreshData,
 }: StoreProductsDisplayProps) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -219,6 +223,8 @@ const StoreProductsDisplay = ({
           fontSettings={fontSettings}
           socialLinks={socialLinks}
           categoryImages={categoryImages}
+          isStoreOwner={isStoreOwner}
+          refreshData={refreshData}
         />
       </>
     );

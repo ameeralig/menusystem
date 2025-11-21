@@ -33,6 +33,19 @@ const ProductPreview = () => {
   const [lastManualRefresh, setLastManualRefresh] = useState<number>(Date.now());
   const [employeeSystemEnabled, setEmployeeSystemEnabled] = useState(false);
   const { employee, logout } = useEmployeeAuth(storeOwnerId);
+  const [isStoreOwner, setIsStoreOwner] = useState(false);
+
+  // التحقق من أن المستخدم الحالي هو مالك المتجر
+  useEffect(() => {
+    const checkStoreOwner = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsStoreOwner(user?.id === storeOwnerId);
+    };
+    
+    if (storeOwnerId) {
+      checkStoreOwner();
+    }
+  }, [storeOwnerId]);
 
   // دمج جلب حالة الموظفين وتسجيل المشاهدة في useEffect واحد
   useEffect(() => {
@@ -262,6 +275,8 @@ const ProductPreview = () => {
                 isEmployeeView={!!employee}
                 template={storeData.template}
                 socialLinks={storeData.socialLinks}
+                isStoreOwner={isStoreOwner}
+                refreshData={refreshData}
               />
             </ProductPreviewContainer>
           </Suspense>
