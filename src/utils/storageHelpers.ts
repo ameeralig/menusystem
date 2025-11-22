@@ -62,16 +62,23 @@ export const optimizeImage = async (file: File): Promise<File> => {
   
   try {
     // إذا كانت الصورة كبيرة جدًا، قم بضغطها
-    if (file.size > 1024 * 1024) { // أكبر من 1 ميجابايت
+    if (file.size > 500 * 1024) { // أكبر من 500 كيلوبايت
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
+      if (!ctx) return file;
+      
       const img = new Image();
       
       // إنشاء وعد لتحميل الصورة
-      await new Promise((resolve) => {
+      const blobUrl = URL.createObjectURL(file);
+      await new Promise((resolve, reject) => {
         img.onload = resolve;
-        img.src = URL.createObjectURL(file);
+        img.onerror = reject;
+        img.src = blobUrl;
       });
+      
+      // تنظيف blob URL
+      URL.revokeObjectURL(blobUrl);
       
       // تحديد أبعاد الصورة المضغوطة (الحد الأقصى 1200 بكسل)
       const maxWidth = 1200;
@@ -95,39 +102,29 @@ export const optimizeImage = async (file: File): Promise<File> => {
       canvas.height = height;
       
       // رسم الصورة على Canvas بالأبعاد الجديدة
-      ctx?.drawImage(img, 0, 0, width, height);
+      ctx.drawImage(img, 0, 0, width, height);
       
-      // تحويل Canvas إلى Blob بصيغة AVIF إذا كانت مدعومة
-      const supportAVIF = !!HTMLCanvasElement.prototype.toBlob;
-      const quality = 0.75; // جودة 75% (AVIF أفضل من WebP بنفس الجودة)
-      
-      if (supportAVIF) {
-        // محاولة استخدام صيغة AVIF
-        const blob = await new Promise<Blob | null>((resolve) => 
-          canvas.toBlob(resolve, 'image/avif', quality)
-        );
-        
-        if (blob) {
-          // إنشاء ملف جديد بصيغة AVIF
-          const optimizedFile = new File(
-            [blob], 
-            file.name.replace(/\.[^.]+$/, '.avif'), 
-            { type: 'image/avif' }
-          );
-          
-          // إذا كان الملف المحسن أصغر، استخدمه
-          return optimizedFile.size < file.size ? optimizedFile : file;
-        }
-      }
-      
-      // إذا لم يكن WebP مدعومًا، استخدم نفس صيغة الملف الأصلي
-      const blob = await new Promise<Blob | null>((resolve) => 
-        canvas.toBlob(resolve, file.type, quality)
+      // محاولة استخدام WebP (دعم أفضل من AVIF)
+      const quality = 0.85;
+      let blob = await new Promise<Blob | null>((resolve) => 
+        canvas.toBlob(resolve, 'image/webp', quality)
       );
       
-      if (blob) {
-        const optimizedFile = new File([blob], file.name, { type: file.type });
-        return optimizedFile.size < file.size ? optimizedFile : file;
+      // إذا فشل WebP، استخدم JPEG كبديل
+      if (!blob) {
+        blob = await new Promise<Blob | null>((resolve) => 
+          canvas.toBlob(resolve, 'image/jpeg', quality)
+        );
+      }
+      
+      if (blob && blob.size < file.size) {
+        const extension = blob.type === 'image/webp' ? '.webp' : '.jpg';
+        const optimizedFile = new File(
+          [blob], 
+          file.name.replace(/\.[^.]+$/, extension), 
+          { type: blob.type }
+        );
+        return optimizedFile;
       }
     }
     
@@ -145,13 +142,15 @@ export const optimizeImage = async (file: File): Promise<File> => {
  * @param file ملف الصورة
  * @param userId معرف المستخدم
  * @param folder اسم المجلد الفرعي (اختياري)
+ * @param retryCount عدد المحاولات المتبقية
  * @returns رابط الصورة العام
  */
 export const uploadImage = async (
   bucket: string,
   file: File,
   userId: string,
-  folder: string = ''
+  folder: string = '',
+  retryCount: number = 2
 ): Promise<string> => {
   try {
     console.log(`بدء رفع صورة إلى دلو ${bucket} للمستخدم ${userId}`);
@@ -162,83 +161,37 @@ export const uploadImage = async (
     const filePath = createUniqueFilePath(userId, folder, optimizedFile);
     console.log(`مسار الملف: ${filePath}`);
     
-    // التحقق من وجود الدلو
-    try {
-      const { data: bucketsList, error: bucketsError } = await supabase.storage.listBuckets();
-      
-      let bucketExists = false;
-      
-      if (!bucketsError && bucketsList) {
-        bucketExists = bucketsList.some(b => b.name === bucket);
-      }
-      
-      if (!bucketExists) {
-        console.log(`إنشاء دلو جديد: ${bucket}`);
-        const { error: createBucketError } = await supabase.storage.createBucket(bucket, {
-          public: true
-        });
-        
-        if (createBucketError) {
-          console.error(`خطأ في إنشاء دلو ${bucket}:`, createBucketError);
-        } else {
-          console.log(`تم إنشاء دلو ${bucket} بنجاح`);
-        }
-      }
-    } catch (bucketCheckError) {
-      console.error("خطأ أثناء التحقق من وجود الدلو:", bucketCheckError);
-    }
-    
-    // تعيين خيارات CORS وتحديث رؤوس التخزين المؤقت
+    // خيارات الرفع المحسّنة
     const options = {
-      cacheControl: 'max-age=3600', // تخزين مؤقت لمدة ساعة واحدة
-      upsert: true,
+      cacheControl: 'public, max-age=31536000, immutable', // كاش لمدة سنة
+      upsert: false, // لا نستبدل الملفات القديمة (كل ملف له اسم فريد)
       contentType: optimizedFile.type
     };
     
-    // ننتظر لحظة قبل الرفع لتجنب مشاكل التزامن
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const { error: uploadError, data } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from(bucket)
       .upload(filePath, optimizedFile, options);
 
     if (uploadError) {
       console.error("خطأ في رفع الصورة:", uploadError);
       
-      // محاولة إنشاء الدلو وإعادة المحاولة
-      if (uploadError.message.includes("bucket") || uploadError.message.includes("not found")) {
-        const { error: createBucketRetryError } = await supabase.storage.createBucket(bucket, {
-          public: true
-        });
-        
-        if (!createBucketRetryError) {
-          // إعادة محاولة الرفع
-          const { error: retryError, data: retryData } = await supabase.storage
-            .from(bucket)
-            .upload(filePath, optimizedFile, options);
-            
-          if (retryError) {
-            throw retryError;
-          }
-        } else {
-          throw createBucketRetryError;
-        }
-      } else {
-        throw uploadError;
+      // إعادة المحاولة فقط إذا كانت هناك محاولات متبقية
+      if (retryCount > 0 && (uploadError.message.includes("bucket") || uploadError.message.includes("not found"))) {
+        console.log(`إعادة المحاولة... المحاولات المتبقية: ${retryCount}`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return uploadImage(bucket, file, userId, folder, retryCount - 1);
       }
+      
+      throw uploadError;
     }
 
-    // الحصول على الرابط العام
+    // الحصول على الرابط العام (بدون timestamp لتفعيل الكاش)
     const { data: { publicUrl } } = supabase.storage
       .from(bucket)
       .getPublicUrl(filePath);
-    
-    // إضافة طابع زمني للتأكد من عدم استخدام نسخة مخزنة مؤقتًا
-    const timestamp = Date.now();
-    const finalUrl = `${publicUrl}?t=${timestamp}&nocache=true`;
       
-    console.log(`تم رفع الصورة بنجاح. الرابط العام: ${finalUrl}`);
-    return finalUrl;
+    console.log(`تم رفع الصورة بنجاح. الرابط العام: ${publicUrl}`);
+    return publicUrl;
   } catch (error) {
     console.error("خطأ في رفع الصورة:", error);
     throw error;
@@ -258,138 +211,48 @@ export const urlToFile = async (url: string, filename: string): Promise<File> =>
 };
 
 /**
- * إنشاء رابط مع طابع زمني لتجنب مشاكل التخزين المؤقت
+ * إنشاء رابط مع طابع زمني (فقط عند الحاجة لإعادة التحميل)
  * @param url الرابط الأصلي
- * @returns رابط مع طابع زمني
+ * @param forceReload إجبار إعادة التحميل (اختياري)
+ * @returns رابط مع أو بدون طابع زمني
  */
-export const getUrlWithTimestamp = (url: string | null): string | null => {
+export const getUrlWithTimestamp = (url: string | null, forceReload: boolean = false): string | null => {
   if (!url) return null;
   
-  const timestamp = Date.now();
-  const baseUrl = url.split('?')[0];
-  
-  // تحسين URL الصورة لاستخدام AVIF إذا كان متاحًا
-  if (baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')) {
-    return `${baseUrl}?format=avif&quality=75&t=${timestamp}`;
+  // إرجاع الرابط بدون timestamp للسماح بالكاش (ما لم يُطلب forceReload)
+  if (!forceReload) {
+    return url;
   }
   
-  return `${baseUrl}?t=${timestamp}`;
+  const timestamp = Date.now();
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}v=${timestamp}`;
 };
 
 /**
- * تنسيق رابط الصورة واستخراج الرابط المباشر للصورة من مختلف المصادر
+ * تنسيق رابط الصورة (مبسط للأداء)
  * @param url رابط الصورة الأصلي
- * @param timestamp طابع زمني اختياري لتجاوز التخزين المؤقت
  * @returns رابط الصورة المنسق
  */
-export const formatImageUrl = (url: string, timestamp?: number): string => {
+export const formatImageUrl = (url: string): string => {
   if (!url) return url;
   
-  // تحسين روابط Imgur
-  if (url.includes('imgur.com')) {
-    // تحويل روابط ألبوم Imgur إلى روابط مباشرة
-    if (url.includes('imgur.com/a/') || url.includes('imgur.com/gallery/')) {
-      const albumId = url.split(/imgur\.com\/(?:a|gallery)\//).pop()?.split(/[?#]/)[0];
-      if (albumId) {
-        console.log(`تحويل رابط ألبوم Imgur ${albumId} إلى رابط مباشر`);
-        return `https://i.imgur.com/${albumId}.jpg`;
-      }
-    }
-    
-    // تحويل روابط صور Imgur العادية إلى روابط مباشرة
-    if (url.includes('imgur.com/') && !url.includes('i.imgur.com/')) {
-      const imgId = url.split('imgur.com/').pop()?.split(/[?#]/)[0];
-      if (imgId) {
-        console.log(`تحويل رابط صورة Imgur ${imgId} إلى رابط مباشر`);
-        return `https://i.imgur.com/${imgId}.jpg`;
-      }
-    }
+  // معالجة روابط Supabase فقط (الحالة الأكثر شيوعاً)
+  const isSupabaseUrl = url.includes('supabase.co') || 
+                        url.includes('supabase.in') || 
+                        url.includes('zqlckixwpyrwdwrsuhsg');
+  
+  if (isSupabaseUrl) {
+    // إرجاع الرابط كما هو (بدون معلمات format لأن Supabase لا يدعمها)
+    return url.split('?')[0];
   }
   
-  // تحويل روابط Google Drive إلى روابط مباشرة
-  if (url.includes('drive.google.com')) {
-    // روابط مشاركة Google Drive المعتادة
-    if (url.includes('file/d/')) {
-      const fileId = url.split('file/d/')[1]?.split(/[/?#]/)[0];
-      if (fileId) {
-        console.log(`تحويل رابط Google Drive ${fileId} إلى رابط مباشر`);
-        return `https://drive.google.com/uc?export=view&id=${fileId}`;
-      }
-    }
-    
-    // روابط العرض المباشر لملفات Google Drive
-    if (url.includes('id=')) {
-      const fileId = url.match(/id=([^&]+)/)?.[1];
-      if (fileId) {
-        console.log(`تحويل رابط Google Drive ${fileId} إلى رابط عرض مباشر`);
-        return `https://drive.google.com/uc?export=view&id=${fileId}`;
-      }
-    }
-  }
-  
-  // تحويل روابط Dropbox إلى روابط مباشرة
-  if (url.includes('dropbox.com')) {
-    // التأكد من استخدام رابط مباشر للصور
-    if (url.includes('?dl=0')) {
-      console.log(`تحويل رابط Dropbox إلى رابط مباشر`);
-      return url.replace('?dl=0', '?raw=1');
-    } else if (!url.includes('?raw=1')) {
-      return url + '?raw=1';
-    }
-  }
-
-  // تحويل روابط OneDrive إلى روابط مباشرة
-  if (url.includes('1drv.ms') || url.includes('onedrive.live.com')) {
-    console.log(`تحويل رابط OneDrive إلى رابط مباشر`);
-    // يتطلب معالجة خاصة من الخادم لاحقاً
-    // نحاول استخدام embed بدلاً من عرض مباشر
-    if (url.includes('1drv.ms')) {
-      return `${url}/embed`;
-    }
-  }
-
-  // تحويل روابط iCloud إلى روابط مباشرة (لا يمكن تحويلها بشكل مباشر عادة)
-  if (url.includes('icloud.com')) {
-    console.log(`تم اكتشاف رابط iCloud، سنستخدمه كما هو`);
-    // في معظم الحالات، فإن روابط iCloud تحتاج إلى معالجة خاصة من طرف الخادم
-  }
-
-  // تحويل روابط قصيرة Twitter/X إلى روابط مباشرة
-  if (url.includes('pbs.twimg.com') || url.includes('x.com') || url.includes('twitter.com')) {
-    console.log(`تحويل رابط Twitter/X إلى الشكل المناسب`);
-    // نستخدم الرابط كما هو لصور Twitter المباشرة
-    if (url.includes('pbs.twimg.com')) {
-      // تجريد الرابط من معلمات الاستعلام
-      const baseTwitterUrl = url.split('?')[0];
-      // إضافة معلمة format=jpg للتأكد من الحصول على الصور بتنسيق jpg
-      return `${baseTwitterUrl}?format=jpg&name=large`;
-    }
-  }
-
-  // تحويل روابط Flickr إلى روابط مباشرة
-  if (url.includes('flickr.com')) {
-    console.log(`تم اكتشاف رابط Flickr، قد تحتاج لرابط مباشر`);
-    // الدعم المباشر لـ Flickr يتطلب معالجة API
-  }
-  
-  // تحليل الرابط للتأكد من عدم تكرار المعلمات
-  const baseUrl = url.split('?')[0];
-  const uniqueTimestamp = timestamp || Date.now();
-  
-  // التحقق من نوع الرابط (إذا كان من سوبابيس أو من مصدر آخر)
-  const isSupabaseUrl = baseUrl.includes('supabase.co') || 
-                        baseUrl.includes('supabase.in') || 
-                        baseUrl.includes('zqlckixwpyrwdwrsuhsg') ||
-                        baseUrl.includes('lovable-app');
-  
-  // تحسين URL الصورة مع معلمات مختلفة حسب المصدر
-  return isSupabaseUrl
-    ? `${baseUrl}?format=avif&quality=75&t=${uniqueTimestamp}&nocache=true`
-    : `${baseUrl}?t=${uniqueTimestamp}&nocache=true`;
+  // إرجاع الروابط الخارجية كما هي
+  return url;
 };
 
 /**
- * فحص ما إذا كان الرابط صالح للصورة
+ * فحص ما إذا كان الرابط صالح للصورة (مبسط وأسرع)
  * @param url رابط الصورة
  * @returns وعد يحل إلى صحة الرابط
  */
@@ -397,67 +260,28 @@ export const checkImageUrl = async (url: string | null): Promise<boolean> => {
   if (!url) return false;
   
   try {
-    // تنظيف الرابط من أي معلمات استعلام
-    const cleanUrl = url.split('?')[0];
-    
-    // محاولة تحويل الرابط إلى رابط مباشر إذا لم يكن كذلك
     const processedUrl = formatImageUrl(url);
     
-    // استخدام Image API للتحقق من صلاحية الصورة
+    // محاولة واحدة فقط بدون retries
     return new Promise((resolve) => {
       const img = document.createElement('img');
+      const timeout = setTimeout(() => {
+        console.warn(`⏱️ انتهت مهلة تحميل الصورة: ${processedUrl}`);
+        resolve(false);
+      }, 3000); // 3 ثوان فقط
       
       img.onload = () => {
-        console.log(`✅ تم التحقق من صلاحية الصورة: ${processedUrl}`);
+        clearTimeout(timeout);
         resolve(true);
       };
       
       img.onerror = () => {
+        clearTimeout(timeout);
         console.error(`❌ الصورة غير صالحة: ${processedUrl}`);
-        
-        // محاولة مع تنسيقات مختلفة إذا فشلت المحاولة الأولى
-        const extensionsToTry = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
-        
-        let attemptsLeft = extensionsToTry.length;
-        let foundValid = false;
-        
-        extensionsToTry.forEach(ext => {
-          if (foundValid) return;
-          
-          const altImg = document.createElement('img');
-          const altUrl = `${cleanUrl.split('.').slice(0, -1).join('.')}.${ext}?t=${Date.now()}`;
-          
-          altImg.onload = () => {
-            if (!foundValid) {
-              console.log(`✅ تم العثور على صيغة بديلة صالحة: ${altUrl}`);
-              foundValid = true;
-              resolve(true);
-            }
-          };
-          
-          altImg.onerror = () => {
-            attemptsLeft--;
-            if (attemptsLeft === 0 && !foundValid) {
-              console.error(`❌ جميع المحاولات البديلة فشلت للصورة: ${url}`);
-              resolve(false);
-            }
-          };
-          
-          // استخدام الرابط البديل
-          altImg.src = altUrl;
-        });
+        resolve(false);
       };
       
-      // استخدام الرابط المنسق وإضافة معلمة عشوائية
-      img.src = processedUrl + `&random=${Math.random()}`;
-        
-      // تعيين مهلة زمنية للتحميل
-      setTimeout(() => {
-        if (!img.complete) {
-          console.error(`⏱️ انتهت مهلة تحميل الصورة: ${processedUrl}`);
-          resolve(false);
-        }
-      }, 5000); // 5 ثوان كمهلة زمنية
+      img.src = processedUrl;
     });
   } catch (error) {
     console.error("خطأ في فحص رابط الصورة:", error);

@@ -11,14 +11,12 @@ export const useCategoryImages = (categoryImages: CategoryImage[] = []) => {
     if (categoryImages && categoryImages.length > 0) {
       console.log("معالجة صور التصنيفات...", categoryImages.length);
       
-      // إضافة طابع زمني جديد للتأكد من عدم استخدام الصور المخزنة مؤقتًا
-      const timestamp = Date.now();
       const processed = categoryImages.map(img => {
         if (!img.image_url) return img;
         
         try {
-          // استخدام الوظيفة المحسنة لتنسيق رابط الصورة لدعم جميع أنواع الروابط
-          const newImageUrl = formatImageUrl(img.image_url, timestamp);
+          // استخدام الوظيفة المحسنة لتنسيق رابط الصورة (بدون timestamp للسماح بالكاش)
+          const newImageUrl = formatImageUrl(img.image_url);
           
           console.log(`معالجة صورة للتصنيف ${img.category}: من "${img.image_url}" إلى "${newImageUrl}"`);
           
@@ -34,14 +32,6 @@ export const useCategoryImages = (categoryImages: CategoryImage[] = []) => {
       
       setProcessedCategoryImages(processed);
       console.log("تمت معالجة صور التصنيفات:", processed.length);
-      
-      // تحميل مسبق للصور (preload) لتحسين الأداء
-      processed.forEach(img => {
-        if (img.image_url) {
-          const preloadImg = document.createElement('img');
-          preloadImg.src = img.image_url;
-        }
-      });
     } else {
       console.log("لم يتم توفير أي صور تصنيفات للمعالجة");
       setProcessedCategoryImages([]);
