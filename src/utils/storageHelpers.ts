@@ -97,22 +97,22 @@ export const optimizeImage = async (file: File): Promise<File> => {
       // رسم الصورة على Canvas بالأبعاد الجديدة
       ctx?.drawImage(img, 0, 0, width, height);
       
-      // تحويل Canvas إلى Blob بصيغة WebP إذا كانت مدعومة
-      const supportWebP = !!HTMLCanvasElement.prototype.toBlob;
-      const quality = 0.8; // جودة 80%
+      // تحويل Canvas إلى Blob بصيغة AVIF إذا كانت مدعومة
+      const supportAVIF = !!HTMLCanvasElement.prototype.toBlob;
+      const quality = 0.75; // جودة 75% (AVIF أفضل من WebP بنفس الجودة)
       
-      if (supportWebP) {
-        // محاولة استخدام صيغة WebP
+      if (supportAVIF) {
+        // محاولة استخدام صيغة AVIF
         const blob = await new Promise<Blob | null>((resolve) => 
-          canvas.toBlob(resolve, 'image/webp', quality)
+          canvas.toBlob(resolve, 'image/avif', quality)
         );
         
         if (blob) {
-          // إنشاء ملف جديد بصيغة WebP
+          // إنشاء ملف جديد بصيغة AVIF
           const optimizedFile = new File(
             [blob], 
-            file.name.replace(/\.[^.]+$/, '.webp'), 
-            { type: 'image/webp' }
+            file.name.replace(/\.[^.]+$/, '.avif'), 
+            { type: 'image/avif' }
           );
           
           // إذا كان الملف المحسن أصغر، استخدمه
@@ -268,9 +268,9 @@ export const getUrlWithTimestamp = (url: string | null): string | null => {
   const timestamp = Date.now();
   const baseUrl = url.split('?')[0];
   
-  // تحسين URL الصورة لاستخدام WebP إذا كان متاحًا
+  // تحسين URL الصورة لاستخدام AVIF إذا كان متاحًا
   if (baseUrl.includes('supabase.co') || baseUrl.includes('lovable-app')) {
-    return `${baseUrl}?format=webp&quality=80&t=${timestamp}`;
+    return `${baseUrl}?format=avif&quality=75&t=${timestamp}`;
   }
   
   return `${baseUrl}?t=${timestamp}`;
@@ -384,7 +384,7 @@ export const formatImageUrl = (url: string, timestamp?: number): string => {
   
   // تحسين URL الصورة مع معلمات مختلفة حسب المصدر
   return isSupabaseUrl
-    ? `${baseUrl}?format=webp&quality=80&t=${uniqueTimestamp}&nocache=true`
+    ? `${baseUrl}?format=avif&quality=75&t=${uniqueTimestamp}&nocache=true`
     : `${baseUrl}?t=${uniqueTimestamp}&nocache=true`;
 };
 
