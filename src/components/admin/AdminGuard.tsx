@@ -1,13 +1,7 @@
-
 import { useEffect, useState } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { Spinner } from "@/components/ui/spinner";
-
-interface AdminSession {
-  email: string;
-  timestamp: string;
-  isAdmin: boolean;
-}
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminGuard = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -15,37 +9,37 @@ const AdminGuard = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const checkAdminAccess = () => {
+    const checkAdminAccess = async () => {
       try {
-        const adminSessionStr = localStorage.getItem("adminSession");
+        // التحقق من جلسة المستخدم الحالية
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
         
-        if (!adminSessionStr) {
+        if (userError || !user) {
+          console.error("المستخدم غير مسجل الدخول");
           setIsAuthorized(false);
+          setIsLoading(false);
           return;
         }
         
-        const adminSession = JSON.parse(adminSessionStr) as AdminSession;
+        // التحقق من دور المستخدم
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
         
-        // التحقق من صلاحية الجلسة
-        if (
-          adminSession &&
-          adminSession.email === "ameer_a16@icloud.com" &&
-          adminSession.isAdmin
-        ) {
-          // التحقق من مدة الجلسة (24 ساعة كحد أقصى)
-          const sessionTime = new Date(adminSession.timestamp).getTime();
-          const currentTime = new Date().getTime();
-          const sessionDuration = currentTime - sessionTime;
-          const maxSessionDuration = 24 * 60 * 60 * 1000; // 24 ساعة بالميلي ثانية
-          
-          if (sessionDuration <= maxSessionDuration) {
-            setIsAuthorized(true);
-          } else {
-            // انتهت صلاحية الجلسة، قم بإزالتها
-            localStorage.removeItem("adminSession");
-            setIsAuthorized(false);
-          }
+        if (roleError) {
+          console.error("خطأ في جلب دور المستخدم:", roleError);
+          setIsAuthorized(false);
+          setIsLoading(false);
+          return;
+        }
+        
+        // التحقق من أن المستخدم لديه دور admin
+        if (roleData && roleData.role === 'admin') {
+          setIsAuthorized(true);
         } else {
+          console.error("المستخدم ليس لديه صلاحيات المسؤول");
           setIsAuthorized(false);
         }
       } catch (error) {

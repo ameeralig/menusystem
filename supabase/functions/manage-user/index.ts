@@ -65,12 +65,45 @@ serve(async (req) => {
       );
     }
     
-    // التحقق من الجلسة الحالية للمستخدم (تخطي هذا الجزء حاليًا للتطوير)
+    // التحقق من صلاحيات المسؤول
     const authHeader = req.headers.get('authorization') || '';
     const token = authHeader.replace('Bearer ', '');
     
-    // لتبسيط التطوير، نتخطى التحقق من الصلاحيات حاليًا
-    console.log(`بدء تنفيذ الإجراء: ${action}`);
+    if (!token) {
+      console.error('لم يتم تقديم رمز المصادقة');
+      return new Response(
+        JSON.stringify({ error: 'غير مصرح: رمز المصادقة مطلوب' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // التحقق من المستخدم والحصول على بياناته
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error('فشل التحقق من المصادقة:', authError);
+      return new Response(
+        JSON.stringify({ error: 'غير مصرح: رمز مصادقة غير صالح' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // التحقق من دور المسؤول
+    const { data: roleData, error: roleError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+    
+    if (roleError || !roleData || roleData.role !== 'admin') {
+      console.error('المستخدم ليس لديه صلاحيات المسؤول:', user.id);
+      return new Response(
+        JSON.stringify({ error: 'ممنوع: مطلوب صلاحيات المسؤول' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    console.log(`بدء تنفيذ الإجراء: ${action} بواسطة المسؤول: ${user.id}`);
     
     // معالجة الطلبات المختلفة
     if (action === 'ban') {

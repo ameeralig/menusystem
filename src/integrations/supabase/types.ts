@@ -719,6 +719,13 @@ export type Database = {
       create_notifications_table_if_not_exists: { Args: never; Returns: string }
       delete_resolved_feedback: { Args: { owner_id: string }; Returns: number }
       get_employee_store_owner: { Args: { user_uuid: string }; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       increment_page_view: {
         Args: { store_user_id: string }
         Returns: undefined

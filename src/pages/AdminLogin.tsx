@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -6,21 +5,31 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
-  const [pin, setPin] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // التحقق مما إذا كان المستخدم مسجل الدخول كمسؤول بالفعل
+  // التحقق مما إذا كان المستخدم مسجل الدخول بالفعل
   useEffect(() => {
-    const checkAdminSession = () => {
-      const adminSession = localStorage.getItem("adminSession");
-      if (adminSession) {
-        navigate("/admin/dashboard");
+    const checkAdminSession = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // التحقق من دور المستخدم
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (roleData && roleData.role === 'admin') {
+          navigate("/admin/dashboard");
+        }
       }
     };
 
@@ -33,50 +42,43 @@ const AdminLogin = () => {
     setIsLoading(true);
     
     try {
-      // التحقق من صحة بيانات الدخول
-      if (email !== "ameer_a16@icloud.com" || pin !== "1234") {
+      // تسجيل الدخول إلى Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
         toast({
           variant: "destructive",
           title: "خطأ في تسجيل الدخول",
-          description: "بيانات الاعتماد غير صحيحة. الرجاء المحاولة مرة أخرى."
+          description: error.message || "بيانات الاعتماد غير صحيحة. الرجاء المحاولة مرة أخرى."
         });
         setIsLoading(false);
         return;
       }
 
-      // محاولة تسجيل الدخول إلى Supabase
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password: pin
-      });
+      if (data.user) {
+        // التحقق من دور المستخدم
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id)
+          .single();
 
-      // إذا كان هناك خطأ في تسجيل الدخول في Supabase، نقوم بإنشاء جلسة محلية
-      if (error) {
-        console.log("تسجيل الدخول باستخدام الجلسة المحلية");
-        
-        // تسجيل جلسة المسؤول
-        localStorage.setItem("adminSession", JSON.stringify({
-          email,
-          timestamp: new Date().toISOString(),
-          isAdmin: true
-        }));
-        
-        toast({
-          title: "تم تسجيل الدخول بنجاح",
-          description: "مرحباً بك في لوحة تحكم المسؤول."
-        });
-        
-        // توجيه المستخدم إلى لوحة التحكم
-        navigate("/admin/dashboard");
-      } else {
-        // تم تسجيل الدخول بنجاح في Supabase
-        localStorage.setItem("adminSession", JSON.stringify({
-          email,
-          timestamp: new Date().toISOString(),
-          isAdmin: true,
-          supabase_session: data.session
-        }));
-        
+        if (roleError || !roleData || roleData.role !== 'admin') {
+          // تسجيل الخروج إذا كان المستخدم ليس مسؤولاً
+          await supabase.auth.signOut();
+          
+          toast({
+            variant: "destructive",
+            title: "غير مصرح",
+            description: "ليس لديك صلاحيات للوصول إلى لوحة تحكم المسؤول."
+          });
+          setIsLoading(false);
+          return;
+        }
+
         toast({
           title: "تم تسجيل الدخول بنجاح",
           description: "مرحباً بك في لوحة تحكم المسؤول."
@@ -101,6 +103,9 @@ const AdminLogin = () => {
       <Card className="w-full max-w-md mx-4">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-bold">لوحة تحكم المسؤول</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            قم بتسجيل الدخول باستخدام حساب المسؤول
+          </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
@@ -109,7 +114,7 @@ const AdminLogin = () => {
               <Input
                 id="email"
                 type="email"
-                placeholder="أدخل البريد الإلكتروني المخوّل"
+                placeholder="أدخل البريد الإلكتروني"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -118,14 +123,13 @@ const AdminLogin = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="pin">رمز الدخول</Label>
+              <Label htmlFor="password">كلمة المرور</Label>
               <Input
-                id="pin"
+                id="password"
                 type="password"
-                placeholder="أدخل رمز الدخول"
-                value={pin}
-                onChange={(e) => setPin(e.target.value)}
-                maxLength={4}
+                placeholder="أدخل كلمة المرور"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
                 dir="ltr"
                 className="text-right"
