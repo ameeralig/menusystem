@@ -14,6 +14,7 @@ interface DashboardStatsProps {
     todayViews: number;
     weeklyViews: number;
     monthlyViews: number;
+    aiMessages: number;
   };
   loading: boolean;
 }
@@ -91,6 +92,15 @@ const DashboardStats = ({ stats, loading }: DashboardStatsProps) => {
       bgLight: "bg-orange-50",
       bgDark: "dark:bg-orange-500/20",
       iconColor: "text-orange-500 dark:text-orange-400",
+    },
+    {
+      title: "رسائل المساعد الذكي",
+      value: stats.aiMessages,
+      icon: Sparkles,
+      color: "from-violet-500 to-violet-400",
+      bgLight: "bg-violet-50",
+      bgDark: "dark:bg-violet-500/20",
+      iconColor: "text-violet-500 dark:text-violet-400",
     },
   ];
 

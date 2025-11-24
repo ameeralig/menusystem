@@ -13,6 +13,7 @@ export interface DashboardStats {
   todayViews: number;
   weeklyViews: number;
   monthlyViews: number;
+  aiMessages: number;
 }
 
 export interface DailyViewData {
@@ -31,6 +32,7 @@ export const useDashboardStats = () => {
     todayViews: 0,
     weeklyViews: 0,
     monthlyViews: 0,
+    aiMessages: 0,
   });
   const [dailyViewsData, setDailyViewsData] = useState<DailyViewData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,6 +83,14 @@ export const useDashboardStats = () => {
       const newProducts = productsData?.filter(product => product.is_new).length || 0;
 
       const wheelSpins = Math.floor(totalViews / 10) || 0; // تقدير عدد دورات عجلة الحظ
+
+      // جلب عدد رسائل المساعد الذكي
+      const { count: aiMessagesCount } = await supabase
+        .from("customer_ai_messages")
+        .select("*", { count: 'exact', head: true })
+        .eq("store_owner_id", user.id);
+
+      const aiMessages = aiMessagesCount || 0;
 
       // حساب المشاهدات حسب الفترة الزمنية
       const currentDate = new Date();
@@ -141,6 +151,7 @@ export const useDashboardStats = () => {
         todayViews,
         weeklyViews,
         monthlyViews,
+        aiMessages,
       });
 
       // إنشاء بيانات المشاهدات اليومية للأسبوع الماضي

@@ -160,6 +160,30 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_ai_messages: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          response: string
+          store_owner_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          response: string
+          store_owner_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          response?: string
+          store_owner_id?: string
+        }
+        Relationships: []
+      }
       employee_daily_sales: {
         Row: {
           created_at: string
