@@ -9,6 +9,9 @@ import EmptyCategoryMessage from "./EmptyCategoryMessage";
 import { Product } from "@/types/product";
 import { CategoryImage } from "@/types/categoryImage";
 import AnimatedStoreHeader from "./AnimatedStoreHeader";
+import InlineStoreNameEditor from "./inline-edit/InlineStoreNameEditor";
+import InlineContactInfoEditor from "./inline-edit/InlineContactInfoEditor";
+import StoreInfo from "./StoreInfo";
 import { useOptimizedProducts } from "@/hooks/store/useOptimizedProducts";
 import { sortCategoriesByOrder } from "@/utils/categorySort";
 import { FontSettings, ContactInfo } from "@/types/store";
@@ -251,12 +254,37 @@ const StoreProductsDisplay = ({
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="text-center mb-6"
       >
-        <AnimatedStoreHeader
-          storeName={storeName}
-          colorTheme={colorTheme}
-          fontSettings={fontSettings}
-        />
+        {isStoreOwner ? (
+          <InlineStoreNameEditor
+            storeName={storeName}
+            colorTheme={colorTheme}
+            fontSettings={fontSettings}
+            storeOwnerId={storeOwnerId!}
+            onUpdate={refreshData || (() => {})}
+          />
+        ) : (
+          <AnimatedStoreHeader
+            storeName={storeName}
+            colorTheme={colorTheme}
+            fontSettings={fontSettings}
+          />
+        )}
       </motion.div>
+
+      {/* معلومات المتجر */}
+      {isStoreOwner ? (
+        <InlineContactInfoEditor
+          contactInfo={contactInfo}
+          colorTheme={colorTheme}
+          storeOwnerId={storeOwnerId!}
+          onUpdate={refreshData || (() => {})}
+        />
+      ) : (
+        <StoreInfo
+          contactInfo={contactInfo}
+          colorTheme={colorTheme}
+        />
+      )}
 
       {/* زر الرجوع */}
       <AnimatePresence>

@@ -1,6 +1,8 @@
 
 import { ReactNode, useEffect } from "react";
 import BannerSection from "./preview/BannerSection";
+import InlineBannerEditor from "./inline-edit/InlineBannerEditor";
+import InlineDarkModeToggle from "./inline-edit/InlineDarkModeToggle";
 import { useImageLoading } from "@/hooks/store/useImageLoading";
 import { useCustomFonts } from "@/hooks/store/useCustomFonts";
 import { getBackgroundStyle, getThemeClasses } from "@/utils/previewStyles";
@@ -30,6 +32,9 @@ interface ProductPreviewContainerProps {
   fontSettings?: FontSettings;
   containerHeight?: string;
   darkMode?: boolean;
+  isStoreOwner?: boolean;
+  storeOwnerId?: string;
+  onUpdate?: () => void;
 }
 
 const ProductPreviewContainer = ({ 
@@ -38,7 +43,10 @@ const ProductPreviewContainer = ({
   bannerUrl,
   fontSettings,
   containerHeight = "auto",
-  darkMode = false
+  darkMode = false,
+  isStoreOwner = false,
+  storeOwnerId,
+  onUpdate
 }: ProductPreviewContainerProps) => {
   const { imageError, imageLoaded, imgSrc, setImageError, setImageLoaded } = useImageLoading(bannerUrl);
   const { getContainerStyle } = useCustomFonts(fontSettings);
@@ -54,14 +62,27 @@ const ProductPreviewContainer = ({
 
   return (
     <div className={`flex flex-col ${themeClasses}`} style={getContainerStyle()}>
-      <BannerSection
-        bannerUrl={bannerUrl}
-        imgSrc={imgSrc}
-        imageLoaded={imageLoaded}
-        imageError={imageError}
-        onImageError={() => setImageError(true)}
-        onImageLoad={() => setImageLoaded(true)}
-      />
+      {isStoreOwner && storeOwnerId && onUpdate ? (
+        <InlineBannerEditor
+          bannerUrl={bannerUrl}
+          imgSrc={imgSrc}
+          imageLoaded={imageLoaded}
+          imageError={imageError}
+          onImageError={() => setImageError(true)}
+          onImageLoad={() => setImageLoaded(true)}
+          storeOwnerId={storeOwnerId}
+          onUpdate={onUpdate}
+        />
+      ) : (
+        <BannerSection
+          bannerUrl={bannerUrl}
+          imgSrc={imgSrc}
+          imageLoaded={imageLoaded}
+          imageError={imageError}
+          onImageError={() => setImageError(true)}
+          onImageLoad={() => setImageLoaded(true)}
+        />
+      )}
       
       {/* الخلفية المخصصة مع تطبيق لون المستخدم */}
       <div 
@@ -91,6 +112,15 @@ const ProductPreviewContainer = ({
           </div>
         </div>
       </div>
+
+      {/* زر تبديل الوضع الداكن للمالك */}
+      {isStoreOwner && storeOwnerId && onUpdate && (
+        <InlineDarkModeToggle
+          darkMode={darkMode}
+          storeOwnerId={storeOwnerId}
+          onUpdate={onUpdate}
+        />
+      )}
     </div>
   );
 };
