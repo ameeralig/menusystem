@@ -159,7 +159,7 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
 
   return (
     <>
-      <div className="w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 overflow-visible">
+      <div className="w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30 overflow-visible">
         <div className="container mx-auto px-3 py-5 overflow-visible">
           {/* شريط التصنيفات القابل للتمرير */}
           <div className="flex gap-6 overflow-x-auto overflow-y-visible pb-5 pt-2 px-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
