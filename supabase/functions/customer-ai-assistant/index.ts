@@ -66,7 +66,7 @@ serve(async (req) => {
     for (const [category, items] of Object.entries(productsByCategory)) {
       productsText += `📁 ${category}:\n`;
       items.forEach(product => {
-        productsText += `  • ${product.name} - ${product.price} ريال`;
+        productsText += `  • ${product.name} - ${product.price} دينار عراقي`;
         if (product.description) {
           productsText += ` (${product.description})`;
         }
@@ -96,8 +96,9 @@ ${productsText}
 
 ملاحظة مهمة: 
 - إذا سأل الزبون عن منتج غير موجود في القائمة، أخبره بأنه غير متوفر حالياً واقترح بدائل مشابهة
-- إذا سأل عن السعر، استخدم الأسعار الموجودة في القائمة فقط
-- إذا كان السؤال عام، اقترح منتجات شائعة أو عروض مميزة`
+- إذا سأل عن السعر، استخدم الأسعار الموجودة في القائمة فقط واذكرها بالدينار العراقي
+- إذا كان السؤال عام، اقترح منتجات شائعة أو عروض مميزة
+- جميع الأسعار بالدينار العراقي وليس بالريال`
       },
       { role: 'user', content: message }
     ];
