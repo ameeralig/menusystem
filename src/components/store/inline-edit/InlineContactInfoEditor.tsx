@@ -181,16 +181,18 @@ const InlineContactInfoEditor = ({
   const hasCollapsibleDetails = contactInfo.businessHours || contactInfo.address || contactInfo.phone || contactInfo.wifi;
 
   return (
-    <div className="mt-2 mb-6 text-left space-y-3 relative group">
-      <Button
-        onClick={() => setIsEditing(true)}
-        size="sm"
-        variant="secondary"
-        className="absolute -top-2 left-0 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-      >
-        <Edit2 className="h-4 w-4 ml-2" />
-        تعديل المعلومات
-      </Button>
+    <div className="mt-2 mb-6 text-left space-y-3">
+      <div className="flex justify-center mb-3">
+        <Button
+          onClick={() => setIsEditing(true)}
+          size="sm"
+          variant="outline"
+          className="bg-primary/10 hover:bg-primary/20 border-primary/30"
+        >
+          <Edit2 className="h-4 w-4 ml-2" />
+          تعديل المعلومات
+        </Button>
+      </div>
 
       {contactInfo.description && (
         <div className="flex items-center justify-start gap-2 text-gray-700 dark:text-gray-300">
