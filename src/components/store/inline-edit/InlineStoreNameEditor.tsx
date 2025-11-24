@@ -10,7 +10,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { HexColorPicker } from "react-colorful";
-import "react-colorful/dist/index.css";
 import { Label } from "@/components/ui/label";
 
 interface InlineStoreNameEditorProps {
