@@ -39,17 +39,17 @@ const InlineDarkModeToggle = ({
       onClick={handleToggle}
       variant="outline"
       size="sm"
-      className="fixed bottom-4 left-4 z-50 shadow-lg"
+      className="fixed top-4 left-4 z-50 shadow-lg bg-background/80 backdrop-blur-sm"
     >
       {darkMode ? (
         <>
           <Sun className="h-4 w-4 ml-2" />
-          الوضع الفاتح
+          فاتح
         </>
       ) : (
         <>
           <Moon className="h-4 w-4 ml-2" />
-          الوضع الداكن
+          داكن
         </>
       )}
     </Button>
