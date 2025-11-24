@@ -36,3 +36,6 @@ verify_jwt = false
 [functions."ai-product-assistant"]
 verify_jwt = true
 
+[functions."customer-ai-assistant"]
+verify_jwt = false
+
