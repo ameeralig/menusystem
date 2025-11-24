@@ -134,6 +134,18 @@ ${productsText}
 
     const assistantMessage = aiData.choices[0].message.content || 'عذراً، لم أتمكن من الرد';
 
+    // حفظ الرسالة في قاعدة البيانات للإحصائيات
+    try {
+      await supabase.from('customer_ai_messages').insert({
+        store_owner_id: storeOwnerId,
+        message: message,
+        response: assistantMessage
+      });
+    } catch (logError) {
+      console.error('Error logging message:', logError);
+      // لا نريد أن يفشل الطلب بسبب فشل التسجيل
+    }
+
     return new Response(
       JSON.stringify({
         message: assistantMessage
