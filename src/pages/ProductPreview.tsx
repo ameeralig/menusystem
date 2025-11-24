@@ -262,6 +262,9 @@ const ProductPreview = () => {
               fontSettings={storeData.fontSettings}
               darkMode={storeData.darkMode}
               containerHeight="auto"
+              isStoreOwner={isStoreOwner}
+              storeOwnerId={storeOwnerId || undefined}
+              onUpdate={refreshData}
             >
               <StoreProductsDisplay 
                 storeName={storeData.storeName} 
