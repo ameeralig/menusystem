@@ -90,7 +90,7 @@ const CustomerAIAssistant = ({ isOpen, onOpenChange, storeOwnerId }: CustomerAIA
   if (!isOpen) return null;
 
   return (
-    <Card className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-[400px] h-[500px] z-[100] flex flex-col glass-morphism border border-white/30 shadow-2xl">
+    <Card className="fixed bottom-24 left-6 right-6 md:left-6 md:right-6 md:w-[400px] h-[500px] z-[100] flex flex-col glass-morphism border border-white/30 shadow-2xl">
       {/* Header */}
       <div className="p-4 border-b border-white/20 bg-gradient-to-r from-purple-500/10 to-purple-600/10 backdrop-blur-md">
         <div className="flex items-center justify-between">
