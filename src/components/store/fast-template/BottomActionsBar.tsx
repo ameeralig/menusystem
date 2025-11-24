@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Disc3, MessageSquare, Search, Instagram, Facebook, Send, X, Info, Plus } from "lucide-react";
+import { Disc3, MessageSquare, Search, Instagram, Facebook, Send, X, Info, Plus, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { SocialLinks, ContactInfo } from "@/types/store";
 import { useNavigate } from "react-router-dom";
 import StoreInfoSheet from "./StoreInfoSheet";
 import AddProductModal from "./AddProductModal";
+import CustomerAIAssistant from "./CustomerAIAssistant";
 
 interface BottomActionsBarProps {
   slug?: string;
@@ -35,6 +36,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   const navigate = useNavigate();
   const [isInfoSheetOpen, setIsInfoSheetOpen] = useState(false);
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
 
   const getThemeColor = () => {
     if (colorTheme?.startsWith('#')) {
@@ -209,6 +211,26 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                 </motion.div>
               )}
 
+              {/* زر المساعد الذكي */}
+              {storeOwnerId && (
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <div
+                    onClick={() => setIsAIAssistantOpen(true)}
+                    className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl shadow-lg cursor-pointer"
+                    style={{
+                      background: `linear-gradient(135deg, #8b5cf6, #7c3aed)`,
+                      border: '2px solid rgba(255,255,255,0.3)',
+                    }}
+                  >
+                    <Sparkles className="h-5 w-5 text-white" />
+                    <span className="text-[10px] font-medium text-white whitespace-nowrap">AI</span>
+                  </div>
+                </motion.div>
+              )}
+
             </div>
           </div>
         </div>
@@ -232,6 +254,15 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
           window.location.reload();
         }}
       />
+
+      {/* CustomerAIAssistant */}
+      {storeOwnerId && (
+        <CustomerAIAssistant
+          isOpen={isAIAssistantOpen}
+          onOpenChange={setIsAIAssistantOpen}
+          storeOwnerId={storeOwnerId}
+        />
+      )}
     </motion.div>
   );
 };
