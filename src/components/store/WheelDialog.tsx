@@ -90,8 +90,12 @@ const WheelDialog: React.FC<WheelDialogProps> = ({
 
   const handleWheelResult = (product: Product) => {
     setSelectedProduct(product);
-    // فتح نافذة تفاصيل المنتج
-    setIsProductModalOpen(true);
+    // إغلاق نافذة العجلة
+    onClose();
+    // فتح نافذة تفاصيل المنتج بعد تأخير بسيط
+    setTimeout(() => {
+      setIsProductModalOpen(true);
+    }, 300);
   };
 
   const handleCloseProductModal = () => {
