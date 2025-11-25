@@ -264,6 +264,8 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         onSearchChange={handleSearchChange}
         onClearSearch={clearSearch}
         isStoreOwner={isStoreOwner}
+        storeName={storeName || undefined}
+        fontSettings={fontSettings}
       />
 
       {/* نافذة تفاصيل المنتج */}
