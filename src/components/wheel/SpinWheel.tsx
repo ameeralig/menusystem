@@ -10,9 +10,10 @@ interface SpinWheelProps {
   products: Product[];
   onResult?: (product: Product) => void;
   colorTheme?: string;
+  hideResult?: boolean;
 }
 
-const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, colorTheme = "default" }) => {
+const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, colorTheme = "default", hideResult = false }) => {
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [result, setResult] = useState<Product | null>(null);
@@ -223,21 +224,21 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
   }, []);
 
   return (
-    <div className="flex flex-col items-center gap-6 p-6 w-full">
+    <div className="flex flex-col items-center gap-4 sm:gap-6 p-2 sm:p-6 w-full">
       {/* العجلة */}
-      <div className="relative flex justify-center">
+      <div className="relative flex justify-center w-full">
         {/* المؤشر المحسّن */}
-        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-4 z-10">
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-3 sm:-translate-y-4 z-10">
           <div className="flex flex-col items-center">
             <div 
-              className="w-0 h-0 border-l-8 border-r-8 border-b-16 border-l-transparent border-r-transparent"
+              className="w-0 h-0 border-l-6 sm:border-l-8 border-r-6 sm:border-r-8 border-b-12 sm:border-b-16 border-l-transparent border-r-transparent"
               style={{
                 borderBottomColor: 'hsl(45, 100%, 50%)',
                 filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4)) drop-shadow(0 0 10px hsl(45, 100%, 70%))'
               }}
             ></div>
             <div 
-              className="w-6 h-8 rounded-b-md"
+              className="w-5 h-6 sm:w-6 sm:h-8 rounded-b-md"
               style={{
                 background: 'linear-gradient(180deg, hsl(45, 100%, 50%) 0%, hsl(43, 74%, 49%) 50%, hsl(43, 74%, 43%) 100%)',
                 boxShadow: '0 4px 8px rgba(0,0,0,0.3), 0 0 15px hsl(45, 100%, 70%)'
@@ -249,7 +250,7 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
         {/* العجلة الدوارة المحسّنة */}
         <motion.div
           ref={wheelRef}
-          className="relative w-96 h-96 rounded-full shadow-2xl overflow-hidden"
+          className="relative w-72 h-72 sm:w-96 sm:h-96 rounded-full shadow-2xl overflow-hidden"
           animate={{ rotate: rotation }}
           transition={{ 
             duration: isSpinning ? 4.5 : 0,
@@ -350,10 +351,10 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
           {/* دائرة مركزية قابلة للضغط لبدء الدوران */}
           {!isSpinning && !result && (
             <motion.div 
-              className="absolute w-20 h-20 rounded-full flex items-center justify-center z-20"
+              className="absolute w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center z-20"
               style={{
-                top: '192px', // نصف حجم العجلة (384/2)
-                left: '192px', // نصف حجم العجلة (384/2)
+                top: '50%',
+                left: '50%',
                 transform: 'translate(-50%, -50%)',
                 background: `
                   radial-gradient(circle, 
@@ -379,8 +380,8 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
               transition={{ duration: 0.3 }}
             >
               <div className="text-center">
-                <div className="text-2xl mb-1">🎯</div>
-                <div className="text-xs font-bold text-gray-700">اضغط</div>
+                <div className="text-xl sm:text-2xl mb-1">🎯</div>
+                <div className="text-[10px] sm:text-xs font-bold text-gray-700">اضغط</div>
               </div>
             </motion.div>
           )}
@@ -388,20 +389,20 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
       </div>
 
       {/* إعادة تعيين العجلة فقط */}
-      <div className="flex justify-center mt-6">
+      <div className="flex justify-center mt-4 sm:mt-6">
         <Button 
           onClick={resetWheel} 
           variant="outline" 
-          size="lg"
-          className="border-border bg-background hover:bg-muted text-foreground hover:text-foreground"
+          size="sm"
+          className="border-border bg-background hover:bg-muted text-foreground hover:text-foreground text-xs sm:text-sm"
         >
-          <RotateCcw className="w-5 h-5 mr-2" />
+          <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
           إعادة تعيين
         </Button>
       </div>
 
-      {/* عرض النتيجة */}
-      {result && (
+      {/* عرض النتيجة - إخفاؤها إذا كانت hideResult = true */}
+      {!hideResult && result && (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
