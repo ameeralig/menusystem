@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Disc3, MessageSquare, Search, Instagram, Facebook, Send, X, Info, Plus, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SocialLinks, ContactInfo } from "@/types/store";
+import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
 import { useNavigate } from "react-router-dom";
 import StoreInfoSheet from "./StoreInfoSheet";
 import AddProductModal from "./AddProductModal";
 import CustomerAIAssistant from "./CustomerAIAssistant";
+import WheelDialog from "../WheelDialog";
 
 interface BottomActionsBarProps {
   slug?: string;
@@ -20,6 +20,8 @@ interface BottomActionsBarProps {
   onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onClearSearch: () => void;
   isStoreOwner?: boolean;
+  storeName?: string;
+  fontSettings?: FontSettings;
 }
 
 const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
@@ -32,11 +34,14 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   onSearchChange,
   onClearSearch,
   isStoreOwner = false,
+  storeName,
+  fontSettings,
 }) => {
   const navigate = useNavigate();
   const [isInfoSheetOpen, setIsInfoSheetOpen] = useState(false);
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
+  const [isWheelDialogOpen, setIsWheelDialogOpen] = useState(false);
 
   const getThemeColor = () => {
     if (colorTheme?.startsWith('#')) {
@@ -151,23 +156,22 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
               )}
               
               {/* زر عجلة الحظ */}
-              {slug && (
+              {slug && storeOwnerId && storeName && (
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <Link to={`/store/${slug}/wheel`}>
-                    <div
-                      className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl shadow-lg"
-                      style={{
-                        background: `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`,
-                        border: '2px solid rgba(255,255,255,0.3)',
-                      }}
-                    >
-                      <Disc3 className="h-5 w-5 text-white" />
-                      <span className="text-[10px] font-medium text-white whitespace-nowrap">عجلة الحظ</span>
-                    </div>
-                  </Link>
+                  <div
+                    onClick={() => setIsWheelDialogOpen(true)}
+                    className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl shadow-lg cursor-pointer"
+                    style={{
+                      background: `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`,
+                      border: '2px solid rgba(255,255,255,0.3)',
+                    }}
+                  >
+                    <Disc3 className="h-5 w-5 text-white" />
+                    <span className="text-[10px] font-medium text-white whitespace-nowrap">عجلة الحظ</span>
+                  </div>
                 </motion.div>
               )}
 
@@ -261,6 +265,18 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
           isOpen={isAIAssistantOpen}
           onOpenChange={setIsAIAssistantOpen}
           storeOwnerId={storeOwnerId}
+        />
+      )}
+
+      {/* WheelDialog */}
+      {storeOwnerId && storeName && (
+        <WheelDialog
+          isOpen={isWheelDialogOpen}
+          onClose={() => setIsWheelDialogOpen(false)}
+          storeOwnerId={storeOwnerId}
+          storeName={storeName}
+          colorTheme={colorTheme || undefined}
+          fontSettings={fontSettings}
         />
       )}
     </motion.div>

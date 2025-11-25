@@ -1,15 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
 import { Gamepad2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import WheelDialog from './WheelDialog';
 
 interface WheelButtonProps {
   slug: string;
   colorTheme?: string;
+  storeOwnerId: string;
+  storeName: string;
+  fontSettings?: any;
 }
 
-const WheelButton: React.FC<WheelButtonProps> = ({ slug, colorTheme }) => {
+const WheelButton: React.FC<WheelButtonProps> = ({ 
+  slug, 
+  colorTheme, 
+  storeOwnerId, 
+  storeName,
+  fontSettings 
+}) => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const getThemeColors = (theme: string) => {
     const themes: { [key: string]: string } = {
       default: "bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800",
@@ -29,21 +40,22 @@ const WheelButton: React.FC<WheelButtonProps> = ({ slug, colorTheme }) => {
   const buttonColors = colorTheme ? getThemeColors(colorTheme) : getThemeColors('default');
 
   return (
-    <motion.div
-      initial={{ scale: 0, rotate: -180 }}
-      animate={{ scale: 1, rotate: 0 }}
-      transition={{ 
-        duration: 0.6, 
-        delay: 0.3,
-        type: "spring",
-        stiffness: 260,
-        damping: 20
-      }}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-    >
-      <Link to={`/store/${slug}/wheel`}>
+    <>
+      <motion.div
+        initial={{ scale: 0, rotate: -180 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ 
+          duration: 0.6, 
+          delay: 0.3,
+          type: "spring",
+          stiffness: 260,
+          damping: 20
+        }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
         <Button
+          onClick={() => setIsDialogOpen(true)}
           className={`${buttonColors} text-white shadow-lg relative overflow-hidden group`}
           size="default"
         >
@@ -109,8 +121,18 @@ const WheelButton: React.FC<WheelButtonProps> = ({ slug, colorTheme }) => {
             ✨
           </motion.div>
         </Button>
-      </Link>
-    </motion.div>
+      </motion.div>
+
+      {/* Dialog العجلة */}
+      <WheelDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        storeOwnerId={storeOwnerId}
+        storeName={storeName}
+        colorTheme={colorTheme}
+        fontSettings={fontSettings}
+      />
+    </>
   );
 };
 
