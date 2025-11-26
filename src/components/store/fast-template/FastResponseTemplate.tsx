@@ -351,6 +351,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         isStoreOwner={isStoreOwner}
         storeName={storeName || undefined}
         fontSettings={fontSettings}
+        products={products}
       />
 
       {/* نافذة تفاصيل المنتج */}

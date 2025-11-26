@@ -4,11 +4,12 @@ import { Disc3, MessageSquare, Search, Instagram, Facebook, Send, X, Info, Plus,
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
-import { useNavigate } from "react-router-dom";
 import StoreInfoSheet from "./StoreInfoSheet";
 import AddProductModal from "./AddProductModal";
 import CustomerAIAssistant from "./CustomerAIAssistant";
-import WheelDialog from "../WheelDialog";
+import WheelModal from "../WheelModal";
+import FeedbackDialog from "../feedback/FeedbackDialog";
+import { Product } from "@/types/product";
 
 interface BottomActionsBarProps {
   slug?: string;
@@ -22,6 +23,7 @@ interface BottomActionsBarProps {
   isStoreOwner?: boolean;
   storeName?: string;
   fontSettings?: FontSettings;
+  products?: Product[];
 }
 
 const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
@@ -36,12 +38,13 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   isStoreOwner = false,
   storeName,
   fontSettings,
+  products = [],
 }) => {
-  const navigate = useNavigate();
   const [isInfoSheetOpen, setIsInfoSheetOpen] = useState(false);
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
-  const [isWheelDialogOpen, setIsWheelDialogOpen] = useState(false);
+  const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
+  const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
 
   const getThemeColor = () => {
     if (colorTheme?.startsWith('#')) {
@@ -156,13 +159,13 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
               )}
               
               {/* زر عجلة الحظ */}
-              {slug && storeOwnerId && storeName && (
+              {storeOwnerId && products.length > 0 && (
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <div
-                    onClick={() => setIsWheelDialogOpen(true)}
+                    onClick={() => setIsWheelModalOpen(true)}
                     className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl shadow-lg cursor-pointer"
                     style={{
                       background: `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`,
@@ -202,7 +205,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                   whileTap={{ scale: 0.95 }}
                 >
                   <div
-                    onClick={() => navigate(`/customer-feedback/${storeOwnerId}`)}
+                    onClick={() => setIsFeedbackDialogOpen(true)}
                     className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl shadow-lg cursor-pointer"
                     style={{
                       background: `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`,
@@ -268,15 +271,24 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
         />
       )}
 
-      {/* WheelDialog */}
-      {storeOwnerId && storeName && (
-        <WheelDialog
-          isOpen={isWheelDialogOpen}
-          onClose={() => setIsWheelDialogOpen(false)}
-          storeOwnerId={storeOwnerId}
-          storeName={storeName}
+      {/* WheelModal */}
+      {storeOwnerId && (
+        <WheelModal
+          isOpen={isWheelModalOpen}
+          onClose={() => setIsWheelModalOpen(false)}
+          products={products}
           colorTheme={colorTheme || undefined}
-          fontSettings={fontSettings}
+          isStoreOwner={isStoreOwner}
+        />
+      )}
+
+      {/* FeedbackDialog */}
+      {storeOwnerId && (
+        <FeedbackDialog
+          isOpen={isFeedbackDialogOpen}
+          onClose={() => setIsFeedbackDialogOpen(false)}
+          storeOwnerId={storeOwnerId}
+          colorTheme={colorTheme || undefined}
         />
       )}
     </motion.div>
