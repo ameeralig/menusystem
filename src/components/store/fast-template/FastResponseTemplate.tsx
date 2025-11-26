@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useRef } from "react";
+import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { Product } from "@/types/product";
 import { CategoryImage } from "@/types/categoryImage";
 import CategoryTabs from "./CategoryTabs";
@@ -12,6 +12,10 @@ import { ContactInfo, FontSettings, SocialLinks } from "@/types/store";
 import { sortCategoriesByOrder } from "@/utils/categorySort";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useCart } from "@/contexts/CartContext";
+import CartButton from "../external-orders/CartButton";
+import CartSheet from "../external-orders/CartSheet";
+import ExternalOrdersToggle from "../external-orders/ExternalOrdersToggle";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,6 +64,54 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   const [productToEdit, setProductToEdit] = useState<Product | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [externalOrdersEnabled, setExternalOrdersEnabled] = useState(false);
+  const [deliveryFee, setDeliveryFee] = useState(0);
+  const { addItem } = useCart();
+
+  // جلب إعدادات الطلبات الخارجية
+  useEffect(() => {
+    if (!storeOwnerId) return;
+
+    const fetchExternalOrdersSettings = async () => {
+      const { data } = await supabase
+        .from('store_settings')
+        .select('external_orders_enabled, delivery_fee')
+        .eq('user_id', storeOwnerId)
+        .single();
+
+      if (data) {
+        setExternalOrdersEnabled(data.external_orders_enabled || false);
+        setDeliveryFee(data.delivery_fee || 0);
+      }
+    };
+
+    fetchExternalOrdersSettings();
+
+    // الاشتراك في التغييرات
+    const channel = supabase
+      .channel(`external-orders-${storeOwnerId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'store_settings',
+          filter: `user_id=eq.${storeOwnerId}`,
+        },
+        (payload: any) => {
+          if (payload.new) {
+            setExternalOrdersEnabled(payload.new.external_orders_enabled || false);
+            setDeliveryFee(payload.new.delivery_fee || 0);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [storeOwnerId]);
 
   // استخراج التصنيفات الفريدة من المنتجات (بدون ترتيب أبجدي)
   const categories = useMemo(() => {
@@ -156,6 +208,12 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
     setIsDeleteDialogOpen(true);
   }, []);
 
+  // معالجة الإضافة للسلة
+  const handleAddToCart = useCallback((product: Product) => {
+    addItem(product, 1);
+    toast.success(`تمت إضافة ${product.name} إلى السلة`);
+  }, [addItem]);
+
   // تأكيد الحذف
   const confirmDelete = useCallback(async () => {
     if (!productToDelete) return;
@@ -191,6 +249,14 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
 
   return (
     <div className="min-h-screen">
+      {/* زر تفعيل/إيقاف الطلبات الخارجية */}
+      {storeOwnerId && (
+        <ExternalOrdersToggle 
+          storeOwnerId={storeOwnerId} 
+          isStoreOwner={isStoreOwner}
+        />
+      )}
+
       {/* رأس المتجر مع الأنيميشن */}
       {storeName && (
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 pt-2 pb-1 relative z-10">
@@ -242,6 +308,8 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
                 isStoreOwner={isStoreOwner}
                 onEdit={() => handleEdit(product)}
                 onDelete={() => handleDelete(product)}
+                onAddToCart={handleAddToCart}
+                showAddButton={externalOrdersEnabled && !isStoreOwner}
               />
             ))}
           </div>
@@ -252,6 +320,23 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
           />
         )}
       </div>
+
+      {/* زر السلة العائم */}
+      {externalOrdersEnabled && !isStoreOwner && (
+        <CartButton 
+          onClick={() => setIsCartOpen(true)}
+          colorTheme={colorTheme}
+        />
+      )}
+
+      {/* نافذة السلة */}
+      <CartSheet
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        deliveryFee={deliveryFee}
+        storePhone={contactInfo?.phone}
+        storeName={storeName || undefined}
+      />
 
       {/* الشريط الأفقي السفلي مع البحث المدمج */}
       <BottomActionsBar
