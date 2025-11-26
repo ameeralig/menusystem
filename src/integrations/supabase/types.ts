@@ -592,7 +592,9 @@ export type Database = {
           created_at: string
           custom_domain: string | null
           dark_mode: boolean | null
+          delivery_fee: number | null
           employee_system_enabled: boolean | null
+          external_orders_enabled: boolean | null
           font_settings: Json | null
           loading_tips: Json | null
           logo_url: string | null
@@ -612,7 +614,9 @@ export type Database = {
           created_at?: string
           custom_domain?: string | null
           dark_mode?: boolean | null
+          delivery_fee?: number | null
           employee_system_enabled?: boolean | null
+          external_orders_enabled?: boolean | null
           font_settings?: Json | null
           loading_tips?: Json | null
           logo_url?: string | null
@@ -632,7 +636,9 @@ export type Database = {
           created_at?: string
           custom_domain?: string | null
           dark_mode?: boolean | null
+          delivery_fee?: number | null
           employee_system_enabled?: boolean | null
+          external_orders_enabled?: boolean | null
           font_settings?: Json | null
           loading_tips?: Json | null
           logo_url?: string | null

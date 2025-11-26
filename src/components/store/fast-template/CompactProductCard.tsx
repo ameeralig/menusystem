@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Product } from "@/types/product";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Plus } from "lucide-react";
 import { optimizeImageUrl } from "@/utils/imageOptimizer";
+import { Button } from "@/components/ui/button";
 
 interface CompactProductCardProps {
   product: Product;
@@ -10,6 +11,8 @@ interface CompactProductCardProps {
   isStoreOwner?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
+  onAddToCart?: (product: Product) => void;
+  showAddButton?: boolean;
 }
 
 // تنسيق السعر بفواصل
@@ -23,7 +26,9 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
   onClick,
   isStoreOwner,
   onEdit,
-  onDelete
+  onDelete,
+  onAddToCart,
+  showAddButton = false
 }) => {
   // استخدام حجم thumbnail للبطاقات الصغيرة (120x120, quality 60)
   const optimizedImageUrl = optimizeImageUrl(product.image_url, 'thumbnail');
@@ -138,6 +143,23 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
         )}
       </div>
       </div>
+
+      {/* زر الإضافة للسلة */}
+      {showAddButton && product.is_available !== false && !isStoreOwner && (
+        <Button
+          size="icon"
+          className="h-8 w-8"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAddToCart?.(product);
+          }}
+          style={{
+            backgroundColor: colorTheme?.startsWith('#') ? colorTheme : undefined,
+          }}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      )}
     </div>
   );
 };
