@@ -277,6 +277,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
           deliveryFee={deliveryFee}
           storePhone={contactInfo?.phone}
           storeName={storeName}
+          isStoreOwner={isStoreOwner}
         />
       )}
 

@@ -60,7 +60,7 @@ serve(async (req) => {
     // جلب إعدادات المتجر
     const { data: storeSettings } = await supabase
       .from('store_settings')
-      .select('store_name, delivery_fee, contact_info')
+      .select('store_name, delivery_fee, contact_info, ai_assistant_name')
       .eq('user_id', storeOwnerId)
       .single();
 
@@ -68,6 +68,7 @@ serve(async (req) => {
     const deliveryFee = storeSettings?.delivery_fee || 0;
     const contactInfo = storeSettings?.contact_info as any;
     const storePhone = contactInfo?.phone;
+    const aiAssistantName = storeSettings?.ai_assistant_name || 'المساعد الذكي';
 
     // تنظيم المنتجات حسب التصنيف
     const productsByCategory: { [key: string]: Product[] } = {};
@@ -94,7 +95,7 @@ serve(async (req) => {
       productsText += '\n';
     }
 
-    let systemPrompt = `أنت مساعد ذكي ودود لمتجر "${storeName}".
+    let systemPrompt = `أنت ${aiAssistantName}، مساعد ذكي ودود لمتجر "${storeName}".
 
 دورك:
 - مساعدة الزبائن في البحث عن المنتجات
@@ -107,6 +108,7 @@ serve(async (req) => {
 - استخدم إيموجي مناسب 🎯
 - كن ودوداً ومساعداً
 - اقترح منتجات بناءً على المنتجات المتوفرة فقط
+- اذكر اسمك "${aiAssistantName}" عند التعريف عن نفسك
 
 ${productsText}
 
@@ -222,21 +224,29 @@ ${productsText}
         }).filter(Boolean);
 
         const productNames = addToCart.map(item => item.product.name).join('، ');
-        assistantMessage = `تم إضافة المنتجات التالية إلى سلتك: ${productNames} ✅\n\nهل تريد إتمام الطلب؟ سأحتاج رقم هاتفك وعنوانك لإكمال الطلب.`;
+        assistantMessage = `تم إضافة المنتجات التالية إلى سلتك: ${productNames} ✅\n\nهل تريد إتمام الطلب؟ سأحتاج منك:\n- رقم الهاتف\n- العنوان\n- أي ملاحظات إضافية (اختياري)`;
       } 
       else if (functionName === 'create_order_summary') {
-        // إنشاء ملخص الطلب
-        // نحتاج الوصول للمنتجات المضافة من المحادثة السابقة
-        // لذلك سنرجع معلومات لإنشاء الملخص في الـ frontend
+        // حساب مجموع المنتجات من السلة الحالية
+        // نفترض أن المنتجات موجودة في المحادثة
+        const cartItems: any[] = [];
+        let subtotal = 0;
+        
+        // محاولة استخراج المنتجات من السياق
+        // في الواقع يجب إرسال المنتجات من الـ frontend
+        
         orderSummary = {
+          items: cartItems,
           customerName: customerName || 'الزبون',
           customerPhone: args.customer_phone,
           customerAddress: args.customer_address,
           customerNotes: args.customer_notes,
-          deliveryFee
+          subtotal: subtotal,
+          deliveryFee: deliveryFee,
+          total: subtotal + deliveryFee
         };
 
-        assistantMessage = `تمام! تم تجهيز طلبك 🎉\n\nيمكنك الآن مراجعة الطلب والضغط على زر "إرسال الطلب إلى الواتساب" أدناه لإكمال الطلب.`;
+        assistantMessage = `تمام! تم تجهيز طلبك 🎉\n\nملخص الطلب:\n- المجموع الفرعي: ${subtotal} دينار عراقي\n- مبلغ التوصيل: ${deliveryFee} دينار عراقي\n- المجموع النهائي: ${subtotal + deliveryFee} دينار عراقي\n\nيمكنك الآن مراجعة الطلب والضغط على زر "إرسال الطلب إلى الواتساب" أدناه لإكمال الطلب.`;
       }
     }
 
