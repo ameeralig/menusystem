@@ -24,6 +24,8 @@ interface BottomActionsBarProps {
   storeName?: string;
   fontSettings?: FontSettings;
   products?: Product[];
+  externalOrdersEnabled?: boolean;
+  deliveryFee?: number;
 }
 
 const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
@@ -39,6 +41,8 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   storeName,
   fontSettings,
   products = [],
+  externalOrdersEnabled = false,
+  deliveryFee = 0,
 }) => {
   const [isInfoSheetOpen, setIsInfoSheetOpen] = useState(false);
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
@@ -268,6 +272,11 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
           isOpen={isAIAssistantOpen}
           onOpenChange={setIsAIAssistantOpen}
           storeOwnerId={storeOwnerId}
+          products={products}
+          externalOrdersEnabled={externalOrdersEnabled}
+          deliveryFee={deliveryFee}
+          storePhone={contactInfo?.phone}
+          storeName={storeName}
         />
       )}
 
