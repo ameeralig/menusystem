@@ -352,6 +352,8 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         storeName={storeName || undefined}
         fontSettings={fontSettings}
         products={products}
+        externalOrdersEnabled={externalOrdersEnabled}
+        deliveryFee={deliveryFee}
       />
 
       {/* نافذة تفاصيل المنتج */}
