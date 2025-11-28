@@ -39,6 +39,7 @@ interface CustomerAIAssistantProps {
   deliveryFee: number;
   storePhone?: string;
   storeName?: string;
+  isStoreOwner?: boolean;
 }
 
 const CustomerAIAssistant = ({ 
@@ -49,16 +50,36 @@ const CustomerAIAssistant = ({
   externalOrdersEnabled,
   deliveryFee,
   storePhone,
-  storeName 
+  storeName,
+  isStoreOwner = false
 }: CustomerAIAssistantProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [showNameInput, setShowNameInput] = useState(false);
+  const [aiAssistantName, setAiAssistantName] = useState("المساعد الذكي");
+  const [isEditingAiName, setIsEditingAiName] = useState(false);
+  const [tempAiName, setTempAiName] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { addItem } = useCart();
+
+  // تحميل اسم المساعد الذكي من الإعدادات
+  useEffect(() => {
+    const loadAiAssistantName = async () => {
+      const { data } = await supabase
+        .from('store_settings')
+        .select('ai_assistant_name')
+        .eq('user_id', storeOwnerId)
+        .single();
+      
+      if (data?.ai_assistant_name) {
+        setAiAssistantName(data.ai_assistant_name);
+      }
+    };
+    loadAiAssistantName();
+  }, [storeOwnerId]);
 
   // تحميل الاسم المحفوظ من localStorage
   useEffect(() => {
@@ -87,6 +108,30 @@ const CustomerAIAssistant = ({
     }
   };
 
+  const saveAiAssistantName = async () => {
+    if (!tempAiName.trim()) return;
+    
+    const { error } = await supabase
+      .from('store_settings')
+      .update({ ai_assistant_name: tempAiName.trim() })
+      .eq('user_id', storeOwnerId);
+    
+    if (!error) {
+      setAiAssistantName(tempAiName.trim());
+      setIsEditingAiName(false);
+      toast({
+        title: "تم الحفظ",
+        description: "تم حفظ اسم المساعد الذكي بنجاح"
+      });
+    } else {
+      toast({
+        title: "خطأ",
+        description: "فشل حفظ اسم المساعد",
+        variant: "destructive"
+      });
+    }
+  };
+
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -109,7 +154,7 @@ const CustomerAIAssistant = ({
           storeOwnerId,
           customerName: customerName || undefined,
           externalOrdersEnabled,
-          conversationHistory: messages.slice(-5).map(m => ({ role: m.role, content: m.content }))
+          conversationHistory: messages.map(m => ({ role: m.role, content: m.content }))
         }
       });
 
@@ -208,13 +253,46 @@ const CustomerAIAssistant = ({
       {/* Header */}
       <div className="p-4 border-b border-white/20 bg-gradient-to-r from-purple-500/10 to-purple-600/10 backdrop-blur-md">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-1">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <div>
-              <h3 className="font-semibold text-foreground">المساعد الذكي</h3>
-              <p className="text-xs text-muted-foreground">اسألني عن المنتجات والأسعار</p>
+            <div className="flex-1">
+              {isEditingAiName && isStoreOwner ? (
+                <div className="flex gap-2">
+                  <Input
+                    value={tempAiName}
+                    onChange={(e) => setTempAiName(e.target.value)}
+                    placeholder="اسم المساعد"
+                    dir="rtl"
+                    className="h-8 text-sm"
+                    onKeyPress={(e) => e.key === 'Enter' && saveAiAssistantName()}
+                  />
+                  <Button onClick={saveAiAssistantName} size="sm" className="h-8">
+                    حفظ
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-foreground">{aiAssistantName}</h3>
+                    {isStoreOwner && (
+                      <Button
+                        onClick={() => {
+                          setTempAiName(aiAssistantName);
+                          setIsEditingAiName(true);
+                        }}
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                      >
+                        <span className="text-xs">✏️</span>
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">اسألني عن المنتجات والأسعار</p>
+                </>
+              )}
             </div>
           </div>
           <Button
@@ -258,7 +336,7 @@ const CustomerAIAssistant = ({
               <Sparkles className="w-8 h-8 text-white" />
             </div>
             <div>
-              <p className="text-foreground font-medium">مرحباً {customerName}! أنا مساعدك الذكي</p>
+              <p className="text-foreground font-medium">مرحباً {customerName}! أنا {aiAssistantName}</p>
               <p className="text-sm text-muted-foreground mt-2">يمكنني مساعدتك في:</p>
               <ul className="text-sm text-muted-foreground mt-2 space-y-1">
                 <li>• البحث عن المنتجات المتوفرة</li>

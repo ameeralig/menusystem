@@ -586,6 +586,7 @@ export type Database = {
       }
       store_settings: {
         Row: {
+          ai_assistant_name: string | null
           banner_url: string | null
           color_theme: string | null
           contact_info: Json | null
@@ -608,6 +609,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_assistant_name?: string | null
           banner_url?: string | null
           color_theme?: string | null
           contact_info?: Json | null
@@ -630,6 +632,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_assistant_name?: string | null
           banner_url?: string | null
           color_theme?: string | null
           contact_info?: Json | null
