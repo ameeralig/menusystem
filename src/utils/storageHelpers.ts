@@ -61,74 +61,72 @@ export const optimizeImage = async (file: File): Promise<File> => {
   }
   
   try {
-    // إذا كانت الصورة كبيرة جدًا، قم بضغطها
-    if (file.size > 500 * 1024) { // أكبر من 500 كيلوبايت
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return file;
-      
-      const img = new Image();
-      
-      // إنشاء وعد لتحميل الصورة
-      const blobUrl = URL.createObjectURL(file);
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-        img.src = blobUrl;
-      });
-      
-      // تنظيف blob URL
-      URL.revokeObjectURL(blobUrl);
-      
-      // تحديد أبعاد الصورة المضغوطة (الحد الأقصى 1200 بكسل)
-      const maxWidth = 1200;
-      const maxHeight = 1200;
-      let width = img.width;
-      let height = img.height;
-      
-      // تقليص الأبعاد إذا تجاوزت الحد الأقصى
-      if (width > maxWidth || height > maxHeight) {
-        if (width > height) {
-          height *= maxWidth / width;
-          width = maxWidth;
-        } else {
-          width *= maxHeight / height;
-          height = maxHeight;
-        }
-      }
-      
-      // ضبط أبعاد Canvas
-      canvas.width = width;
-      canvas.height = height;
-      
-      // رسم الصورة على Canvas بالأبعاد الجديدة
-      ctx.drawImage(img, 0, 0, width, height);
-      
-      // محاولة استخدام WebP (دعم أفضل من AVIF)
-      const quality = 0.85;
-      let blob = await new Promise<Blob | null>((resolve) => 
-        canvas.toBlob(resolve, 'image/webp', quality)
-      );
-      
-      // إذا فشل WebP، استخدم JPEG كبديل
-      if (!blob) {
-        blob = await new Promise<Blob | null>((resolve) => 
-          canvas.toBlob(resolve, 'image/jpeg', quality)
-        );
-      }
-      
-      if (blob && blob.size < file.size) {
-        const extension = blob.type === 'image/webp' ? '.webp' : '.jpg';
-        const optimizedFile = new File(
-          [blob], 
-          file.name.replace(/\.[^.]+$/, extension), 
-          { type: blob.type }
-        );
-        return optimizedFile;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return file;
+    
+    const img = new Image();
+    
+    // إنشاء وعد لتحميل الصورة
+    const blobUrl = URL.createObjectURL(file);
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = blobUrl;
+    });
+    
+    // تنظيف blob URL
+    URL.revokeObjectURL(blobUrl);
+    
+    // تحديد أبعاد الصورة المضغوطة (الحد الأقصى 1200 بكسل)
+    const maxWidth = 1200;
+    const maxHeight = 1200;
+    let width = img.width;
+    let height = img.height;
+    
+    // تقليص الأبعاد إذا تجاوزت الحد الأقصى
+    if (width > maxWidth || height > maxHeight) {
+      if (width > height) {
+        height *= maxWidth / width;
+        width = maxWidth;
+      } else {
+        width *= maxHeight / height;
+        height = maxHeight;
       }
     }
     
-    // إذا كانت الصورة صغيرة بالفعل أو فشلت عملية التحسين، أرجع الملف الأصلي
+    // ضبط أبعاد Canvas
+    canvas.width = width;
+    canvas.height = height;
+    
+    // رسم الصورة على Canvas بالأبعاد الجديدة
+    ctx.drawImage(img, 0, 0, width, height);
+    
+    // محاولة استخدام WebP (دعم أفضل من AVIF)
+    const quality = 0.85;
+    let blob = await new Promise<Blob | null>((resolve) => 
+      canvas.toBlob(resolve, 'image/webp', quality)
+    );
+    
+    // إذا فشل WebP، استخدم JPEG كبديل
+    if (!blob) {
+      blob = await new Promise<Blob | null>((resolve) => 
+        canvas.toBlob(resolve, 'image/jpeg', quality)
+      );
+    }
+    
+    if (blob && blob.size < file.size) {
+      const extension = blob.type === 'image/webp' ? '.webp' : '.jpg';
+      const optimizedFile = new File(
+        [blob], 
+        file.name.replace(/\.[^.]+$/, extension), 
+        { type: blob.type }
+      );
+      console.log(`تم ضغط الصورة: من ${(file.size / 1024).toFixed(2)} KB إلى ${(blob.size / 1024).toFixed(2)} KB`);
+      return optimizedFile;
+    }
+    
+    // إذا فشلت عملية التحسين أو الحجم أكبر، أرجع الملف الأصلي
     return file;
   } catch (error) {
     console.error("خطأ أثناء تحسين الصورة:", error);
