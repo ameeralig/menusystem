@@ -49,10 +49,22 @@ const AdminLogin = () => {
       });
 
       if (error) {
+        console.error("خطأ تسجيل الدخول:", error);
+        
+        let errorMessage = "بيانات الاعتماد غير صحيحة. الرجاء التحقق من البريد الإلكتروني وكلمة المرور.";
+        
+        if (error.message.includes("Invalid login credentials")) {
+          errorMessage = "❌ البريد الإلكتروني أو كلمة المرور غير صحيحة";
+        } else if (error.message.includes("Email not confirmed")) {
+          errorMessage = "⚠️ يرجى تأكيد بريدك الإلكتروني أولاً";
+        } else if (error.message.includes("Rate limit")) {
+          errorMessage = "⏳ عدد المحاولات تجاوز الحد المسموح. انتظر دقيقة وحاول مرة أخرى";
+        }
+        
         toast({
           variant: "destructive",
-          title: "خطأ في تسجيل الدخول",
-          description: error.message || "بيانات الاعتماد غير صحيحة. الرجاء المحاولة مرة أخرى."
+          title: "فشل تسجيل الدخول",
+          description: errorMessage
         });
         setIsLoading(false);
         return;
@@ -138,6 +150,17 @@ const AdminLogin = () => {
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "جارِ تسجيل الدخول..." : "تسجيل الدخول"}
             </Button>
+            
+            <div className="text-center mt-4">
+              <Button
+                type="button"
+                variant="link"
+                className="text-sm text-muted-foreground hover:text-primary"
+                onClick={() => navigate("/reset-password")}
+              >
+                نسيت كلمة المرور؟
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>
