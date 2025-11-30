@@ -5,7 +5,6 @@ import { Camera, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { uploadImage, getUrlWithTimestamp } from "@/utils/storageHelpers";
-import ImageCompressionDialog from "@/components/shared/ImageCompressionDialog";
 
 interface AvatarUploadProps {
   currentAvatarUrl: string | null;
@@ -17,8 +16,6 @@ interface AvatarUploadProps {
 const AvatarUpload = ({ currentAvatarUrl, userId, userName, onAvatarUpdate }: AvatarUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [showCompressionDialog, setShowCompressionDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -41,7 +38,7 @@ const AvatarUpload = ({ currentAvatarUrl, userId, userName, onAvatarUpdate }: Av
     return name[0].toUpperCase();
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -86,15 +83,6 @@ const AvatarUpload = ({ currentAvatarUrl, userId, userName, onAvatarUpdate }: Av
       return;
     }
 
-    setSelectedFile(file);
-    setShowCompressionDialog(true);
-    
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  const handleFileUpload = async (file: File) => {
     setIsUploading(true);
 
     try {
@@ -127,9 +115,11 @@ const AvatarUpload = ({ currentAvatarUrl, userId, userName, onAvatarUpdate }: Av
       });
       const fallbackUrl = currentAvatarUrl ? getUrlWithTimestamp(currentAvatarUrl) : null;
       setPreviewUrl(fallbackUrl);
-      throw error;
     } finally {
       setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -170,15 +160,6 @@ const AvatarUpload = ({ currentAvatarUrl, userId, userName, onAvatarUpdate }: Av
       <p className="text-sm text-muted-foreground text-center">
         انقر على أيقونة الكاميرا لتحديث صورة الملف الشخصي
       </p>
-      
-      <ImageCompressionDialog
-        open={showCompressionDialog}
-        onOpenChange={setShowCompressionDialog}
-        file={selectedFile}
-        onConfirm={handleFileUpload}
-        title="ضغط صورة الملف الشخصي"
-        description="يمكنك اختيار ضغط الصورة لتقليل حجمها قبل الرفع"
-      />
     </div>
   );
 };

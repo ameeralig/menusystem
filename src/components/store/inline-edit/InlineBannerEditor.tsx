@@ -5,7 +5,6 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import ImageCompressionDialog from "@/components/shared/ImageCompressionDialog";
 
 interface InlineBannerEditorProps {
   bannerUrl?: string | null;
@@ -29,10 +28,8 @@ const InlineBannerEditor = ({
   onUpdate,
 }: InlineBannerEditorProps) => {
   const [isUploading, setIsUploading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [showCompressionDialog, setShowCompressionDialog] = useState(false);
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -48,13 +45,6 @@ const InlineBannerEditor = ({
       return;
     }
 
-    setSelectedFile(file);
-    setShowCompressionDialog(true);
-    // إعادة تعيين قيمة input لتمكين اختيار نفس الملف مرة أخرى
-    event.target.value = '';
-  };
-
-  const handleFileUpload = async (file: File) => {
     setIsUploading(true);
     try {
       // رفع الصورة إلى Supabase Storage
@@ -92,7 +82,6 @@ const InlineBannerEditor = ({
     } catch (error) {
       console.error("خطأ في رفع صورة البانر:", error);
       toast.error("فشل رفع صورة البانر");
-      throw error;
     } finally {
       setIsUploading(false);
     }
@@ -165,7 +154,7 @@ const InlineBannerEditor = ({
               <input
                 type="file"
                 accept="image/*"
-                onChange={handleFileSelect}
+                onChange={handleFileUpload}
                 className="hidden"
                 disabled={isUploading}
               />
@@ -183,16 +172,6 @@ const InlineBannerEditor = ({
           )}
         </div>
       </AspectRatio>
-      
-      {/* نافذة ضغط الصورة */}
-      <ImageCompressionDialog
-        open={showCompressionDialog}
-        onOpenChange={setShowCompressionDialog}
-        file={selectedFile}
-        onConfirm={handleFileUpload}
-        title="ضغط صورة البانر"
-        description="يمكنك اختيار ضغط صورة البانر لتقليل حجمها قبل الرفع"
-      />
     </div>
   );
 };

@@ -7,7 +7,6 @@ import { Upload, Link as LinkIcon } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { uploadImage } from "@/utils/storageHelpers";
-import ImageCompressionDialog from "@/components/shared/ImageCompressionDialog";
 
 interface CategoryImageUploadDialogProps {
   open: boolean;
@@ -29,10 +28,8 @@ const CategoryImageUploadDialog = ({
   const [uploading, setUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
   const [uploadMethod, setUploadMethod] = useState<'file' | 'url'>('file');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [showCompressionDialog, setShowCompressionDialog] = useState(false);
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -50,59 +47,59 @@ const CategoryImageUploadDialog = ({
       return;
     }
 
-    // معالجة صور HEIC من iPhone
-    let processedFile = file;
-    if (file.type === 'image/heic' || file.type === 'image/heif' || file.name.toLowerCase().endsWith('.heic')) {
-      toast.info("جاري تحويل الصورة...");
-      try {
-        const img = new Image();
-        const objectUrl = URL.createObjectURL(file);
-        
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = () => reject(new Error('فشل تحميل الصورة'));
-          img.src = objectUrl;
-        });
-
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0);
-        
-        const blob = await new Promise<Blob>((resolve, reject) => {
-          canvas.toBlob(
-            (b) => b ? resolve(b) : reject(new Error('فشل تحويل الصورة')),
-            'image/jpeg',
-            0.9
-          );
-        });
-        
-        URL.revokeObjectURL(objectUrl);
-        processedFile = new File([blob], file.name.replace(/\.heic$/i, '.jpg'), { 
-          type: 'image/jpeg' 
-        });
-      } catch (conversionError) {
-        console.error('خطأ في تحويل HEIC:', conversionError);
-        toast.error("فشل تحويل الصورة. يرجى استخدام صيغة JPG أو PNG");
-        return;
-      }
-    }
-
-    setSelectedFile(processedFile);
-    setShowCompressionDialog(true);
-    
-    // إعادة تعيين قيمة input
-    if (e.target) {
-      e.target.value = '';
-    }
-  };
-
-  const handleFileUpload = async (file: File) => {
     setUploading(true);
     
     try {
-      const publicUrl = await uploadImage('صور التصنيفات', file, userId, 'categories');
+      console.log('بدء رفع صورة التصنيف:', { 
+        name: file.name, 
+        size: file.size, 
+        type: file.type 
+      });
+      
+      // معالجة صور HEIC من iPhone
+      let processedFile = file;
+      if (file.type === 'image/heic' || file.type === 'image/heif' || file.name.toLowerCase().endsWith('.heic')) {
+        toast.info("جاري تحويل الصورة...");
+        try {
+          // تحويل HEIC إلى JPEG باستخدام Canvas
+          const img = new Image();
+          const objectUrl = URL.createObjectURL(file);
+          
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = () => reject(new Error('فشل تحميل الصورة'));
+            img.src = objectUrl;
+          });
+
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0);
+          
+          const blob = await new Promise<Blob>((resolve, reject) => {
+            canvas.toBlob(
+              (b) => b ? resolve(b) : reject(new Error('فشل تحويل الصورة')),
+              'image/jpeg',
+              0.9
+            );
+          });
+          
+          URL.revokeObjectURL(objectUrl);
+          processedFile = new File([blob], file.name.replace(/\.heic$/i, '.jpg'), { 
+            type: 'image/jpeg' 
+          });
+          
+          console.log('تم تحويل HEIC إلى JPEG بنجاح');
+        } catch (conversionError) {
+          console.error('خطأ في تحويل HEIC:', conversionError);
+          toast.error("فشل تحويل الصورة. يرجى استخدام صيغة JPG أو PNG");
+          setUploading(false);
+          return;
+        }
+      }
+
+      const publicUrl = await uploadImage('صور التصنيفات', processedFile, userId, 'categories');
       await updateCategoryImage(publicUrl);
       
       toast.success("تم رفع الصورة بنجاح");
@@ -110,9 +107,12 @@ const CategoryImageUploadDialog = ({
       console.error('خطأ في رفع الصورة:', error);
       const errorMessage = error instanceof Error ? error.message : 'فشل رفع الصورة';
       toast.error(`خطأ: ${errorMessage}`);
-      throw error;
     } finally {
       setUploading(false);
+      // إعادة تعيين قيمة input للسماح برفع نفس الملف مرة أخرى
+      if (e.target) {
+        e.target.value = '';
+      }
     }
   };
 
@@ -206,7 +206,7 @@ const CategoryImageUploadDialog = ({
                 id="file"
                 type="file"
                 accept="image/*"
-                onChange={handleFileSelect}
+                onChange={handleFileUpload}
                 disabled={uploading}
               />
             </div>
@@ -244,15 +244,6 @@ const CategoryImageUploadDialog = ({
           )}
         </div>
       </DialogContent>
-      
-      <ImageCompressionDialog
-        open={showCompressionDialog}
-        onOpenChange={setShowCompressionDialog}
-        file={selectedFile}
-        onConfirm={handleFileUpload}
-        title={`ضغط صورة ${category}`}
-        description="يمكنك اختيار ضغط الصورة لتقليل حجمها قبل الرفع"
-      />
     </Dialog>
   );
 };
