@@ -1,14 +1,11 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, Heart, MessageCircle, Star, Send, CheckCircle, X } from "lucide-react";
+import { CheckCircle, ChevronRight, ChevronLeft, Send, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import FeedbackWizardSteps from "./FeedbackWizardSteps";
 
 interface FeedbackDialogProps {
   isOpen: boolean;
@@ -19,7 +16,7 @@ interface FeedbackDialogProps {
 
 const FeedbackDialog = ({ isOpen, onClose, storeOwnerId, colorTheme }: FeedbackDialogProps) => {
   const { toast } = useToast();
-
+  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     visitorName: "",
     visitorPhone: "",
@@ -29,6 +26,8 @@ const FeedbackDialog = ({ isOpen, onClose, storeOwnerId, colorTheme }: FeedbackD
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const totalSteps = 4;
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -77,6 +76,26 @@ const FeedbackDialog = ({ isOpen, onClose, storeOwnerId, colorTheme }: FeedbackD
     return true;
   };
 
+  const canGoNext = () => {
+    if (currentStep === 1) return formData.visitorName.trim().length > 0;
+    if (currentStep === 2) return true; // رقم الهاتف اختياري
+    if (currentStep === 3) return formData.feedbackType.length > 0;
+    if (currentStep === 4) return formData.description.trim().length > 0;
+    return false;
+  };
+
+  const handleNext = () => {
+    if (canGoNext() && currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
@@ -95,15 +114,10 @@ const FeedbackDialog = ({ isOpen, onClose, storeOwnerId, colorTheme }: FeedbackD
 
       // إرسال إشعار WhatsApp
       try {
-        const feedbackTypeText = formData.feedbackType === 'complaint' ? 'شكوى' :
-                                 formData.feedbackType === 'suggestion' ? 'اقتراح' :
-                                 formData.feedbackType === 'compliment' ? 'إطراء' :
-                                 formData.feedbackType === 'question' ? 'استفسار' : 'ملاحظة';
-
         await supabase.functions.invoke('send-whatsapp-notification', {
           body: {
             userId: storeOwnerId,
-            message: `تم استلام ${feedbackTypeText} جديد من: ${formData.visitorName}`,
+            message: `تم استلام ${formData.feedbackType} جديد من: ${formData.visitorName}`,
             type: 'feedback'
           }
         });
@@ -117,18 +131,19 @@ const FeedbackDialog = ({ isOpen, onClose, storeOwnerId, colorTheme }: FeedbackD
       });
 
       setIsSubmitted(true);
-      setFormData({
-        visitorName: "",
-        visitorPhone: "",
-        feedbackType: "",
-        description: "",
-      });
-
-      // إغلاق الـ Dialog بعد 2 ثانية
+      
+      // إعادة تعيين النموذج والخطوات
       setTimeout(() => {
         setIsSubmitted(false);
+        setCurrentStep(1);
+        setFormData({
+          visitorName: "",
+          visitorPhone: "",
+          feedbackType: "",
+          description: "",
+        });
         onClose();
-      }, 2000);
+      }, 2500);
 
     } catch (error) {
       console.error("خطأ في إرسال الملاحظات:", error);
@@ -141,6 +156,17 @@ const FeedbackDialog = ({ isOpen, onClose, storeOwnerId, colorTheme }: FeedbackD
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleClose = () => {
+    setCurrentStep(1);
+    setFormData({
+      visitorName: "",
+      visitorPhone: "",
+      feedbackType: "",
+      description: "",
+    });
+    onClose();
   };
 
   const getThemeColor = () => {
@@ -162,159 +188,164 @@ const FeedbackDialog = ({ isOpen, onClose, storeOwnerId, colorTheme }: FeedbackD
   };
 
   const themeColor = getThemeColor();
-  const isFormValid = formData.visitorName.trim() && formData.feedbackType && formData.description.trim();
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent 
-        className="max-w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto"
+        className="max-w-[95vw] sm:max-w-lg backdrop-blur-2xl border-2 shadow-2xl overflow-hidden"
         style={{
-          background: `linear-gradient(135deg, ${themeColor}08, ${themeColor}15)`,
-          borderColor: `${themeColor}40`,
+          background: `linear-gradient(135deg, ${themeColor}05, ${themeColor}12)`,
+          borderColor: `${themeColor}50`,
+          backdropFilter: 'blur(20px)',
         }}
       >
         {isSubmitted ? (
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="text-center py-8"
+            className="text-center py-12"
           >
             <motion.div
               initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.5, type: "spring", bounce: 0.6 }}
+              animate={{ scale: [0, 1.2, 1] }}
+              transition={{ duration: 0.6, type: "spring", bounce: 0.5 }}
+              className="mb-6"
             >
-              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+              <div 
+                className="inline-flex items-center justify-center w-24 h-24 rounded-full mx-auto"
+                style={{ backgroundColor: `${themeColor}20` }}
+              >
+                <CheckCircle className="w-16 h-16" style={{ color: themeColor }} />
+              </div>
             </motion.div>
-            <h2 className="text-xl font-bold mb-2">تم إرسال ملاحظاتك بنجاح!</h2>
-            <p className="text-muted-foreground text-sm">
-              شكراً لك على مشاركة رأيك معنا
-            </p>
+            
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              <h2 className="text-2xl font-bold mb-3" style={{ color: themeColor }}>
+                تم الإرسال بنجاح! ✨
+              </h2>
+              <p className="text-muted-foreground text-base">
+                شكراً لك على مشاركة رأيك القيم معنا
+              </p>
+            </motion.div>
+
+            <motion.div
+              className="mt-8"
+              animate={{ 
+                rotate: [0, 10, -10, 0],
+                scale: [1, 1.1, 1]
+              }}
+              transition={{ 
+                duration: 2,
+                repeat: Infinity,
+                repeatDelay: 1
+              }}
+            >
+              <Sparkles className="w-12 h-12 mx-auto" style={{ color: themeColor }} />
+            </motion.div>
           </motion.div>
         ) : (
           <>
-            <DialogHeader>
+            <DialogHeader className="space-y-3">
               <div className="flex items-center justify-between">
-                <DialogTitle className="text-xl" style={{ color: themeColor }}>شاركنا رأيك</DialogTitle>
+                <DialogTitle className="text-2xl font-bold" style={{ color: themeColor }}>
+                  شاركنا رأيك
+                </DialogTitle>
+                <motion.div
+                  className="text-sm font-medium px-4 py-2 rounded-full backdrop-blur-sm"
+                  style={{
+                    backgroundColor: `${themeColor}15`,
+                    color: themeColor,
+                  }}
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  {currentStep} / {totalSteps}
+                </motion.div>
               </div>
-              <DialogDescription>
-                نحن نقدر ملاحظاتك ونسعى لتحسين خدماتنا باستمرار
-              </DialogDescription>
+
+              {/* مؤشر التقدم */}
+              <div className="relative w-full h-2 rounded-full overflow-hidden bg-muted">
+                <motion.div
+                  className="absolute top-0 right-0 h-full rounded-full"
+                  style={{ backgroundColor: themeColor }}
+                  initial={{ width: "0%" }}
+                  animate={{ width: `${(currentStep / totalSteps) * 100}%` }}
+                  transition={{ duration: 0.5, ease: "easeInOut" }}
+                />
+              </div>
             </DialogHeader>
 
-            <div className="space-y-4">
-              {/* اسم الزائر */}
-              <div className="space-y-2">
-                <Label htmlFor="visitorName">الاسم *</Label>
-                <Input
-                  id="visitorName"
-                  type="text"
-                  value={formData.visitorName}
-                  onChange={(e) => handleInputChange("visitorName", e.target.value)}
-                  placeholder="الرجاء إدخال اسمك"
-                  maxLength={100}
-                  className="text-right"
+            <div className="py-6">
+              <AnimatePresence mode="wait">
+                <FeedbackWizardSteps
+                  currentStep={currentStep}
+                  formData={formData}
+                  onFormDataChange={handleInputChange}
+                  colorTheme={colorTheme}
                 />
-              </div>
+              </AnimatePresence>
+            </div>
 
-              {/* رقم الهاتف */}
-              <div className="space-y-2">
-                <Label htmlFor="visitorPhone">رقم الهاتف (اختياري)</Label>
-                <Input
-                  id="visitorPhone"
-                  type="tel"
-                  value={formData.visitorPhone}
-                  onChange={(e) => handleInputChange("visitorPhone", e.target.value)}
-                  placeholder="رقم الهاتف للتواصل معك"
-                  maxLength={20}
-                  className="text-right"
-                />
-              </div>
-
-              {/* نوع الملاحظة */}
-              <div className="space-y-2">
-                <Label htmlFor="feedbackType">نوع الملاحظة *</Label>
-                <Select
-                  value={formData.feedbackType}
-                  onValueChange={(value) => handleInputChange("feedbackType", value)}
+            {/* أزرار التنقل */}
+            <div className="flex gap-3">
+              {currentStep > 1 && (
+                <Button
+                  onClick={handleBack}
+                  variant="outline"
+                  className="flex-1"
+                  disabled={isSubmitting}
                 >
-                  <SelectTrigger className="text-right">
-                    <SelectValue placeholder="اختر نوع الملاحظة" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="complaint">
-                      <div className="flex items-center gap-2">
-                        <AlertCircle className="w-4 h-4 text-red-500" />
-                        شكوى
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="suggestion">
-                      <div className="flex items-center gap-2">
-                        <MessageCircle className="w-4 h-4 text-blue-500" />
-                        اقتراح
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="compliment">
-                      <div className="flex items-center gap-2">
-                        <Heart className="w-4 h-4 text-pink-500" />
-                        إعجاب
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="question">
-                      <div className="flex items-center gap-2">
-                        <MessageCircle className="w-4 h-4 text-yellow-600" />
-                        استفسار
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="other">
-                      <div className="flex items-center gap-2">
-                        <Star className="w-4 h-4 text-purple-500" />
-                        أخرى
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                  <ChevronRight className="w-5 h-5 ml-2" />
+                  السابق
+                </Button>
+              )}
 
-              {/* وصف الملاحظة */}
-              <div className="space-y-2">
-                <Label htmlFor="description">تفاصيل الملاحظة *</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => handleInputChange("description", e.target.value)}
-                  placeholder="الرجاء كتابة ملاحظاتك بالتفصيل..."
-                  maxLength={1000}
-                  rows={4}
-                  className="text-right resize-none"
-                />
-                <div className="text-sm text-muted-foreground text-left">
-                  {formData.description.length}/1000
-                </div>
-              </div>
-
-              {/* زر الإرسال */}
-              <Button
-                onClick={handleSubmit}
-                disabled={!isFormValid || isSubmitting}
-                className="w-full"
-                style={{ 
-                  background: themeColor,
-                  opacity: (!isFormValid || isSubmitting) ? 0.5 : 1
-                }}
-              >
-                {isSubmitting ? (
-                  <span className="flex items-center gap-2">
-                    <span className="animate-spin">⏳</span>
-                    جاري الإرسال...
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <Send className="w-4 h-4" />
-                    إرسال الملاحظات
-                  </span>
-                )}
-              </Button>
+              {currentStep < totalSteps ? (
+                <Button
+                  onClick={handleNext}
+                  disabled={!canGoNext()}
+                  className="flex-1"
+                  style={{
+                    backgroundColor: canGoNext() ? themeColor : undefined,
+                    opacity: canGoNext() ? 1 : 0.5,
+                  }}
+                >
+                  التالي
+                  <ChevronLeft className="w-5 h-5 mr-2" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!canGoNext() || isSubmitting}
+                  className="flex-1"
+                  style={{
+                    backgroundColor: canGoNext() ? themeColor : undefined,
+                    opacity: (canGoNext() && !isSubmitting) ? 1 : 0.5,
+                  }}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <motion.span
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="inline-block ml-2"
+                      >
+                        ⏳
+                      </motion.span>
+                      جاري الإرسال...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5 ml-2" />
+                      إرسال الملاحظات
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </>
         )}

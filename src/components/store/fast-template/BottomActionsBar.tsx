@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Disc3, MessageSquare, Search, Instagram, Facebook, Send, X, Info, Plus, Sparkles } from "lucide-react";
+import { Disc3, MessageSquare, Search, X, Info, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
@@ -9,6 +9,7 @@ import AddProductModal from "./AddProductModal";
 import CustomerAIAssistant from "./CustomerAIAssistant";
 import WheelModal from "../WheelModal";
 import FeedbackDialog from "../feedback/FeedbackDialog";
+import StoreOwnerActionsMenu from "./StoreOwnerActionsMenu";
 import { Product } from "@/types/product";
 
 interface BottomActionsBarProps {
@@ -142,24 +143,14 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
 
             {/* الأزرار */}
             <div className="flex items-center gap-2">
-              {/* زر إضافة منتج - للمالك فقط */}
-              {isStoreOwner && (
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <div
-                    onClick={() => setIsAddProductModalOpen(true)}
-                    className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl shadow-lg cursor-pointer"
-                    style={{
-                      background: `linear-gradient(135deg, #10b981, #059669)`,
-                      border: '2px solid rgba(255,255,255,0.3)',
-                    }}
-                  >
-                    <Plus className="h-5 w-5 text-white" />
-                    <span className="text-[10px] font-medium text-white whitespace-nowrap">إضافة منتج</span>
-                  </div>
-                </motion.div>
+              {/* قائمة إدارة المتجر - للمالك فقط */}
+              {isStoreOwner && storeOwnerId && (
+                <StoreOwnerActionsMenu
+                  storeOwnerId={storeOwnerId}
+                  colorTheme={colorTheme}
+                  onAddProduct={() => setIsAddProductModalOpen(true)}
+                  onUpdate={() => window.location.reload()}
+                />
               )}
               
               {/* زر عجلة الحظ */}
