@@ -21,12 +21,12 @@ const AdminGuard = () => {
           return;
         }
         
-        // التحقق من دور المستخدم
-        const { data: roleData, error: roleError } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .single();
+        // التحقق من دور المستخدم باستخدام has_role function
+        const { data: hasAdminRole, error: roleError } = await supabase
+          .rpc('has_role', { 
+            _user_id: user.id, 
+            _role: 'admin' 
+          });
         
         if (roleError) {
           console.error("خطأ في جلب دور المستخدم:", roleError);
@@ -36,7 +36,7 @@ const AdminGuard = () => {
         }
         
         // التحقق من أن المستخدم لديه دور admin
-        if (roleData && roleData.role === 'admin') {
+        if (hasAdminRole) {
           setIsAuthorized(true);
         } else {
           console.error("المستخدم ليس لديه صلاحيات المسؤول");
