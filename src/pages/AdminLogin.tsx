@@ -20,14 +20,14 @@ const AdminLogin = () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
-        // التحقق من دور المستخدم
-        const { data: roleData } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .single();
+        // التحقق من دور المستخدم باستخدام has_role function
+        const { data: hasAdminRole } = await supabase
+          .rpc('has_role', { 
+            _user_id: user.id, 
+            _role: 'admin' 
+          });
         
-        if (roleData && roleData.role === 'admin') {
+        if (hasAdminRole) {
           navigate("/admin/dashboard");
         }
       }
@@ -71,14 +71,16 @@ const AdminLogin = () => {
       }
 
       if (data.user) {
-        // التحقق من دور المستخدم
-        const { data: roleData, error: roleError } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', data.user.id)
-          .single();
+        // التحقق من دور المستخدم باستخدام has_role function
+        const { data: hasAdminRole, error: roleError } = await supabase
+          .rpc('has_role', { 
+            _user_id: data.user.id, 
+            _role: 'admin' 
+          });
 
-        if (roleError || !roleData || roleData.role !== 'admin') {
+        console.log('Admin role check:', { hasAdminRole, roleError });
+
+        if (roleError || !hasAdminRole) {
           // تسجيل الخروج إذا كان المستخدم ليس مسؤولاً
           await supabase.auth.signOut();
           
