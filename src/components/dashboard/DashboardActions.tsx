@@ -1,11 +1,9 @@
-import { MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { copyToClipboard } from "@/utils/clipboard";
-import DashboardActionButton from "./DashboardActionButton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import QrCodeModal from "./QrCodeModal";
 
 const BASE_DOMAIN = "https://qrmenuc.com";
@@ -203,30 +201,19 @@ const DashboardActions = () => {
     }
   };
 
-  const actionButtons = [
-    {
-      icon: MessageSquare,
-      label: "الشكاوى والاقتراحات",
-      onClick: () => navigate("/feedback"),
-    },
-  ];
+  const actionButtons: any[] = [];
 
   return (
     <div className="space-y-6">
-      <Card className="bg-card/50 backdrop-blur-sm border-border/60 shadow-sm">
-        <CardContent className="p-6">
-          <div className="flex justify-center">
-            {actionButtons.map((button, index) => (
-              <DashboardActionButton
-                key={index}
-                icon={button.icon}
-                label={button.label}
-                onClick={button.onClick}
-              />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {actionButtons.length > 0 && (
+        <Card className="bg-card/50 backdrop-blur-sm border-border/60 shadow-sm">
+          <CardContent className="p-6">
+            <p className="text-center text-muted-foreground">
+              لا توجد إجراءات سريعة متاحة حالياً
+            </p>
+          </CardContent>
+        </Card>
+      )}
       
       <QrCodeModal 
         isOpen={qrModalOpen} 
