@@ -208,49 +208,99 @@ const FeedbackDialog = ({ isOpen, onClose, storeOwnerId, colorTheme }: FeedbackD
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="text-center py-12"
+            className="text-center py-8 px-4"
           >
+            {/* أيقونة النجاح المتحركة */}
             <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: [0, 1.2, 1] }}
-              transition={{ duration: 0.6, type: "spring", bounce: 0.5 }}
-              className="mb-6"
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ 
+                duration: 0.8, 
+                type: "spring", 
+                bounce: 0.5,
+                delay: 0.1 
+              }}
+              className="mb-6 relative"
             >
-              <div 
-                className="inline-flex items-center justify-center w-24 h-24 rounded-full mx-auto"
-                style={{ backgroundColor: `${themeColor}20` }}
+              <motion.div 
+                className="inline-flex items-center justify-center w-28 h-28 rounded-full mx-auto relative"
+                style={{ 
+                  background: `linear-gradient(135deg, ${themeColor}30, ${themeColor}10)`,
+                  boxShadow: `0 0 40px ${themeColor}40`
+                }}
+                animate={{
+                  boxShadow: [
+                    `0 0 40px ${themeColor}40`,
+                    `0 0 60px ${themeColor}60`,
+                    `0 0 40px ${themeColor}40`
+                  ]
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
               >
                 <CheckCircle className="w-16 h-16" style={{ color: themeColor }} />
-              </div>
+              </motion.div>
+              
+              {/* نجوم متناثرة حول الأيقونة */}
+              {[...Array(6)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute"
+                  style={{
+                    top: '50%',
+                    left: '50%',
+                  }}
+                  initial={{ scale: 0, x: 0, y: 0 }}
+                  animate={{ 
+                    scale: [0, 1, 0],
+                    x: Math.cos((i * 60) * Math.PI / 180) * 60,
+                    y: Math.sin((i * 60) * Math.PI / 180) * 60,
+                  }}
+                  transition={{ 
+                    duration: 1.5,
+                    delay: 0.3 + (i * 0.1),
+                    repeat: Infinity,
+                    repeatDelay: 2
+                  }}
+                >
+                  <Sparkles className="w-4 h-4" style={{ color: themeColor }} />
+                </motion.div>
+              ))}
             </motion.div>
             
+            {/* النص الرئيسي */}
             <motion.div
-              initial={{ y: 20, opacity: 0 }}
+              initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              className="space-y-3"
             >
-              <h2 className="text-2xl font-bold mb-3" style={{ color: themeColor }}>
-                تم الإرسال بنجاح! ✨
+              <h2 className="text-2xl font-bold" style={{ color: themeColor }}>
+                شكراً لك! 🎉
               </h2>
-              <p className="text-muted-foreground text-base">
-                شكراً لك على مشاركة رأيك القيم معنا
+              <p className="text-muted-foreground text-lg font-medium">
+                تم استلام رأيك بنجاح
+              </p>
+              <p className="text-muted-foreground/80 text-sm">
+                نقدّر وقتك ومشاركتك الثمينة معنا
               </p>
             </motion.div>
 
-            <motion.div
-              className="mt-8"
-              animate={{ 
-                rotate: [0, 10, -10, 0],
-                scale: [1, 1.1, 1]
-              }}
-              transition={{ 
-                duration: 2,
-                repeat: Infinity,
-                repeatDelay: 1
-              }}
+            {/* شريط تقدم للإغلاق التلقائي */}
+            <motion.div 
+              className="mt-8 mx-auto w-48 h-1 rounded-full overflow-hidden"
+              style={{ backgroundColor: `${themeColor}20` }}
             >
-              <Sparkles className="w-12 h-12 mx-auto" style={{ color: themeColor }} />
+              <motion.div
+                className="h-full rounded-full"
+                style={{ backgroundColor: themeColor }}
+                initial={{ width: "100%" }}
+                animate={{ width: "0%" }}
+                transition={{ duration: 2.5, ease: "linear" }}
+              />
             </motion.div>
+            <p className="text-xs text-muted-foreground/60 mt-2">
+              سيتم الإغلاق تلقائياً...
+            </p>
           </motion.div>
         ) : (
           <>

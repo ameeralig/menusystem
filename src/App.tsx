@@ -12,13 +12,10 @@ import ResetPassword from "./pages/auth/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import ProductPreview from "./pages/ProductPreview";
 import ProductsDemo from "./pages/ProductsDemo";
-import SpinWheelPage from "./pages/SpinWheelPage";
 import QRGenerator from "./pages/QRGenerator";
 import StoreCustomization from "./pages/StoreCustomization";
 import Profile from "./pages/Profile";
-import Feedback from "./pages/Feedback";
 import InstallPWA from "./pages/InstallPWA";
-import CustomerFeedback from "./pages/CustomerFeedback";
 import LegalPages from "./pages/LegalPages";
 import NotFound from "./pages/NotFound";
 import AdminLogin from "./pages/AdminLogin";
@@ -43,14 +40,11 @@ const App = () => (
             <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/products" element={<ProductsDemo />} />
-            <Route path="/store/:slug/wheel" element={<SpinWheelPage />} />
             <Route path="/install" element={<InstallPWA />} />
             <Route path="/qr-generator" element={<QRGenerator />} />
             <Route path="/:slug" element={<ProductPreview />} />
             <Route path="/store-customization" element={<StoreCustomization />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/feedback" element={<Feedback />} />
-            <Route path="/customer-feedback/:userId" element={<CustomerFeedback />} />
             <Route path="/sales-management" element={<SalesManagement />} />
             
             {/* صفحة موحدة للشروط والأحكام وسياسة الخصوصية والاتصال */}
