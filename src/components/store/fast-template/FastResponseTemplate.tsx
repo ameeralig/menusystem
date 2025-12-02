@@ -15,7 +15,6 @@ import { toast } from "sonner";
 import { useCart } from "@/contexts/CartContext";
 import CartButton from "../external-orders/CartButton";
 import CartSheet from "../external-orders/CartSheet";
-import ExternalOrdersToggle from "../external-orders/ExternalOrdersToggle";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -249,13 +248,6 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
 
   return (
     <div className="min-h-screen">
-      {/* زر تفعيل/إيقاف الطلبات الخارجية */}
-      {storeOwnerId && (
-        <ExternalOrdersToggle 
-          storeOwnerId={storeOwnerId} 
-          isStoreOwner={isStoreOwner}
-        />
-      )}
 
       {/* رأس المتجر مع الأنيميشن */}
       {storeName && (
