@@ -102,6 +102,8 @@ const FeedbackDialog = ({ isOpen, onClose, storeOwnerId, colorTheme }: FeedbackD
     setIsSubmitting(true);
 
     try {
+      console.log('إرسال البيانات:', formData);
+      
       const { error } = await supabase.from("feedback").insert({
         store_owner_id: storeOwnerId,
         visitor_name: formData.visitorName.trim(),
@@ -110,7 +112,10 @@ const FeedbackDialog = ({ isOpen, onClose, storeOwnerId, colorTheme }: FeedbackD
         description: formData.description.trim(),
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('خطأ في الإدراج:', error);
+        throw error;
+      }
 
       // إرسال إشعار WhatsApp
       try {
