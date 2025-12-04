@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Product } from "@/types/product";
 import { CategoryImage } from "@/types/categoryImage";
 import CategoryTabs from "./CategoryTabs";
@@ -8,6 +8,8 @@ import EditProductModal from "./EditProductModal";
 import EmptyCategoryMessage from "../EmptyCategoryMessage";
 import BottomActionsBar from "./BottomActionsBar";
 import StoreHeader from "../StoreHeader";
+import InlineStoreNameEditor from "../inline-edit/InlineStoreNameEditor";
+import InlineContactInfoEditor from "../inline-edit/InlineContactInfoEditor";
 import { ContactInfo, FontSettings, SocialLinks } from "@/types/store";
 import { sortCategoriesByOrder } from "@/utils/categorySort";
 import { supabase } from "@/integrations/supabase/client";
@@ -249,16 +251,38 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   return (
     <div className="min-h-screen">
 
-      {/* رأس المتجر مع الأنيميشن */}
+      {/* رأس المتجر - مع محرر مضمّن لصاحب المتجر */}
       {storeName && (
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 pt-2 pb-1 relative z-10">
           <div className="px-3">
-      <StoreHeader 
-        storeName={storeName} 
-        colorTheme={colorTheme}
-        fontSettings={fontSettings}
-      />
+            {isStoreOwner && storeOwnerId ? (
+              <InlineStoreNameEditor
+                storeName={storeName}
+                colorTheme={colorTheme || null}
+                fontSettings={fontSettings}
+                storeOwnerId={storeOwnerId}
+                onUpdate={() => refreshData?.()}
+              />
+            ) : (
+              <StoreHeader 
+                storeName={storeName} 
+                colorTheme={colorTheme}
+                fontSettings={fontSettings}
+              />
+            )}
           </div>
+        </div>
+      )}
+
+      {/* محرر معلومات المتجر - لصاحب المتجر فقط */}
+      {isStoreOwner && storeOwnerId && (
+        <div className="px-3">
+          <InlineContactInfoEditor
+            contactInfo={contactInfo}
+            colorTheme={colorTheme || null}
+            storeOwnerId={storeOwnerId}
+            onUpdate={() => refreshData?.()}
+          />
         </div>
       )}
 
