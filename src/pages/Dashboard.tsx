@@ -1,4 +1,4 @@
-
+import { useState, useEffect } from "react";
 import { BarChart3 } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import DashboardActions from "@/components/dashboard/DashboardActions";
@@ -10,9 +10,64 @@ import { useDashboardStats } from "@/hooks/useDashboardStats";
 import MobileNavigation from "@/components/dashboard/MobileNavigation";
 import FloatingActionButton from "@/components/dashboard/FloatingActionButton";
 import FloatingAIChat from "@/components/dashboard/FloatingAIChat";
+import SubdomainSetupDialog from "@/components/dashboard/SubdomainSetupDialog";
+import LoginRedirectDialog from "@/components/dashboard/LoginRedirectDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const { stats, dailyViewsData, loading } = useDashboardStats();
+  const [showSubdomainSetup, setShowSubdomainSetup] = useState(false);
+  const [showLoginRedirect, setShowLoginRedirect] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [storeSlug, setStoreSlug] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkUserSetup = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      setUserId(user.id);
+
+      // التحقق من إعدادات المتجر
+      const { data: storeSettings } = await supabase
+        .from("store_settings")
+        .select("slug")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!storeSettings?.slug) {
+        // المستخدم جديد، يحتاج لإعداد النطاق
+        setShowSubdomainSetup(true);
+      } else {
+        setStoreSlug(storeSettings.slug);
+        // التحقق من الجلسة - هل هو تسجيل دخول جديد؟
+        const isNewLogin = sessionStorage.getItem("showLoginRedirect");
+        if (isNewLogin === "true") {
+          setShowLoginRedirect(true);
+          sessionStorage.removeItem("showLoginRedirect");
+        }
+      }
+    };
+
+    checkUserSetup();
+  }, []);
+
+  const handleSubdomainComplete = async () => {
+    setShowSubdomainSetup(false);
+    // جلب الـ slug الجديد
+    if (userId) {
+      const { data } = await supabase
+        .from("store_settings")
+        .select("slug")
+        .eq("user_id", userId)
+        .maybeSingle();
+      
+      if (data?.slug) {
+        setStoreSlug(data.slug);
+        setShowLoginRedirect(true);
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
@@ -153,6 +208,22 @@ const Dashboard = () => {
       
       {/* Floating AI Chat */}
       <FloatingAIChat />
+
+      {/* Subdomain Setup Dialog */}
+      {userId && (
+        <SubdomainSetupDialog
+          open={showSubdomainSetup}
+          onComplete={handleSubdomainComplete}
+          userId={userId}
+        />
+      )}
+
+      {/* Login Redirect Dialog */}
+      <LoginRedirectDialog
+        open={showLoginRedirect}
+        onClose={() => setShowLoginRedirect(false)}
+        storeSlug={storeSlug}
+      />
     </div>
   );
 };
