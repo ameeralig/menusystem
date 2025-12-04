@@ -19,7 +19,7 @@ const LoginRedirectDialog = ({ open, onClose, storeSlug }: LoginRedirectDialogPr
 
   const goToPreview = () => {
     if (storeSlug) {
-      navigate(`/store/${storeSlug}`);
+      navigate(`/${storeSlug}`);
     }
     onClose();
   };
