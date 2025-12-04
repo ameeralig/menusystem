@@ -1,11 +1,14 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { formatImageUrl } from "@/utils/storageHelpers";
+import { isSafari, isIOS } from "@/utils/browserDetect";
 
 export const useImageLoading = (bannerUrl?: string | null) => {
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imgSrc, setImgSrc] = useState<string | null>(null);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  const isSafariBrowser = isSafari() || isIOS();
 
   useEffect(() => {
     if (bannerUrl) {
@@ -14,12 +17,37 @@ export const useImageLoading = (bannerUrl?: string | null) => {
           const optimizedUrl = formatImageUrl(bannerUrl);
           
           const img = document.createElement('img');
+          imgRef.current = img;
+          
+          // Safari: استخدام eager loading للبانر
+          if (isSafariBrowser) {
+            img.loading = 'eager';
+          }
+          
           img.onload = () => {
             console.log("تم تحميل صورة البانر بنجاح:", optimizedUrl);
-            setImgSrc(optimizedUrl);
-            setImageError(false);
-            setImageLoaded(true);
+            
+            // Safari: استخدام decode() للتأكد من الرسم السلس
+            if ('decode' in img) {
+              img.decode()
+                .then(() => {
+                  setImgSrc(optimizedUrl);
+                  setImageError(false);
+                  setImageLoaded(true);
+                })
+                .catch(() => {
+                  // fallback إذا فشل decode
+                  setImgSrc(optimizedUrl);
+                  setImageError(false);
+                  setImageLoaded(true);
+                });
+            } else {
+              setImgSrc(optimizedUrl);
+              setImageError(false);
+              setImageLoaded(true);
+            }
           };
+          
           img.onerror = (e) => {
             console.error("خطأ في تحميل صورة البانر:", optimizedUrl, e);
             
@@ -41,7 +69,6 @@ export const useImageLoading = (bannerUrl?: string | null) => {
           };
           
           img.decoding = "async";
-          img.loading = "eager";
           img.src = optimizedUrl;
         } catch (error) {
           console.error("خطأ في معالجة رابط البانر:", error);
@@ -50,22 +77,14 @@ export const useImageLoading = (bannerUrl?: string | null) => {
       };
 
       loadImage();
-
-      const retryTimeout = setTimeout(() => {
-        if (imageError) {
-          console.log("إعادة محاولة تحميل البانر بعد مهلة");
-          setImageError(false);
-          loadImage();
-        }
-      }, 1500);
       
       return () => {
-        clearTimeout(retryTimeout);
+        imgRef.current = null;
       };
     } else {
       setImgSrc(null);
     }
-  }, [bannerUrl]);
+  }, [bannerUrl, isSafariBrowser]);
 
   return {
     imageError,

@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Product } from "@/types/product";
 import { Edit, Trash2, Plus } from "lucide-react";
 import { optimizeImageUrl } from "@/utils/imageOptimizer";
 import { Button } from "@/components/ui/button";
+import { isSafari, isIOS } from "@/utils/browserDetect";
 
 interface CompactProductCardProps {
   product: Product;
@@ -34,6 +35,15 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
   const optimizedImageUrl = optimizeImageUrl(product.image_url, 'thumbnail');
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const isSafariBrowser = isSafari() || isIOS();
+  
+  // Safari: استخدام decode() للتحميل الأسلس
+  useEffect(() => {
+    if (imageLoaded && imgRef.current && 'decode' in imgRef.current) {
+      imgRef.current.decode().catch(() => {});
+    }
+  }, [imageLoaded]);
   
   return (
     <div 
@@ -77,20 +87,18 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
         )}
         
         <img
+          ref={imgRef}
           src={optimizedImageUrl}
           alt={product.name}
           width="120"
           height="120"
-          loading="lazy"
+          loading={isSafariBrowser ? "eager" : "lazy"}
           decoding="async"
-          fetchPriority="low"
-          className={`w-full h-full object-cover transition-all duration-500 ${
-            imageLoaded ? 'opacity-100 blur-0' : 'opacity-0 blur-sm'
+          // @ts-ignore
+          fetchpriority="low"
+          className={`w-full h-full object-cover transition-all duration-300 ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
           }`}
-          style={{
-            // إضافة cache control للمتصفح
-            imageRendering: 'crisp-edges',
-          }}
           onLoad={() => setImageLoaded(true)}
           onError={(e) => {
             setImageError(true);
