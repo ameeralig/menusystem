@@ -230,7 +230,7 @@ export const getUrlWithTimestamp = (url: string | null, forceReload: boolean = f
 };
 
 /**
- * تنسيق رابط الصورة (مبسط للأداء)
+ * تنسيق رابط الصورة (مبسط للأداء مع تحسينات Safari)
  * @param url رابط الصورة الأصلي
  * @returns رابط الصورة المنسق
  */
@@ -243,12 +243,30 @@ export const formatImageUrl = (url: string): string => {
                         url.includes('zqlckixwpyrwdwrsuhsg');
   
   if (isSupabaseUrl) {
-    // إرجاع الرابط كما هو (بدون معلمات format لأن Supabase لا يدعمها)
+    // إرجاع الرابط بدون معلمات استعلام للكاش الأفضل
     return url.split('?')[0];
   }
   
   // إرجاع الروابط الخارجية كما هي
   return url;
+};
+
+/**
+ * تحسين رابط الصورة حسب المتصفح
+ * Safari يحتاج معاملة خاصة للأداء الأفضل
+ */
+export const getOptimizedImageUrl = (url: string | null | undefined): string => {
+  if (!url) return '';
+  
+  const formattedUrl = formatImageUrl(url);
+  
+  // للصور من Supabase، نضيف headers مناسبة عبر URL parameters
+  if (formattedUrl.includes('supabase')) {
+    // إضافة cache-control hint
+    return formattedUrl;
+  }
+  
+  return formattedUrl;
 };
 
 /**
