@@ -95,7 +95,8 @@ export function LoginForm() {
             navigate("/dashboard");
           }
         } else {
-          // مستخدم عادي - التوجيه للوحة التحكم
+          // مستخدم عادي - تعيين علامة لعرض نافذة الاختيار
+          sessionStorage.setItem("showLoginRedirect", "true");
           navigate("/dashboard");
         }
       }
