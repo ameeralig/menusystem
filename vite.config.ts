@@ -130,67 +130,38 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // تقسيم ذكي للـ chunks - الحزم تحمّل عند الحاجة فقط
+          // تقسيم ذكي للـ chunks لتقليل JavaScript غير المستخدم
           if (id.includes('node_modules')) {
-            // React الأساسي - يحمّل مع التطبيق
-            if (id.includes('react-dom') || id.includes('scheduler')) {
-              return 'react-core';
+            if (id.includes('react-dom') || id.includes('react-router')) {
+              return 'react-vendor';
             }
-            // React Router - يحمّل مع التطبيق
-            if (id.includes('react-router')) {
-              return 'router';
-            }
-            // Supabase - يحمّل مع التطبيق (ضروري للـ auth)
-            if (id.includes('@supabase')) {
-              return 'supabase';
-            }
-            // TanStack Query - يحمّل مع التطبيق
-            if (id.includes('@tanstack')) {
-              return 'query';
-            }
-            // UI Components - تحمّل بشكل منفصل (كسول)
             if (id.includes('@radix-ui')) {
               return 'ui-vendor';
             }
-            // Charts - تحمّل فقط في لوحة التحكم
+            if (id.includes('@supabase')) {
+              return 'supabase';
+            }
             if (id.includes('recharts') || id.includes('d3')) {
               return 'charts';
             }
-            // QR Code - تحمّل فقط في صفحة QR
             if (id.includes('qrcode') || id.includes('qr-code-styling')) {
               return 'qr';
             }
-            // Animations - تحمّل عند الحاجة
             if (id.includes('framer-motion')) {
               return 'animation';
             }
-            // Helmet - SEO
-            if (id.includes('react-helmet')) {
-              return 'seo';
-            }
-            // الباقي
-            return 'vendor';
           }
         }
       }
     },
-    chunkSizeWarningLimit: 500,
+    chunkSizeWarningLimit: 1000,
     cssCodeSplit: true,
     minify: 'terser',
     terserOptions: {
       compress: {
         drop_console: true,
-        drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug']
-      },
-      mangle: {
-        safari10: true
+        drop_debugger: true
       }
-    },
-    // تحسين الأداء
-    target: 'esnext',
-    modulePreload: {
-      polyfill: true
     }
   }
 }));
