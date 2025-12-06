@@ -129,15 +129,39 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs'],
-          'supabase': ['@supabase/supabase-js'],
-          'charts': ['recharts'],
-          'qr': ['qrcode', 'qr-code-styling']
+        manualChunks: (id) => {
+          // تقسيم ذكي للـ chunks لتقليل JavaScript غير المستخدم
+          if (id.includes('node_modules')) {
+            if (id.includes('react-dom') || id.includes('react-router')) {
+              return 'react-vendor';
+            }
+            if (id.includes('@radix-ui')) {
+              return 'ui-vendor';
+            }
+            if (id.includes('@supabase')) {
+              return 'supabase';
+            }
+            if (id.includes('recharts') || id.includes('d3')) {
+              return 'charts';
+            }
+            if (id.includes('qrcode') || id.includes('qr-code-styling')) {
+              return 'qr';
+            }
+            if (id.includes('framer-motion')) {
+              return 'animation';
+            }
+          }
         }
       }
     },
-    chunkSizeWarningLimit: 1000
+    chunkSizeWarningLimit: 1000,
+    cssCodeSplit: true,
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      }
+    }
   }
 }));
