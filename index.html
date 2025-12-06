@@ -5,9 +5,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-    <!-- Resource Hints for Supabase -->
-    <link rel="dns-prefetch" href="https://zqlckixwpyrwdwrsuhsg.supabase.co" />
+    <!-- Critical CSS Inline لتسريع LCP -->
+    <style>
+      *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+      html{font-family:Cairo,system-ui,sans-serif;line-height:1.5;-webkit-text-size-adjust:100%}
+      body{min-height:100vh;background:#0a0a0a;color:#fafafa}
+      #root{min-height:100vh;display:flex;flex-direction:column}
+      .loading-skeleton{background:linear-gradient(90deg,#1a1a1a 25%,#2a2a2a 50%,#1a1a1a 75%);background-size:200% 100%;animation:shimmer 1.5s infinite}
+      @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    </style>
+    
+    <!-- Preconnect للموارد الحرجة -->
     <link rel="preconnect" href="https://zqlckixwpyrwdwrsuhsg.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="https://zqlckixwpyrwdwrsuhsg.supabase.co" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     
     <link rel="icon" href="/favicon.png" type="image/png" />
     <title>QRM - منصة المنيو الرقمي | qrmenuc.com</title>
@@ -18,24 +30,23 @@
     <link rel="canonical" href="https://qrmenuc.com/" />
     
     <!-- Open Graph Tags -->
-    
-    
     <meta property="og:image" content="https://qrmenuc.com/qr-logo-og.png" />
     <meta property="og:url" content="https://qrmenuc.com/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="QR Menu - qrmenuc.com" />
     <meta property="og:locale" content="ar_SA" />
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <meta property="og:title" content="QRM - منصة المنيو الرقمي | qrmenuc.com">
+    <meta property="og:description" content="منصة QR Menu الرائدة لإنشاء متاجر رقمية بتقنية QR Code. أنشئ متجرك الإلكتروني بسهولة وشاركه مع عملائك فوراً. qrmenuc.com الحل الأمثل للمطاعم والمتاجر.">
     
     <!-- Twitter Card Tags -->
     <meta name="twitter:card" content="summary_large_image" />
-    
-    
+    <meta name="twitter:title" content="QRM - منصة المنيو الرقمي | qrmenuc.com">
+    <meta name="twitter:description" content="منصة QR Menu الرائدة لإنشاء متاجر رقمية بتقنية QR Code. أنشئ متجرك الإلكتروني بسهولة وشاركه مع عملائك فوراً. qrmenuc.com الحل الأمثل للمطاعم والمتاجر.">
     <meta name="twitter:image" content="https://qrmenuc.com/qr-logo-og.png" />
+    
+    <!-- Google Fonts - تحميل غير معطل مع swap -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
     
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -50,26 +61,15 @@
         "@type": "SearchAction",
         "target": "https://qrmenuc.com/search?q={search_term_string}",
         "query-input": "required name=search_term_string"
-      },
-      "sameAs": [
-        "https://qrmenuc.com"
-      ]
+      }
     }
     </script>
-    
-    <!-- منع تخزين الصفحة مؤقتًا لضمان تحديث المحتوى -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
-    <meta property="og:title" content="QRM - منصة المنيو الرقمي | qrmenuc.com">
-  <meta name="twitter:title" content="QRM - منصة المنيو الرقمي | qrmenuc.com">
-  <meta property="og:description" content="منصة QR Menu الرائدة لإنشاء متاجر رقمية بتقنية QR Code. أنشئ متجرك الإلكتروني بسهولة وشاركه مع عملائك فوراً. qrmenuc.com الحل الأمثل للمطاعم والمتاجر.">
-  <meta name="twitter:description" content="منصة QR Menu الرائدة لإنشاء متاجر رقمية بتقنية QR Code. أنشئ متجرك الإلكتروني بسهولة وشاركه مع عملائك فوراً. qrmenuc.com الحل الأمثل للمطاعم والمتاجر.">
-</head>
+  </head>
 
   <body>
     <div id="root"></div>
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+    <!-- تأجيل السكربتات غير الضرورية -->
+    <script defer src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
