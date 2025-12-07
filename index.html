@@ -64,11 +64,14 @@
     <meta name="twitter:description" content="منصة QR Menu الرائدة لإنشاء متاجر رقمية بتقنية QR Code. أنشئ متجرك الإلكتروني بسهولة وشاركه مع عملائك فوراً. qrmenuc.com الحل الأمثل للمطاعم والمتاجر.">
     <meta name="twitter:image" content="https://qrmenuc.com/qr-logo-og.png" />
     
-    <!-- Google Fonts - تحميل مباشر مع swap -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet" />
+    <!-- Google Fonts - تحميل غير متزامن لمنع render-blocking -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Lato:wght@400;700&display=swap" as="style" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Lato:wght@400;700&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Lato:wght@400;700&display=swap" /></noscript>
     
     <!-- خطوط إضافية تحمّل بشكل متأخر -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&family=Fira+Code:wght@400;700&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&family=Fira+Code:wght@400;700&display=swap" /></noscript>
     
     <!-- Structured Data -->
     <script type="application/ld+json">
