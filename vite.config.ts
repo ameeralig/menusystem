@@ -129,68 +129,18 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          // تقسيم ذكي للـ chunks - الحزم تحمّل عند الحاجة فقط
-          if (id.includes('node_modules')) {
-            // React الأساسي - يحمّل مع التطبيق
-            if (id.includes('react-dom') || id.includes('scheduler')) {
-              return 'react-core';
-            }
-            // React Router - يحمّل مع التطبيق
-            if (id.includes('react-router')) {
-              return 'router';
-            }
-            // Supabase - يحمّل مع التطبيق (ضروري للـ auth)
-            if (id.includes('@supabase')) {
-              return 'supabase';
-            }
-            // TanStack Query - يحمّل مع التطبيق
-            if (id.includes('@tanstack')) {
-              return 'query';
-            }
-            // UI Components - تحمّل بشكل منفصل (كسول)
-            if (id.includes('@radix-ui')) {
-              return 'ui-vendor';
-            }
-            // Charts - تحمّل فقط في لوحة التحكم
-            if (id.includes('recharts') || id.includes('d3')) {
-              return 'charts';
-            }
-            // QR Code - تحمّل فقط في صفحة QR
-            if (id.includes('qrcode') || id.includes('qr-code-styling')) {
-              return 'qr';
-            }
-            // Animations - تحمّل عند الحاجة
-            if (id.includes('framer-motion')) {
-              return 'animation';
-            }
-            // Helmet - SEO
-            if (id.includes('react-helmet')) {
-              return 'seo';
-            }
-            // الباقي
-            return 'vendor';
-          }
+        manualChunks: {
+          // تقسيم بسيط وآمن للـ chunks
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'supabase': ['@supabase/supabase-js'],
+          'query': ['@tanstack/react-query'],
         }
       }
     },
-    chunkSizeWarningLimit: 500,
+    chunkSizeWarningLimit: 1000,
     cssCodeSplit: true,
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug']
-      },
-      mangle: {
-        safari10: true
-      }
-    },
-    // تحسين الأداء
-    target: 'esnext',
-    modulePreload: {
-      polyfill: true
-    }
+    minify: 'esbuild',
+    // دعم المتصفحات الحديثة
+    target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14']
   }
 }));
