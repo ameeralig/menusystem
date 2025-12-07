@@ -134,13 +134,24 @@ export default defineConfig(({ mode }) => ({
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'supabase': ['@supabase/supabase-js'],
           'query': ['@tanstack/react-query'],
+        },
+        // تقسيم CSS لتجنب ملف واحد كبير
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name?.endsWith('.css')) {
+            return 'assets/[name]-[hash][extname]';
+          }
+          return 'assets/[name]-[hash][extname]';
         }
       }
     },
     chunkSizeWarningLimit: 1000,
-    cssCodeSplit: true,
+    cssCodeSplit: true, // تفعيل تقسيم CSS
     minify: 'esbuild',
+    cssMinify: 'esbuild', // ضغط CSS أسرع
     // دعم المتصفحات الحديثة
-    target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14']
+    target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'],
+    // تحسين تقسيم الموارد
+    sourcemap: false,
+    reportCompressedSize: false
   }
 }));
