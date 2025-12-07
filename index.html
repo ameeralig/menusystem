@@ -5,14 +5,34 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-    <!-- Critical CSS Inline لتسريع LCP -->
+    <!-- Critical CSS Inline لتسريع LCP - فقط للجزء العلوي -->
     <style>
+      /* Reset أساسي */
       *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-      html{font-family:Cairo,system-ui,sans-serif;line-height:1.5;-webkit-text-size-adjust:100%}
-      body{min-height:100vh;background:#0a0a0a;color:#fafafa}
+      html{font-family:Cairo,system-ui,-apple-system,sans-serif;line-height:1.5;-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+      body{min-height:100vh;background:#0a0a0a;color:#fafafa;-webkit-font-smoothing:antialiased}
       #root{min-height:100vh;display:flex;flex-direction:column}
+      
+      /* مؤشر التحميل للصفحات */
+      .page-loader{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0a0a0a}
+      .page-loader .spinner{width:2rem;height:2rem;border:2px solid hsl(210 100% 55%);border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite}
+      @keyframes spin{to{transform:rotate(360deg)}}
+      
+      /* Skeleton للتحميل */
       .loading-skeleton{background:linear-gradient(90deg,#1a1a1a 25%,#2a2a2a 50%,#1a1a1a 75%);background-size:200% 100%;animation:shimmer 1.5s infinite}
       @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+      
+      /* أنماط الهيدر الأساسية */
+      .store-header{padding:1rem;text-align:center}
+      .store-name{font-size:1.5rem;font-weight:700;margin-bottom:0.5rem}
+      
+      /* شبكة المنتجات الأساسية */
+      .products-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0.75rem;padding:1rem}
+      @media(min-width:768px){.products-grid{grid-template-columns:repeat(3,1fr)}}
+      
+      /* بطاقة المنتج الأساسية */
+      .product-card{background:#1a1a1a;border-radius:0.75rem;overflow:hidden}
+      .product-card img{width:100%;aspect-ratio:1;object-fit:cover}
     </style>
     
     <!-- Preconnect للموارد الحرجة -->
