@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Disc3, MessageSquare, Search, X, Info, Sparkles } from "lucide-react";
+import { Disc3, MessageSquare, Search, X, Info, Sparkles, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
@@ -9,6 +9,7 @@ import AddProductModal from "./AddProductModal";
 import CustomerAIAssistant from "./CustomerAIAssistant";
 import WheelModal from "../WheelModal";
 import FeedbackDialog from "../feedback/FeedbackDialog";
+import OwnerFeedbackSheet from "../feedback/OwnerFeedbackSheet";
 import StoreOwnerActionsMenu from "./StoreOwnerActionsMenu";
 import { Product } from "@/types/product";
 
@@ -50,6 +51,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
+  const [isOwnerFeedbackOpen, setIsOwnerFeedbackOpen] = useState(false);
 
   const getThemeColor = () => {
     if (colorTheme?.startsWith('#')) {
@@ -193,22 +195,30 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                 </motion.div>
               )}
 
-              {/* زر تقييم */}
+              {/* زر تقييم / عرض الآراء */}
               {storeOwnerId && (
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <div
-                    onClick={() => setIsFeedbackDialogOpen(true)}
+                    onClick={() => isStoreOwner ? setIsOwnerFeedbackOpen(true) : setIsFeedbackDialogOpen(true)}
                     className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl shadow-lg cursor-pointer"
                     style={{
-                      background: `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`,
+                      background: isStoreOwner 
+                        ? `linear-gradient(135deg, #10b981, #059669)` 
+                        : `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`,
                       border: '2px solid rgba(255,255,255,0.3)',
                     }}
                   >
-                    <MessageSquare className="h-5 w-5 text-white" />
-                    <span className="text-[10px] font-medium text-white whitespace-nowrap">شاركنا رآيك</span>
+                    {isStoreOwner ? (
+                      <Eye className="h-5 w-5 text-white" />
+                    ) : (
+                      <MessageSquare className="h-5 w-5 text-white" />
+                    )}
+                    <span className="text-[10px] font-medium text-white whitespace-nowrap">
+                      {isStoreOwner ? 'عرض الآراء' : 'شاركنا رآيك'}
+                    </span>
                   </div>
                 </motion.div>
               )}
@@ -283,11 +293,21 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
         />
       )}
 
-      {/* FeedbackDialog */}
-      {storeOwnerId && (
+      {/* FeedbackDialog - للزوار */}
+      {storeOwnerId && !isStoreOwner && (
         <FeedbackDialog
           isOpen={isFeedbackDialogOpen}
           onClose={() => setIsFeedbackDialogOpen(false)}
+          storeOwnerId={storeOwnerId}
+          colorTheme={colorTheme || undefined}
+        />
+      )}
+
+      {/* OwnerFeedbackSheet - لصاحب المتجر */}
+      {storeOwnerId && isStoreOwner && (
+        <OwnerFeedbackSheet
+          isOpen={isOwnerFeedbackOpen}
+          onOpenChange={setIsOwnerFeedbackOpen}
           storeOwnerId={storeOwnerId}
           colorTheme={colorTheme || undefined}
         />
