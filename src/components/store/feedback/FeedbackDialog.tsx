@@ -102,37 +102,55 @@ const FeedbackDialog = ({ isOpen, onClose, storeOwnerId, colorTheme }: FeedbackD
     setIsSubmitting(true);
 
     try {
-      console.log('إرسال البيانات:', formData);
+      console.log('إرسال البيانات:', {
+        store_owner_id: storeOwnerId,
+        ...formData
+      });
       
-      const { error } = await supabase.from("feedback").insert({
+      // ترجمة نوع التقييم للعرض
+      const feedbackTypeText = formData.feedbackType === 'complaint' ? 'شكوى' :
+                              formData.feedbackType === 'suggestion' ? 'اقتراح' :
+                              formData.feedbackType === 'compliment' ? 'إطراء' :
+                              formData.feedbackType === 'question' ? 'استفسار' : 'ملاحظة';
+      
+      const { data, error } = await supabase.from("feedback").insert({
         store_owner_id: storeOwnerId,
         visitor_name: formData.visitorName.trim(),
         visitor_phone: formData.visitorPhone.trim() || null,
         type: formData.feedbackType,
         description: formData.description.trim(),
-      });
+      }).select();
 
       if (error) {
         console.error('خطأ في الإدراج:', error);
         throw error;
       }
 
-      // إرسال إشعار WhatsApp
+      console.log('تم إدراج التقييم بنجاح:', data);
+
+      // إرسال إشعار WhatsApp (اختياري - لا يوقف العملية)
       try {
-        await supabase.functions.invoke('send-whatsapp-notification', {
+        console.log('إرسال إشعار WhatsApp...');
+        const { data: whatsappData, error: whatsappError } = await supabase.functions.invoke('send-whatsapp-notification', {
           body: {
             userId: storeOwnerId,
-            message: `تم استلام ${formData.feedbackType} جديد من: ${formData.visitorName}`,
+            message: `تم استلام ${feedbackTypeText} جديد من: ${formData.visitorName}`,
             type: 'feedback'
           }
         });
+        
+        if (whatsappError) {
+          console.log('فشل إرسال WhatsApp (لا يؤثر على التقييم):', whatsappError);
+        } else {
+          console.log('نتيجة WhatsApp:', whatsappData);
+        }
       } catch (whatsappError) {
-        console.error('خطأ في إرسال إشعار WhatsApp:', whatsappError);
+        console.log('خطأ في إرسال إشعار WhatsApp (لا يؤثر على التقييم):', whatsappError);
       }
       
       toast({
         title: "تم الإرسال بنجاح! ✅",
-        description: "شكراً لك على ملاحظاتك القيمة!",
+        description: "شكراً لك على ملاحظاتك القيمة! سيتم مراجعتها والرد عليها قريباً.",
       });
 
       setIsSubmitted(true);
@@ -148,7 +166,7 @@ const FeedbackDialog = ({ isOpen, onClose, storeOwnerId, colorTheme }: FeedbackD
           description: "",
         });
         onClose();
-      }, 2500);
+      }, 3000);
 
     } catch (error) {
       console.error("خطأ في إرسال الملاحظات:", error);
@@ -282,6 +300,9 @@ const FeedbackDialog = ({ isOpen, onClose, storeOwnerId, colorTheme }: FeedbackD
               </p>
               <p className="text-muted-foreground/80 text-sm">
                 نقدّر وقتك ومشاركتك الثمينة معنا
+              </p>
+              <p className="text-muted-foreground/70 text-xs mt-2">
+                سيتم مراجعة ملاحظاتك والرد عليها في أقرب وقت
               </p>
             </motion.div>
 
