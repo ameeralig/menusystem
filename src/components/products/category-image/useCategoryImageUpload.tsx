@@ -34,18 +34,21 @@ export const useCategoryImageUpload = ({
       // الحصول على الصورة الحالية إن وجدت
       const existingImage = categoryImages.find(img => img.category === category);
       
+      // اسم البكت الصحيح
+      const bucketName = "صور التصنيفات";
+      
       // إذا كانت هناك صورة موجودة، نحذفها أولاً
       if (existingImage?.image_url) {
         console.log(`حذف الصورة السابقة للتصنيف: ${category}`);
-        const filePath = extractFilePathFromUrl(existingImage.image_url, "category-images");
+        const filePath = extractFilePathFromUrl(existingImage.image_url, bucketName);
         if (filePath) {
-          await deleteImage("category-images", filePath);
+          await deleteImage(bucketName, filePath);
         }
       }
 
       // رفع الصورة الجديدة
       console.log(`رفع صورة جديدة للتصنيف: ${category}`);
-      const imageUrl = await uploadImage("category-images", file, userId, category);
+      const imageUrl = await uploadImage(bucketName, file, userId, category);
 
       // تحديث أو إنشاء سجل لصورة التصنيف
       if (existingImage) {
@@ -126,11 +129,14 @@ export const useCategoryImageUpload = ({
         throw new Error(`لم يتم العثور على صورة للتصنيف: ${category}`);
       }
 
+      // اسم البكت الصحيح
+      const bucketName = "صور التصنيفات";
+      
       // حذف الملف من التخزين
       if (imageToRemove.image_url) {
-        const filePath = extractFilePathFromUrl(imageToRemove.image_url, "category-images");
+        const filePath = extractFilePathFromUrl(imageToRemove.image_url, bucketName);
         if (filePath) {
-          await deleteImage("category-images", filePath);
+          await deleteImage(bucketName, filePath);
         }
       }
 
@@ -182,12 +188,15 @@ export const useCategoryImageUpload = ({
       // الحصول على الصورة الحالية إن وجدت
       const existingImage = categoryImages.find(img => img.category === category);
       
+      // اسم البكت الصحيح
+      const bucketName = "صور التصنيفات";
+      
       // إذا كانت هناك صورة موجودة من رفع ملف، نحذفها
       if (existingImage?.image_url && existingImage.image_url.includes('supabase')) {
         console.log(`حذف الصورة السابقة للتصنيف: ${category}`);
-        const filePath = extractFilePathFromUrl(existingImage.image_url, "category-images");
+        const filePath = extractFilePathFromUrl(existingImage.image_url, bucketName);
         if (filePath) {
-          await deleteImage("category-images", filePath);
+          await deleteImage(bucketName, filePath);
         }
       }
 
