@@ -16,7 +16,6 @@ import StoreProductsDisplay from "@/components/store/StoreProductsDisplay";
 
 // استخدام التحميل البطيء للمكونات غير الأساسية
 const ProductPreviewContainer = lazy(() => import("@/components/store/ProductPreviewContainer"));
-const FeedbackTrigger = lazy(() => import("@/components/store/feedback/FeedbackTrigger"));
 
 const ProductPreview = () => {
   const { slug } = useParams<{ slug: string }>();

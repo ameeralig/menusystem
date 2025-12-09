@@ -1,11 +1,9 @@
-import React, { Suspense, lazy } from "react";
+import React from "react";
 import { motion } from "framer-motion";
-import { Disc3, MessageSquare, Instagram, Facebook, Send } from "lucide-react";
+import { Disc3, Instagram, Facebook, Send } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SocialLinks } from "@/types/store";
-
-const FeedbackTrigger = lazy(() => import("../feedback/FeedbackTrigger"));
 
 interface FloatingActionsBarProps {
   slug?: string;
@@ -111,44 +109,6 @@ const FloatingActionsBar: React.FC<FloatingActionsBarProps> = ({
                 />
               </Button>
             </Link>
-          )}
-
-          {/* زر مشاركة الرأي */}
-          {storeOwnerId && (
-            <Suspense fallback={null}>
-              <Link to={`/customer-feedback/${storeOwnerId}`}>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-12 h-12 rounded-xl transition-all duration-300 hover:scale-110 relative group"
-                  style={{
-                    background: `${themeColor}20`,
-                    color: themeColor,
-                  }}
-                >
-                  <motion.div
-                    animate={{
-                      scale: [1, 1.1, 1],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      repeatDelay: 3,
-                    }}
-                  >
-                    <MessageSquare className="w-6 h-6" />
-                  </motion.div>
-                  
-                  {/* تأثير التوهج عند التمرير */}
-                  <div 
-                    className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    style={{
-                      background: `radial-gradient(circle, ${themeColor}40 0%, transparent 70%)`,
-                    }}
-                  />
-                </Button>
-              </Link>
-            </Suspense>
           )}
 
           {/* أيقونات التواصل الاجتماعي */}
