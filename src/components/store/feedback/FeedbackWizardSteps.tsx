@@ -183,17 +183,20 @@ const FeedbackWizardSteps = ({
                 <SelectValue placeholder="اختر نوع الملاحظات..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="شكوى" className="text-right">
+                <SelectItem value="complaint" className="text-right">
                   <span className="text-lg">💢 شكوى</span>
                 </SelectItem>
-                <SelectItem value="اقتراح" className="text-right">
+                <SelectItem value="suggestion" className="text-right">
                   <span className="text-lg">💡 اقتراح</span>
                 </SelectItem>
-                <SelectItem value="استفسار" className="text-right">
+                <SelectItem value="question" className="text-right">
                   <span className="text-lg">❓ استفسار</span>
                 </SelectItem>
-                <SelectItem value="مدح" className="text-right">
+                <SelectItem value="compliment" className="text-right">
                   <span className="text-lg">👏 مدح وإعجاب</span>
+                </SelectItem>
+                <SelectItem value="other" className="text-right">
+                  <span className="text-lg">📝 أخرى</span>
                 </SelectItem>
               </SelectContent>
             </Select>
