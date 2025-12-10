@@ -80,7 +80,6 @@ const StoreCustomization = () => {
   const [fontSettings, setFontSettings] = useState<FontSettings>(defaultFontSettings);
   const [contactInfo, setContactInfo] = useState<ContactInfo>(defaultContactInfo);
   const [darkMode, setDarkMode] = useState(false);
-  const [template, setTemplate] = useState("default");
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({
     instagram: "",
     facebook: "",
@@ -103,7 +102,7 @@ const StoreCustomization = () => {
 
       const { data: storeSettings, error } = await supabase
         .from("store_settings")
-        .select("store_name, color_theme, slug, social_links, banner_url, font_settings, contact_info, dark_mode, template")
+        .select("store_name, color_theme, slug, social_links, banner_url, font_settings, contact_info, dark_mode")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -118,7 +117,6 @@ const StoreCustomization = () => {
         setStoreSlug(storeSettings.slug || "");
         setBannerUrl(storeSettings.banner_url || null);
         setDarkMode(storeSettings.dark_mode || false);
-        setTemplate(storeSettings.template || "default");
         
         if (storeSettings.social_links) {
           setSocialLinks({
@@ -185,7 +183,6 @@ const StoreCustomization = () => {
     font_settings: FontSettings;
     contact_info: ContactInfo;
     dark_mode: boolean;
-    template: string;
   }>) => {
     setIsLoading(true);
 
@@ -244,7 +241,6 @@ const StoreCustomization = () => {
       if (updatedData.font_settings !== undefined) setFontSettings(updatedData.font_settings);
       if (updatedData.contact_info !== undefined) setContactInfo(updatedData.contact_info);
       if (updatedData.dark_mode !== undefined) setDarkMode(updatedData.dark_mode);
-      if (updatedData.template !== undefined) setTemplate(updatedData.template);
 
     } catch (error: any) {
       console.error("Error saving store settings:", error);
@@ -323,10 +319,6 @@ const StoreCustomization = () => {
     await saveStoreSettings({ contact_info: info });
   };
 
-  const handleTemplateSubmit = async () => {
-    await saveStoreSettings({ template });
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader />
@@ -372,13 +364,10 @@ const StoreCustomization = () => {
               setFontSettings={setFontSettings}
               darkMode={darkMode}
               setDarkMode={setDarkMode}
-              template={template}
-              setTemplate={setTemplate}
               handleColorThemeSubmit={handleColorThemeSubmit}
               handleBannerSubmit={handleBannerSubmit}
               handleFontSettingsSubmit={handleFontSettingsSubmit}
               handleDarkModeSubmit={handleDarkModeSubmit}
-              handleTemplateSubmit={handleTemplateSubmit}
               isLoading={isLoading}
             />
 

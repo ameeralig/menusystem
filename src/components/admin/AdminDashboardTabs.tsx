@@ -4,7 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AdminStatsTab from "@/components/admin/AdminStatsTab";
 import AdminUsersTab from "@/components/admin/AdminUsersTab";
 import UserNotificationTab from "@/components/admin/users/UserNotificationTab";
-import AdminSettingsTab from "@/components/admin/AdminSettingsTab";
 import FloatingAIChat from "@/components/dashboard/FloatingAIChat";
 import { APIKeysManager } from "@/components/dashboard/APIKeysManager";
 
@@ -47,12 +46,6 @@ const AdminDashboardTabs = () => {
             >
               الإشعارات
             </TabsTrigger>
-            <TabsTrigger
-              value="settings"
-              className="relative h-9 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none"
-            >
-              الإعدادات
-            </TabsTrigger>
           </TabsList>
         </div>
         
@@ -60,24 +53,19 @@ const AdminDashboardTabs = () => {
           <AdminStatsTab />
         </TabsContent>
         
-      <TabsContent value="users" className="space-y-4">
-        <AdminUsersTab />
-      </TabsContent>
+        <TabsContent value="users" className="space-y-4">
+          <AdminUsersTab />
+        </TabsContent>
 
-      <TabsContent value="api" className="space-y-4">
-        <APIKeysManager />
-      </TabsContent>
+        <TabsContent value="api" className="space-y-4">
+          <APIKeysManager />
+        </TabsContent>
 
-      <TabsContent value="notifications" className="space-y-4">
-        <UserNotificationTab />
-      </TabsContent>
-
-        <TabsContent value="settings" className="space-y-4">
-          <AdminSettingsTab />
+        <TabsContent value="notifications" className="space-y-4">
+          <UserNotificationTab />
         </TabsContent>
       </Tabs>
       
-      {/* Floating AI Chat */}
       <FloatingAIChat />
     </div>
   );
