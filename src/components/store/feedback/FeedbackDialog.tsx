@@ -113,20 +113,20 @@ const FeedbackDialog = ({ isOpen, onClose, storeOwnerId, colorTheme }: FeedbackD
                               formData.feedbackType === 'compliment' ? 'إطراء' :
                               formData.feedbackType === 'question' ? 'استفسار' : 'ملاحظة';
       
-      const { data, error } = await supabase.from("feedback").insert({
+      const { error } = await supabase.from("feedback").insert({
         store_owner_id: storeOwnerId,
         visitor_name: formData.visitorName.trim(),
         visitor_phone: formData.visitorPhone.trim() || null,
         type: formData.feedbackType,
         description: formData.description.trim(),
-      }).select();
+      });
 
       if (error) {
         console.error('خطأ في الإدراج:', error);
         throw error;
       }
 
-      console.log('تم إدراج التقييم بنجاح:', data);
+      console.log('تم إدراج التقييم بنجاح');
 
       // إرسال إشعار WhatsApp (اختياري - لا يوقف العملية)
       try {
