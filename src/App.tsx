@@ -25,7 +25,6 @@ const QRGenerator = lazy(() => import("./pages/QRGenerator"));
 const StoreCustomization = lazy(() => import("./pages/StoreCustomization"));
 const Profile = lazy(() => import("./pages/Profile"));
 const SalesManagement = lazy(() => import("./pages/SalesManagement"));
-const InstallPWA = lazy(() => import("./pages/InstallPWA"));
 const LegalPages = lazy(() => import("./pages/LegalPages"));
 
 // صفحات الأدمن - تحمّل فقط للمسؤولين
@@ -58,7 +57,6 @@ const App = () => (
               <Route path="/auth/reset-password" element={<ResetPassword />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/products" element={<ProductsDemo />} />
-              <Route path="/install" element={<InstallPWA />} />
               <Route path="/qr-generator" element={<QRGenerator />} />
               <Route path="/:slug" element={<ProductPreview />} />
               <Route path="/store-customization" element={<StoreCustomization />} />
