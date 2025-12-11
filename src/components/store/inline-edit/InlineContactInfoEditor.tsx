@@ -159,11 +159,11 @@ const InlineContactInfoEditor = ({
 
   if (!contactInfo || Object.values(contactInfo).every(value => !value)) {
     return (
-      <div className="mt-2 mb-6 text-center">
-        <Button onClick={() => setIsEditing(true)} variant="outline" size="sm">
-          <Edit2 className="h-4 w-4 ml-2" />
-          إضافة معلومات المتجر
-        </Button>
+      <div 
+        className="mt-2 mb-6 text-center p-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+        onClick={() => setIsEditing(true)}
+      >
+        <p className="text-sm text-muted-foreground">انقر لإضافة معلومات المتجر</p>
       </div>
     );
   }
@@ -182,18 +182,6 @@ const InlineContactInfoEditor = ({
 
   return (
     <div className="mt-2 mb-6 text-left space-y-3">
-      <div className="flex justify-center mb-3">
-        <Button
-          onClick={() => setIsEditing(true)}
-          size="sm"
-          variant="outline"
-          className="bg-primary/10 hover:bg-primary/20 border-primary/30"
-        >
-          <Edit2 className="h-4 w-4 ml-2" />
-          تعديل المعلومات
-        </Button>
-      </div>
-
       {contactInfo.description && (
         <div className="flex items-center justify-start gap-2 text-gray-700 dark:text-gray-300">
           <Info className={`w-4 h-4 ${themeIconClasses}`} />
@@ -214,9 +202,21 @@ const InlineContactInfoEditor = ({
                   اضغط لمعرفة تفاصيل مهمة
                 </span>
               </div>
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                {isDetailsOpen ? 'إخفاء' : 'عرض'}
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditing(true);
+                  }}
+                  className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  title="تعديل المعلومات"
+                >
+                  <Edit2 className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  {isDetailsOpen ? 'إخفاء' : 'عرض'}
+                </span>
+              </div>
             </CollapsibleTrigger>
             
             <CollapsibleContent className="mt-3 space-y-3">

@@ -271,26 +271,16 @@ const InlineStoreNameEditor = ({
   }
 
   return (
-    <div className="relative">
+    <div className="relative group">
       <h1 
-        className="text-6xl md:text-10xl font-bold text-center mb-2"
+        className="text-6xl md:text-10xl font-bold text-center mb-2 cursor-pointer hover:opacity-80 transition-opacity"
         style={getStoreNameStyle()}
         dir="rtl"
+        onClick={() => setIsEditing(true)}
+        title="انقر للتعديل"
       >
         {storeName}
       </h1>
-      
-      <div className="flex justify-center mt-2">
-        <Button
-          onClick={() => setIsEditing(true)}
-          size="sm"
-          variant="outline"
-          className="bg-primary/10 hover:bg-primary/20 border-primary/30"
-        >
-          <Edit2 className="h-4 w-4 ml-2" />
-          تعديل الاسم والمظهر
-        </Button>
-      </div>
     </div>
   );
 };
