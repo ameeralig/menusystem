@@ -11,7 +11,6 @@ import { useEmployeeAuth } from "@/hooks/employees/useEmployeeAuth";
 import EmployeePanel from "@/components/employees/EmployeePanel";
 import EmployeeProductsView from "@/components/employees/EmployeeProductsView";
 import { CartProvider } from "@/contexts/CartContext";
-import InstallPWAButton from "@/components/store/InstallPWAButton";
 import StoreProductsDisplay from "@/components/store/StoreProductsDisplay";
 
 // استخدام التحميل البطيء للمكونات غير الأساسية
@@ -184,30 +183,6 @@ const ProductPreview = () => {
     );
   }
 
-  // تحديد لون الثيم للـ PWA
-  const getThemeColor = (theme: string | null) => {
-    if (theme && theme.startsWith('#')) {
-      return theme;
-    }
-    
-    const themeColors: Record<string, string> = {
-      coral: '#ff9178',
-      purple: '#8b5cf6',
-      blue: '#3b82f6',
-      green: '#10b981',
-      pink: '#ec4899',
-      teal: '#14b8a6',
-      amber: '#f59e0b',
-      indigo: '#6366f1',
-      rose: '#f43f5e',
-    };
-    
-    return themeColors[theme || ''] || '#3b82f6';
-  };
-
-  const manifestUrl = `/manifest-${slug}.json`;
-  const themeColor = getThemeColor(storeData.colorTheme);
-
   return (
     <>
       <Helmet>
@@ -221,14 +196,9 @@ const ProductPreview = () => {
           />
         )}
         
-        {/* PWA Meta Tags */}
+        {/* SEO Meta Tags */}
         <title>{storeData.storeName || 'متجري'}</title>
         <meta name="description" content={`تصفح منتجات ${storeData.storeName || 'متجرنا'}`} />
-        <meta name="theme-color" content={themeColor} />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content={storeData.storeName || 'متجري'} />
-        <link rel="apple-touch-icon" href={storeData.bannerUrl || '/qr-logo-og.png'} />
         
         {/* Open Graph Tags */}
         <meta property="og:title" content={storeData.storeName || 'متجري'} />
@@ -282,9 +252,6 @@ const ProductPreview = () => {
               />
             </ProductPreviewContainer>
           </Suspense>
-          
-          {/* زر تثبيت PWA - يظهر فقط للزوار */}
-          {!employee && <InstallPWAButton colorTheme={storeData.colorTheme} storeName={storeData.storeName} />}
         </div>
       </CartProvider>
     </>

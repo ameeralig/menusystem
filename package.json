@@ -72,8 +72,6 @@
     "three": "^0.160.1",
     "vanta": "^0.5.24",
     "vaul": "^0.9.3",
-    "vite-plugin-pwa": "^1.1.0",
-    "workbox-window": "^7.3.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
