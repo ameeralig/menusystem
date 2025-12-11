@@ -23,7 +23,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const ProductsDemo = lazy(() => import("./pages/ProductsDemo"));
 const QRGenerator = lazy(() => import("./pages/QRGenerator"));
 const StoreCustomization = lazy(() => import("./pages/StoreCustomization"));
-const Profile = lazy(() => import("./pages/Profile"));
+
 const SalesManagement = lazy(() => import("./pages/SalesManagement"));
 const LegalPages = lazy(() => import("./pages/LegalPages"));
 
@@ -60,7 +60,7 @@ const App = () => (
               <Route path="/qr-generator" element={<QRGenerator />} />
               <Route path="/:slug" element={<ProductPreview />} />
               <Route path="/store-customization" element={<StoreCustomization />} />
-              <Route path="/profile" element={<Profile />} />
+              
               <Route path="/sales-management" element={<SalesManagement />} />
               
               {/* صفحة موحدة للشروط والأحكام وسياسة الخصوصية والاتصال */}

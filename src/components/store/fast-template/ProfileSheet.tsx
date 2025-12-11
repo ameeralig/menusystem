@@ -1,12 +1,18 @@
 import { useState, useEffect } from "react";
+import { User, Trash2, AlertTriangle, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Trash2, AlertTriangle } from "lucide-react";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import AvatarUpload from "@/components/profile/AvatarUpload";
+import { Label } from "@/components/ui/label";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,8 +24,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import AvatarUpload from "@/components/profile/AvatarUpload";
 
-const Profile = () => {
+interface ProfileSheetProps {
+  colorTheme?: string | null;
+}
+
+const ProfileSheet = ({ colorTheme }: ProfileSheetProps) => {
+  const [isOpen, setIsOpen] = useState(false);
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [callmebotApiKey, setCallmebotApiKey] = useState("");
@@ -27,51 +39,60 @@ const Profile = () => {
   const [userId, setUserId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const navigate = useNavigate();
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const getThemeColor = () => {
+    if (colorTheme?.startsWith('#')) return colorTheme;
+    
+    const themeColors: { [key: string]: string } = {
+      coral: '#ff9178',
+      purple: '#8b5cf6',
+      blue: '#3b82f6',
+      green: '#10b981',
+      pink: '#ec4899',
+      teal: '#14b8a6',
+      amber: '#f59e0b',
+      indigo: '#6366f1',
+      rose: '#f43f5e',
+    };
+    
+    return themeColors[colorTheme || ''] || '#3b82f6';
+  };
+
+  const themeColor = getThemeColor();
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
+    if (isOpen) {
+      fetchProfile();
+    }
+  }, [isOpen]);
+
+  const fetchProfile = async () => {
+    try {
       const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          toast({
-            title: "خطأ في تحميل الملف الشخصي",
-            description: "يجب تسجيل الدخول أولاً",
-            variant: "destructive",
-          });
-          navigate("/login");
-          return;
-        }
+      if (!user) return;
 
-        setUserId(user.id);
+      setUserId(user.id);
 
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("full_name, phone_number, callmebot_api_key, avatar_url")
-          .eq("id", user.id)
-          .maybeSingle();
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("full_name, phone_number, callmebot_api_key, avatar_url")
+        .eq("id", user.id)
+        .maybeSingle();
 
-        if (error) throw error;
-        
-        if (profile) {
-          setFullName(profile.full_name || "");
-          setPhoneNumber(profile.phone_number || "");
-          setCallmebotApiKey(profile.callmebot_api_key || "");
-          setAvatarUrl(profile.avatar_url || null);
-        }
-      } catch (error: any) {
-        console.error("Error fetching profile:", error);
-        toast({
-          title: "خطأ في تحميل الملف الشخصي",
-          description: error.message,
-          variant: "destructive",
-        });
+      if (error) throw error;
+      
+      if (profile) {
+        setFullName(profile.full_name || "");
+        setPhoneNumber(profile.phone_number || "");
+        setCallmebotApiKey(profile.callmebot_api_key || "");
+        setAvatarUrl(profile.avatar_url || null);
       }
-    };
-
-    fetchProfile();
-  }, [navigate, toast]);
+    } catch (error: any) {
+      console.error("Error fetching profile:", error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,8 +118,6 @@ const Profile = () => {
         description: "تم تحديث الملف الشخصي",
         duration: 3000,
       });
-
-      navigate("/dashboard");
     } catch (error: any) {
       console.error("Error saving profile:", error);
       toast({
@@ -151,22 +170,34 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <DashboardHeader />
-      <main className="container mx-auto p-6">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/dashboard")}
-          className="mb-6"
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+      <SheetTrigger asChild>
+        <div
+          className="flex items-center justify-between p-3 rounded-lg bg-background/50 backdrop-blur-sm cursor-pointer hover:bg-background/70 transition-colors"
         >
-          <ArrowLeft className="ml-2" />
-          العودة للوحة التحكم
-        </Button>
+          <div className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            <span className="text-sm font-medium">الملف الشخصي</span>
+          </div>
+          <span className="text-xs text-muted-foreground">←</span>
+        </div>
+      </SheetTrigger>
+      <SheetContent 
+        side="bottom" 
+        className="h-[90vh] overflow-y-auto rounded-t-3xl"
+        style={{
+          background: `linear-gradient(135deg, ${themeColor}08, ${themeColor}15)`,
+        }}
+      >
+        <SheetHeader className="mb-6">
+          <SheetTitle className="text-xl" style={{ color: themeColor }}>
+            الملف الشخصي
+          </SheetTitle>
+        </SheetHeader>
 
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold mb-6 text-right">الملف الشخصي</h1>
-          
-          <div className="mb-8 flex justify-center">
+        <div className="space-y-6">
+          {/* Avatar */}
+          <div className="flex justify-center">
             <AvatarUpload
               currentAvatarUrl={avatarUrl}
               userId={userId}
@@ -175,11 +206,12 @@ const Profile = () => {
             />
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="fullName" className="block text-right">
+              <Label htmlFor="fullName" className="text-right block">
                 الاسم الكامل
-              </label>
+              </Label>
               <Input
                 id="fullName"
                 type="text"
@@ -191,9 +223,9 @@ const Profile = () => {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="phoneNumber" className="block text-right">
+              <Label htmlFor="phoneNumber" className="text-right block">
                 رقم الهاتف
-              </label>
+              </Label>
               <Input
                 id="phoneNumber"
                 type="tel"
@@ -206,9 +238,9 @@ const Profile = () => {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="callmebotApiKey" className="block text-right">
+              <Label htmlFor="callmebotApiKey" className="text-right block">
                 مفتاح CallMeBot API
-              </label>
+              </Label>
               <Input
                 id="callmebotApiKey"
                 type="text"
@@ -218,30 +250,32 @@ const Profile = () => {
                 className="text-right"
                 dir="ltr"
               />
-              <p className="text-sm text-muted-foreground text-right">
-                لتفعيل إشعارات WhatsApp، يجب الحصول على مفتاح من CallMeBot عبر إرسال "I allow callmebot to send me messages" للرقم +34 644 09 03 76
+              <p className="text-xs text-muted-foreground text-right">
+                لتفعيل إشعارات WhatsApp
               </p>
             </div>
 
             <Button 
               type="submit" 
-              className="w-full"
+              className="w-full gap-2"
               disabled={isLoading}
+              style={{ background: themeColor }}
             >
+              <Save className="h-4 w-4" />
               {isLoading ? "جاري الحفظ..." : "حفظ التغييرات"}
             </Button>
           </form>
 
-          {/* قسم حذف الحساب */}
-          <div className="mt-12 pt-8 border-t border-destructive/20">
-            <h2 className="text-xl font-bold text-destructive mb-4 text-right">منطقة الخطر</h2>
+          {/* Danger Zone */}
+          <div className="pt-6 border-t border-destructive/20">
+            <h3 className="text-lg font-bold text-destructive mb-3 text-right">منطقة الخطر</h3>
             <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
               <div className="flex items-start gap-3 mb-4">
                 <AlertTriangle className="h-5 w-5 text-destructive mt-0.5" />
                 <div className="text-right">
                   <p className="font-medium text-destructive">حذف الحساب نهائياً</p>
                   <p className="text-sm text-muted-foreground">
-                    سيتم حذف حسابك وجميع بياناتك ومنتجاتك وملفاتك بشكل نهائي ولا يمكن استرجاعها.
+                    سيتم حذف حسابك وجميع بياناتك بشكل نهائي
                   </p>
                 </div>
               </div>
@@ -250,10 +284,10 @@ const Profile = () => {
                 <AlertDialogTrigger asChild>
                   <Button 
                     variant="destructive" 
-                    className="w-full"
+                    className="w-full gap-2"
                     disabled={isDeleting}
                   >
-                    <Trash2 className="h-4 w-4 ml-2" />
+                    <Trash2 className="h-4 w-4" />
                     حذف الحساب نهائياً
                   </Button>
                 </AlertDialogTrigger>
@@ -263,14 +297,7 @@ const Profile = () => {
                       هل أنت متأكد من حذف حسابك؟
                     </AlertDialogTitle>
                     <AlertDialogDescription className="text-right">
-                      هذا الإجراء لا يمكن التراجع عنه. سيتم حذف:
-                      <ul className="list-disc list-inside mt-2 space-y-1">
-                        <li>جميع منتجاتك وتصنيفاتك</li>
-                        <li>إعدادات متجرك</li>
-                        <li>جميع الملفات والصور</li>
-                        <li>سجل الطلبات والمبيعات</li>
-                        <li>بيانات الموظفين</li>
-                      </ul>
+                      هذا الإجراء لا يمكن التراجع عنه. سيتم حذف جميع بياناتك.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter className="flex-row-reverse gap-2">
@@ -288,9 +315,9 @@ const Profile = () => {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </SheetContent>
+    </Sheet>
   );
 };
 
-export default Profile;
+export default ProfileSheet;

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/popover";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import ProfileSheet from "./ProfileSheet";
 
 interface StoreOwnerActionsMenuProps {
   storeOwnerId: string;
@@ -246,6 +247,9 @@ const StoreOwnerActionsMenu = ({
               </motion.div>
             )}
           </div>
+
+          {/* الملف الشخصي */}
+          <ProfileSheet colorTheme={colorTheme} />
         </div>
       </PopoverContent>
     </Popover>
