@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { LogOut, Moon, Sun, User, Bell } from "lucide-react";
+import { LogOut, Moon, Sun, Bell } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -390,13 +390,6 @@ const DashboardHeader = () => {
                     <p className="text-xs text-muted-foreground">{userEmail}</p>
                   )}
                 </div>
-                <DropdownMenuItem 
-                  onClick={() => navigate("/profile")} 
-                  className="cursor-pointer"
-                >
-                  <User className="h-4 w-4 ml-2" />
-                  الملف الشخصي
-                </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={handleLogout} 
                   className="text-destructive focus:text-destructive cursor-pointer"
