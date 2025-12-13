@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CategorySelectionStep } from "./CategorySelectionStep";
 import { ProductDetailsStep } from "./ProductDetailsStep";
+import { uploadImage, optimizeImage } from "@/utils/storageHelpers";
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -78,21 +79,26 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
       let imageUrl = formData.image_url;
 
       if (imageUploadState.uploadMethod === "file" && imageUploadState.selectedFile) {
-        const fileExt = imageUploadState.selectedFile.name.split(".").pop();
-        const fileName = `${Math.random()}.${fileExt}`;
-        const filePath = `${user.id}/${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from("product-images")
-          .upload(filePath, imageUploadState.selectedFile);
-
-        if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabase.storage
-          .from("product-images")
-          .getPublicUrl(filePath);
-
-        imageUrl = urlData.publicUrl;
+        try {
+          toast.info("جاري رفع الصورة...");
+          
+          // تحسين الصورة قبل الرفع
+          const optimizedFile = await optimizeImage(imageUploadState.selectedFile);
+          
+          // استخدام دالة uploadImage المحسنة
+          imageUrl = await uploadImage("product-images", optimizedFile, user.id, "");
+          
+          if (!imageUrl) {
+            throw new Error("فشل في الحصول على رابط الصورة");
+          }
+          
+          console.log("تم رفع الصورة بنجاح:", imageUrl);
+        } catch (uploadError: any) {
+          console.error("خطأ في رفع الصورة:", uploadError);
+          toast.error("فشل في رفع الصورة: " + (uploadError.message || "خطأ غير معروف"));
+          setLoading(false);
+          return;
+        }
       }
 
       const { error } = await supabase.from("products").insert([

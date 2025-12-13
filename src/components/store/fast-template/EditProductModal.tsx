@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { optimizeImageUrl } from "@/utils/imageOptimizer";
+import { uploadImage, optimizeImage } from "@/utils/storageHelpers";
 
 interface EditProductModalProps {
   product: Product | null;
@@ -108,32 +109,39 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
 
       // رفع الصورة الجديدة إذا تم اختيارها
       if (imageFile) {
-        const fileExt = imageFile.name.split('.').pop();
-        const fileName = `${product.user_id}/${Date.now()}.${fileExt}`;
+        try {
+          toast.info("جاري رفع الصورة...");
+          
+          // تحسين الصورة قبل الرفع
+          const optimizedFile = await optimizeImage(imageFile);
+          
+          // استخدام دالة uploadImage المحسنة
+          imageUrl = await uploadImage("product-images", optimizedFile, product.user_id, "");
 
-        const { error: uploadError } = await supabase.storage
-          .from('product-images')
-          .upload(fileName, imageFile, {
-            cacheControl: '3600',
-            upsert: false
-          });
-
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('product-images')
-          .getPublicUrl(fileName);
-
-        imageUrl = publicUrl;
-
-        // حذف الصورة القديمة إذا كانت موجودة
-        if (product.image_url) {
-          const oldFileName = product.image_url.split('/').pop();
-          if (oldFileName) {
-            await supabase.storage
-              .from('product-images')
-              .remove([`${product.user_id}/${oldFileName}`]);
+          if (!imageUrl) {
+            throw new Error("فشل في الحصول على رابط الصورة");
           }
+
+          console.log("تم رفع الصورة بنجاح:", imageUrl);
+
+          // حذف الصورة القديمة إذا كانت موجودة
+          if (product.image_url) {
+            try {
+              const oldFileName = product.image_url.split('/').pop()?.split('?')[0];
+              if (oldFileName) {
+                await supabase.storage
+                  .from('product-images')
+                  .remove([`${product.user_id}/${oldFileName}`]);
+              }
+            } catch (deleteError) {
+              console.warn("لم يتم حذف الصورة القديمة:", deleteError);
+            }
+          }
+        } catch (uploadError: any) {
+          console.error("خطأ في رفع الصورة:", uploadError);
+          toast.error("فشل في رفع الصورة: " + (uploadError.message || "خطأ غير معروف"));
+          setIsSaving(false);
+          return;
         }
       }
 
