@@ -3,11 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Upload, ImagePlus, Link as LinkIcon, Plus, ChevronLeft, X } from "lucide-react";
+import { Upload, ImagePlus, Link as LinkIcon, Plus, ChevronLeft, X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { uploadImage } from "@/utils/storageHelpers";
+import { uploadImage, optimizeImage } from "@/utils/storageHelpers";
 
 interface CategorySelectionStepProps {
   categories: string[];
@@ -30,6 +30,7 @@ export const CategorySelectionStep = ({
   const [categoryImageFile, setCategoryImageFile] = useState<File | null>(null);
   const [categoryImageUrl, setCategoryImageUrl] = useState("");
   const [categoryImagePreview, setCategoryImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleCategoryImageFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -58,10 +59,13 @@ export const CategorySelectionStep = ({
       return;
     }
 
+    setIsUploading(true);
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error("يجب تسجيل الدخول أولاً");
+        setIsUploading(false);
         return;
       }
 
@@ -70,45 +74,22 @@ export const CategorySelectionStep = ({
       if (categoryImageUploadMethod === "file" && categoryImageFile) {
         toast.info("جاري رفع صورة التصنيف...");
         try {
-          let processedFile = categoryImageFile;
+          // تحسين الصورة قبل الرفع
+          const optimizedFile = await optimizeImage(categoryImageFile);
+          console.log("الملف بعد التحسين:", optimizedFile.name, optimizedFile.type, optimizedFile.size);
           
-          // معالجة صور HEIC من iPhone
-          if (categoryImageFile.type === 'image/heic' || categoryImageFile.type === 'image/heif' || 
-              categoryImageFile.name.toLowerCase().endsWith('.heic')) {
-            toast.info("جاري تحويل الصورة...");
-            const img = new Image();
-            const objectUrl = URL.createObjectURL(categoryImageFile);
-            
-            await new Promise((resolve, reject) => {
-              img.onload = resolve;
-              img.onerror = () => reject(new Error('فشل تحميل الصورة'));
-              img.src = objectUrl;
-            });
-
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
-            ctx?.drawImage(img, 0, 0);
-            
-            const blob = await new Promise<Blob>((resolve, reject) => {
-              canvas.toBlob(
-                (b) => b ? resolve(b) : reject(new Error('فشل تحويل الصورة')),
-                'image/jpeg',
-                0.9
-              );
-            });
-            
-            URL.revokeObjectURL(objectUrl);
-            processedFile = new File([blob], categoryImageFile.name.replace(/\.heic$/i, '.jpg'), { 
-              type: 'image/jpeg' 
-            });
+          // رفع الصورة
+          finalImageUrl = await uploadImage('صور التصنيفات', optimizedFile, user.id, 'categories');
+          
+          if (!finalImageUrl) {
+            throw new Error("فشل في الحصول على رابط الصورة");
           }
-
-          finalImageUrl = await uploadImage('صور التصنيفات', processedFile, user.id, 'categories');
-        } catch (error) {
+          
+          console.log("تم رفع صورة التصنيف بنجاح:", finalImageUrl);
+        } catch (error: any) {
           console.error('خطأ في رفع صورة التصنيف:', error);
-          toast.error("فشل رفع صورة التصنيف");
+          toast.error("فشل رفع صورة التصنيف: " + (error.message || "خطأ غير معروف"));
+          setIsUploading(false);
           return;
         }
       }
@@ -124,6 +105,9 @@ export const CategorySelectionStep = ({
 
         if (categoryImageError) {
           console.error('خطأ في حفظ صورة التصنيف:', categoryImageError);
+          toast.error("فشل في حفظ صورة التصنيف في قاعدة البيانات");
+          setIsUploading(false);
+          return;
         }
       }
 
@@ -135,9 +119,11 @@ export const CategorySelectionStep = ({
       setCategoryImagePreview(null);
       setIsAddingNewCategory(false);
       toast.success("تم إضافة التصنيف بنجاح");
-    } catch (error) {
+    } catch (error: any) {
       console.error('خطأ في إضافة التصنيف:', error);
-      toast.error("حدث خطأ أثناء إضافة التصنيف");
+      toast.error("حدث خطأ أثناء إضافة التصنيف: " + (error.message || "خطأ غير معروف"));
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -287,10 +273,11 @@ export const CategorySelectionStep = ({
             <Button
               type="button"
               onClick={handleAddNewCategory}
-              disabled={!newCategoryName.trim()}
+              disabled={!newCategoryName.trim() || isUploading}
               className="flex-1"
             >
-              إضافة
+              {isUploading && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
+              {isUploading ? "جاري الإضافة..." : "إضافة"}
             </Button>
             <Button
               type="button"
