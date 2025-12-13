@@ -138,12 +138,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   const filteredProducts = useMemo(() => {
     let filtered = products;
 
-    // تصفية حسب التصنيف
-    if (selectedCategory) {
-      filtered = filtered.filter(product => product.category === selectedCategory);
-    }
-
-    // تصفية حسب البحث
+    // عند البحث، نبحث في جميع المنتجات بدون تصفية التصنيف
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       filtered = filtered.filter(product =>
@@ -151,6 +146,9 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         product.description?.toLowerCase().includes(query) ||
         product.category?.toLowerCase().includes(query)
       );
+    } else if (selectedCategory) {
+      // فقط عند عدم وجود بحث، نصفي حسب التصنيف
+      filtered = filtered.filter(product => product.category === selectedCategory);
     }
 
     // ترتيب حسب display_order إذا كان موجوداً
