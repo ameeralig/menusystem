@@ -97,7 +97,7 @@ const DemoProductsDisplay = ({
     <>
       <StoreHeader storeName={storeName} colorTheme={colorTheme} fontSettings={fontSettings} />
       
-      <StoreInfo contactInfo={contactInfo} colorTheme={colorTheme} />
+      <StoreInfo contactInfo={contactInfo} colorTheme={colorTheme} storeName={storeName} products={products} />
       
       <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 

@@ -278,11 +278,15 @@ const StoreProductsDisplay = ({
           colorTheme={colorTheme}
           storeOwnerId={storeOwnerId!}
           onUpdate={refreshData || (() => {})}
+          storeName={storeName}
+          products={allProducts}
         />
       ) : (
         <StoreInfo
           contactInfo={contactInfo}
           colorTheme={colorTheme}
+          storeName={storeName}
+          products={allProducts}
         />
       )}
 

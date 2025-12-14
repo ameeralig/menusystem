@@ -10,6 +10,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger, 
 } from "@/components/ui/collapsible";
+import MenuDownloader from "../menu-download/MenuDownloader";
+import { Product } from "@/types/product";
 
 type ContactInfo = {
   description?: string | null;
@@ -24,6 +26,8 @@ interface InlineContactInfoEditorProps {
   colorTheme: string | null;
   storeOwnerId: string;
   onUpdate: () => void;
+  storeName?: string;
+  products?: Product[];
 }
 
 const InlineContactInfoEditor = ({
@@ -31,6 +35,8 @@ const InlineContactInfoEditor = ({
   colorTheme,
   storeOwnerId,
   onUpdate,
+  storeName,
+  products,
 }: InlineContactInfoEditorProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -259,6 +265,15 @@ const InlineContactInfoEditor = ({
             </CollapsibleContent>
           </Collapsible>
         </div>
+      )}
+
+      {/* زر تحميل المنيو */}
+      {products && products.length > 0 && storeName && (
+        <MenuDownloader
+          storeName={storeName}
+          products={products}
+          colorTheme={colorTheme}
+        />
       )}
     </div>
   );
