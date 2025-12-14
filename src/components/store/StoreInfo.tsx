@@ -6,6 +6,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger, 
 } from "@/components/ui/collapsible";
+import MenuDownloader from "./menu-download/MenuDownloader";
+import { Product } from "@/types/product";
 
 type WorkDay = {
   day: string;
@@ -25,14 +27,20 @@ type ContactInfo = {
 interface StoreInfoProps {
   contactInfo?: ContactInfo;
   colorTheme: string | null;
+  storeName?: string;
+  products?: Product[];
 }
 
-const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
+const StoreInfo = ({ contactInfo, colorTheme, storeName, products }: StoreInfoProps) => {
   const [isWifiCodeVisible, setIsWifiCodeVisible] = useState(false);
   const [isBusinessHoursOpen, setIsBusinessHoursOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
-  if (!contactInfo || Object.values(contactInfo).every(value => !value)) {
+  // عرض زر التحميل حتى لو لا توجد معلومات اتصال
+  const hasContactInfo = contactInfo && !Object.values(contactInfo).every(value => !value);
+  const hasProducts = products && products.length > 0;
+
+  if (!hasContactInfo && !hasProducts) {
     return null;
   }
 
@@ -149,11 +157,11 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
     }
   };
 
-  const hasCollapsibleDetails = contactInfo.businessHours || contactInfo.address || contactInfo.phone || contactInfo.wifi;
+  const hasCollapsibleDetails = contactInfo?.businessHours || contactInfo?.address || contactInfo?.phone || contactInfo?.wifi;
 
   return (
     <div className="mt-2 mb-6 text-left space-y-3">
-      {contactInfo.description && (
+      {contactInfo?.description && (
         <div className="flex items-center justify-start gap-2 text-gray-700 dark:text-gray-300">
           <Info className={`w-4 h-4 ${themeIconClasses}`} />
           <p className="text-sm">{contactInfo.description}</p>
@@ -181,7 +189,7 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
             
             <CollapsibleContent className="mt-3 space-y-3 overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
               {/* ساعات العمل */}
-              {contactInfo.businessHours && (
+              {contactInfo?.businessHours && (
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
                   <Collapsible
                     open={isBusinessHoursOpen}
@@ -205,7 +213,7 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
               )}
 
               {/* العنوان */}
-              {contactInfo.address && (
+              {contactInfo?.address && (
                 <div 
                   className="flex items-center justify-start gap-2 text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md p-2 transition-colors group border-t border-gray-200 dark:border-gray-700 pt-3" 
                   onClick={handleGoogleMapsClick}
@@ -216,7 +224,7 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
               )}
 
               {/* الهاتف */}
-              {contactInfo.phone && (
+              {contactInfo?.phone && (
                 <div className="flex items-center justify-start gap-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md p-2 transition-colors group border-t border-gray-200 dark:border-gray-700 pt-3">
                   <Phone className={`w-4 h-4 ${themeIconClasses} group-hover:scale-110 transition-transform`} />
                   <a href={`tel:${contactInfo.phone}`} className="text-sm hover:text-blue-600 dark:hover:text-blue-400 transition-colors" dir="ltr">
@@ -226,7 +234,7 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
               )}
 
               {/* الواي فاي */}
-              {contactInfo.wifi && (
+              {contactInfo?.wifi && (
                 <div className="flex flex-col items-start border-t border-gray-200 dark:border-gray-700 pt-3">
                   <div 
                     className="flex items-center justify-start gap-2 text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md p-2 transition-colors w-full"
@@ -246,6 +254,15 @@ const StoreInfo = ({ contactInfo, colorTheme }: StoreInfoProps) => {
             </CollapsibleContent>
           </Collapsible>
         </div>
+      )}
+
+      {/* زر تحميل المنيو */}
+      {hasProducts && storeName && (
+        <MenuDownloader
+          storeName={storeName}
+          products={products || []}
+          colorTheme={colorTheme}
+        />
       )}
     </div>
   );
