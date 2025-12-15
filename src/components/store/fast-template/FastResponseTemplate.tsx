@@ -8,6 +8,7 @@ import EditProductModal from "./EditProductModal";
 import EmptyCategoryMessage from "../EmptyCategoryMessage";
 import BottomActionsBar from "./BottomActionsBar";
 import StoreHeader from "../StoreHeader";
+import StoreInfo from "../StoreInfo";
 import InlineStoreNameEditor from "../inline-edit/InlineStoreNameEditor";
 import InlineContactInfoEditor from "../inline-edit/InlineContactInfoEditor";
 import { ContactInfo, FontSettings, SocialLinks } from "@/types/store";
@@ -272,17 +273,26 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         </div>
       )}
 
-      {/* محرر معلومات المتجر - لصاحب المتجر فقط */}
-      {isStoreOwner && storeOwnerId && (
-        <div className="px-3">
+      {/* معلومات المتجر */}
+      <div className="px-3">
+        {isStoreOwner && storeOwnerId ? (
           <InlineContactInfoEditor
             contactInfo={contactInfo}
             colorTheme={colorTheme || null}
             storeOwnerId={storeOwnerId}
             onUpdate={() => refreshData?.()}
+            storeName={storeName || undefined}
+            products={products}
           />
-        </div>
-      )}
+        ) : (
+          <StoreInfo
+            contactInfo={contactInfo}
+            colorTheme={colorTheme || null}
+            storeName={storeName || undefined}
+            products={products}
+          />
+        )}
+      </div>
 
       {/* شريط التصنيفات */}
       <CategoryTabs
