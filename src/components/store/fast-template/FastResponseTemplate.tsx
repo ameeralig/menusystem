@@ -8,9 +8,7 @@ import EditProductModal from "./EditProductModal";
 import EmptyCategoryMessage from "../EmptyCategoryMessage";
 import BottomActionsBar from "./BottomActionsBar";
 import StoreHeader from "../StoreHeader";
-import StoreInfo from "../StoreInfo";
 import InlineStoreNameEditor from "../inline-edit/InlineStoreNameEditor";
-import InlineContactInfoEditor from "../inline-edit/InlineContactInfoEditor";
 import { ContactInfo, FontSettings, SocialLinks } from "@/types/store";
 import { sortCategoriesByOrder } from "@/utils/categorySort";
 import { supabase } from "@/integrations/supabase/client";
@@ -273,26 +271,6 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         </div>
       )}
 
-      {/* معلومات المتجر */}
-      <div className="px-3">
-        {isStoreOwner && storeOwnerId ? (
-          <InlineContactInfoEditor
-            contactInfo={contactInfo}
-            colorTheme={colorTheme || null}
-            storeOwnerId={storeOwnerId}
-            onUpdate={() => refreshData?.()}
-            storeName={storeName || undefined}
-            products={products}
-          />
-        ) : (
-          <StoreInfo
-            contactInfo={contactInfo}
-            colorTheme={colorTheme || null}
-            storeName={storeName || undefined}
-            products={products}
-          />
-        )}
-      </div>
 
       {/* شريط التصنيفات */}
       <CategoryTabs

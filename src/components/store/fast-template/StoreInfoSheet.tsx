@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { Product } from "@/types/product";
+import MenuDownloader from "../menu-download/MenuDownloader";
 
 type WorkDay = {
   day: string;
@@ -37,6 +39,8 @@ interface StoreInfoSheetProps {
     facebook?: string;
     telegram?: string;
   };
+  storeName?: string;
+  products?: Product[];
 }
 
 const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
@@ -45,6 +49,8 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
   contactInfo,
   colorTheme,
   socialLinks,
+  storeName,
+  products = [],
 }) => {
   const [isWifiVisible, setIsWifiVisible] = useState(false);
 
@@ -420,6 +426,15 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
                 </Card>
               </div>
             </>
+          )}
+
+          {/* قسم تحميل المنيو */}
+          {storeName && products.length > 0 && (
+            <MenuDownloader
+              storeName={storeName}
+              products={products}
+              colorTheme={colorTheme}
+            />
           )}
         </div>
       </SheetContent>

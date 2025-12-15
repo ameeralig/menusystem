@@ -255,6 +255,8 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
         contactInfo={contactInfo}
         colorTheme={colorTheme}
         socialLinks={socialLinks}
+        storeName={storeName}
+        products={products}
       />
 
       {/* AddProductModal */}
