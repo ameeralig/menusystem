@@ -1,10 +1,14 @@
 /**
  * مكون تحميل المنيو كملف HTML جاهز للطباعة
+ * يدعم اختيار تصنيفات محددة وخيار تضمين/استثناء الصور
  */
 
-import { useState } from 'react';
-import { Download, Loader2 } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Download, Loader2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { Product } from '@/types/product';
 
@@ -41,6 +45,7 @@ const generateMenuHTML = async (
   storeName: string,
   products: Product[],
   colorTheme: string | null,
+  includeImages: boolean,
   onProgress?: (current: number, total: number) => void
 ): Promise<string> => {
   // تجميع المنتجات حسب التصنيف
@@ -53,35 +58,39 @@ const generateMenuHTML = async (
     return acc;
   }, {} as Record<string, Product[]>);
 
-  // تحميل الصور وتحويلها إلى Base64
-  const productsWithImages: Product[] = [];
-  const totalProducts = products.length;
-  let currentProduct = 0;
+  // تحميل الصور وتحويلها إلى Base64 (فقط إذا كان المستخدم يريد الصور)
+  let finalProductsByCategory = productsByCategory;
 
-  for (const product of products) {
-    currentProduct++;
-    onProgress?.(currentProduct, totalProducts);
+  if (includeImages) {
+    const productsWithImages: Product[] = [];
+    const totalProducts = products.length;
+    let currentProduct = 0;
 
-    let imageBase64: string | null = null;
-    if (product.image_url) {
-      imageBase64 = await imageToBase64(product.image_url);
+    for (const product of products) {
+      currentProduct++;
+      onProgress?.(currentProduct, totalProducts);
+
+      let imageBase64: string | null = null;
+      if (product.image_url) {
+        imageBase64 = await imageToBase64(product.image_url);
+      }
+
+      productsWithImages.push({
+        ...product,
+        image_url: imageBase64 || undefined
+      });
     }
 
-    productsWithImages.push({
-      ...product,
-      image_url: imageBase64 || product.image_url
-    });
+    // إعادة تجميع المنتجات مع الصور
+    finalProductsByCategory = productsWithImages.reduce((acc, product) => {
+      const category = product.category || 'بدون تصنيف';
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(product);
+      return acc;
+    }, {} as Record<string, Product[]>);
   }
-
-  // إعادة تجميع المنتجات مع الصور
-  const finalProductsByCategory = productsWithImages.reduce((acc, product) => {
-    const category = product.category || 'بدون تصنيف';
-    if (!acc[category]) {
-      acc[category] = [];
-    }
-    acc[category].push(product);
-    return acc;
-  }, {} as Record<string, Product[]>);
 
   // تحديد لون الثيم
   const getThemeColor = (theme: string | null): string => {
@@ -111,7 +120,7 @@ const generateMenuHTML = async (
   const categoriesHTML = Object.entries(finalProductsByCategory).map(([category, categoryProducts]) => {
     const productsHTML = categoryProducts.map(product => `
       <div class="product-card">
-        ${product.image_url ? `
+        ${includeImages && product.image_url ? `
           <div class="product-image">
             <img src="${product.image_url}" alt="${product.name}" onerror="this.style.display='none'">
           </div>
@@ -204,7 +213,7 @@ const generateMenuHTML = async (
     
     .products-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(${includeImages ? '280px' : '200px'}, 1fr));
       gap: 20px;
     }
     
@@ -369,23 +378,76 @@ const generateMenuHTML = async (
 const MenuDownloader = ({ storeName, products, colorTheme }: MenuDownloaderProps) => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
+  const [includeImages, setIncludeImages] = useState(true);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectAll, setSelectAll] = useState(true);
+
+  // استخراج التصنيفات الفريدة
+  const categories = useMemo(() => {
+    const uniqueCategories = new Set<string>();
+    products.forEach(product => {
+      if (product.category) {
+        uniqueCategories.add(product.category);
+      }
+    });
+    return Array.from(uniqueCategories);
+  }, [products]);
+
+  // تحديث التصنيفات المحددة عند تغيير "تحديد الكل"
+  const handleSelectAllChange = (checked: boolean) => {
+    setSelectAll(checked);
+    if (checked) {
+      setSelectedCategories([]);
+    }
+  };
+
+  // التبديل لتصنيف معين
+  const toggleCategory = (category: string) => {
+    if (selectAll) {
+      // عند إلغاء "تحديد الكل" وتحديد تصنيف معين
+      setSelectAll(false);
+      setSelectedCategories([category]);
+    } else {
+      setSelectedCategories(prev => {
+        if (prev.includes(category)) {
+          const newSelected = prev.filter(c => c !== category);
+          // إذا أصبحت القائمة فارغة، نعود لتحديد الكل
+          if (newSelected.length === 0) {
+            setSelectAll(true);
+          }
+          return newSelected;
+        } else {
+          return [...prev, category];
+        }
+      });
+    }
+  };
+
+  // تصفية المنتجات حسب التصنيفات المحددة
+  const filteredProducts = useMemo(() => {
+    if (selectAll) {
+      return products;
+    }
+    return products.filter(p => p.category && selectedCategories.includes(p.category));
+  }, [products, selectAll, selectedCategories]);
 
   const handleDownload = async () => {
-    if (products.length === 0) {
+    if (filteredProducts.length === 0) {
       toast.error('لا توجد منتجات للتحميل');
       return;
     }
 
     setIsDownloading(true);
-    setProgress({ current: 0, total: products.length });
+    setProgress({ current: 0, total: includeImages ? filteredProducts.length : 0 });
 
     try {
       toast.info('جاري تحضير المنيو...', { duration: 2000 });
 
       const htmlContent = await generateMenuHTML(
         storeName,
-        products,
+        filteredProducts,
         colorTheme || null,
+        includeImages,
         (current, total) => setProgress({ current, total })
       );
 
@@ -410,26 +472,91 @@ const MenuDownloader = ({ storeName, products, colorTheme }: MenuDownloaderProps
     }
   };
 
+  if (products.length === 0) {
+    return null;
+  }
+
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={handleDownload}
-      disabled={isDownloading}
-      className="w-full mt-3 gap-2"
-    >
-      {isDownloading ? (
-        <>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          جاري التحميل... ({progress.current}/{progress.total})
-        </>
-      ) : (
-        <>
-          <Download className="h-4 w-4" />
+    <div className="space-y-4">
+      <Separator />
+      
+      <div>
+        <h3 className="font-semibold mb-3 flex items-center gap-2">
+          <Download className="h-5 w-5" style={{ color: colorTheme?.startsWith('#') ? colorTheme : undefined }} />
           تحميل المنيو
-        </>
-      )}
-    </Button>
+        </h3>
+
+        {/* خيار تضمين الصور */}
+        <div className="flex items-center gap-2 mb-3">
+          <Checkbox
+            id="include-images"
+            checked={includeImages}
+            onCheckedChange={(checked) => setIncludeImages(checked as boolean)}
+          />
+          <Label htmlFor="include-images" className="text-sm cursor-pointer">
+            تضمين الصور (أبطأ لكن أجمل)
+          </Label>
+        </div>
+
+        {/* خيار تحديد الكل */}
+        <div className="flex items-center gap-2 mb-2">
+          <Checkbox
+            id="select-all"
+            checked={selectAll}
+            onCheckedChange={handleSelectAllChange}
+          />
+          <Label htmlFor="select-all" className="text-sm cursor-pointer font-medium">
+            جميع التصنيفات ({products.length} منتج)
+          </Label>
+        </div>
+
+        {/* قائمة التصنيفات */}
+        <div className="max-h-32 overflow-y-auto space-y-1 pr-4 mb-3">
+          {categories.map(category => {
+            const categoryProductsCount = products.filter(p => p.category === category).length;
+            const isChecked = selectAll || selectedCategories.includes(category);
+            
+            return (
+              <div key={category} className="flex items-center gap-2">
+                <Checkbox
+                  id={`cat-${category}`}
+                  checked={isChecked}
+                  onCheckedChange={() => toggleCategory(category)}
+                />
+                <Label htmlFor={`cat-${category}`} className="text-sm cursor-pointer flex-1">
+                  {category} ({categoryProductsCount})
+                </Label>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* زر التحميل */}
+        <Button
+          onClick={handleDownload}
+          disabled={isDownloading || filteredProducts.length === 0}
+          className="w-full gap-2"
+          style={{
+            backgroundColor: colorTheme?.startsWith('#') ? colorTheme : undefined,
+          }}
+        >
+          {isDownloading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {includeImages 
+                ? `جاري التحميل... (${progress.current}/${progress.total})`
+                : 'جاري التحميل...'
+              }
+            </>
+          ) : (
+            <>
+              <Download className="h-4 w-4" />
+              تحميل ({filteredProducts.length} منتج)
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
   );
 };
 
