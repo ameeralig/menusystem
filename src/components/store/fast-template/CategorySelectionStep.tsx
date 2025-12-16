@@ -79,7 +79,7 @@ export const CategorySelectionStep = ({
           console.log("الملف بعد التحسين:", optimizedFile.name, optimizedFile.type, optimizedFile.size);
           
           // رفع الصورة
-          finalImageUrl = await uploadImage('صور التصنيفات', optimizedFile, user.id, 'categories');
+          finalImageUrl = await uploadImage('product-images', optimizedFile, user.id, 'categories');
           
           if (!finalImageUrl) {
             throw new Error("فشل في الحصول على رابط الصورة");

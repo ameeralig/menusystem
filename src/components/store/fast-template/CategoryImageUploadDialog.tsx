@@ -99,7 +99,7 @@ const CategoryImageUploadDialog = ({
         }
       }
 
-      const publicUrl = await uploadImage('صور التصنيفات', processedFile, userId, 'categories');
+      const publicUrl = await uploadImage('product-images', processedFile, userId, 'categories');
       await updateCategoryImage(publicUrl);
       
       toast.success("تم رفع الصورة بنجاح");
