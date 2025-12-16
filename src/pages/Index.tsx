@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 import { useIsMobile } from "@/hooks/use-mobile";
 import qrLogo from "@/assets/qr-logo.png";
-import SeoHelmet from "@/components/legal/SeoHelmet";
 import PartnersSection from "@/components/partners/PartnersSection";
 import SimpleBackground from "@/components/background/SimpleBackground";
 
@@ -13,12 +13,11 @@ const Index = () => {
 
   return (
     <>
-      <SeoHelmet 
-        title="QRM - منيو رقمي QR | خدمات المنيو الإلكتروني للمطاعم والمقاهي"
-        description="QRM - منصة متكاملة لإدارة المنيو الرقمي عبر رمز QR. خدمات منيو إلكتروني احترافي للمطاعم والمقاهي مع إدارة سهلة وتحديثات فورية. QRM Menu Services."
-        keywords="QRM, منيو QR, منيو رقمي, QR Menu, خدمات المنيو, منيو إلكتروني, QRM Menu, قائمة طعام رقمية, QR Code Menu, خدمات المنيو الإلكتروني"
-        canonicalUrl="https://qrmenuc.com"
-      />
+      <Helmet>
+        <title>QRM - منيو رقمي QR | خدمات المنيو الإلكتروني للمطاعم والمقاهي</title>
+        <meta name="description" content="QRM - منصة متكاملة لإدارة المنيو الرقمي عبر رمز QR. خدمات منيو إلكتروني احترافي للمطاعم والمقاهي مع إدارة سهلة وتحديثات فورية. QRM Menu Services." />
+        <link rel="canonical" href="https://qrmenuc.com" />
+      </Helmet>
       <SimpleBackground />
       <div className="min-h-screen relative overflow-hidden font-arabic">
 
@@ -268,12 +267,9 @@ const Index = () => {
               </div>
             </div>
             <div className="flex justify-center">
-              <a 
-                href="/legal" 
-                className="text-white hover:text-white text-sm sm:text-base transition-all duration-300 font-bold drop-shadow-lg"
-              >
-                معلومات منصة QRM
-              </a>
+              <span className="text-white text-sm sm:text-base font-bold drop-shadow-lg">
+                QRM - خدمات المنيو الرقمي
+              </span>
             </div>
           </div>
           <div className="mt-8 text-center text-white text-sm font-bold drop-shadow-lg">
