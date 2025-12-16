@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import CollapsibleSubSection from "@/components/store/customization/CollapsibleSubSection";
+import CollapsibleSection from "@/components/ui/collapsible-section";
 import { 
   MapPin, 
   Phone, 
@@ -125,7 +124,7 @@ const ContactInfoEditor = ({
   return (
     <form onSubmit={handleSubmit}>
       <div className="space-y-4">
-        <CollapsibleSubSection
+        <CollapsibleSection
           title="وصف المتجر"
           icon={<Info className="h-5 w-5" />}
         >
@@ -136,9 +135,9 @@ const ContactInfoEditor = ({
             onChange={(e) => handleChange("description", e.target.value)}
             className="resize-none h-24 text-right"
           />
-        </CollapsibleSubSection>
+        </CollapsibleSection>
         
-        <CollapsibleSubSection
+        <CollapsibleSection
           title="ساعات العمل"
           icon={<Clock className="h-5 w-5" />}
         >
@@ -195,9 +194,9 @@ const ContactInfoEditor = ({
               </div>
             ))}
           </div>
-        </CollapsibleSubSection>
+        </CollapsibleSection>
         
-        <CollapsibleSubSection
+        <CollapsibleSection
           title="عنوان المتجر"
           icon={<MapPin className="h-5 w-5" />}
         >
@@ -208,9 +207,9 @@ const ContactInfoEditor = ({
             onChange={(e) => handleChange("address", e.target.value)}
             className="text-right"
           />
-        </CollapsibleSubSection>
+        </CollapsibleSection>
         
-        <CollapsibleSubSection
+        <CollapsibleSection
           title="رقم الهاتف"
           icon={<Phone className="h-5 w-5" />}
         >
@@ -222,9 +221,9 @@ const ContactInfoEditor = ({
             onChange={(e) => handleChange("phone", e.target.value)}
             className="text-right"
           />
-        </CollapsibleSubSection>
+        </CollapsibleSection>
         
-        <CollapsibleSubSection
+        <CollapsibleSection
           title="رمز شبكة Wifi"
           icon={<Wifi className="h-5 w-5" />}
         >
@@ -235,7 +234,7 @@ const ContactInfoEditor = ({
             onChange={(e) => handleChange("wifi", e.target.value)}
             className="text-right"
           />
-        </CollapsibleSubSection>
+        </CollapsibleSection>
         
         <Button 
           type="submit" 

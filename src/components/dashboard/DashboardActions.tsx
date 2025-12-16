@@ -63,7 +63,7 @@ const DashboardActions = () => {
     
     toast({
       title: "الرابط المخصص غير متوفر",
-      description: "يرجى إعداد رابط مخصص في صفحة تخصيص المتجر أولاً",
+      description: "رابط المتجر غير متوفر",
       variant: "destructive",
       duration: 5000,
     });
@@ -107,11 +107,10 @@ const DashboardActions = () => {
       if (!storeSettings || !storeSettings.slug) {
         toast({
           title: "خطأ",
-          description: "تعذر الحصول على رابط المتجر. يرجى إعداد رابط مخصص في صفحة تخصيص المتجر أولاً",
+          description: "تعذر الحصول على رابط المتجر",
           variant: "destructive",
           duration: 5000,
         });
-        navigate("/store-customization");
         return;
       }
 
@@ -146,12 +145,11 @@ const DashboardActions = () => {
       if (!url) {
         toast({
           title: "خطأ",
-          description: "يرجى إعداد رابط مخصص في صفحة تخصيص المتجر أولاً",
+          description: "رابط المتجر غير متوفر",
           variant: "destructive",
           duration: 5000,
         });
         setIsCopying(false);
-        navigate("/store-customization");
         return;
       }
       await copyToClipboard(url);
@@ -181,11 +179,10 @@ const DashboardActions = () => {
       if (!url) {
         toast({
           title: "خطأ",
-          description: "يرجى إعداد رابط مخصص في صفحة تخصيص المتجر أولاً",
+          description: "رابط المتجر غير متوفر",
           variant: "destructive",
           duration: 5000,
         });
-        navigate("/store-customization");
         return;
       }
       setStoreUrl(url);

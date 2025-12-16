@@ -22,7 +22,6 @@ const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const ProductsDemo = lazy(() => import("./pages/ProductsDemo"));
 const QRGenerator = lazy(() => import("./pages/QRGenerator"));
-const StoreCustomization = lazy(() => import("./pages/StoreCustomization"));
 
 const SalesManagement = lazy(() => import("./pages/SalesManagement"));
 
@@ -58,7 +57,6 @@ const App = () => (
               <Route path="/products" element={<ProductsDemo />} />
               <Route path="/qr-generator" element={<QRGenerator />} />
               <Route path="/:slug" element={<ProductPreview />} />
-              <Route path="/store-customization" element={<StoreCustomization />} />
               
               <Route path="/sales-management" element={<SalesManagement />} />
               
