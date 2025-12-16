@@ -25,7 +25,6 @@ const QRGenerator = lazy(() => import("./pages/QRGenerator"));
 const StoreCustomization = lazy(() => import("./pages/StoreCustomization"));
 
 const SalesManagement = lazy(() => import("./pages/SalesManagement"));
-const LegalPages = lazy(() => import("./pages/LegalPages"));
 
 // صفحات الأدمن - تحمّل فقط للمسؤولين
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
@@ -62,14 +61,6 @@ const App = () => (
               <Route path="/store-customization" element={<StoreCustomization />} />
               
               <Route path="/sales-management" element={<SalesManagement />} />
-              
-              {/* صفحة موحدة للشروط والأحكام وسياسة الخصوصية والاتصال */}
-              <Route path="/legal" element={<LegalPages />} />
-              
-              {/* تحويل المسارات القديمة إلى المسار الجديد مع التبويب المناسب */}
-              <Route path="/terms" element={<Navigate to="/legal?tab=terms" replace />} />
-              <Route path="/privacy" element={<Navigate to="/legal?tab=privacy" replace />} />
-              <Route path="/contact" element={<Navigate to="/legal?tab=contact" replace />} />
               
               {/* لوحة التحكم الخاصة بالمسؤول */}
               <Route path="/admin" element={<AdminLogin />} />
