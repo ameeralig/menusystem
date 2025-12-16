@@ -35,7 +35,7 @@ export const useCategoryImageUpload = ({
       const existingImage = categoryImages.find(img => img.category === category);
       
       // اسم البكت الصحيح
-      const bucketName = "صور التصنيفات";
+      const bucketName = "product-images";
       
       // إذا كانت هناك صورة موجودة، نحذفها أولاً
       if (existingImage?.image_url) {
@@ -130,7 +130,7 @@ export const useCategoryImageUpload = ({
       }
 
       // اسم البكت الصحيح
-      const bucketName = "صور التصنيفات";
+      const bucketName = "product-images";
       
       // حذف الملف من التخزين
       if (imageToRemove.image_url) {
@@ -189,7 +189,7 @@ export const useCategoryImageUpload = ({
       const existingImage = categoryImages.find(img => img.category === category);
       
       // اسم البكت الصحيح
-      const bucketName = "صور التصنيفات";
+      const bucketName = "product-images";
       
       // إذا كانت هناك صورة موجودة من رفع ملف، نحذفها
       if (existingImage?.image_url && existingImage.image_url.includes('supabase')) {
