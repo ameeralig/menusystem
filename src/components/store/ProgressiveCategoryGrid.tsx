@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { CategoryImage } from "@/types/categoryImage";
 import { FontSettings } from "@/types/store";
 import { sortCategoriesByOrder } from "@/utils/categorySort";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ProgressiveCategoryGridProps {
   categories: string[];
@@ -73,17 +74,18 @@ const ProgressiveCategoryGrid = ({
     }
   };
 
+  // Skeleton loader للتحميل
   if (isLoading) {
     return (
-      <div className="text-center py-8">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full"
-        />
-        <p className="mt-4 text-gray-600 dark:text-gray-400">
-          جاري تحميل التصنيفات...
-        </p>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {[...Array(8)].map((_, i) => (
+          <div key={i} className="rounded-2xl overflow-hidden border border-border">
+            <Skeleton className="aspect-square w-full" />
+            <div className="p-3 bg-card">
+              <Skeleton className="h-5 w-3/4 mx-auto" />
+            </div>
+          </div>
+        ))}
       </div>
     );
   }

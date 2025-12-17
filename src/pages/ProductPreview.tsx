@@ -2,7 +2,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import LoadingState from "@/components/store/LoadingState";
+import StoreSkeleton from "@/components/store/skeletons/StoreSkeleton";
 import { useOptimizedStoreData } from "@/hooks/store/useOptimizedStoreData";
 import { useRefreshData } from "@/hooks/useRefreshData";
 import { supabase } from "@/lib/supabase";
@@ -173,9 +173,9 @@ const ProductPreview = () => {
     );
   }
 
-  // عرض شاشة التحميل الموحدة
+  // عرض Skeleton أثناء التحميل
   if (isLoading || loadingStates.identifying) {
-    return <LoadingState progress={loadingProgress} />;
+    return <StoreSkeleton />;
   }
 
   return (
@@ -219,7 +219,7 @@ const ProductPreview = () => {
         )}
         
         <div className={employee ? "pt-20" : ""}>
-          <Suspense fallback={<LoadingState />}>
+          <Suspense fallback={<StoreSkeleton />}>
             <ProductPreviewContainer
               colorTheme={storeData.colorTheme} 
               bannerUrl={storeData.bannerUrl}
