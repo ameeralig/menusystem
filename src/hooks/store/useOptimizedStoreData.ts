@@ -1,22 +1,23 @@
 import { useState, useEffect } from "react";
-import { useFastStoreIdentification } from "./useFastStoreIdentification";
-import { useStoreSettings } from "./useStoreSettings";
+import { useUnifiedStoreData } from "./useUnifiedStoreData";
 import { useCleanupEmptyCategories } from "./useCleanupEmptyCategories";
 import { useCategoryImages } from "./useCategoryImages";
 import { useOptimizedProducts } from "./useOptimizedProducts";
 import { deleteSpecificEmptyCategory } from "@/utils/categoryCleanup";
 
 export const useOptimizedStoreData = (slug: string | undefined, forceRefresh: number) => {
-  // الخطوة 1: التعرف السريع على المستخدم
-  const { userId, isLoading: identifyingUser, error: identificationError } = useFastStoreIdentification(slug);
+  // الخطوة 1: جلب كل بيانات المتجر بـ query واحد
+  const { 
+    storeData: unifiedData, 
+    isLoading: unifiedLoading, 
+    error: identificationError,
+    userId 
+  } = useUnifiedStoreData(slug);
   
-  // استخدام خطاف تنظيف التصنيفات الفارغة
+  // تنظيف التصنيفات الفارغة
   const { cleanupEmptyCategories } = useCleanupEmptyCategories(userId);
   
-  // الخطوة 2: جلب البيانات المفصلة بمجرد التعرف على المستخدم
-  const { storeSettings, isLoading: settingsLoading } = useStoreSettings(slug);
-  
-  // الخطوة 3: جلب المنتجات والصور بشكل متوازي
+  // الخطوة 2: جلب المنتجات والصور بشكل متوازي
   const { 
     products, 
     allProducts,
@@ -39,37 +40,39 @@ export const useOptimizedStoreData = (slug: string | undefined, forceRefresh: nu
   const [overallLoading, setOverallLoading] = useState(true);
 
   useEffect(() => {
-    // إذا تم التعرف على المستخدم وبدأت البيانات في التحميل
-    if (!identifyingUser && userId) {
-      // نعتبر التحميل منتهياً عندما تكون البيانات الأساسية جاهزة
-      const isDataReady = !settingsLoading && (!productsLoading || products.length > 0);
+    // إذا تم جلب بيانات المتجر وبدأت المنتجات في التحميل
+    if (!unifiedLoading && userId) {
+      const isDataReady = !productsLoading || products.length > 0;
       setOverallLoading(!isDataReady);
       
       // تنظيف التصنيفات الفارغة بعد انتهاء التحميل
       if (isDataReady) {
         setTimeout(async () => {
-          // حذف التصنيف الفارغ المحدد أولاً
           try {
             await deleteSpecificEmptyCategory(userId);
           } catch (error) {
             console.error("خطأ في حذف التصنيف المحدد:", error);
           }
-          
-          // ثم تنظيف باقي التصنيفات الفارغة
           cleanupEmptyCategories();
         }, 1000);
       }
-    } else if (!identifyingUser && !userId) {
-      // إذا لم يتم العثور على المستخدم
+    } else if (!unifiedLoading && !userId) {
       setOverallLoading(false);
     }
-  }, [identifyingUser, userId, settingsLoading, productsLoading, products.length, cleanupEmptyCategories]);
+  }, [unifiedLoading, userId, productsLoading, products.length, cleanupEmptyCategories]);
 
   // دمج جميع البيانات
   const storeData = {
-    ...storeSettings,
-    products: allProducts, // استخدام جميع المنتجات
-    visibleProducts: products, // المنتجات المرئية حالياً
+    storeName: unifiedData?.storeName || null,
+    colorTheme: unifiedData?.colorTheme || "default",
+    socialLinks: unifiedData?.socialLinks || {},
+    contactInfo: unifiedData?.contactInfo || {},
+    bannerUrl: unifiedData?.bannerUrl || null,
+    fontSettings: unifiedData?.fontSettings,
+    darkMode: unifiedData?.darkMode || false,
+    template: unifiedData?.template || "default",
+    products: allProducts,
+    visibleProducts: products,
     categoryImages,
     categories
   };
@@ -83,10 +86,9 @@ export const useOptimizedStoreData = (slug: string | undefined, forceRefresh: nu
     hasMoreProducts: hasMore,
     loadMoreProducts: loadMore,
     refreshProducts,
-    // حالات التحميل المنفصلة للتحكم الدقيق
+    // حالات التحميل المبسطة
     loadingStates: {
-      identifying: identifyingUser,
-      settings: settingsLoading,
+      identifying: unifiedLoading,
       products: productsLoading,
       categoryImages: categoryImagesLoading
     }

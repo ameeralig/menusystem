@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, Loader2 } from "lucide-react";
 import OptimizedProductGrid from "./OptimizedProductGrid";
 import ProgressiveCategoryGrid from "./ProgressiveCategoryGrid";
-import ProgressiveLoadingIndicator from "./ProgressiveLoadingIndicator";
 import BackButton from "./BackButton";
 import EmptyCategoryMessage from "./EmptyCategoryMessage";
 import { Product } from "@/types/product";
@@ -208,39 +207,25 @@ const StoreProductsDisplay = ({
   // إذا كان القالب هو "fast-response"، نعرض القالب السريع
   if (template === "fast-response") {
     return (
-      <>
-        {/* مؤشر التحميل التقدمي */}
-        <ProgressiveLoadingIndicator 
-          progress={loadingProgress} 
-          isVisible={isLoading && products.length === 0} 
-        />
-
-        <FastResponseTemplate
-          products={allProducts || products}
-          colorTheme={colorTheme}
-          storeName={storeName}
-          onSearchChange={handleSearchChange}
-          contactInfo={contactInfo}
-          slug={slug}
-          storeOwnerId={storeOwnerId}
-          fontSettings={fontSettings}
-          socialLinks={socialLinks}
-          categoryImages={categoryImages}
-          isStoreOwner={isStoreOwner}
-          refreshData={refreshData}
-        />
-      </>
+      <FastResponseTemplate
+        products={allProducts || products}
+        colorTheme={colorTheme}
+        storeName={storeName}
+        onSearchChange={handleSearchChange}
+        contactInfo={contactInfo}
+        slug={slug}
+        storeOwnerId={storeOwnerId}
+        fontSettings={fontSettings}
+        socialLinks={socialLinks}
+        categoryImages={categoryImages}
+        isStoreOwner={isStoreOwner}
+        refreshData={refreshData}
+      />
     );
   }
 
   return (
     <>
-      {/* مؤشر التحميل التقدمي */}
-      <ProgressiveLoadingIndicator 
-        progress={loadingProgress} 
-        isVisible={isLoading && products.length === 0} 
-      />
-
       <motion.div
         className="container mx-auto px-4 py-8 pb-28 max-w-6xl relative"
         initial={{ opacity: 0 }}

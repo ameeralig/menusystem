@@ -173,14 +173,9 @@ const ProductPreview = () => {
     );
   }
 
-  // عرض شاشة التحميل السريع
+  // عرض شاشة التحميل الموحدة
   if (isLoading || loadingStates.identifying) {
-    return (
-      <LoadingState 
-        progress={loadingProgress} 
-        message={loadingStates.identifying ? "جاري التعرف على المتجر..." : "جاري تحميل البيانات..."}
-      />
-    );
+    return <LoadingState progress={loadingProgress} />;
   }
 
   return (
