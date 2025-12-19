@@ -299,7 +299,20 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         </div>
 
         {/* قائمة المنتجات */}
-        {filteredProducts.length > 0 ? (
+        {products.length === 0 ? (
+          /* Skeleton أثناء التحميل */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="bg-card rounded-xl overflow-hidden shadow-sm animate-pulse">
+                <div className="aspect-video bg-muted" />
+                <div className="p-3 space-y-2">
+                  <div className="h-4 bg-muted rounded w-3/4" />
+                  <div className="h-3 bg-muted rounded w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredProducts.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {filteredProducts.map((product) => (
               <CompactProductCard
@@ -315,12 +328,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
               />
             ))}
           </div>
-        ) : (
-          <EmptyCategoryMessage
-            searchQuery={searchQuery}
-            selectedCategory={selectedCategory}
-          />
-        )}
+        ) : null}
       </div>
 
       {/* زر السلة العائم */}
