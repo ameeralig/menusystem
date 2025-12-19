@@ -56,8 +56,6 @@ const CustomerAIAssistant = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [customerName, setCustomerName] = useState("");
-  const [showNameInput, setShowNameInput] = useState(false);
   const [aiAssistantName, setAiAssistantName] = useState("المساعد الذكي");
   const [isEditingAiName, setIsEditingAiName] = useState(false);
   const [tempAiName, setTempAiName] = useState("");
@@ -81,32 +79,12 @@ const CustomerAIAssistant = ({
     loadAiAssistantName();
   }, [storeOwnerId]);
 
-  // تحميل الاسم المحفوظ من localStorage
-  useEffect(() => {
-    const savedName = localStorage.getItem('customer_name');
-    if (savedName) {
-      setCustomerName(savedName);
-    } else {
-      setShowNameInput(true);
-    }
-  }, []);
-
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
-  const saveName = () => {
-    if (customerName.trim()) {
-      localStorage.setItem('customer_name', customerName.trim());
-      setShowNameInput(false);
-      toast({
-        title: "تم الحفظ",
-        description: "تم حفظ اسمك بنجاح"
-      });
-    }
-  };
 
   const saveAiAssistantName = async () => {
     if (!tempAiName.trim()) return;
@@ -152,7 +130,6 @@ const CustomerAIAssistant = ({
         body: {
           message: userMessage,
           storeOwnerId,
-          customerName: customerName || undefined,
           externalOrdersEnabled,
           conversationHistory: messages.map(m => ({ role: m.role, content: m.content }))
         }
@@ -308,41 +285,24 @@ const CustomerAIAssistant = ({
 
       {/* Messages */}
       <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-        {showNameInput ? (
-          <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
-              <User className="w-8 h-8 text-white" />
-            </div>
-            <div className="w-full max-w-sm space-y-3">
-              <p className="text-foreground font-medium">مرحباً! ما اسمك؟</p>
-              <p className="text-sm text-muted-foreground">سنستخدم اسمك لتخصيص تجربتك</p>
-              <div className="space-y-2">
-                <Input
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="أدخل اسمك"
-                  dir="rtl"
-                  onKeyPress={(e) => e.key === 'Enter' && saveName()}
-                />
-                <Button onClick={saveName} className="w-full">
-                  حفظ الاسم
-                </Button>
-              </div>
-            </div>
-          </div>
-        ) : messages.length === 0 ? (
+        {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center space-y-3">
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
               <Sparkles className="w-8 h-8 text-white" />
             </div>
             <div>
-              <p className="text-foreground font-medium">مرحباً {customerName}! أنا {aiAssistantName}</p>
+              <p className="text-foreground font-medium">مرحباً! أنا {aiAssistantName}</p>
               <p className="text-sm text-muted-foreground mt-2">يمكنني مساعدتك في:</p>
               <ul className="text-sm text-muted-foreground mt-2 space-y-1">
                 <li>• البحث عن المنتجات المتوفرة</li>
                 <li>• معرفة الأسعار والتفاصيل</li>
                 <li>• اقتراح منتجات مناسبة</li>
-                {externalOrdersEnabled && <li>• إضافة المنتجات للسلة وإتمام الطلب</li>}
+                {externalOrdersEnabled && (
+                  <>
+                    <li>• إتمام الطلب برسالة واحدة مثل:</li>
+                    <li className="text-xs text-primary/80 italic">"أريد X عدد 2 وموقعي Y ورقمي 077..."</li>
+                  </>
+                )}
                 <li>• الإجابة على استفساراتك</li>
               </ul>
             </div>
@@ -401,33 +361,31 @@ const CustomerAIAssistant = ({
       </ScrollArea>
 
       {/* Input */}
-      {!showNameInput && (
-        <div className="p-4 border-t border-white/20 bg-background/30 backdrop-blur-md">
-          <div className="flex gap-2">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={externalOrdersEnabled ? "اسألني عن المنتجات أو أضفها للسلة..." : "اسألني عن المنتجات..."}
-              disabled={isLoading}
-              className="flex-1 bg-background/50"
-              dir="rtl"
-            />
-            <Button
-              onClick={sendMessage}
-              disabled={!input.trim() || isLoading}
-              size="icon"
-              className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
-            >
-              {isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
-            </Button>
-          </div>
+      <div className="p-4 border-t border-white/20 bg-background/30 backdrop-blur-md">
+        <div className="flex gap-2">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder={externalOrdersEnabled ? "مثال: أريد بيتزا 2 وموقعي المنصور ورقمي 077..." : "اسألني عن المنتجات..."}
+            disabled={isLoading}
+            className="flex-1 bg-background/50"
+            dir="rtl"
+          />
+          <Button
+            onClick={sendMessage}
+            disabled={!input.trim() || isLoading}
+            size="icon"
+            className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
+          >
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
+          </Button>
         </div>
-      )}
+      </div>
     </Card>
   );
 };
