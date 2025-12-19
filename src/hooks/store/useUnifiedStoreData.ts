@@ -11,6 +11,7 @@ interface UnifiedStoreData {
   socialLinks: SocialLinks;
   contactInfo: ContactInfo;
   bannerUrl: string | null;
+  logoUrl: string | null;
   fontSettings: FontSettings | undefined;
   darkMode: boolean;
   template: string;
@@ -61,6 +62,7 @@ export const useUnifiedStoreData = (slug: string | undefined) => {
           social_links,
           contact_info,
           banner_url,
+          logo_url,
           font_settings,
           dark_mode,
           template
@@ -112,6 +114,7 @@ export const useUnifiedStoreData = (slug: string | undefined) => {
         socialLinks: (data.social_links as SocialLinks) || {},
         contactInfo: (data.contact_info as ContactInfo) || {},
         bannerUrl: data.banner_url,
+        logoUrl: data.logo_url,
         fontSettings: parsedFontSettings,
         darkMode: data.dark_mode || false,
         template: data.template || "default",

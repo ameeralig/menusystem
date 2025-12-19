@@ -246,6 +246,7 @@ const ProductPreview = () => {
               refreshData={refreshData}
               products={storeData.products || []}
               productsLoading={loadingStates.products}
+              logoUrl={storeData.logoUrl}
             />
           </ProductPreviewContainer>
         </div>

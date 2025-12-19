@@ -68,6 +68,7 @@ export const useOptimizedStoreData = (slug: string | undefined, forceRefresh: nu
     socialLinks: unifiedData?.socialLinks || {},
     contactInfo: unifiedData?.contactInfo || {},
     bannerUrl: unifiedData?.bannerUrl || null,
+    logoUrl: unifiedData?.logoUrl || null,
     fontSettings: unifiedData?.fontSettings,
     darkMode: unifiedData?.darkMode || false,
     template: unifiedData?.template || "default",
