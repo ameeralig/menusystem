@@ -94,6 +94,9 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   const facebookUrl = normalizeUrl("facebook", socialLinks?.facebook);
   const telegramUrl = normalizeUrl("telegram", socialLinks?.telegram);
 
+  // رقم الإصدار - يتغير مع كل تحديث
+  const APP_VERSION = "1.1.1.5";
+
   return (
     <motion.div
       initial={{ y: 100, opacity: 0 }}
@@ -107,6 +110,20 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       className="fixed bottom-0 left-0 right-0 z-40 pb-safe"
       style={{ direction: 'ltr' }}
     >
+      {/* رابط QRM ورقم الإصدار - فوق الشريط */}
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-t border-gray-200/50 dark:border-gray-700/50 py-2 text-center">
+        <a 
+          href="https://qrmenuc.com" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-xs text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1"
+        >
+          تحول للتجربة الرقمية مع <span className="font-semibold">QRM</span>
+        </a>
+        <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+          الإصدار {APP_VERSION}
+        </p>
+      </div>
       {/* الشريط الزجاجي الأفقي */}
       <div
         className="backdrop-blur-xl border-t shadow-2xl"
