@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Disc3, MessageSquare, Search, X, Info, Sparkles, Eye, Share2 } from "lucide-react";
+import { Disc3, MessageSquare, Search, X, Info, Sparkles, Eye, Share2, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
@@ -13,6 +13,11 @@ import OwnerFeedbackSheet from "../feedback/OwnerFeedbackSheet";
 import StoreOwnerActionsMenu from "./StoreOwnerActionsMenu";
 import ShareMenuCard from "../share/ShareMenuCard";
 import { Product } from "@/types/product";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface BottomActionsBarProps {
   slug?: string;
@@ -56,6 +61,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
   const [isOwnerFeedbackOpen, setIsOwnerFeedbackOpen] = useState(false);
   const [isShareCardOpen, setIsShareCardOpen] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
 
   const getThemeColor = () => {
     if (colorTheme?.startsWith('#')) {
@@ -75,28 +81,88 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
 
   const themeColor = getThemeColor();
 
-  const normalizeUrl = (provider: "instagram" | "facebook" | "telegram", value?: string) => {
-    if (!value) return undefined;
-    const v = value.trim();
-    if (/^https?:\/\//i.test(v)) return v;
+  // زر الإجراء المشترك
+  const ActionButton = ({ 
+    onClick, 
+    icon: Icon, 
+    label, 
+    gradient 
+  }: { 
+    onClick: () => void; 
+    icon: React.ElementType; 
+    label: string; 
+    gradient: string;
+  }) => (
+    <motion.div
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+    >
+      <div
+        onClick={onClick}
+        className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl shadow-md cursor-pointer transition-all"
+        style={{
+          background: gradient,
+          border: '1px solid rgba(255,255,255,0.2)',
+        }}
+      >
+        <Icon className="h-4 w-4 text-white" />
+        <span className="text-[10px] font-medium text-white whitespace-nowrap">{label}</span>
+      </div>
+    </motion.div>
+  );
 
-    if (provider === "instagram") {
-      const handle = v.startsWith("@") ? v.slice(1) : v.replace(/^instagram\.com\//i, "");
-      return `https://instagram.com/${handle}`;
-    }
+  // الأزرار الرئيسية (تظهر دائماً)
+  const primaryButtons = [
+    // زر شارك المنيو - مهم جداً
+    slug && {
+      id: 'share',
+      onClick: () => setIsShareCardOpen(true),
+      icon: Share2,
+      label: 'شارك',
+      gradient: `linear-gradient(135deg, #f59e0b, #d97706)`,
+    },
+    // زر عجلة الحظ
+    storeOwnerId && products.length > 0 && {
+      id: 'wheel',
+      onClick: () => setIsWheelModalOpen(true),
+      icon: Disc3,
+      label: 'عجلة الحظ',
+      gradient: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)`,
+    },
+    // زر AI
+    storeOwnerId && {
+      id: 'ai',
+      onClick: () => setIsAIAssistantOpen(true),
+      icon: Sparkles,
+      label: 'AI',
+      gradient: `linear-gradient(135deg, #8b5cf6, #7c3aed)`,
+    },
+  ].filter(Boolean);
 
-    if (provider === "facebook") {
-      const path = v.replace(/^facebook\.com\//i, "").replace(/^fb\.com\//i, "");
-      return `https://facebook.com/${path}`;
-    }
-
-    const handle = v.startsWith("@") ? v.slice(1) : v.replace(/^t\.me\//i, "");
-    return `https://t.me/${handle}`;
-  };
-
-  const instagramUrl = normalizeUrl("instagram", socialLinks?.instagram);
-  const facebookUrl = normalizeUrl("facebook", socialLinks?.facebook);
-  const telegramUrl = normalizeUrl("telegram", socialLinks?.telegram);
+  // الأزرار الثانوية (تظهر في قائمة "المزيد")
+  const secondaryButtons = [
+    // معلومات المتجر
+    contactInfo && {
+      id: 'info',
+      onClick: () => { setIsInfoSheetOpen(true); setIsMoreMenuOpen(false); },
+      icon: Info,
+      label: 'معلومات المتجر',
+      gradient: `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`,
+    },
+    // تقييم / عرض الآراء
+    storeOwnerId && {
+      id: 'feedback',
+      onClick: () => { 
+        isStoreOwner ? setIsOwnerFeedbackOpen(true) : setIsFeedbackDialogOpen(true);
+        setIsMoreMenuOpen(false);
+      },
+      icon: isStoreOwner ? Eye : MessageSquare,
+      label: isStoreOwner ? 'عرض الآراء' : 'شاركنا رأيك',
+      gradient: isStoreOwner 
+        ? `linear-gradient(135deg, #10b981, #059669)` 
+        : `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`,
+    },
+  ].filter(Boolean);
 
   return (
     <motion.div
@@ -111,25 +177,26 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       className="fixed bottom-0 left-0 right-0 z-40 pb-safe"
       style={{ direction: 'ltr' }}
     >
-      {/* الشريط الزجاجي الأفقي */}
+      {/* الشريط الزجاجي */}
       <div
         className="backdrop-blur-xl border-t shadow-2xl"
         style={{
-          background: `linear-gradient(180deg, ${themeColor}08, ${themeColor}15)`,
-          borderColor: `${themeColor}30`,
+          background: `linear-gradient(180deg, ${themeColor}08, ${themeColor}12)`,
+          borderColor: `${themeColor}25`,
         }}
       >
-        <div className="container mx-auto px-3 py-3">
-          <div className="flex items-center gap-3 max-w-4xl mx-auto">
-            {/* حقل البحث - يأخذ المساحة المتبقية */}
-            <div className="flex-1 relative">
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
+        <div className="container mx-auto px-2 py-2">
+          <div className="flex items-center gap-2 max-w-4xl mx-auto">
+            
+            {/* حقل البحث */}
+            <div className="flex-1 relative min-w-0">
+              <Search className="absolute right-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
               <Input
                 type="text"
-                placeholder="ابحث هنا..."
+                placeholder="ابحث..."
                 value={searchQuery}
                 onChange={onSearchChange}
-                className="pr-10 pl-10 h-12 rounded-2xl border-0 text-sm"
+                className="pr-8 pl-8 h-10 rounded-xl border-0 text-sm"
                 style={{
                   background: `${themeColor}10`,
                   backdropFilter: 'blur(10px)',
@@ -140,133 +207,87 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                   variant="ghost"
                   size="icon"
                   onClick={onClearSearch}
-                  className="absolute left-2 top-1/2 transform -translate-y-1/2 h-8 w-8 z-10"
+                  className="absolute left-1 top-1/2 transform -translate-y-1/2 h-7 w-7 z-10"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3.5 w-3.5" />
                 </Button>
               )}
             </div>
 
-            {/* الأزرار */}
-            <div className="flex items-center gap-2">
-              {/* قائمة إدارة المتجر - للمالك فقط */}
-              {isStoreOwner && storeOwnerId && (
-                <StoreOwnerActionsMenu
-                  storeOwnerId={storeOwnerId}
-                  colorTheme={colorTheme}
-                  onAddProduct={() => setIsAddProductModalOpen(true)}
-                  onUpdate={() => window.location.reload()}
+            {/* قائمة إدارة المتجر - للمالك فقط */}
+            {isStoreOwner && storeOwnerId && (
+              <StoreOwnerActionsMenu
+                storeOwnerId={storeOwnerId}
+                colorTheme={colorTheme}
+                onAddProduct={() => setIsAddProductModalOpen(true)}
+                onUpdate={() => window.location.reload()}
+              />
+            )}
+
+            {/* الأزرار الرئيسية */}
+            <div className="flex items-center gap-1.5">
+              {primaryButtons.map((btn: any) => (
+                <ActionButton
+                  key={btn.id}
+                  onClick={btn.onClick}
+                  icon={btn.icon}
+                  label={btn.label}
+                  gradient={btn.gradient}
                 />
-              )}
-              
-              {/* زر عجلة الحظ */}
-              {storeOwnerId && products.length > 0 && (
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <div
-                    onClick={() => setIsWheelModalOpen(true)}
-                    className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl shadow-lg cursor-pointer"
-                    style={{
-                      background: `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`,
-                      border: '2px solid rgba(255,255,255,0.3)',
-                    }}
-                  >
-                    <Disc3 className="h-5 w-5 text-white" />
-                    <span className="text-[10px] font-medium text-white whitespace-nowrap">عجلة الحظ</span>
-                  </div>
-                </motion.div>
-              )}
+              ))}
 
-              {/* زر معلومات المتجر */}
-              {contactInfo && (
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <div
-                    onClick={() => setIsInfoSheetOpen(true)}
-                    className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl shadow-lg cursor-pointer"
+              {/* قائمة المزيد */}
+              {secondaryButtons.length > 0 && (
+                <Popover open={isMoreMenuOpen} onOpenChange={setIsMoreMenuOpen}>
+                  <PopoverTrigger asChild>
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <div
+                        className="flex items-center gap-1 px-2.5 py-2 rounded-xl shadow-md cursor-pointer"
+                        style={{
+                          background: `${themeColor}20`,
+                          border: '1px solid rgba(255,255,255,0.1)',
+                        }}
+                      >
+                        <Menu className="h-4 w-4" style={{ color: themeColor }} />
+                      </div>
+                    </motion.div>
+                  </PopoverTrigger>
+                  <PopoverContent 
+                    className="w-auto p-2 rounded-2xl backdrop-blur-xl border-white/20"
                     style={{
-                      background: `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`,
-                      border: '2px solid rgba(255,255,255,0.3)',
+                      background: `linear-gradient(135deg, ${themeColor}15, ${themeColor}25)`,
                     }}
+                    align="end"
+                    side="top"
+                    sideOffset={8}
                   >
-                    <Info className="h-5 w-5 text-white" />
-                    <span className="text-[10px] font-medium text-white whitespace-nowrap">معلومات</span>
-                  </div>
-                </motion.div>
+                    <div className="flex flex-col gap-2">
+                      {secondaryButtons.map((btn: any) => (
+                        <motion.div
+                          key={btn.id}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <div
+                            onClick={btn.onClick}
+                            className="flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-all"
+                            style={{
+                              background: btn.gradient,
+                              border: '1px solid rgba(255,255,255,0.2)',
+                            }}
+                          >
+                            <btn.icon className="h-4 w-4 text-white" />
+                            <span className="text-xs font-medium text-white whitespace-nowrap">{btn.label}</span>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               )}
-
-              {/* زر تقييم / عرض الآراء */}
-              {storeOwnerId && (
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <div
-                    onClick={() => isStoreOwner ? setIsOwnerFeedbackOpen(true) : setIsFeedbackDialogOpen(true)}
-                    className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl shadow-lg cursor-pointer"
-                    style={{
-                      background: isStoreOwner 
-                        ? `linear-gradient(135deg, #10b981, #059669)` 
-                        : `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`,
-                      border: '2px solid rgba(255,255,255,0.3)',
-                    }}
-                  >
-                    {isStoreOwner ? (
-                      <Eye className="h-5 w-5 text-white" />
-                    ) : (
-                      <MessageSquare className="h-5 w-5 text-white" />
-                    )}
-                    <span className="text-[10px] font-medium text-white whitespace-nowrap">
-                      {isStoreOwner ? 'عرض الآراء' : 'شاركنا رآيك'}
-                    </span>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* زر المساعد الذكي */}
-              {storeOwnerId && (
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <div
-                    onClick={() => setIsAIAssistantOpen(true)}
-                    className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl shadow-lg cursor-pointer"
-                    style={{
-                      background: `linear-gradient(135deg, #8b5cf6, #7c3aed)`,
-                      border: '2px solid rgba(255,255,255,0.3)',
-                    }}
-                  >
-                    <Sparkles className="h-5 w-5 text-white" />
-                    <span className="text-[10px] font-medium text-white whitespace-nowrap">AI</span>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* زر شارك المنيو */}
-              {slug && (
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <div
-                    onClick={() => setIsShareCardOpen(true)}
-                    className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl shadow-lg cursor-pointer"
-                    style={{
-                      background: `linear-gradient(135deg, #f59e0b, #d97706)`,
-                      border: '2px solid rgba(255,255,255,0.3)',
-                    }}
-                  >
-                    <Share2 className="h-5 w-5 text-white" />
-                    <span className="text-[10px] font-medium text-white whitespace-nowrap">شارك</span>
-                  </div>
-                </motion.div>
-              )}
-
             </div>
           </div>
         </div>
@@ -290,7 +311,6 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
         isOpen={isAddProductModalOpen}
         onOpenChange={setIsAddProductModalOpen}
         onProductAdded={() => {
-          // يمكن إضافة refresh للمنتجات هنا إذا لزم الأمر
           window.location.reload();
         }}
       />
