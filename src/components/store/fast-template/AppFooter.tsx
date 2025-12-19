@@ -19,17 +19,17 @@ const AppFooter: React.FC = () => {
 
   return (
     <div 
-      className="fixed bottom-[140px] left-0 right-0 z-30"
+      className="mt-8 mb-36 mx-4"
       style={{ direction: 'rtl' }}
     >
-      <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-t border-gray-200/50 dark:border-gray-700/50 py-2">
+      <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl border border-gray-200/50 dark:border-gray-700/50 py-4 shadow-sm">
         {/* رابط QRM ورقم الإصدار */}
         <div className="text-center">
           <a 
             href="https://qrmenuc.com" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-xs text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1"
+            className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1"
           >
             تحول للتجربة الرقمية مع <span className="font-semibold">QRM</span>
           </a>
@@ -37,7 +37,7 @@ const AppFooter: React.FC = () => {
           {/* رقم الإصدار - قابل للنقر */}
           <button
             onClick={() => setIsChangelogOpen(!isChangelogOpen)}
-            className="flex items-center justify-center gap-1 mx-auto mt-1 text-[10px] text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+            className="flex items-center justify-center gap-1 mx-auto mt-2 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
           >
             <span>الإصدار {CURRENT_VERSION}</span>
             {isChangelogOpen ? (
@@ -58,15 +58,15 @@ const AppFooter: React.FC = () => {
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
-              <div className="max-h-48 overflow-y-auto px-4 pt-3 pb-1">
-                <h4 className="text-xs font-semibold text-foreground mb-2 text-center">
+              <div className="max-h-64 overflow-y-auto px-4 pt-4 pb-2">
+                <h4 className="text-sm font-semibold text-foreground mb-3 text-center">
                   سجل التحديثات
                 </h4>
                 <div className="space-y-2">
                   {CHANGELOG.map((entry, index) => (
                     <div
                       key={entry.version}
-                      className={`text-[10px] p-2 rounded-lg ${
+                      className={`text-xs p-3 rounded-xl ${
                         index === 0 
                           ? 'bg-primary/10 border border-primary/20' 
                           : 'bg-gray-100 dark:bg-gray-700/50'
@@ -76,12 +76,12 @@ const AppFooter: React.FC = () => {
                         <span className="font-semibold text-foreground">
                           v{entry.version}
                           {index === 0 && (
-                            <span className="mr-1 text-[8px] bg-primary text-primary-foreground px-1 py-0.5 rounded">
+                            <span className="mr-2 text-[10px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full">
                               حالي
                             </span>
                           )}
                         </span>
-                        <span className="text-muted-foreground">{entry.date}</span>
+                        <span className="text-muted-foreground text-[10px]">{entry.date}</span>
                       </div>
                       <ul className="list-disc list-inside text-muted-foreground space-y-0.5">
                         {entry.changes.map((change, i) => (
