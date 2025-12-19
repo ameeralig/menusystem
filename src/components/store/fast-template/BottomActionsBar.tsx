@@ -64,6 +64,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   const [isShareCardOpen, setIsShareCardOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [isMenuDownloadOpen, setIsMenuDownloadOpen] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
   const getThemeColor = () => {
     if (colorTheme?.startsWith('#')) {
@@ -198,31 +199,57 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
         <div className="container mx-auto px-2 py-2">
           <div className="flex items-center gap-2 max-w-4xl mx-auto">
             
-            {/* حقل البحث */}
-            <div className="flex-1 relative min-w-0">
-              <Search className="absolute right-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
-              <Input
-                type="text"
-                placeholder="ابحث..."
-                value={searchQuery}
-                onChange={onSearchChange}
-                className="pr-8 pl-8 h-10 rounded-xl border-0 text-sm"
-                style={{
-                  background: `${themeColor}10`,
-                  backdropFilter: 'blur(10px)',
-                }}
-              />
-              {searchQuery && (
+            {/* زر/حقل البحث */}
+            {isSearchExpanded ? (
+              <motion.div 
+                initial={{ width: 40, opacity: 0 }}
+                animate={{ width: "100%", opacity: 1 }}
+                exit={{ width: 40, opacity: 0 }}
+                className="flex-1 relative min-w-0"
+              >
+                <Search className="absolute right-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
+                <Input
+                  type="text"
+                  placeholder="ابحث..."
+                  value={searchQuery}
+                  onChange={onSearchChange}
+                  autoFocus
+                  className="pr-8 pl-8 h-10 rounded-xl border-0 text-sm"
+                  style={{
+                    background: `${themeColor}10`,
+                    backdropFilter: 'blur(10px)',
+                  }}
+                />
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={onClearSearch}
+                  onClick={() => {
+                    onClearSearch();
+                    setIsSearchExpanded(false);
+                  }}
                   className="absolute left-1 top-1/2 transform -translate-y-1/2 h-7 w-7 z-10"
                 >
                   <X className="h-3.5 w-3.5" />
                 </Button>
-              )}
-            </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <div
+                  onClick={() => setIsSearchExpanded(true)}
+                  className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl shadow-md cursor-pointer transition-all"
+                  style={{
+                    background: `${themeColor}15`,
+                    border: '1px solid rgba(255,255,255,0.1)',
+                  }}
+                >
+                  <Search className="h-4 w-4" style={{ color: themeColor }} />
+                  <span className="text-[10px] font-medium whitespace-nowrap" style={{ color: themeColor }}>بحث</span>
+                </div>
+              </motion.div>
+            )}
 
             {/* قائمة إدارة المتجر - للمالك فقط */}
             {isStoreOwner && storeOwnerId && (
