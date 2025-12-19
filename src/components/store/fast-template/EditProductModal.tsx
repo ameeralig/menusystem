@@ -198,29 +198,29 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="relative w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto my-8"
+              className="relative w-full max-w-2xl bg-background dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto my-8 border border-border"
               onClick={(e) => e.stopPropagation()}
             >
               <button
                 onClick={onClose}
                 disabled={isSaving}
-                className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center bg-white/90 dark:bg-gray-800/90 rounded-full shadow-lg hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 hover:scale-110 disabled:opacity-50"
+                className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center bg-muted/90 dark:bg-gray-800/90 rounded-full shadow-lg hover:bg-muted dark:hover:bg-gray-700 transition-all duration-200 hover:scale-110 disabled:opacity-50"
               >
-                <X className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                <X className="w-5 h-5 text-foreground" />
               </button>
 
               <div className="p-6 max-h-[80vh] overflow-y-auto">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                <h2 className="text-2xl font-bold text-foreground mb-6">
                   تعديل المنتج
                 </h2>
 
                 <div className="space-y-6">
                   {/* صورة المنتج */}
                   <div>
-                    <Label htmlFor="product-image">صورة المنتج</Label>
+                    <Label htmlFor="product-image" className="text-foreground">صورة المنتج</Label>
                     <div className="mt-2 flex flex-col items-center gap-4">
                       {(imagePreview || displayedImage) && (
-                        <div className="relative w-full h-48 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                        <div className="relative w-full h-48 bg-muted dark:bg-gray-800 rounded-lg overflow-hidden">
                           <img
                             src={imageFile ? imagePreview : displayedImage}
                             alt="معاينة"
@@ -234,9 +234,9 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                         </div>
                       )}
                       <label htmlFor="product-image" className="cursor-pointer">
-                        <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors">
-                          <Upload className="w-4 h-4" />
-                          <span className="text-sm">
+                        <div className="flex items-center gap-2 px-4 py-2 bg-muted dark:bg-gray-800 hover:bg-muted/80 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                          <Upload className="w-4 h-4 text-foreground" />
+                          <span className="text-sm text-foreground">
                             {imageFile ? "تغيير الصورة" : "اختيار صورة جديدة"}
                           </span>
                         </div>
@@ -253,20 +253,20 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
 
                   {/* اسم المنتج */}
                   <div>
-                    <Label htmlFor="name">اسم المنتج *</Label>
+                    <Label htmlFor="name" className="text-foreground">اسم المنتج *</Label>
                     <Input
                       id="name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="أدخل اسم المنتج"
-                      className="mt-2"
+                      className="mt-2 bg-background text-foreground border-border"
                     />
                   </div>
 
                   {/* السعر والخصم */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="price">السعر (دينار عراقي) *</Label>
+                      <Label htmlFor="price" className="text-foreground">السعر (دينار عراقي) *</Label>
                       <Input
                         id="price"
                         type="number"
@@ -275,11 +275,11 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                         placeholder="0"
                         min="0"
                         step="0.01"
-                        className="mt-2"
+                        className="mt-2 bg-background text-foreground border-border"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="discount">نسبة الخصم (%)</Label>
+                      <Label htmlFor="discount" className="text-foreground">نسبة الخصم (%)</Label>
                       <Input
                         id="discount"
                         type="number"
@@ -289,7 +289,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                         min="0"
                         max="100"
                         step="1"
-                        className="mt-2"
+                        className="mt-2 bg-background text-foreground border-border"
                       />
                     </div>
                   </div>
@@ -306,33 +306,33 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
 
                   {/* التصنيف */}
                   <div>
-                    <Label htmlFor="category">التصنيف</Label>
+                    <Label htmlFor="category" className="text-foreground">التصنيف</Label>
                     <Input
                       id="category"
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
                       placeholder="أدخل التصنيف"
-                      className="mt-2"
+                      className="mt-2 bg-background text-foreground border-border"
                     />
                   </div>
 
                   {/* الوصف */}
                   <div>
-                    <Label htmlFor="description">الوصف</Label>
+                    <Label htmlFor="description" className="text-foreground">الوصف</Label>
                     <Textarea
                       id="description"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="أدخل وصف المنتج"
                       rows={4}
-                      className="mt-2"
+                      className="mt-2 bg-background text-foreground border-border"
                     />
                   </div>
 
                   {/* الخصائص */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                      <Label htmlFor="is-new" className="cursor-pointer">جديد</Label>
+                    <div className="flex items-center justify-between p-4 bg-muted dark:bg-gray-800 rounded-lg">
+                      <Label htmlFor="is-new" className="cursor-pointer text-foreground">جديد</Label>
                       <Switch
                         id="is-new"
                         checked={isNew}
@@ -340,8 +340,8 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                       />
                     </div>
                     
-                    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                      <Label htmlFor="is-popular" className="cursor-pointer">مميز</Label>
+                    <div className="flex items-center justify-between p-4 bg-muted dark:bg-gray-800 rounded-lg">
+                      <Label htmlFor="is-popular" className="cursor-pointer text-foreground">مميز</Label>
                       <Switch
                         id="is-popular"
                         checked={isPopular}
@@ -349,8 +349,8 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                       />
                     </div>
                     
-                    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                      <Label htmlFor="is-available" className="cursor-pointer">متوفر</Label>
+                    <div className="flex items-center justify-between p-4 bg-muted dark:bg-gray-800 rounded-lg">
+                      <Label htmlFor="is-available" className="cursor-pointer text-foreground">متوفر</Label>
                       <Switch
                         id="is-available"
                         checked={isAvailable}

@@ -212,12 +212,12 @@ const InlineStoreNameEditor = ({
 
   if (isEditing) {
     return (
-      <div className="space-y-4 my-4">
+      <div className="space-y-4 my-4 p-4 bg-background/80 dark:bg-gray-800/80 rounded-xl backdrop-blur-sm border border-border">
         <div className="flex items-center gap-2">
           <Input
             value={editedName}
             onChange={(e) => setEditedName(e.target.value)}
-            className="text-xl font-bold text-center"
+            className="text-xl font-bold text-center bg-background dark:bg-gray-900 text-foreground"
             placeholder="اسم المتجر"
             dir="rtl"
           />
@@ -234,26 +234,26 @@ const InlineStoreNameEditor = ({
         <div className="flex gap-2 justify-center">
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="bg-background dark:bg-gray-900 text-foreground border-border">
                 <Palette className="h-4 w-4 ml-2" />
                 تغيير اللون
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto">
+            <PopoverContent className="w-auto bg-background dark:bg-gray-800 border-border">
               <div className="space-y-2">
-                <Label>لون اسم المتجر</Label>
+                <Label className="text-foreground">لون اسم المتجر</Label>
                 <HexColorPicker color={editedColor} onChange={handleColorChange} />
                 <Input
                   value={editedColor}
                   onChange={(e) => setEditedColor(e.target.value)}
                   placeholder="#ff9178"
-                  className="mt-2"
+                  className="mt-2 bg-background dark:bg-gray-900 text-foreground"
                 />
               </div>
             </PopoverContent>
           </Popover>
 
-          <Button variant="outline" size="sm" asChild>
+          <Button variant="outline" size="sm" asChild className="bg-background dark:bg-gray-900 text-foreground border-border">
             <label className="cursor-pointer">
               <Type className="h-4 w-4 ml-2" />
               تحميل خط
