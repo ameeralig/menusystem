@@ -257,6 +257,8 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
         socialLinks={socialLinks}
         storeName={storeName}
         products={products}
+        isStoreOwner={isStoreOwner}
+        storeOwnerId={storeOwnerId}
       />
 
       {/* AddProductModal */}

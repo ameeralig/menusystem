@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { MapPin, Phone, Wifi, Clock, Copy, ExternalLink, Instagram, Facebook, Send } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { MapPin, Phone, Wifi, Clock, Copy, ExternalLink, Instagram, Facebook, Send, Edit2, Save, X } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -10,8 +10,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Product } from "@/types/product";
+import { supabase } from "@/integrations/supabase/client";
 import MenuDownloader from "../menu-download/MenuDownloader";
 
 type WorkDay = {
@@ -41,6 +45,8 @@ interface StoreInfoSheetProps {
   };
   storeName?: string;
   products?: Product[];
+  isStoreOwner?: boolean;
+  storeOwnerId?: string;
 }
 
 const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
@@ -51,8 +57,76 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
   socialLinks,
   storeName,
   products = [],
+  isStoreOwner = false,
+  storeOwnerId,
 }) => {
   const [isWifiVisible, setIsWifiVisible] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // حالات التعديل
+  const [editedInfo, setEditedInfo] = useState<ContactInfo>({
+    description: "",
+    address: "",
+    phone: "",
+    wifi: "",
+    businessHours: "",
+  });
+  
+  const [editedSocialLinks, setEditedSocialLinks] = useState({
+    instagram: "",
+    facebook: "",
+    telegram: "",
+  });
+
+  // تفعيل وضع التعديل تلقائياً عند فتح البطاقة للمالك
+  useEffect(() => {
+    if (isOpen && isStoreOwner) {
+      setIsEditing(true);
+      setEditedInfo({
+        description: contactInfo?.description || "",
+        address: contactInfo?.address || "",
+        phone: contactInfo?.phone || "",
+        wifi: contactInfo?.wifi || "",
+        businessHours: contactInfo?.businessHours || "",
+      });
+      setEditedSocialLinks({
+        instagram: socialLinks?.instagram || "",
+        facebook: socialLinks?.facebook || "",
+        telegram: socialLinks?.telegram || "",
+      });
+    } else if (!isOpen) {
+      setIsEditing(false);
+    }
+  }, [isOpen, isStoreOwner, contactInfo, socialLinks]);
+
+  const handleSave = async () => {
+    if (!storeOwnerId) return;
+    
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("store_settings")
+        .update({
+          contact_info: editedInfo,
+          social_links: editedSocialLinks,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", storeOwnerId);
+
+      if (error) throw error;
+
+      toast.success("تم حفظ التغييرات بنجاح");
+      setIsEditing(false);
+      onOpenChange(false);
+      window.location.reload();
+    } catch (error) {
+      console.error("خطأ في حفظ التغييرات:", error);
+      toast.error("فشل في حفظ التغييرات");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   if (!contactInfo || Object.values(contactInfo).every(value => !value)) {
     return null;
@@ -196,15 +270,42 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[85vh] overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="text-right text-xl">معلومات المتجر</SheetTitle>
+          <div className="flex items-center justify-between">
+            <SheetTitle className="text-right text-xl">
+              {isEditing ? "تعديل معلومات المتجر" : "معلومات المتجر"}
+            </SheetTitle>
+            {isStoreOwner && isEditing && (
+              <Button 
+                onClick={handleSave} 
+                disabled={isSaving}
+                size="sm"
+                className="gap-2"
+                style={{ backgroundColor: themeColor }}
+              >
+                <Save className="h-4 w-4" />
+                {isSaving ? "جاري الحفظ..." : "حفظ"}
+              </Button>
+            )}
+          </div>
           <SheetDescription className="text-right">
-            تفاصيل الاتصال وساعات العمل
+            {isEditing ? "قم بتعديل معلومات متجرك" : "تفاصيل الاتصال وساعات العمل"}
           </SheetDescription>
         </SheetHeader>
 
         <div className="mt-6 space-y-4">
           {/* الوصف */}
-          {contactInfo.description && (
+          {isEditing ? (
+            <Card className="p-4 border bg-card dark:bg-card" style={{ borderColor: `${themeColor}30` }}>
+              <Label className="text-foreground mb-2 block">وصف المتجر</Label>
+              <Textarea
+                value={editedInfo.description || ""}
+                onChange={(e) => setEditedInfo({ ...editedInfo, description: e.target.value })}
+                placeholder="أدخل وصف المتجر..."
+                className="bg-background text-foreground border-border"
+                dir="rtl"
+              />
+            </Card>
+          ) : contactInfo?.description && (
             <Card 
               className="p-4 border bg-card dark:bg-card"
               style={{
@@ -241,7 +342,24 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
           )}
 
           {/* العنوان */}
-          {contactInfo.address && (
+          {isEditing ? (
+            <>
+              <Separator />
+              <Card className="p-4 border bg-card dark:bg-card" style={{ borderColor: `${themeColor}30` }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <MapPin className="h-5 w-5" style={{ color: themeColor }} />
+                  <Label className="text-foreground font-semibold">العنوان</Label>
+                </div>
+                <Input
+                  value={editedInfo.address || ""}
+                  onChange={(e) => setEditedInfo({ ...editedInfo, address: e.target.value })}
+                  placeholder="أدخل عنوان المتجر..."
+                  className="bg-background text-foreground border-border"
+                  dir="rtl"
+                />
+              </Card>
+            </>
+          ) : contactInfo?.address && (
             <>
               <Separator />
               <div>
@@ -274,7 +392,24 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
           )}
 
           {/* الهاتف */}
-          {contactInfo.phone && (
+          {isEditing ? (
+            <>
+              <Separator />
+              <Card className="p-4 border bg-card dark:bg-card" style={{ borderColor: `${themeColor}30` }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Phone className="h-5 w-5" style={{ color: themeColor }} />
+                  <Label className="text-foreground font-semibold">رقم الهاتف</Label>
+                </div>
+                <Input
+                  value={editedInfo.phone || ""}
+                  onChange={(e) => setEditedInfo({ ...editedInfo, phone: e.target.value })}
+                  placeholder="أدخل رقم الهاتف..."
+                  className="bg-background text-foreground border-border"
+                  dir="ltr"
+                />
+              </Card>
+            </>
+          ) : contactInfo?.phone && (
             <>
               <Separator />
               <div>
@@ -307,7 +442,23 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
           )}
 
           {/* الواي فاي */}
-          {contactInfo.wifi && (
+          {isEditing ? (
+            <>
+              <Separator />
+              <Card className="p-4 border bg-card dark:bg-card" style={{ borderColor: `${themeColor}30` }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Wifi className="h-5 w-5" style={{ color: themeColor }} />
+                  <Label className="text-foreground font-semibold">كلمة مرور الواي فاي</Label>
+                </div>
+                <Input
+                  value={editedInfo.wifi || ""}
+                  onChange={(e) => setEditedInfo({ ...editedInfo, wifi: e.target.value })}
+                  placeholder="أدخل كلمة مرور الواي فاي..."
+                  className="bg-background text-foreground border-border"
+                />
+              </Card>
+            </>
+          ) : contactInfo?.wifi && (
             <>
               <Separator />
               <div>
@@ -350,7 +501,46 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
           )}
 
           {/* حسابات التواصل الاجتماعي */}
-          {hasSocialLinks && (
+          {isEditing ? (
+            <>
+              <Separator />
+              <Card className="p-4 border bg-card dark:bg-card" style={{ borderColor: `${themeColor}30` }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Send className="h-5 w-5" style={{ color: themeColor }} />
+                  <Label className="text-foreground font-semibold">روابط التواصل الاجتماعي</Label>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Instagram className="h-5 w-5" style={{ color: themeColor }} />
+                    <Input
+                      value={editedSocialLinks.instagram}
+                      onChange={(e) => setEditedSocialLinks({ ...editedSocialLinks, instagram: e.target.value })}
+                      placeholder="اسم المستخدم أو الرابط"
+                      className="bg-background text-foreground border-border flex-1"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Facebook className="h-5 w-5" style={{ color: themeColor }} />
+                    <Input
+                      value={editedSocialLinks.facebook}
+                      onChange={(e) => setEditedSocialLinks({ ...editedSocialLinks, facebook: e.target.value })}
+                      placeholder="اسم المستخدم أو الرابط"
+                      className="bg-background text-foreground border-border flex-1"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Send className="h-5 w-5" style={{ color: themeColor }} />
+                    <Input
+                      value={editedSocialLinks.telegram}
+                      onChange={(e) => setEditedSocialLinks({ ...editedSocialLinks, telegram: e.target.value })}
+                      placeholder="اسم المستخدم أو الرابط"
+                      className="bg-background text-foreground border-border flex-1"
+                    />
+                  </div>
+                </div>
+              </Card>
+            </>
+          ) : hasSocialLinks && (
             <>
               <Separator />
               <div>
