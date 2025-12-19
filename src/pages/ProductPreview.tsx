@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import StoreSkeleton from "@/components/store/skeletons/StoreSkeleton";
@@ -170,8 +170,12 @@ const ProductPreview = () => {
     );
   }
 
-  // عرض Skeleton أثناء التحميل
-  if (isLoading || loadingStates.identifying) {
+  // عرض Skeleton أثناء التحميل (مرة واحدة فقط: ننتظر تعريف المتجر + المنتجات)
+  if (
+    isLoading ||
+    loadingStates.identifying ||
+    (loadingStates.products && (storeData?.products?.length ?? 0) === 0)
+  ) {
     return <StoreSkeleton />;
   }
 
