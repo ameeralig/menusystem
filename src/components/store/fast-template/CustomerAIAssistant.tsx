@@ -367,7 +367,7 @@ const CustomerAIAssistant = ({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder={externalOrdersEnabled ? "مثال: أريد بيتزا 2 وموقعي المنصور ورقمي 077..." : "اسألني عن المنتجات..."}
+            placeholder="اكتب رسالتك هنا..."
             disabled={isLoading}
             className="flex-1 bg-background/50"
             dir="rtl"
