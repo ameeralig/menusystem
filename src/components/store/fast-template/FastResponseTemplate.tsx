@@ -7,6 +7,7 @@ import ProductDetailsModal from "./ProductDetailsModal";
 import EditProductModal from "./EditProductModal";
 import EmptyCategoryMessage from "../EmptyCategoryMessage";
 import BottomActionsBar from "./BottomActionsBar";
+import AppFooter from "./AppFooter";
 import StoreHeader from "../StoreHeader";
 import InlineStoreNameEditor from "../inline-edit/InlineStoreNameEditor";
 import { ContactInfo, FontSettings, SocialLinks } from "@/types/store";
@@ -349,6 +350,9 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         storePhone={contactInfo?.phone}
         storeName={storeName || undefined}
       />
+
+      {/* تذييل التطبيق مع سجل التحديثات */}
+      <AppFooter />
 
       {/* الشريط الأفقي السفلي مع البحث المدمج */}
       <BottomActionsBar
