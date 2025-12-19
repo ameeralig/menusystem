@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Disc3, MessageSquare, Search, X, Info, Sparkles, Eye, Share2, Menu } from "lucide-react";
+import { Disc3, MessageSquare, Search, X, Info, Sparkles, Eye, Share2, Menu, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
@@ -12,6 +12,7 @@ import FeedbackDialog from "../feedback/FeedbackDialog";
 import OwnerFeedbackSheet from "../feedback/OwnerFeedbackSheet";
 import StoreOwnerActionsMenu from "./StoreOwnerActionsMenu";
 import ShareMenuCard from "../share/ShareMenuCard";
+import MenuDownloadDialog from "../menu-download/MenuDownloadDialog";
 import { Product } from "@/types/product";
 import {
   Popover,
@@ -62,6 +63,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   const [isOwnerFeedbackOpen, setIsOwnerFeedbackOpen] = useState(false);
   const [isShareCardOpen, setIsShareCardOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const [isMenuDownloadOpen, setIsMenuDownloadOpen] = useState(false);
 
   const getThemeColor = () => {
     if (colorTheme?.startsWith('#')) {
@@ -120,6 +122,14 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       icon: Share2,
       label: 'شارك',
       gradient: `linear-gradient(135deg, #f59e0b, #d97706)`,
+    },
+    // زر تحميل المنيو
+    storeName && products.length > 0 && {
+      id: 'download',
+      onClick: () => setIsMenuDownloadOpen(true),
+      icon: Download,
+      label: 'تحميل',
+      gradient: `linear-gradient(135deg, #10b981, #059669)`,
     },
     // زر عجلة الحظ
     storeOwnerId && products.length > 0 && {
@@ -371,6 +381,17 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
         logoUrl={logoUrl}
         productsCount={products.length}
       />
+
+      {/* MenuDownloadDialog - نافذة تحميل المنيو */}
+      {storeName && (
+        <MenuDownloadDialog
+          isOpen={isMenuDownloadOpen}
+          onClose={() => setIsMenuDownloadOpen(false)}
+          storeName={storeName}
+          products={products}
+          colorTheme={colorTheme}
+        />
+      )}
     </motion.div>
   );
 };
