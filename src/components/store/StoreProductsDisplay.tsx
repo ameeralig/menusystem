@@ -402,7 +402,7 @@ const StoreProductsDisplay = ({
                           نتائج البحث عن: "{searchQuery}"
                         </h3>
                         <p className="text-sm text-blue-600 dark:text-blue-300">
-                          تم العثور على {allProductsCount} نتيجة {products.length < allProductsCount ? `(عرض ${products.length})` : ''}
+                          تم العثور على {allProductsCount} نتيجة {visibleProducts.length < allProductsCount ? `(عرض ${visibleProducts.length})` : ''}
                         </p>
                       </div>
                     </div>
@@ -417,7 +417,7 @@ const StoreProductsDisplay = ({
                 </motion.div>
               )}
 
-              {(isLoading || products.length === 0) && allProducts.length === 0 ? (
+              {isLoading && allProducts.length === 0 ? (
                 /* Skeleton أثناء التحميل */
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {Array.from({ length: 8 }).map((_, index) => (
@@ -430,10 +430,10 @@ const StoreProductsDisplay = ({
                     </div>
                   ))}
                 </div>
-              ) : products.length > 0 ? (
+              ) : visibleProducts.length > 0 ? (
                 <>
                   <OptimizedProductGrid 
-                    products={products}
+                    products={visibleProducts}
                     colorTheme={colorTheme}
                     isEmployeeView={isEmployeeView}
                   />
@@ -449,7 +449,7 @@ const StoreProductsDisplay = ({
                   </div>
                   
                   {/* مؤشر نهاية المنتجات */}
-                  {!hasMore && !isLoading && products.length > 0 && (
+                  {!hasMore && !isLoading && visibleProducts.length > 0 && (
                     <div className="text-center py-6">
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         تم عرض جميع المنتجات ({allProductsCount} منتج)
