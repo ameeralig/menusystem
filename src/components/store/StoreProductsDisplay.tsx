@@ -206,12 +206,9 @@ const StoreProductsDisplay = ({
 
   // إذا كان القالب هو "fast-response"، نعرض القالب السريع
   if (template === "fast-response") {
-    // مهم: allProducts مصفوفة حتى لو كانت فارغة (truthy)، لذلك نتحقق من الطول
-    const templateProducts = allProducts.length > 0 ? allProducts : products;
-
     return (
       <FastResponseTemplate
-        products={templateProducts}
+        products={allProducts}
         colorTheme={colorTheme}
         storeName={storeName}
         onSearchChange={handleSearchChange}
@@ -223,6 +220,7 @@ const StoreProductsDisplay = ({
         categoryImages={categoryImages}
         isStoreOwner={isStoreOwner}
         refreshData={refreshData}
+        isLoading={isLoading}
       />
     );
   }

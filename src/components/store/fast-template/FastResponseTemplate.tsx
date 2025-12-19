@@ -40,6 +40,7 @@ interface FastResponseTemplateProps {
   categoryImages?: CategoryImage[];
   isStoreOwner?: boolean;
   refreshData?: () => void;
+  isLoading?: boolean;
 }
 
 const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
@@ -54,7 +55,8 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   socialLinks,
   categoryImages,
   isStoreOwner = false,
-  refreshData
+  refreshData,
+  isLoading = false
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -299,7 +301,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         </div>
 
         {/* قائمة المنتجات */}
-        {products.length === 0 ? (
+        {isLoading ? (
           /* Skeleton أثناء التحميل */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {Array.from({ length: 6 }).map((_, index) => (
