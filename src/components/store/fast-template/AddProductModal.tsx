@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CategorySelectionStep } from "./CategorySelectionStep";
-import { ProductDetailsStep } from "./ProductDetailsStep";
+import { ProductDetailsStep, ProductFormData } from "./ProductDetailsStep";
 import { uploadImage, optimizeImage } from "@/utils/storageHelpers";
 
 interface AddProductModalProps {
@@ -18,7 +18,7 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
   const [currentStep, setCurrentStep] = useState(1);
   const [categories, setCategories] = useState<string[]>([]);
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ProductFormData>({
     name: "",
     description: "",
     price: "",
@@ -26,6 +26,7 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
     category: "",
     is_new: false,
     is_popular: false,
+    discount_percentage: "",
   });
 
   // State for image upload (shared with ProductDetailsStep)
@@ -101,6 +102,7 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
         }
       }
 
+      const discountValue = formData.discount_percentage ? parseFloat(formData.discount_percentage) : 0;
       const { error } = await supabase.from("products").insert([
         {
           name: formData.name,
@@ -111,6 +113,7 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
           user_id: user.id,
           is_new: formData.is_new,
           is_popular: formData.is_popular,
+          discount_percentage: discountValue >= 0 && discountValue <= 100 ? discountValue : 0,
         },
       ]);
 
@@ -127,6 +130,7 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
         category: "",
         is_new: false,
         is_popular: false,
+        discount_percentage: "",
       });
       setImageUploadState({
         uploadMethod: "url",
@@ -154,6 +158,7 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
       category: "",
       is_new: false,
       is_popular: false,
+      discount_percentage: "",
     });
     setImageUploadState({
       uploadMethod: "url",
