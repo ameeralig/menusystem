@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { MapPin, Phone, Wifi, Clock, Copy, ExternalLink, Instagram, Facebook, Send, Edit2, Save, X } from "lucide-react";
+import { MapPin, Phone, Wifi, Clock, Copy, ExternalLink, Instagram, Facebook, Send, Save } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Product } from "@/types/product";
 import { supabase } from "@/integrations/supabase/client";
@@ -79,6 +80,29 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
     telegram: "",
   });
 
+  // أيام العمل الافتراضية
+  const defaultWorkDays: WorkDay[] = [
+    { day: "sunday", isOpen: true, openTime: "09:00", closeTime: "22:00" },
+    { day: "monday", isOpen: true, openTime: "09:00", closeTime: "22:00" },
+    { day: "tuesday", isOpen: true, openTime: "09:00", closeTime: "22:00" },
+    { day: "wednesday", isOpen: true, openTime: "09:00", closeTime: "22:00" },
+    { day: "thursday", isOpen: true, openTime: "09:00", closeTime: "22:00" },
+    { day: "friday", isOpen: false, openTime: "09:00", closeTime: "22:00" },
+    { day: "saturday", isOpen: true, openTime: "09:00", closeTime: "22:00" },
+  ];
+
+  const [editedWorkDays, setEditedWorkDays] = useState<WorkDay[]>(defaultWorkDays);
+
+  const weekDaysLabels = [
+    { id: "sunday", label: "الأحد" },
+    { id: "monday", label: "الإثنين" },
+    { id: "tuesday", label: "الثلاثاء" },
+    { id: "wednesday", label: "الأربعاء" },
+    { id: "thursday", label: "الخميس" },
+    { id: "friday", label: "الجمعة" },
+    { id: "saturday", label: "السبت" },
+  ];
+
   // تفعيل وضع التعديل تلقائياً عند فتح البطاقة للمالك
   useEffect(() => {
     if (isOpen && isStoreOwner) {
@@ -95,20 +119,47 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
         facebook: socialLinks?.facebook || "",
         telegram: socialLinks?.telegram || "",
       });
+      
+      // تحميل ساعات العمل
+      if (contactInfo?.businessHours) {
+        try {
+          const parsed = JSON.parse(contactInfo.businessHours) as WorkDay[];
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setEditedWorkDays(parsed);
+          }
+        } catch {
+          setEditedWorkDays(defaultWorkDays);
+        }
+      } else {
+        setEditedWorkDays(defaultWorkDays);
+      }
     } else if (!isOpen) {
       setIsEditing(false);
     }
   }, [isOpen, isStoreOwner, contactInfo, socialLinks]);
+
+  const updateWorkDay = (dayId: string, field: keyof WorkDay, value: string | boolean) => {
+    setEditedWorkDays(prev => 
+      prev.map(day => 
+        day.day === dayId ? { ...day, [field]: value } : day
+      )
+    );
+  };
 
   const handleSave = async () => {
     if (!storeOwnerId) return;
     
     setIsSaving(true);
     try {
+      const updatedContactInfo = {
+        ...editedInfo,
+        businessHours: JSON.stringify(editedWorkDays),
+      };
+      
       const { error } = await supabase
         .from("store_settings")
         .update({
-          contact_info: editedInfo,
+          contact_info: updatedContactInfo,
           social_links: editedSocialLinks,
           updated_at: new Date().toISOString(),
         })
@@ -320,7 +371,51 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
           )}
 
           {/* ساعات العمل */}
-          {contactInfo.businessHours && (
+          {isEditing ? (
+            <>
+              <Separator />
+              <Card className="p-4 border bg-card dark:bg-card" style={{ borderColor: `${themeColor}30` }}>
+                <div className="flex items-center gap-2 mb-4">
+                  <Clock className="h-5 w-5" style={{ color: themeColor }} />
+                  <Label className="text-foreground font-semibold">ساعات العمل</Label>
+                </div>
+                <div className="space-y-3">
+                  {editedWorkDays.map((day) => {
+                    const dayLabel = weekDaysLabels.find(wd => wd.id === day.day)?.label || day.day;
+                    return (
+                      <div key={day.day} className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
+                        <Switch
+                          checked={day.isOpen}
+                          onCheckedChange={(checked) => updateWorkDay(day.day, 'isOpen', checked)}
+                        />
+                        <span className="w-16 text-sm font-medium text-foreground">{dayLabel}</span>
+                        {day.isOpen && (
+                          <div className="flex items-center gap-2 flex-1">
+                            <Input
+                              type="time"
+                              value={day.openTime}
+                              onChange={(e) => updateWorkDay(day.day, 'openTime', e.target.value)}
+                              className="w-24 text-xs bg-background text-foreground border-border"
+                            />
+                            <span className="text-muted-foreground">-</span>
+                            <Input
+                              type="time"
+                              value={day.closeTime}
+                              onChange={(e) => updateWorkDay(day.day, 'closeTime', e.target.value)}
+                              className="w-24 text-xs bg-background text-foreground border-border"
+                            />
+                          </div>
+                        )}
+                        {!day.isOpen && (
+                          <span className="text-sm text-muted-foreground">مغلق</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            </>
+          ) : contactInfo?.businessHours && (
             <>
               <Separator />
               <div>
