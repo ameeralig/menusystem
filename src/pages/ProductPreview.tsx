@@ -216,34 +216,34 @@ const ProductPreview = () => {
         )}
         
         <div className={employee ? "pt-20" : ""}>
-          <Suspense fallback={<StoreSkeleton />}>
-            <ProductPreviewContainer
-              colorTheme={storeData.colorTheme} 
-              bannerUrl={storeData.bannerUrl}
+          <ProductPreviewContainer
+            colorTheme={storeData.colorTheme} 
+            bannerUrl={storeData.bannerUrl}
+            fontSettings={storeData.fontSettings}
+            darkMode={storeData.darkMode}
+            containerHeight="auto"
+            isStoreOwner={isStoreOwner}
+            storeOwnerId={storeOwnerId || undefined}
+            onUpdate={refreshData}
+          >
+            <StoreProductsDisplay 
+              storeName={storeData.storeName} 
+              colorTheme={storeData.colorTheme}
               fontSettings={storeData.fontSettings}
-              darkMode={storeData.darkMode}
-              containerHeight="auto"
+              contactInfo={storeData.contactInfo}
+              categoryImages={storeData.categoryImages}
+              slug={slug}
+              storeOwnerId={storeOwnerId}
+              forceRefresh={forceRefresh}
+              isEmployeeView={!!employee}
+              template={storeData.template}
+              socialLinks={storeData.socialLinks}
               isStoreOwner={isStoreOwner}
-              storeOwnerId={storeOwnerId || undefined}
-              onUpdate={refreshData}
-            >
-              <StoreProductsDisplay 
-                storeName={storeData.storeName} 
-                colorTheme={storeData.colorTheme}
-                fontSettings={storeData.fontSettings}
-                contactInfo={storeData.contactInfo}
-                categoryImages={storeData.categoryImages}
-                slug={slug}
-                storeOwnerId={storeOwnerId}
-                forceRefresh={forceRefresh}
-                isEmployeeView={!!employee}
-                template={storeData.template}
-                socialLinks={storeData.socialLinks}
-                isStoreOwner={isStoreOwner}
-                refreshData={refreshData}
-              />
-            </ProductPreviewContainer>
-          </Suspense>
+              refreshData={refreshData}
+              products={storeData.products || []}
+              productsLoading={loadingStates.products}
+            />
+          </ProductPreviewContainer>
         </div>
       </CartProvider>
     </>
