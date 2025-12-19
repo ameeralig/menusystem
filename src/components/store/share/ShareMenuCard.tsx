@@ -1,12 +1,6 @@
 import React, { useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Share2, Download, Copy, Check, X, QrCode } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Share2, Download, Copy, Check, X, QrCode, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import QRCode from "react-qr-code";
@@ -34,9 +28,9 @@ const ShareMenuCard: React.FC<ShareMenuCardProps> = ({
   const [copied, setCopied] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  // رابط المتجر
+  // رابط المتجر - استخدام الدومين المخصص
   const storeUrl = slug 
-    ? `${window.location.origin}/store/${slug}` 
+    ? `https://qrmenuc.com/${slug}` 
     : window.location.href;
 
   // الحصول على لون الثيم
@@ -77,7 +71,6 @@ const ShareMenuCard: React.FC<ShareMenuCardProps> = ({
     setIsDownloading(true);
     
     try {
-      // استخدام html2canvas لالتقاط البطاقة
       const html2canvas = (await import('html2canvas')).default;
       
       const canvas = await html2canvas(cardRef.current, {
@@ -105,7 +98,7 @@ const ShareMenuCard: React.FC<ShareMenuCardProps> = ({
   const handleShare = useCallback(async () => {
     const shareData = {
       title: storeName || "المنيو الرقمي",
-      text: `تصفح منيو ${storeName} الرقمي!`,
+      text: `تصفح منيو ${storeName} الرقمي! 🍽️`,
       url: storeUrl,
     };
 
@@ -120,117 +113,185 @@ const ShareMenuCard: React.FC<ShareMenuCardProps> = ({
     }
   }, [storeName, storeUrl, handleCopyLink]);
 
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden">
-        <DialogHeader className="p-4 pb-2">
-          <DialogTitle className="text-center flex items-center justify-center gap-2">
-            <Share2 className="w-5 h-5" />
-            شارك المنيو
-          </DialogTitle>
-        </DialogHeader>
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* الخلفية الضبابية */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 z-50 backdrop-blur-md bg-black/40"
+          />
 
-        <div className="p-4 pt-0 space-y-4">
-          {/* البطاقة الرقمية */}
-          <div 
-            ref={cardRef}
-            className="rounded-2xl overflow-hidden shadow-2xl"
-            style={{
-              background: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)`,
-            }}
+          {/* البطاقة العائمة */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
           >
-            {/* رأس البطاقة */}
-            <div className="p-6 text-center text-white">
-              {/* الشعار أو أيقونة */}
-              <div className="mx-auto mb-4 w-20 h-20 rounded-full bg-white/20 backdrop-blur flex items-center justify-center overflow-hidden">
-                {logoUrl ? (
-                  <img 
-                    src={logoUrl} 
-                    alt={storeName || "Logo"} 
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <QrCode className="w-10 h-10 text-white" />
-                )}
-              </div>
+            <div className="pointer-events-auto w-full max-w-sm">
+              {/* زر الإغلاق */}
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={onClose}
+                className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center text-white shadow-lg"
+              >
+                <X className="w-5 h-5" />
+              </motion.button>
 
-              {/* اسم المتجر */}
-              <h2 className="text-2xl font-bold mb-2">{storeName}</h2>
-              <p className="text-white/80 text-sm">
-                {productsCount > 0 
-                  ? `${productsCount} منتج متاح` 
-                  : "المنيو الرقمي"}
-              </p>
-            </div>
-
-            {/* QR Code */}
-            <div className="bg-white p-4 mx-4 mb-4 rounded-xl">
-              <div className="flex justify-center">
-                <QRCode
-                  value={storeUrl}
-                  size={140}
-                  level="H"
-                  fgColor={themeColor}
+              {/* البطاقة الزجاجية */}
+              <div 
+                ref={cardRef}
+                className="rounded-3xl overflow-hidden shadow-2xl border border-white/20"
+                style={{
+                  background: `linear-gradient(135deg, ${themeColor}ee, ${themeColor}cc)`,
+                  backdropFilter: 'blur(20px)',
+                }}
+              >
+                {/* تأثير الإضاءة العلوي */}
+                <div 
+                  className="absolute top-0 left-0 right-0 h-32 opacity-30"
+                  style={{
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%)',
+                  }}
                 />
+
+                {/* محتوى البطاقة */}
+                <div className="relative p-6 text-center text-white">
+                  {/* الشعار */}
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.1, type: "spring" }}
+                    className="mx-auto mb-4 w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center overflow-hidden shadow-lg"
+                  >
+                    {logoUrl ? (
+                      <img 
+                        src={logoUrl} 
+                        alt={storeName || "Logo"} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <QrCode className="w-10 h-10 text-white" />
+                    )}
+                  </motion.div>
+
+                  {/* اسم المتجر */}
+                  <motion.h2 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                    className="text-2xl font-bold mb-1 drop-shadow-lg"
+                  >
+                    {storeName}
+                  </motion.h2>
+                  <motion.p 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="text-white/80 text-sm mb-4"
+                  >
+                    {productsCount > 0 
+                      ? `${productsCount} منتج متاح` 
+                      : "المنيو الرقمي"}
+                  </motion.p>
+
+                  {/* QR Code في إطار زجاجي */}
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.25, type: "spring" }}
+                    className="bg-white/95 backdrop-blur p-4 rounded-2xl shadow-xl mx-auto max-w-[180px]"
+                  >
+                    <QRCode
+                      value={storeUrl}
+                      size={140}
+                      level="H"
+                      fgColor={themeColor}
+                      style={{ width: '100%', height: 'auto' }}
+                    />
+                  </motion.div>
+
+                  {/* الرابط */}
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="mt-4 bg-white/10 backdrop-blur-lg rounded-xl px-4 py-2 border border-white/20"
+                  >
+                    <p className="text-white/90 text-xs truncate flex items-center justify-center gap-1" dir="ltr">
+                      <ExternalLink className="w-3 h-3" />
+                      {storeUrl}
+                    </p>
+                  </motion.div>
+
+                  {/* رسالة */}
+                  <motion.p 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.35 }}
+                    className="text-white/70 text-xs mt-3"
+                  >
+                    امسح الكود لتصفح المنيو 📱
+                  </motion.p>
+                </div>
               </div>
-              <p className="text-center text-xs text-muted-foreground mt-3">
-                امسح الكود لتصفح المنيو
-              </p>
+
+              {/* أزرار الإجراءات - خارج البطاقة */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="flex gap-2 mt-4"
+              >
+                {/* نسخ الرابط */}
+                <Button
+                  variant="outline"
+                  onClick={handleCopyLink}
+                  className="flex-1 h-12 rounded-2xl bg-white/10 backdrop-blur-lg border-white/20 text-white hover:bg-white/20"
+                >
+                  {copied ? (
+                    <Check className="w-5 h-5 mr-2 text-green-400" />
+                  ) : (
+                    <Copy className="w-5 h-5 mr-2" />
+                  )}
+                  <span className="text-sm">نسخ</span>
+                </Button>
+
+                {/* تحميل */}
+                <Button
+                  variant="outline"
+                  onClick={handleDownload}
+                  disabled={isDownloading}
+                  className="flex-1 h-12 rounded-2xl bg-white/10 backdrop-blur-lg border-white/20 text-white hover:bg-white/20"
+                >
+                  <Download className="w-5 h-5 mr-2" />
+                  <span className="text-sm">تحميل</span>
+                </Button>
+
+                {/* مشاركة */}
+                <Button
+                  onClick={handleShare}
+                  className="flex-1 h-12 rounded-2xl shadow-lg"
+                  style={{ backgroundColor: themeColor }}
+                >
+                  <Share2 className="w-5 h-5 mr-2" />
+                  <span className="text-sm">مشاركة</span>
+                </Button>
+              </motion.div>
             </div>
-
-            {/* الرابط */}
-            <div className="bg-white/10 backdrop-blur px-4 py-3 text-center">
-              <p className="text-white/90 text-xs truncate" dir="ltr">
-                {storeUrl}
-              </p>
-            </div>
-          </div>
-
-          {/* أزرار المشاركة */}
-          <div className="grid grid-cols-3 gap-2">
-            {/* نسخ الرابط */}
-            <Button
-              variant="outline"
-              onClick={handleCopyLink}
-              className="flex flex-col items-center gap-1 h-auto py-3"
-            >
-              {copied ? (
-                <Check className="w-5 h-5 text-green-500" />
-              ) : (
-                <Copy className="w-5 h-5" />
-              )}
-              <span className="text-xs">نسخ الرابط</span>
-            </Button>
-
-            {/* تحميل */}
-            <Button
-              variant="outline"
-              onClick={handleDownload}
-              disabled={isDownloading}
-              className="flex flex-col items-center gap-1 h-auto py-3"
-            >
-              <Download className="w-5 h-5" />
-              <span className="text-xs">تحميل</span>
-            </Button>
-
-            {/* مشاركة */}
-            <Button
-              onClick={handleShare}
-              className="flex flex-col items-center gap-1 h-auto py-3"
-              style={{ backgroundColor: themeColor }}
-            >
-              <Share2 className="w-5 h-5" />
-              <span className="text-xs">مشاركة</span>
-            </Button>
-          </div>
-
-          {/* رسالة تحفيزية */}
-          <p className="text-center text-xs text-muted-foreground">
-            شارك البطاقة مع أصدقائك ليتعرفوا على منيوك! 🚀
-          </p>
-        </div>
-      </DialogContent>
-    </Dialog>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 };
 
