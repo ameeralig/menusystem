@@ -42,6 +42,7 @@ interface FastResponseTemplateProps {
   isStoreOwner?: boolean;
   refreshData?: () => void;
   isLoading?: boolean;
+  logoUrl?: string | null;
 }
 
 const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
@@ -57,7 +58,8 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   categoryImages,
   isStoreOwner = false,
   refreshData,
-  isLoading = false
+  isLoading = false,
+  logoUrl
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -370,6 +372,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         products={products}
         externalOrdersEnabled={externalOrdersEnabled}
         deliveryFee={deliveryFee}
+        logoUrl={logoUrl}
       />
 
       {/* نافذة تفاصيل المنتج */}

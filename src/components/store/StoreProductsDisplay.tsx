@@ -35,6 +35,8 @@ interface StoreProductsDisplayProps {
   products?: Product[];
   /** حالة تحميل المنتجات (لإظهار skeleton مرة واحدة فقط) */
   productsLoading?: boolean;
+  /** رابط شعار المتجر */
+  logoUrl?: string | null;
 }
 
 const StoreProductsDisplay = ({
@@ -53,6 +55,7 @@ const StoreProductsDisplay = ({
   refreshData,
   products: productsData = [],
   productsLoading = false,
+  logoUrl,
 }: StoreProductsDisplayProps) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -277,6 +280,7 @@ const StoreProductsDisplay = ({
         isStoreOwner={isStoreOwner}
         refreshData={refreshData}
         isLoading={isLoading && allProducts.length === 0}
+        logoUrl={logoUrl}
       />
     );
   }
