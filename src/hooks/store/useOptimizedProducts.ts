@@ -48,10 +48,6 @@ export const useOptimizedProducts = ({
 
     try {
       setIsLoading(true);
-      setLoadingProgress(0);
-      
-      // مرحلة 1: جلب المنتجات (30%)
-      setLoadingProgress(10);
       
       const { data, error } = await supabase
         .from('products')
@@ -62,50 +58,23 @@ export const useOptimizedProducts = ({
 
       if (error) {
         console.error('خطأ في جلب المنتجات:', error);
-        setLoadingProgress(0);
+        setIsLoading(false);
         return;
       }
 
-      setLoadingProgress(50);
+      // تحسين روابط الصور فوراً
+      const optimizedProducts = data.map(product => ({
+        ...product,
+        image_url: product.image_url ? optimizeImageUrl(product.image_url) : null
+      }));
 
-      // مرحلة 2: تحسين روابط الصور بشكل متوازي (50% - 90%)
-      const optimizedProducts: Product[] = [];
-      const totalProducts = data.length;
-      const CHUNK_SIZE = 20;
-      
-      // تقسيم المنتجات إلى دفعات للمعالجة المتوازية
-      const chunks = [];
-      for (let i = 0; i < data.length; i += CHUNK_SIZE) {
-        chunks.push(data.slice(i, i + CHUNK_SIZE));
-      }
-      
-      // معالجة كل دفعة
-      for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
-        const chunk = chunks[chunkIndex];
-        const optimizedChunk = chunk.map(product => ({
-          ...product,
-          image_url: product.image_url ? optimizeImageUrl(product.image_url) : null
-        }));
-        optimizedProducts.push(...optimizedChunk);
-        
-        // تحديث التقدم كل دفعة (بدلاً من كل منتج)
-        const progress = 50 + ((chunkIndex + 1) / chunks.length) * 40;
-        setLoadingProgress(Math.round(progress));
-      }
-
-      // مرحلة 3: الانتهاء (100%)
-      setLoadingProgress(100);
       setAllProducts(optimizedProducts);
-      
-      // حفظ البيانات في الـ cache لمدة 15 دقيقة
       setCachedData(cacheKey, optimizedProducts, 15 * 60 * 1000);
-      
-      // إخفاء التحميل فوراً
+      setLoadingProgress(100);
       setIsLoading(false);
       
     } catch (error) {
       console.error('خطأ غير متوقع في جلب المنتجات:', error);
-      setLoadingProgress(0);
       setIsLoading(false);
     }
   }, [userId, forceRefresh]);
