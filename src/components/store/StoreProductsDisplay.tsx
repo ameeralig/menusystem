@@ -11,7 +11,7 @@ import AnimatedStoreHeader from "./AnimatedStoreHeader";
 import InlineStoreNameEditor from "./inline-edit/InlineStoreNameEditor";
 import InlineContactInfoEditor from "./inline-edit/InlineContactInfoEditor";
 import StoreInfo from "./StoreInfo";
-import { useOptimizedProducts } from "@/hooks/store/useOptimizedProducts";
+// ملاحظة: المنتجات تُمرر للمكون جاهزة من useOptimizedStoreData لتجنب جلبها مرتين
 import { sortCategoriesByOrder } from "@/utils/categorySort";
 import { FontSettings, ContactInfo } from "@/types/store";
 import FastResponseTemplate from "./fast-template/FastResponseTemplate";
@@ -31,6 +31,10 @@ interface StoreProductsDisplayProps {
   socialLinks?: any;
   isStoreOwner?: boolean;
   refreshData?: () => void;
+  /** قائمة المنتجات كاملة (مجلوبة مسبقاً من useOptimizedStoreData) */
+  products?: Product[];
+  /** حالة تحميل المنتجات (لإظهار skeleton مرة واحدة فقط) */
+  productsLoading?: boolean;
 }
 
 const StoreProductsDisplay = ({
@@ -47,28 +51,80 @@ const StoreProductsDisplay = ({
   socialLinks,
   isStoreOwner = false,
   refreshData,
+  products: productsData = [],
+  productsLoading = false,
 }: StoreProductsDisplayProps) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [customFontFamily, setCustomFontFamily] = useState<string>("");
   const loadMoreRef = useRef<HTMLDivElement>(null);
   
-  // استخدام المنتجات المحسنة
-  const { 
-    products, 
-    allProducts,
-    allProductsCount, 
-    categories,
-    isLoading,
-    loadingProgress,
-    hasMore, 
-    loadMore 
-  } = useOptimizedProducts({
-    userId: storeOwnerId || null,
-    selectedCategory,
-    searchQuery,
-    forceRefresh
-  });
+  // المنتجات (مجلوبة مرة واحدة من useOptimizedStoreData)
+  const allProducts = productsData;
+  const isLoading = productsLoading;
+
+  // Paginated visible products + infinite scroll
+  const PRODUCTS_PER_PAGE = 50;
+  const [page, setPage] = useState(1);
+  const [visibleProducts, setVisibleProducts] = useState<Product[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+
+  // استخراج التصنيفات من جميع المنتجات (بدون ترتيب أبجدي)
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    allProducts.forEach((p) => {
+      if (p.category && p.category.trim()) set.add(p.category.trim());
+    });
+    return Array.from(set);
+  }, [allProducts]);
+
+  // تصفية المنتجات حسب التصنيف/البحث (نفس منطق useOptimizedProducts)
+  const filteredProducts = useMemo(() => {
+    let filtered = allProducts;
+
+    if (selectedCategory) {
+      filtered = filtered.filter((p) => p.category === selectedCategory);
+    }
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter((p) => {
+        const nameMatch = p.name.toLowerCase().includes(query);
+        const descMatch = p.description?.toLowerCase().includes(query);
+        const categoryMatch = p.category?.toLowerCase().includes(query);
+        return nameMatch || descMatch || categoryMatch;
+      });
+    }
+
+    return filtered;
+  }, [allProducts, selectedCategory, searchQuery]);
+
+  const allProductsCount = filteredProducts.length;
+
+  useEffect(() => {
+    setPage(1);
+    const initial = filteredProducts.slice(0, PRODUCTS_PER_PAGE);
+    setVisibleProducts(initial);
+    setHasMore(filteredProducts.length > PRODUCTS_PER_PAGE);
+  }, [filteredProducts]);
+
+  const loadMore = useCallback(() => {
+    if (!hasMore || isLoading) return;
+
+    const nextPage = page + 1;
+    const startIndex = page * PRODUCTS_PER_PAGE;
+    const endIndex = nextPage * PRODUCTS_PER_PAGE;
+    const newProducts = filteredProducts.slice(startIndex, endIndex);
+
+    if (newProducts.length > 0) {
+      setVisibleProducts((prev) => [...prev, ...newProducts]);
+      setPage(nextPage);
+      setHasMore(endIndex < filteredProducts.length);
+    } else {
+      setHasMore(false);
+    }
+  }, [hasMore, isLoading, page, filteredProducts]);
+
 
   // تحميل محسّن للخط المخصص مع preload
   useEffect(() => {
@@ -220,7 +276,7 @@ const StoreProductsDisplay = ({
         categoryImages={categoryImages}
         isStoreOwner={isStoreOwner}
         refreshData={refreshData}
-        isLoading={isLoading}
+        isLoading={isLoading && allProducts.length === 0}
       />
     );
   }

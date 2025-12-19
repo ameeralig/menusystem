@@ -1,20 +1,17 @@
 
-import { lazy, Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import StoreSkeleton from "@/components/store/skeletons/StoreSkeleton";
+import ProductPreviewContainer from "@/components/store/ProductPreviewContainer";
 import { useOptimizedStoreData } from "@/hooks/store/useOptimizedStoreData";
 import { useRefreshData } from "@/hooks/useRefreshData";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useEmployeeAuth } from "@/hooks/employees/useEmployeeAuth";
 import EmployeePanel from "@/components/employees/EmployeePanel";
-import EmployeeProductsView from "@/components/employees/EmployeeProductsView";
 import { CartProvider } from "@/contexts/CartContext";
 import StoreProductsDisplay from "@/components/store/StoreProductsDisplay";
-
-// استخدام التحميل البطيء للمكونات غير الأساسية
-const ProductPreviewContainer = lazy(() => import("@/components/store/ProductPreviewContainer"));
 
 const ProductPreview = () => {
   const { slug } = useParams<{ slug: string }>();
