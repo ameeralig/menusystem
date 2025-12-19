@@ -14,4 +14,16 @@ export interface Product {
   category_id?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
+  discount_percentage?: number | null;
 }
+
+// حساب السعر بعد الخصم
+export const getDiscountedPrice = (price: number, discountPercentage?: number | null): number => {
+  if (!discountPercentage || discountPercentage <= 0) return price;
+  return price - (price * discountPercentage / 100);
+};
+
+// التحقق من وجود خصم
+export const hasDiscount = (discountPercentage?: number | null): boolean => {
+  return !!discountPercentage && discountPercentage > 0;
+};

@@ -4,11 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Upload, ImagePlus, Link as LinkIcon, Star, TrendingUp, ChevronRight, X } from "lucide-react";
+import { Upload, ImagePlus, Link as LinkIcon, Star, TrendingUp, ChevronRight, X, Percent } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-interface ProductFormData {
+export interface ProductFormData {
   name: string;
   description: string;
   price: string;
@@ -16,6 +16,7 @@ interface ProductFormData {
   category: string;
   is_new: boolean;
   is_popular: boolean;
+  discount_percentage: string;
 }
 
 interface ProductDetailsStepProps {
@@ -90,20 +91,49 @@ export const ProductDetailsStep = ({
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="price">السعر (بالدينار العراقي)</Label>
-        <Input
-          id="price"
-          required
-          type="number"
-          min="0"
-          step="0.01"
-          value={formData.price}
-          onChange={(e) => onFormDataChange({ ...formData, price: e.target.value })}
-          placeholder="أدخل سعر المنتج"
-          className="w-full"
-        />
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="price">السعر (بالدينار العراقي)</Label>
+          <Input
+            id="price"
+            required
+            type="number"
+            min="0"
+            step="0.01"
+            value={formData.price}
+            onChange={(e) => onFormDataChange({ ...formData, price: e.target.value })}
+            placeholder="أدخل سعر المنتج"
+            className="w-full"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="discount" className="flex items-center gap-1">
+            <Percent className="w-4 h-4" />
+            نسبة الخصم
+          </Label>
+          <Input
+            id="discount"
+            type="number"
+            min="0"
+            max="100"
+            step="1"
+            value={formData.discount_percentage}
+            onChange={(e) => onFormDataChange({ ...formData, discount_percentage: e.target.value })}
+            placeholder="0"
+            className="w-full"
+          />
+        </div>
       </div>
+
+      {/* معاينة السعر بعد الخصم */}
+      {formData.discount_percentage && parseFloat(formData.discount_percentage) > 0 && formData.price && (
+        <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+          <p className="text-sm text-green-700 dark:text-green-300">
+            السعر بعد الخصم: <span className="font-bold">{new Intl.NumberFormat('ar-IQ').format(parseFloat(formData.price) - (parseFloat(formData.price) * parseFloat(formData.discount_percentage) / 100))} د.ع</span>
+            <span className="mr-2 text-gray-500 line-through text-xs">{new Intl.NumberFormat('ar-IQ').format(parseFloat(formData.price))} د.ع</span>
+          </p>
+        </div>
+      )}
 
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-4">

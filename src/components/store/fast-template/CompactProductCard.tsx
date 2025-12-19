@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Product } from "@/types/product";
-import { Edit, Trash2, Plus } from "lucide-react";
+import { Product, getDiscountedPrice, hasDiscount } from "@/types/product";
+import { Edit, Trash2, Plus, Percent } from "lucide-react";
 import { optimizeImageUrl } from "@/utils/imageOptimizer";
 import { Button } from "@/components/ui/button";
 import { isSafari, isIOS } from "@/utils/browserDetect";
@@ -106,7 +106,13 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
           }}
         />
         
-        {/* شارة جديد أو غير متوفر */}
+        {/* شارة جديد أو غير متوفر أو خصم */}
+        {hasDiscount(product.discount_percentage) && (
+          <span className="absolute top-1 left-1 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium flex items-center gap-0.5">
+            <Percent className="w-2.5 h-2.5" />
+            {product.discount_percentage}
+          </span>
+        )}
         {product.is_new && (
           <span className="absolute top-1 right-1 bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
             جديد
@@ -126,15 +132,31 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
         </h3>
         
         {/* السعر */}
-        <div className="flex items-center gap-2">
-          <span 
-            className="text-base sm:text-lg font-bold text-gray-900 dark:text-white"
-            style={{ 
-              color: colorTheme?.startsWith('#') ? colorTheme : undefined 
-            }}
-          >
-            {formatPrice(product.price)} د.ع
-          </span>
+        <div className="flex items-center gap-2 flex-wrap">
+          {hasDiscount(product.discount_percentage) ? (
+            <>
+              <span 
+                className="text-base sm:text-lg font-bold"
+                style={{ 
+                  color: colorTheme?.startsWith('#') ? colorTheme : undefined 
+                }}
+              >
+                {formatPrice(getDiscountedPrice(product.price, product.discount_percentage))} د.ع
+              </span>
+              <span className="text-xs text-gray-400 line-through">
+                {formatPrice(product.price)} د.ع
+              </span>
+            </>
+          ) : (
+            <span 
+              className="text-base sm:text-lg font-bold text-gray-900 dark:text-white"
+              style={{ 
+                color: colorTheme?.startsWith('#') ? colorTheme : undefined 
+              }}
+            >
+              {formatPrice(product.price)} د.ع
+            </span>
+          )}
           
           {product.is_popular && (
             <span className="text-[10px] bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-1.5 py-0.5 rounded-full font-medium">

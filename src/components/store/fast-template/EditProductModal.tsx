@@ -32,6 +32,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
   const [isNew, setIsNew] = useState(false);
   const [isPopular, setIsPopular] = useState(false);
   const [isAvailable, setIsAvailable] = useState(true);
+  const [discountPercentage, setDiscountPercentage] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -49,6 +50,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
       setIsNew(product.is_new || false);
       setIsPopular(product.is_popular || false);
       setIsAvailable(product.is_available !== false);
+      setDiscountPercentage(product.discount_percentage?.toString() || "");
       setImagePreview(product.image_url || null);
       setImageFile(null);
       
@@ -146,6 +148,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
       }
 
       // تحديث بيانات المنتج
+      const discountValue = discountPercentage ? parseFloat(discountPercentage) : 0;
       const { error: updateError } = await supabase
         .from('products')
         .update({
@@ -156,6 +159,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
           is_new: isNew,
           is_popular: isPopular,
           is_available: isAvailable,
+          discount_percentage: discountValue >= 0 && discountValue <= 100 ? discountValue : 0,
           image_url: imageUrl
         })
         .eq('id', product.id);
@@ -259,20 +263,46 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                     />
                   </div>
 
-                  {/* السعر */}
-                  <div>
-                    <Label htmlFor="price">السعر (دينار عراقي) *</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value)}
-                      placeholder="0"
-                      min="0"
-                      step="0.01"
-                      className="mt-2"
-                    />
+                  {/* السعر والخصم */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="price">السعر (دينار عراقي) *</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                        placeholder="0"
+                        min="0"
+                        step="0.01"
+                        className="mt-2"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="discount">نسبة الخصم (%)</Label>
+                      <Input
+                        id="discount"
+                        type="number"
+                        value={discountPercentage}
+                        onChange={(e) => setDiscountPercentage(e.target.value)}
+                        placeholder="0"
+                        min="0"
+                        max="100"
+                        step="1"
+                        className="mt-2"
+                      />
+                    </div>
                   </div>
+                  
+                  {/* معاينة السعر بعد الخصم */}
+                  {discountPercentage && parseFloat(discountPercentage) > 0 && price && (
+                    <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                      <p className="text-sm text-green-700 dark:text-green-300">
+                        السعر بعد الخصم: <span className="font-bold">{new Intl.NumberFormat('ar-IQ').format(parseFloat(price) - (parseFloat(price) * parseFloat(discountPercentage) / 100))} د.ع</span>
+                        <span className="mr-2 text-gray-500 line-through text-xs">{new Intl.NumberFormat('ar-IQ').format(parseFloat(price))} د.ع</span>
+                      </p>
+                    </div>
+                  )}
 
                   {/* التصنيف */}
                   <div>
