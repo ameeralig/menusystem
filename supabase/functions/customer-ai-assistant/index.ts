@@ -33,7 +33,6 @@ serve(async (req) => {
     const { 
       message, 
       storeOwnerId, 
-      customerName,
       externalOrdersEnabled,
       conversationHistory = []
     } = await req.json();
@@ -116,11 +115,13 @@ ${productsText}
 - إذا سأل الزبون عن منتج غير موجود في القائمة، أخبره بأنه غير متوفر حالياً واقترح بدائل مشابهة
 - إذا سأل عن السعر، استخدم الأسعار الموجودة في القائمة فقط واذكرها بالدينار العراقي
 - إذا كان السؤال عام، اقترح منتجات شائعة أو عروض مميزة
-- جميع الأسعار بالدينار العراقي وليس بالريال`;
+- جميع الأسعار بالدينار العراقي وليس بالريال
 
-    if (customerName) {
-      systemPrompt += `\n- اسم الزبون هو: ${customerName}، استخدمه في الترحيب والتفاعل`;
-    }
+قدرة استخراج المعلومات من رسالة واحدة:
+- يمكن للزبون إرسال طلب كامل في رسالة واحدة مثل: "أريد بيتزا عدد 2 وموقعي المنصور ورقمي 07739912345 ومافي ملاحظات"
+- حلل الرسالة واستخرج: اسم المنتج، الكمية، الموقع/العنوان، رقم الهاتف، الملاحظات
+- إذا ذكر الزبون كل المعلومات، استخدم create_order_summary مباشرة
+- إذا نقصت معلومات (مثل رقم الهاتف أو العنوان)، اطلبها بشكل ودي`;
 
     const messages: Message[] = [
       { role: 'system', content: systemPrompt },
@@ -171,15 +172,29 @@ ${productsText}
           type: "function",
           function: {
             name: "create_order_summary",
-            description: "إنشاء ملخص الطلب النهائي بعد جمع جميع المعلومات (المنتجات، الاسم، الهاتف، العنوان)",
+            description: "إنشاء ملخص الطلب النهائي. استخدم هذا عندما يرسل الزبون رسالة تحتوي على: المنتج والكمية + رقم الهاتف + العنوان. يمكن استخراج كل المعلومات من رسالة واحدة.",
             parameters: {
               type: "object",
               properties: {
+                products: {
+                  type: "array",
+                  description: "المنتجات المطلوبة مع الكميات",
+                  items: {
+                    type: "object",
+                    properties: {
+                      product_id: { type: "string", description: "معرف المنتج" },
+                      product_name: { type: "string", description: "اسم المنتج" },
+                      quantity: { type: "number", description: "الكمية" }
+                    },
+                    required: ["product_id", "product_name", "quantity"]
+                  }
+                },
+                customer_name: { type: "string", description: "اسم الزبون (اختياري)" },
                 customer_phone: { type: "string", description: "رقم هاتف الزبون" },
-                customer_address: { type: "string", description: "عنوان الزبون" },
+                customer_address: { type: "string", description: "عنوان/موقع الزبون" },
                 customer_notes: { type: "string", description: "ملاحظات إضافية (اختياري)" }
               },
-              required: ["customer_phone", "customer_address"]
+              required: ["products", "customer_phone", "customer_address"]
             }
           }
         }
@@ -227,17 +242,28 @@ ${productsText}
         assistantMessage = `تم إضافة المنتجات التالية إلى سلتك: ${productNames} ✅\n\nهل تريد إتمام الطلب؟ سأحتاج منك:\n- رقم الهاتف\n- العنوان\n- أي ملاحظات إضافية (اختياري)`;
       } 
       else if (functionName === 'create_order_summary') {
-        // حساب مجموع المنتجات من السلة الحالية
-        // نفترض أن المنتجات موجودة في المحادثة
+        // حساب المنتجات من الأداة
         const cartItems: any[] = [];
         let subtotal = 0;
         
-        // محاولة استخراج المنتجات من السياق
-        // في الواقع يجب إرسال المنتجات من الـ frontend
+        if (args.products && Array.isArray(args.products)) {
+          args.products.forEach((p: any) => {
+            const product = products?.find((prod: any) => prod.id === p.product_id || prod.name.includes(p.product_name));
+            if (product) {
+              const itemTotal = product.price * p.quantity;
+              cartItems.push({
+                productName: product.name,
+                quantity: p.quantity,
+                price: product.price
+              });
+              subtotal += itemTotal;
+            }
+          });
+        }
         
         orderSummary = {
           items: cartItems,
-          customerName: customerName || 'الزبون',
+          customerName: args.customer_name || 'الزبون',
           customerPhone: args.customer_phone,
           customerAddress: args.customer_address,
           customerNotes: args.customer_notes,
@@ -246,7 +272,10 @@ ${productsText}
           total: subtotal + deliveryFee
         };
 
-        assistantMessage = `تمام! تم تجهيز طلبك 🎉\n\nملخص الطلب:\n- المجموع الفرعي: ${subtotal} دينار عراقي\n- مبلغ التوصيل: ${deliveryFee} دينار عراقي\n- المجموع النهائي: ${subtotal + deliveryFee} دينار عراقي\n\nيمكنك الآن مراجعة الطلب والضغط على زر "إرسال الطلب إلى الواتساب" أدناه لإكمال الطلب.`;
+        const formatPrice = (price: number) => new Intl.NumberFormat('ar-IQ').format(price);
+        let itemsText = cartItems.map((item, i) => `${i + 1}. ${item.productName} × ${item.quantity} = ${formatPrice(item.price * item.quantity)} د.ع`).join('\n');
+        
+        assistantMessage = `تمام! تم تجهيز طلبك 🎉\n\n📦 المنتجات:\n${itemsText}\n\n💰 المجموع الفرعي: ${formatPrice(subtotal)} د.ع\n🚗 التوصيل: ${formatPrice(deliveryFee)} د.ع\n✨ المجموع النهائي: ${formatPrice(subtotal + deliveryFee)} د.ع\n\n📍 العنوان: ${args.customer_address}\n📱 الهاتف: ${args.customer_phone}${args.customer_notes ? `\n📝 ملاحظات: ${args.customer_notes}` : ''}\n\nاضغط على الزر أدناه لإرسال الطلب للواتساب 👇`;
       }
     }
 
