@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Disc3, MessageSquare, Search, X, Info, Sparkles, Eye, Share2, Download } from "lucide-react";
+import { Disc3, MessageSquare, Search, X, Sparkles, Share2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
@@ -115,14 +115,6 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
 
   // الأزرار الرئيسية (تظهر دائماً)
   const primaryButtons = [
-    // معلومات المتجر
-    contactInfo && {
-      id: 'info',
-      onClick: () => setIsInfoSheetOpen(true),
-      icon: Info,
-      label: 'معلومات',
-      gradient: `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`,
-    },
     // زر شارك المنيو
     slug && {
       id: 'share',
@@ -155,17 +147,13 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       label: 'AI',
       gradient: `linear-gradient(135deg, #8b5cf6, #7c3aed)`,
     },
-    // تقييم / عرض الآراء
-    storeOwnerId && {
+    // تقييم للزوار فقط
+    storeOwnerId && !isStoreOwner && {
       id: 'feedback',
-      onClick: () => { 
-        isStoreOwner ? setIsOwnerFeedbackOpen(true) : setIsFeedbackDialogOpen(true);
-      },
-      icon: isStoreOwner ? Eye : MessageSquare,
-      label: isStoreOwner ? 'الآراء' : 'رأيك',
-      gradient: isStoreOwner 
-        ? `linear-gradient(135deg, #10b981, #059669)` 
-        : `linear-gradient(135deg, #ec4899, #db2777)`,
+      onClick: () => setIsFeedbackDialogOpen(true),
+      icon: MessageSquare,
+      label: 'رأيك',
+      gradient: `linear-gradient(135deg, #ec4899, #db2777)`,
     },
   ].filter(Boolean);
 
@@ -252,6 +240,9 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                 colorTheme={colorTheme}
                 onAddProduct={() => setIsAddProductModalOpen(true)}
                 onUpdate={() => window.location.reload()}
+                onOpenInfo={() => setIsInfoSheetOpen(true)}
+                onOpenFeedback={() => setIsOwnerFeedbackOpen(true)}
+                hasContactInfo={!!contactInfo}
               />
             )}
 
