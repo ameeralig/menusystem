@@ -321,45 +321,53 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent 
         side="bottom" 
-        className="h-[85vh] overflow-y-auto rounded-t-3xl border-t-0"
+        className="h-[85vh] overflow-y-auto rounded-t-3xl border-0 p-0"
         style={{
-          background: `linear-gradient(180deg, ${themeColor}15 0%, ${themeColor}05 100%)`,
+          background: `linear-gradient(135deg, ${themeColor}ee, ${themeColor}cc)`,
           backdropFilter: 'blur(20px)',
         }}
       >
-        {/* شريط السحب */}
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 rounded-full bg-gray-300" />
-        
-        <SheetHeader className="mt-4">
-          <div className="flex items-center justify-between">
-            <div 
-              className="w-12 h-12 rounded-2xl flex items-center justify-center"
-              style={{ background: `${themeColor}20` }}
-            >
-              <MapPin className="w-6 h-6" style={{ color: themeColor }} />
-            </div>
-            <SheetTitle className="text-right text-xl flex-1 mr-3">
-              {isEditing ? "تعديل معلومات المتجر" : "معلومات المتجر"}
-            </SheetTitle>
-            {isStoreOwner && isEditing && (
-              <Button 
-                onClick={handleSave} 
-                disabled={isSaving}
-                size="sm"
-                className="gap-2 rounded-xl"
-                style={{ backgroundColor: themeColor }}
-              >
-                <Save className="h-4 w-4" />
-                {isSaving ? "جاري الحفظ..." : "حفظ"}
-              </Button>
-            )}
-          </div>
-          <SheetDescription className="text-right">
-            {isEditing ? "قم بتعديل معلومات متجرك" : "تفاصيل الاتصال وساعات العمل"}
-          </SheetDescription>
-        </SheetHeader>
+        {/* تأثير الإضاءة العلوي */}
+        <div 
+          className="absolute top-0 left-0 right-0 h-32 opacity-30 pointer-events-none"
+          style={{
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%)',
+          }}
+        />
 
-        <div className="mt-6 space-y-4">
+        {/* شريط السحب */}
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 rounded-full bg-white/40" />
+        
+        <div className="relative p-6">
+          <SheetHeader className="mt-2">
+            <div className="flex items-center justify-between">
+              <div 
+                className="w-12 h-12 rounded-2xl flex items-center justify-center bg-white/20 backdrop-blur-lg border border-white/30"
+              >
+                <MapPin className="w-6 h-6 text-white" />
+              </div>
+              <SheetTitle className="text-right text-xl flex-1 mr-3 text-white drop-shadow-lg">
+                {isEditing ? "تعديل معلومات المتجر" : "معلومات المتجر"}
+              </SheetTitle>
+              {isStoreOwner && isEditing && (
+                <Button 
+                  onClick={handleSave} 
+                  disabled={isSaving}
+                  size="sm"
+                  className="gap-2 rounded-xl bg-white/20 backdrop-blur-lg border border-white/30 text-white hover:bg-white/30"
+                >
+                  <Save className="h-4 w-4" />
+                  {isSaving ? "جاري الحفظ..." : "حفظ"}
+                </Button>
+              )}
+            </div>
+            <SheetDescription className="text-right text-white/80">
+              {isEditing ? "قم بتعديل معلومات متجرك" : "تفاصيل الاتصال وساعات العمل"}
+            </SheetDescription>
+          </SheetHeader>
+
+          {/* المحتوى الزجاجي */}
+          <div className="mt-6 bg-white/95 dark:bg-gray-900/95 rounded-2xl p-4 backdrop-blur-lg border border-white/20 shadow-xl space-y-4">
           {/* الوصف */}
           {isEditing ? (
             <Card className="p-4 border bg-card dark:bg-card" style={{ borderColor: `${themeColor}30` }}>
@@ -737,6 +745,7 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
               colorTheme={colorTheme}
             />
           )}
+          </div>
         </div>
       </SheetContent>
     </Sheet>
