@@ -319,10 +319,26 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[85vh] overflow-y-auto">
-        <SheetHeader>
+      <SheetContent 
+        side="bottom" 
+        className="h-[85vh] overflow-y-auto rounded-t-3xl border-t-0"
+        style={{
+          background: `linear-gradient(180deg, ${themeColor}15 0%, ${themeColor}05 100%)`,
+          backdropFilter: 'blur(20px)',
+        }}
+      >
+        {/* شريط السحب */}
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 rounded-full bg-gray-300" />
+        
+        <SheetHeader className="mt-4">
           <div className="flex items-center justify-between">
-            <SheetTitle className="text-right text-xl">
+            <div 
+              className="w-12 h-12 rounded-2xl flex items-center justify-center"
+              style={{ background: `${themeColor}20` }}
+            >
+              <MapPin className="w-6 h-6" style={{ color: themeColor }} />
+            </div>
+            <SheetTitle className="text-right text-xl flex-1 mr-3">
               {isEditing ? "تعديل معلومات المتجر" : "معلومات المتجر"}
             </SheetTitle>
             {isStoreOwner && isEditing && (
@@ -330,7 +346,7 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
                 onClick={handleSave} 
                 disabled={isSaving}
                 size="sm"
-                className="gap-2"
+                className="gap-2 rounded-xl"
                 style={{ backgroundColor: themeColor }}
               >
                 <Save className="h-4 w-4" />

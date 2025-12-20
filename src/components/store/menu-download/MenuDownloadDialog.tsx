@@ -1,20 +1,11 @@
-/**
- * نافذة تحميل المنيو كملف HTML جاهز للطباعة
- */
-
 import { useState, useMemo } from 'react';
-import { Download, Loader2, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Download, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Product } from '@/types/product';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 interface MenuDownloadDialogProps {
   isOpen: boolean;
@@ -36,17 +27,14 @@ const imageToBase64 = async (url: string): Promise<string | null> => {
       reader.readAsDataURL(blob);
     });
   } catch (error) {
-    console.warn('فشل تحميل الصورة:', url);
     return null;
   }
 };
 
-// تنسيق السعر
 const formatPrice = (price: number): string => {
   return price.toLocaleString('ar-IQ') + ' د.ع';
 };
 
-// توليد HTML للمنيو
 const generateMenuHTML = async (
   storeName: string,
   products: Product[],
@@ -233,108 +221,168 @@ const MenuDownloadDialog = ({ isOpen, onClose, storeName, products, colorTheme }
 
   const themeColor = colorTheme?.startsWith('#') ? colorTheme : '#3b82f6';
 
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Download className="h-5 w-5" style={{ color: themeColor }} />
-            تحميل المنيو
-          </DialogTitle>
-        </DialogHeader>
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* الخلفية الضبابية */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 z-50 backdrop-blur-md bg-black/40"
+          />
 
-        <div className="space-y-4">
-          {/* خيار الصور */}
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="include-images"
-              checked={includeImages}
-              onCheckedChange={(checked) => setIncludeImages(checked as boolean)}
-            />
-            <Label htmlFor="include-images" className="text-sm cursor-pointer">
-              تضمين صور المنتجات
-            </Label>
-          </div>
+          {/* النافذة العائمة */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+          >
+            <div className="pointer-events-auto w-full max-w-md">
+              {/* زر الإغلاق */}
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={onClose}
+                className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center text-white shadow-lg"
+              >
+                <X className="w-5 h-5" />
+              </motion.button>
 
-          {/* اختيار التصنيفات */}
-          {categories.length > 1 && (
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">التصنيفات:</Label>
-              <div className="flex flex-wrap gap-2">
-                <div
-                  onClick={() => handleSelectAllChange(true)}
-                  className={`px-3 py-1.5 rounded-full text-xs cursor-pointer transition-all ${
-                    selectAll 
-                      ? 'text-white' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                  style={selectAll ? { backgroundColor: themeColor } : {}}
-                >
-                  الكل
-                </div>
-                {categories.map(category => (
-                  <div
-                    key={category}
-                    onClick={() => toggleCategory(category)}
-                    className={`px-3 py-1.5 rounded-full text-xs cursor-pointer transition-all ${
-                      !selectAll && selectedCategories.includes(category)
-                        ? 'text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                    style={!selectAll && selectedCategories.includes(category) ? { backgroundColor: themeColor } : {}}
-                  >
-                    {category}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* معلومات */}
-          <p className="text-xs text-muted-foreground">
-            سيتم تحميل {filteredProducts.length} منتج كملف HTML جاهز للطباعة
-          </p>
-
-          {/* شريط التقدم */}
-          {isDownloading && includeImages && (
-            <div className="space-y-1">
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+              {/* البطاقة الزجاجية */}
+              <div 
+                className="rounded-3xl overflow-hidden shadow-2xl border border-white/20"
+                style={{
+                  background: `linear-gradient(135deg, ${themeColor}ee, ${themeColor}cc)`,
+                  backdropFilter: 'blur(20px)',
+                }}
+              >
+                {/* تأثير الإضاءة */}
                 <div 
-                  className="h-full transition-all duration-300"
-                  style={{ 
-                    width: `${(progress.current / progress.total) * 100}%`,
-                    backgroundColor: themeColor 
+                  className="absolute top-0 left-0 right-0 h-32 opacity-30 pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%)',
                   }}
                 />
-              </div>
-              <p className="text-xs text-center text-muted-foreground">
-                جاري تحميل الصور... {progress.current}/{progress.total}
-              </p>
-            </div>
-          )}
 
-          {/* زر التحميل */}
-          <Button 
-            onClick={handleDownload}
-            disabled={isDownloading || filteredProducts.length === 0}
-            className="w-full"
-            style={{ backgroundColor: themeColor }}
-          >
-            {isDownloading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                جاري التحميل...
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4 mr-2" />
-                تحميل المنيو
-              </>
-            )}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+                <div className="relative p-6 text-white">
+                  {/* العنوان */}
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.1, type: "spring" }}
+                    className="text-center mb-6"
+                  >
+                    <div className="mx-auto mb-3 w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center">
+                      <Download className="w-8 h-8 text-white" />
+                    </div>
+                    <h2 className="text-xl font-bold drop-shadow-lg">تحميل المنيو</h2>
+                    <p className="text-white/80 text-sm mt-1">حمّل المنيو كملف جاهز للطباعة</p>
+                  </motion.div>
+
+                  {/* المحتوى */}
+                  <div className="bg-white/95 rounded-2xl p-4 space-y-4">
+                    {/* خيار الصور */}
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="include-images"
+                        checked={includeImages}
+                        onCheckedChange={(checked) => setIncludeImages(checked as boolean)}
+                      />
+                      <Label htmlFor="include-images" className="text-sm cursor-pointer text-gray-700">
+                        تضمين صور المنتجات
+                      </Label>
+                    </div>
+
+                    {/* اختيار التصنيفات */}
+                    {categories.length > 1 && (
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-gray-700">التصنيفات:</Label>
+                        <div className="flex flex-wrap gap-2">
+                          <div
+                            onClick={() => handleSelectAllChange(true)}
+                            className={`px-3 py-1.5 rounded-full text-xs cursor-pointer transition-all ${
+                              selectAll 
+                                ? 'text-white' 
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                            style={selectAll ? { backgroundColor: themeColor } : {}}
+                          >
+                            الكل
+                          </div>
+                          {categories.map(category => (
+                            <div
+                              key={category}
+                              onClick={() => toggleCategory(category)}
+                              className={`px-3 py-1.5 rounded-full text-xs cursor-pointer transition-all ${
+                                !selectAll && selectedCategories.includes(category)
+                                  ? 'text-white'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              }`}
+                              style={!selectAll && selectedCategories.includes(category) ? { backgroundColor: themeColor } : {}}
+                            >
+                              {category}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <p className="text-xs text-gray-500">
+                      سيتم تحميل {filteredProducts.length} منتج
+                    </p>
+
+                    {/* شريط التقدم */}
+                    {isDownloading && includeImages && (
+                      <div className="space-y-1">
+                        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full transition-all duration-300"
+                            style={{ 
+                              width: `${(progress.current / progress.total) * 100}%`,
+                              backgroundColor: themeColor 
+                            }}
+                          />
+                        </div>
+                        <p className="text-xs text-center text-gray-500">
+                          جاري تحميل الصور... {progress.current}/{progress.total}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* زر التحميل */}
+                    <Button 
+                      onClick={handleDownload}
+                      disabled={isDownloading || filteredProducts.length === 0}
+                      className="w-full"
+                      style={{ backgroundColor: themeColor }}
+                    >
+                      {isDownloading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          جاري التحميل...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="h-4 w-4 mr-2" />
+                          تحميل المنيو
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 };
 

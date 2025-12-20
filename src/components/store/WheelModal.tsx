@@ -1,9 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, Filter } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
 import SpinWheel from '@/components/wheel/SpinWheel';
 import ProductDetailsModal from '@/components/store/fast-template/ProductDetailsModal';
 import { Product } from '@/types/product';
@@ -27,7 +25,6 @@ const WheelModal: React.FC<WheelModalProps> = ({
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 
-  // استخراج التصنيفات الفريدة من المنتجات المتاحة
   const categories = useMemo(() => {
     const availableProducts = products.filter(p => p.is_available);
     const uniqueCategories = [...new Set(availableProducts
@@ -35,7 +32,6 @@ const WheelModal: React.FC<WheelModalProps> = ({
       .filter(Boolean) as string[])]
       .sort();
     
-    // تعيين التصنيف الأول تلقائياً
     if (!selectedCategory && uniqueCategories.length > 0) {
       setSelectedCategory(uniqueCategories[0]);
     }
@@ -43,7 +39,6 @@ const WheelModal: React.FC<WheelModalProps> = ({
     return uniqueCategories;
   }, [products, selectedCategory]);
 
-  // تصفية المنتجات حسب التصنيف المحدد
   const filteredProducts = useMemo(() => {
     return products.filter(product => 
       product.is_available && 
@@ -89,121 +84,132 @@ const WheelModal: React.FC<WheelModalProps> = ({
 
   const themeColor = getThemeColor();
 
+  if (!isOpen) return null;
+
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent 
-          className="max-w-[95vw] sm:max-w-3xl lg:max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6"
-          style={{
-            background: `linear-gradient(135deg, ${themeColor}08, ${themeColor}15)`,
-            borderColor: `${themeColor}40`,
-          }}
-        >
-          {/* زر الإغلاق */}
-          <button
-            onClick={onClose}
-            className="absolute top-2 left-2 sm:top-4 sm:left-4 z-50 w-8 h-8 sm:w-10 sm:h-10 shadow-lg rounded-full flex items-center justify-center hover:shadow-xl transition-all duration-200 hover:scale-105"
-            style={{
-              background: themeColor,
-              color: 'white'
-            }}
-          >
-            <X className="w-4 h-4 sm:w-5 sm:h-5" />
-          </button>
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* الخلفية الضبابية */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={onClose}
+              className="fixed inset-0 z-50 backdrop-blur-md bg-black/40"
+            />
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-center"
-          >
-            {/* العنوان */}
-            <div className="mb-4 sm:mb-6">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-                className="text-4xl sm:text-5xl mb-2 sm:mb-3"
-              >
-                🎡
-              </motion.div>
-              <h2 className="text-xl sm:text-2xl font-bold mb-2" style={{ color: themeColor }}>عجلة الحظ</h2>
-              <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl mx-auto px-4">
-                اختر تصنيفاً واضغط على وسط العجلة لاكتشاف المنتج المحظوظ!
-              </p>
-            </div>
+            {/* النافذة العائمة */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+            >
+              <div className="pointer-events-auto w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+                {/* زر الإغلاق */}
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={onClose}
+                  className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center text-white shadow-lg"
+                >
+                  <X className="w-5 h-5" />
+                </motion.button>
 
-            {/* اختيار التصنيف */}
-            {categories.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-                className="mb-4 sm:mb-6 max-w-md mx-auto px-4"
-              >
-                <Card 
-                  className="p-3 sm:p-4 backdrop-blur-sm"
+                {/* البطاقة الزجاجية */}
+                <div 
+                  className="rounded-3xl overflow-hidden shadow-2xl border border-white/20"
                   style={{
-                    background: `${themeColor}10`,
-                    borderColor: `${themeColor}30`,
+                    background: `linear-gradient(135deg, ${themeColor}ee, ${themeColor}cc)`,
+                    backdropFilter: 'blur(20px)',
                   }}
                 >
-                  <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                    <Filter className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: themeColor }} />
-                    <h3 className="text-sm sm:text-base font-semibold" style={{ color: themeColor }}>اختر التصنيف</h3>
-                  </div>
-                  <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-                    <SelectTrigger className="w-full text-sm sm:text-base">
-                      <SelectValue placeholder="اختر تصنيف..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category} value={category} className="text-sm sm:text-base">
-                          {category} ({products.filter(p => p.category === category && p.is_available).length} منتج)
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {selectedCategory && (
-                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-2 text-center">
-                      يوجد {filteredProducts.length} منتج في تصنيف "{selectedCategory}"
-                    </p>
-                  )}
-                </Card>
-              </motion.div>
-            )}
+                  {/* تأثير الإضاءة العلوي */}
+                  <div 
+                    className="absolute top-0 left-0 right-0 h-32 opacity-30 pointer-events-none"
+                    style={{
+                      background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%)',
+                    }}
+                  />
 
-            {/* العجلة */}
-            {filteredProducts.length > 0 ? (
-              <div className="px-2 sm:px-4">
-                <SpinWheel 
-                  products={filteredProducts} 
-                  onResult={handleWheelResult}
-                  colorTheme={colorTheme}
-                  hideResult={true}
-                />
+                  <div className="relative p-6 text-center text-white">
+                    {/* العنوان */}
+                    <motion.div 
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.1, type: "spring" }}
+                      className="mb-4"
+                    >
+                      <div className="text-5xl mb-2">🎡</div>
+                      <h2 className="text-2xl font-bold mb-1 drop-shadow-lg">عجلة الحظ</h2>
+                      <p className="text-white/80 text-sm">
+                        اختر تصنيفاً واضغط على العجلة!
+                      </p>
+                    </motion.div>
+
+                    {/* اختيار التصنيف */}
+                    {categories.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="mb-4 max-w-md mx-auto"
+                      >
+                        <div 
+                          className="p-3 rounded-2xl bg-white/10 backdrop-blur-lg border border-white/20"
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <Filter className="w-4 h-4 text-white/80" />
+                            <span className="text-sm font-medium text-white/90">اختر التصنيف</span>
+                          </div>
+                          <Select value={selectedCategory} onValueChange={handleCategoryChange}>
+                            <SelectTrigger className="w-full bg-white/20 border-white/30 text-white">
+                              <SelectValue placeholder="اختر تصنيف..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {categories.map((category) => (
+                                <SelectItem key={category} value={category}>
+                                  {category} ({products.filter(p => p.category === category && p.is_available).length} منتج)
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* العجلة */}
+                    <div className="bg-white/95 rounded-2xl p-4 mx-auto max-w-lg">
+                      {filteredProducts.length > 0 ? (
+                        <SpinWheel 
+                          products={filteredProducts} 
+                          onResult={handleWheelResult}
+                          colorTheme={colorTheme}
+                          hideResult={true}
+                        />
+                      ) : (
+                        <div className="text-center py-8">
+                          <div className="text-5xl mb-3">📦</div>
+                          <h3 className="text-lg font-bold mb-2" style={{ color: themeColor }}>لا توجد منتجات</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {selectedCategory 
+                              ? `لا توجد منتجات متاحة في "${selectedCategory}"`
+                              : 'لا توجد منتجات متاحة'
+                            }
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
-            ) : (
-              <Card 
-                className="p-6 sm:p-8 backdrop-blur-sm mx-auto max-w-md"
-                style={{
-                  background: `${themeColor}10`,
-                  borderColor: `${themeColor}30`,
-                }}
-              >
-                <div className="text-4xl sm:text-5xl mb-3">📦</div>
-                <h3 className="text-lg sm:text-xl font-bold mb-2" style={{ color: themeColor }}>لا توجد منتجات</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  {selectedCategory 
-                    ? `لا توجد منتجات متاحة في تصنيف "${selectedCategory}"`
-                    : 'لا توجد منتجات متاحة حالياً في هذا المتجر'
-                  }
-                </p>
-              </Card>
-            )}
-          </motion.div>
-        </DialogContent>
-      </Dialog>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* نافذة تفاصيل المنتج */}
       {selectedProduct && (
