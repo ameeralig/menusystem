@@ -62,6 +62,33 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
     }
   };
 
+  // توليد الوصف التسويقي بالذكاء الاصطناعي
+  const generateMarketingText = async (productName: string, category: string): Promise<string> => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-marketing-text`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ productName, category }),
+        }
+      );
+
+      if (!response.ok) {
+        console.error('Failed to generate marketing text');
+        return '';
+      }
+
+      const data = await response.json();
+      return data.marketingText || '';
+    } catch (error) {
+      console.error('Error generating marketing text:', error);
+      return '';
+    }
+  };
+
   const handleSubmit = async () => {
     if (!formData.name || !formData.price) {
       toast.error("يرجى ملء جميع الحقول المطلوبة");
@@ -102,11 +129,15 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
         }
       }
 
+      // توليد الوصف التسويقي بالذكاء الاصطناعي
+      toast.info("جاري توليد الوصف التسويقي...");
+      const marketingDescription = await generateMarketingText(formData.name, formData.category);
+
       const discountValue = formData.discount_percentage ? parseFloat(formData.discount_percentage) : 0;
       const { error } = await supabase.from("products").insert([
         {
           name: formData.name,
-          description: formData.description,
+          description: marketingDescription || formData.description,
           price: parseFloat(formData.price),
           image_url: imageUrl,
           category: formData.category || null,

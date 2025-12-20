@@ -127,12 +127,19 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
 
       {/* معلومات المنتج */}
       <div className="flex-1 min-w-0">
-        <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white truncate mb-1">
+        <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white truncate">
           {product.name}
         </h3>
         
+        {/* الوصف التسويقي - يظهر دائماً */}
+        {product.description && (
+          <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5 italic">
+            {product.description}
+          </p>
+        )}
+        
         {/* السعر */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap mt-1">
           {hasDiscount(product.discount_percentage) ? (
             <>
               <span 
@@ -164,13 +171,6 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
             </span>
           )}
         </div>
-        
-        {/* الوصف - اختياري على الشاشات الكبيرة فقط */}
-        {product.description && (
-          <p className="hidden sm:block text-xs text-gray-600 dark:text-gray-400 line-clamp-1 mt-1">
-            {product.description}
-          </p>
-        )}
       </div>
       </div>
 
