@@ -266,13 +266,13 @@ const OwnerFeedbackSheet: React.FC<OwnerFeedbackSheetProps> = ({
               </div>
             ) : (
               <AnimatePresence mode="popLayout">
-                {feedback.map((item, index) => (
+                {feedback.map((item) => (
                   <motion.div
                     key={item.id}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -100 }}
-                    transition={{ delay: index * 0.05 }}
+                    exit={{ opacity: 0, x: -50 }}
+                    transition={{ duration: 0.15 }}
                     className="bg-card border rounded-xl p-4 shadow-sm"
                   >
                     {/* رأس البطاقة */}
