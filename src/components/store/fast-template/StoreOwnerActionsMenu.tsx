@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Settings, Plus, Moon, Sun, ShoppingBag, DollarSign } from "lucide-react";
+import { Settings, Plus, Moon, Sun, ShoppingBag, DollarSign, Info, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,9 @@ interface StoreOwnerActionsMenuProps {
   colorTheme?: string | null;
   onAddProduct: () => void;
   onUpdate?: () => void;
+  onOpenInfo?: () => void;
+  onOpenFeedback?: () => void;
+  hasContactInfo?: boolean;
 }
 
 const StoreOwnerActionsMenu = ({
@@ -26,6 +29,9 @@ const StoreOwnerActionsMenu = ({
   colorTheme,
   onAddProduct,
   onUpdate,
+  onOpenInfo,
+  onOpenFeedback,
+  hasContactInfo = false,
 }: StoreOwnerActionsMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -166,23 +172,56 @@ const StoreOwnerActionsMenu = ({
         side="top"
         sideOffset={10}
       >
-        <div className="space-y-4">
-          <h3 className="font-semibold text-lg mb-4" style={{ color: themeColor }}>
+        <div className="space-y-3">
+          <h3 className="font-semibold text-lg mb-3" style={{ color: themeColor }}>
             إعدادات المتجر
           </h3>
 
-          {/* زر إضافة منتج */}
-          <Button
-            onClick={() => {
-              onAddProduct();
-              setIsOpen(false);
-            }}
-            className="w-full justify-start gap-2"
-            style={{ background: '#10b981' }}
-          >
-            <Plus className="h-4 w-4" />
-            إضافة منتج جديد
-          </Button>
+          {/* أزرار سريعة */}
+          <div className="grid grid-cols-2 gap-2">
+            {/* زر إضافة منتج */}
+            <Button
+              onClick={() => {
+                onAddProduct();
+                setIsOpen(false);
+              }}
+              className="justify-start gap-2 h-10"
+              style={{ background: '#10b981' }}
+            >
+              <Plus className="h-4 w-4" />
+              إضافة منتج
+            </Button>
+
+            {/* زر عرض الآراء */}
+            {onOpenFeedback && (
+              <Button
+                onClick={() => {
+                  onOpenFeedback();
+                  setIsOpen(false);
+                }}
+                className="justify-start gap-2 h-10"
+                style={{ background: '#8b5cf6' }}
+              >
+                <Eye className="h-4 w-4" />
+                عرض الآراء
+              </Button>
+            )}
+
+            {/* زر معلومات المتجر */}
+            {hasContactInfo && onOpenInfo && (
+              <Button
+                onClick={() => {
+                  onOpenInfo();
+                  setIsOpen(false);
+                }}
+                variant="outline"
+                className="justify-start gap-2 h-10 col-span-2"
+              >
+                <Info className="h-4 w-4" />
+                معلومات المتجر
+              </Button>
+            )}
+          </div>
 
           {/* الوضع الداكن */}
           <div className="flex items-center justify-between p-3 rounded-lg bg-background/50 backdrop-blur-sm">
