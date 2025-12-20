@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Disc3, MessageSquare, Search, X, Info, Sparkles, Eye, Share2, Menu, Download } from "lucide-react";
+import { Disc3, MessageSquare, Search, X, Info, Sparkles, Eye, Share2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
@@ -62,7 +62,6 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
   const [isOwnerFeedbackOpen, setIsOwnerFeedbackOpen] = useState(false);
   const [isShareCardOpen, setIsShareCardOpen] = useState(false);
-  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [isMenuDownloadOpen, setIsMenuDownloadOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
@@ -116,7 +115,15 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
 
   // الأزرار الرئيسية (تظهر دائماً)
   const primaryButtons = [
-    // زر شارك المنيو - مهم جداً
+    // معلومات المتجر
+    contactInfo && {
+      id: 'info',
+      onClick: () => setIsInfoSheetOpen(true),
+      icon: Info,
+      label: 'معلومات',
+      gradient: `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`,
+    },
+    // زر شارك المنيو
     slug && {
       id: 'share',
       onClick: () => setIsShareCardOpen(true),
@@ -137,7 +144,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       id: 'wheel',
       onClick: () => setIsWheelModalOpen(true),
       icon: Disc3,
-      label: 'عجلة الحظ',
+      label: 'حظ',
       gradient: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)`,
     },
     // زر AI
@@ -148,30 +155,17 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       label: 'AI',
       gradient: `linear-gradient(135deg, #8b5cf6, #7c3aed)`,
     },
-  ].filter(Boolean);
-
-  // الأزرار الثانوية (تظهر في قائمة "المزيد")
-  const secondaryButtons = [
-    // معلومات المتجر
-    contactInfo && {
-      id: 'info',
-      onClick: () => { setIsInfoSheetOpen(true); setIsMoreMenuOpen(false); },
-      icon: Info,
-      label: 'معلومات المتجر',
-      gradient: `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`,
-    },
     // تقييم / عرض الآراء
     storeOwnerId && {
       id: 'feedback',
       onClick: () => { 
         isStoreOwner ? setIsOwnerFeedbackOpen(true) : setIsFeedbackDialogOpen(true);
-        setIsMoreMenuOpen(false);
       },
       icon: isStoreOwner ? Eye : MessageSquare,
-      label: isStoreOwner ? 'عرض الآراء' : 'شاركنا رأيك',
+      label: isStoreOwner ? 'الآراء' : 'رأيك',
       gradient: isStoreOwner 
         ? `linear-gradient(135deg, #10b981, #059669)` 
-        : `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`,
+        : `linear-gradient(135deg, #ec4899, #db2777)`,
     },
   ].filter(Boolean);
 
@@ -273,58 +267,6 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                 />
               ))}
 
-              {/* قائمة المزيد */}
-              {secondaryButtons.length > 0 && (
-                <Popover open={isMoreMenuOpen} onOpenChange={setIsMoreMenuOpen}>
-                  <PopoverTrigger asChild>
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <div
-                        className="flex items-center gap-1 px-2.5 py-2 rounded-xl shadow-md cursor-pointer"
-                        style={{
-                          background: `${themeColor}20`,
-                          border: '1px solid rgba(255,255,255,0.1)',
-                        }}
-                      >
-                        <Menu className="h-4 w-4" style={{ color: themeColor }} />
-                      </div>
-                    </motion.div>
-                  </PopoverTrigger>
-                  <PopoverContent 
-                    className="w-auto p-2 rounded-2xl backdrop-blur-xl border-white/20"
-                    style={{
-                      background: `linear-gradient(135deg, ${themeColor}15, ${themeColor}25)`,
-                    }}
-                    align="end"
-                    side="top"
-                    sideOffset={8}
-                  >
-                    <div className="flex flex-col gap-2">
-                      {secondaryButtons.map((btn: any) => (
-                        <motion.div
-                          key={btn.id}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <div
-                            onClick={btn.onClick}
-                            className="flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-all"
-                            style={{
-                              background: btn.gradient,
-                              border: '1px solid rgba(255,255,255,0.2)',
-                            }}
-                          >
-                            <btn.icon className="h-4 w-4 text-white" />
-                            <span className="text-xs font-medium text-white whitespace-nowrap">{btn.label}</span>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              )}
             </div>
           </div>
         </div>
