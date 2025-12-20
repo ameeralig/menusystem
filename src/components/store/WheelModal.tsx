@@ -48,10 +48,7 @@ const WheelModal: React.FC<WheelModalProps> = ({
 
   const handleWheelResult = (product: Product) => {
     setSelectedProduct(product);
-    onClose();
-    setTimeout(() => {
-      setIsProductModalOpen(true);
-    }, 300);
+    setIsProductModalOpen(true);
   };
 
   const handleCloseProductModal = () => {
