@@ -172,7 +172,7 @@ https://qr-m.lovable.app
 
 بعد إنشاء حسابك، تأكد من إضافة رقم هاتفك في إعدادات الملف الشخصي حتى تتمكن من إدارة متجرك عبر واتساب.`;
 
-      await sendWhatsAppMessage(from, welcomeMessage);
+      await sendWhatsAppMessage(from, welcomeMessage, phoneNumberId);
       
       return new Response(JSON.stringify({ 
         success: true, 
@@ -234,7 +234,7 @@ https://qr-m.lovable.app
 
 💡 جرب الآن! أرسل أي أمر وسأساعدك.`;
 
-      await sendWhatsAppMessage(from, welcomeMessage);
+      await sendWhatsAppMessage(from, welcomeMessage, phoneNumberId);
       
       return new Response(JSON.stringify({ 
         success: true, 
@@ -342,7 +342,7 @@ https://qr-m.lovable.app
     }
 
     // Send response via WhatsApp
-    await sendWhatsAppMessage(from, responseText);
+    await sendWhatsAppMessage(from, responseText, phoneNumberId);
 
     return new Response(JSON.stringify({ success: true, response: responseText }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -550,9 +550,19 @@ async function executeFunction(supabase: any, userId: string, functionName: stri
 }
 
 // Send WhatsApp message
-async function sendWhatsAppMessage(to: string, message: string) {
-  const PHONE_NUMBER_ID = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
+async function sendWhatsAppMessage(to: string, message: string, phoneNumberId?: string) {
+  const PHONE_NUMBER_ID = phoneNumberId || Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
   const ACCESS_TOKEN = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
+
+  if (!PHONE_NUMBER_ID) {
+    console.error("❌ WHATSAPP_PHONE_NUMBER_ID غير موجود ولم يتم تمريره مع الرسالة");
+    return { success: false, error: "missing_phone_number_id" };
+  }
+
+  if (!ACCESS_TOKEN) {
+    console.error("❌ WHATSAPP_ACCESS_TOKEN غير موجود");
+    return { success: false, error: "missing_access_token" };
+  }
 
   try {
     const response = await fetch(
@@ -565,7 +575,7 @@ async function sendWhatsAppMessage(to: string, message: string) {
         },
         body: JSON.stringify({
           messaging_product: "whatsapp",
-          to: to,
+          to,
           type: "text",
           text: { body: message },
         }),
