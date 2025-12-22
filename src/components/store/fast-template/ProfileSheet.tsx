@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Trash2, AlertTriangle, Save } from "lucide-react";
+import { User, Trash2, AlertTriangle, Save, MessageCircle, Phone, CheckCircle2, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -265,6 +265,77 @@ const ProfileSheet = ({ colorTheme }: ProfileSheetProps) => {
               {isLoading ? "جاري الحفظ..." : "حفظ التغييرات"}
             </Button>
           </form>
+
+          {/* WhatsApp Bot Section */}
+          <div className="pt-6 border-t">
+            <div className="flex items-center gap-2 mb-4">
+              <MessageCircle className="h-5 w-5" style={{ color: "#25D366" }} />
+              <h3 className="text-lg font-bold text-right">إدارة المتجر عبر واتساب</h3>
+            </div>
+            
+            <div 
+              className="p-4 rounded-xl border"
+              style={{ 
+                background: `linear-gradient(135deg, #25D36610, #25D36620)`,
+                borderColor: "#25D36640"
+              }}
+            >
+              <div className="space-y-4">
+                {/* Connection Status */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">حالة الربط:</span>
+                  {phoneNumber ? (
+                    <div className="flex items-center gap-1 text-green-600">
+                      <CheckCircle2 className="h-4 w-4" />
+                      <span className="text-sm font-medium">مربوط</span>
+                    </div>
+                  ) : (
+                    <span className="text-sm text-amber-600">أضف رقم هاتفك أولاً</span>
+                  )}
+                </div>
+
+                {/* Bot Phone Number */}
+                <div className="p-3 bg-background/80 rounded-lg">
+                  <p className="text-xs text-muted-foreground mb-1 text-right">رقم البوت:</p>
+                  <div className="flex items-center justify-between">
+                    <a 
+                      href="https://wa.me/9647755577559"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-sm hover:underline"
+                      style={{ color: "#25D366" }}
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      فتح المحادثة
+                    </a>
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-mono text-sm" dir="ltr">+964 775 557 7559</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Instructions */}
+                <div className="space-y-2 text-right">
+                  <p className="text-sm font-medium">الأوامر المدعومة:</p>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li>📦 "أضف منتج [اسم] سعره [سعر]"</li>
+                    <li>✏️ "عدل سعر [منتج] إلى [سعر جديد]"</li>
+                    <li>🗑️ "احذف [اسم المنتج]"</li>
+                    <li>📋 "اعرض منتجاتي"</li>
+                    <li>📂 "اعرض تصنيفاتي"</li>
+                    <li>📊 "إحصائياتي"</li>
+                  </ul>
+                </div>
+
+                {!phoneNumber && (
+                  <p className="text-xs text-amber-600 text-right">
+                    ⚠️ يجب إضافة رقم هاتفك أعلاه لربط حسابك بالبوت
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
 
           {/* Danger Zone */}
           <div className="pt-6 border-t border-destructive/20">

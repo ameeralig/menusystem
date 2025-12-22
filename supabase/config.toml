@@ -39,3 +39,8 @@ verify_jwt = true
 [functions."customer-ai-assistant"]
 verify_jwt = false
 
+[functions."whatsapp-webhook"]
+verify_jwt = false
+
+[functions."whatsapp-bot"]
+verify_jwt = false
