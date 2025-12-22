@@ -132,15 +132,124 @@ serve(async (req) => {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
 
   try {
-    const { userId, userName, phoneNumber, message, messageType, mediaId } = await req.json();
-
-    console.log(`Processing message from ${userName}: ${message}`);
+    const { message, from, phoneNumberId } = await req.json();
+    
+    console.log(`📩 رسالة جديدة من: ${from}`);
+    console.log(`📝 المحتوى: ${message}`);
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // System prompt for the AI
+    // تنظيف رقم الهاتف (إزالة + و 00 من البداية)
+    const cleanPhone = from.replace(/^\+|^00/, "");
+    console.log(`📱 رقم الهاتف المُنظف: ${cleanPhone}`);
+
+    // البحث عن المستخدم برقم الهاتف في جدول profiles
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id, full_name, phone_number")
+      .or(`phone_number.eq.${cleanPhone},phone_number.eq.+${cleanPhone},phone_number.eq.${from}`)
+      .maybeSingle();
+
+    console.log("🔍 نتيجة البحث عن المستخدم:", profile, profileError);
+
+    // إذا لم يتم العثور على المستخدم
+    if (!profile) {
+      console.log("❌ المستخدم غير موجود");
+      
+      const welcomeMessage = `مرحباً بك في منصة QR Menu! 🎉
+
+يبدو أنك لا تملك حساباً لدينا بعد.
+
+🚀 *مزايا إنشاء حساب:*
+• إنشاء قائمة QR رقمية لمتجرك أو مطعمك
+• إدارة المنتجات والتصنيفات بسهولة
+• الحصول على رابط خاص لمتجرك
+• متابعة إحصائيات الزوار
+• إدارة متجرك عبر واتساب مباشرة
+
+📲 أنشئ حسابك الآن من خلال:
+https://qr-m.lovable.app
+
+بعد إنشاء حسابك، تأكد من إضافة رقم هاتفك في إعدادات الملف الشخصي حتى تتمكن من إدارة متجرك عبر واتساب.`;
+
+      await sendWhatsAppMessage(from, welcomeMessage);
+      
+      return new Response(JSON.stringify({ 
+        success: true, 
+        userExists: false,
+        message: "User not found, welcome message sent" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // المستخدم موجود - البحث عن إعدادات متجره
+    const userId = profile.id;
+    const userName = profile.full_name || "صديقي";
+    
+    console.log(`✅ المستخدم موجود: ${userName} (${userId})`);
+
+    // البحث عن إعدادات المتجر
+    const { data: storeSettings } = await supabase
+      .from("store_settings")
+      .select("store_name, slug")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    const storeName = storeSettings?.store_name || "متجرك";
+    const storeSlug = storeSettings?.slug;
+
+    console.log(`🏪 المتجر: ${storeName} (${storeSlug})`);
+
+    // التحقق إذا كانت هذه أول رسالة (رسالة ترحيب)
+    const isFirstMessage = message.toLowerCase().includes("مرحبا") || 
+                          message.toLowerCase().includes("اهلا") ||
+                          message.toLowerCase().includes("السلام") ||
+                          message.toLowerCase().includes("hi") ||
+                          message.toLowerCase().includes("hello") ||
+                          message.trim().length < 10;
+
+    if (isFirstMessage) {
+      const storeLink = storeSlug ? `\n\n🔗 رابط متجرك:\nhttps://qr-m.lovable.app/store/${storeSlug}` : "";
+      
+      const welcomeMessage = `مرحباً ${userName}! 👋
+
+أنا مساعدك الذكي لإدارة متجرك *${storeName}* 🏪${storeLink}
+
+🎯 *ما يمكنني مساعدتك به:*
+
+📦 *إدارة المنتجات:*
+• أضف منتج [اسم] سعره [سعر]
+• عدل سعر [منتج] إلى [سعر جديد]
+• احذف [اسم المنتج]
+• اعرض منتجاتي
+
+📂 *إدارة التصنيفات:*
+• أضف تصنيف [اسم]
+• اعرض تصنيفاتي
+• احذف تصنيف [اسم]
+
+📊 *الإحصائيات:*
+• إحصائياتي
+
+💡 جرب الآن! أرسل أي أمر وسأساعدك.`;
+
+      await sendWhatsAppMessage(from, welcomeMessage);
+      
+      return new Response(JSON.stringify({ 
+        success: true, 
+        userExists: true,
+        userId,
+        message: "Welcome message sent to existing user" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // معالجة الأوامر العادية
     const systemPrompt = `أنت مساعد ذكي لإدارة متجر إلكتروني عبر واتساب.
 اسم المستخدم: ${userName}
+اسم المتجر: ${storeName}
 معرف المستخدم: ${userId}
 
 مهامك:
@@ -233,7 +342,7 @@ serve(async (req) => {
     }
 
     // Send response via WhatsApp
-    await sendWhatsAppMessage(phoneNumber, responseText);
+    await sendWhatsAppMessage(from, responseText);
 
     return new Response(JSON.stringify({ success: true, response: responseText }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
