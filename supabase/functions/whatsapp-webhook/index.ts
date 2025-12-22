@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -52,6 +53,52 @@ serve(async (req) => {
     try {
       const body = await req.json();
       console.log("Incoming webhook event:", JSON.stringify(body, null, 2));
+      
+      // استخراج الرسالة من الـ webhook
+      const entry = body.entry?.[0];
+      const changes = entry?.changes?.[0];
+      const value = changes?.value;
+      const messages = value?.messages;
+      
+      if (messages && messages.length > 0) {
+        const message = messages[0];
+        const from = message.from; // رقم المرسل
+        const messageText = message.text?.body || "";
+        const phoneNumberId = value.metadata?.phone_number_id;
+        
+        console.log("📩 رسالة جديدة من:", from);
+        console.log("📝 محتوى الرسالة:", messageText);
+        console.log("📱 Phone Number ID:", phoneNumberId);
+        
+        // إرسال الرسالة إلى whatsapp-bot للمعالجة
+        try {
+          const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+          const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+          
+          console.log("🤖 إرسال الرسالة إلى البوت...");
+          
+          const botResponse = await fetch(`${SUPABASE_URL}/functions/v1/whatsapp-bot`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
+            },
+            body: JSON.stringify({
+              message: messageText,
+              from: from,
+              phoneNumberId: phoneNumberId
+            })
+          });
+          
+          const botResult = await botResponse.text();
+          console.log("🤖 استجابة البوت:", botResult);
+          
+        } catch (botError) {
+          console.error("❌ خطأ في استدعاء البوت:", botError);
+        }
+      } else {
+        console.log("⚠️ لا توجد رسائل في هذا الحدث");
+      }
       
       // Always respond with 200 OK to acknowledge receipt
       return new Response("EVENT_RECEIVED", { 
