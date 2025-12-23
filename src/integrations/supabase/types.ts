@@ -568,6 +568,8 @@ export type Database = {
           full_name: string | null
           id: string
           phone_number: string | null
+          whatsapp_bot_enabled: boolean | null
+          whatsapp_verified: boolean | null
         }
         Insert: {
           avatar_url?: string | null
@@ -576,6 +578,8 @@ export type Database = {
           full_name?: string | null
           id: string
           phone_number?: string | null
+          whatsapp_bot_enabled?: boolean | null
+          whatsapp_verified?: boolean | null
         }
         Update: {
           avatar_url?: string | null
@@ -584,6 +588,8 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone_number?: string | null
+          whatsapp_bot_enabled?: boolean | null
+          whatsapp_verified?: boolean | null
         }
         Relationships: []
       }
