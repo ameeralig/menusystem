@@ -48,55 +48,46 @@ const StoreStatsCard: React.FC<StoreStatsCardProps> = ({
       title: "إجمالي المشاهدات",
       value: stats.totalViews,
       icon: Eye,
-      gradient: "from-blue-500/20 to-blue-600/10",
     },
     {
       title: "مشاهدات اليوم",
       value: stats.todayViews,
       icon: Calendar,
-      gradient: "from-green-500/20 to-green-600/10",
     },
     {
       title: "مشاهدات الأسبوع",
       value: stats.weeklyViews,
       icon: TrendingUp,
-      gradient: "from-emerald-500/20 to-emerald-600/10",
     },
     {
       title: "إجمالي المنتجات",
       value: stats.totalProducts,
       icon: Package,
-      gradient: "from-purple-500/20 to-purple-600/10",
     },
     {
       title: "المنتجات النشطة",
       value: stats.activeProducts,
       icon: CheckCircle,
-      gradient: "from-amber-500/20 to-amber-600/10",
     },
     {
       title: "المنتجات الشائعة",
       value: stats.popularProducts,
       icon: Star,
-      gradient: "from-yellow-500/20 to-yellow-600/10",
     },
     {
       title: "المنتجات الجديدة",
       value: stats.newProducts,
       icon: Sparkles,
-      gradient: "from-pink-500/20 to-pink-600/10",
     },
     {
       title: "عجلة الحظ",
       value: stats.wheelSpins,
       icon: RotateCcw,
-      gradient: "from-orange-500/20 to-orange-600/10",
     },
     {
       title: "رسائل الذكاء",
       value: stats.aiMessages,
       icon: Sparkles,
-      gradient: "from-violet-500/20 to-violet-600/10",
     },
   ];
 
@@ -106,16 +97,17 @@ const StoreStatsCard: React.FC<StoreStatsCardProps> = ({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* الخلفية الضبابية */}
+          {/* الخلفية الضبابية - نفس بطاقة المشاركة تماماً */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
             className="fixed inset-0 z-50 backdrop-blur-md bg-black/40"
+            style={{ WebkitBackdropFilter: 'blur(12px)', backdropFilter: 'blur(12px)' }}
           />
 
-          {/* البطاقة العائمة */}
+          {/* البطاقة العائمة - نفس بطاقة المشاركة تماماً */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -124,7 +116,7 @@ const StoreStatsCard: React.FC<StoreStatsCardProps> = ({
             className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
           >
             <div className="pointer-events-auto w-full max-w-sm">
-              {/* زر الإغلاق */}
+              {/* زر الإغلاق - نفس بطاقة المشاركة */}
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -134,7 +126,7 @@ const StoreStatsCard: React.FC<StoreStatsCardProps> = ({
                 <X className="w-5 h-5" />
               </motion.button>
 
-              {/* البطاقة الزجاجية */}
+              {/* البطاقة الزجاجية - نفس بطاقة المشاركة */}
               <div 
                 className="rounded-3xl overflow-hidden shadow-2xl border border-white/20"
                 style={{
@@ -180,18 +172,18 @@ const StoreStatsCard: React.FC<StoreStatsCardProps> = ({
                     متابعة أداء متجرك
                   </motion.p>
 
-                  {/* شبكة الإحصاءات */}
+                  {/* شبكة الإحصاءات في إطار أبيض مثل QR */}
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.25, type: "spring" }}
                     className="bg-white/95 backdrop-blur p-4 rounded-2xl shadow-xl"
                   >
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-3">
                       {statsItems.map((item, index) => (
                         <div
                           key={index}
-                          className="text-center p-2 rounded-xl hover:bg-gray-100 transition-colors"
+                          className="text-center py-2"
                         >
                           {loading ? (
                             <div className="space-y-1">
@@ -205,11 +197,11 @@ const StoreStatsCard: React.FC<StoreStatsCardProps> = ({
                                 className="h-5 w-5 mx-auto mb-1" 
                                 style={{ color: themeColor }}
                               />
-                              <p className="text-[8px] text-gray-500 leading-tight">
+                              <p className="text-[9px] text-gray-500 leading-tight">
                                 {item.title}
                               </p>
                               <p 
-                                className="text-sm font-bold"
+                                className="text-base font-bold"
                                 style={{ color: themeColor }}
                               >
                                 {item.value.toLocaleString('ar-SA')}
