@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Settings, Plus, Moon, Sun, ShoppingBag, DollarSign, Info, Eye } from "lucide-react";
+import { Settings, Plus, Moon, Sun, ShoppingBag, DollarSign, Info, Eye, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import ProfileSheet from "./ProfileSheet";
+import StoreStatsCard from "../stats/StoreStatsCard";
 
 interface StoreOwnerActionsMenuProps {
   storeOwnerId: string;
@@ -39,6 +40,7 @@ const StoreOwnerActionsMenu = ({
   const [deliveryFee, setDeliveryFee] = useState("0");
   const [isLoading, setIsLoading] = useState(false);
   const [showDeliveryFee, setShowDeliveryFee] = useState(false);
+  const [showStatsCard, setShowStatsCard] = useState(false);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -144,6 +146,7 @@ const StoreOwnerActionsMenu = ({
   const themeColor = getThemeColor();
 
   return (
+    <>
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <motion.div
@@ -192,6 +195,19 @@ const StoreOwnerActionsMenu = ({
               إضافة منتج
             </Button>
 
+            {/* زر الإحصائيات */}
+            <Button
+              onClick={() => {
+                setShowStatsCard(true);
+                setIsOpen(false);
+              }}
+              className="justify-start gap-2 h-10"
+              style={{ background: themeColor }}
+            >
+              <BarChart3 className="h-4 w-4" />
+              الإحصائيات
+            </Button>
+
             {/* زر عرض الآراء */}
             {onOpenFeedback && (
               <Button
@@ -215,7 +231,7 @@ const StoreOwnerActionsMenu = ({
                   setIsOpen(false);
                 }}
                 variant="outline"
-                className="justify-start gap-2 h-10 col-span-2"
+                className="justify-start gap-2 h-10"
               >
                 <Info className="h-4 w-4" />
                 معلومات المتجر
@@ -292,6 +308,14 @@ const StoreOwnerActionsMenu = ({
         </div>
       </PopoverContent>
     </Popover>
+
+    {/* بطاقة الإحصائيات */}
+    <StoreStatsCard
+      isOpen={showStatsCard}
+      onClose={() => setShowStatsCard(false)}
+      colorTheme={colorTheme}
+    />
+  </>
   );
 };
 
