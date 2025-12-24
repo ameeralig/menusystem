@@ -115,21 +115,20 @@ const StoreStatsCard: React.FC<StoreStatsCardProps> = ({
             className="fixed inset-0 z-50 backdrop-blur-md bg-black/40"
           />
 
-          {/* البطاقة العائمة */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="pointer-events-auto w-full max-w-md max-h-[85vh] overflow-hidden">
+            <div className="relative w-full max-w-md">
               {/* زر الإغلاق */}
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={onClose}
-                className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center text-white shadow-lg"
+                className="absolute -top-2 -right-2 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center text-white shadow-lg"
               >
                 <X className="w-5 h-5" />
               </motion.button>
