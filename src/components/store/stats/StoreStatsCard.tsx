@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   X, Eye, Package, CheckCircle, Star, Sparkles, 
@@ -105,113 +105,136 @@ const StoreStatsCard: React.FC<StoreStatsCardProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+        <>
           {/* الخلفية الضبابية */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 backdrop-blur-xl bg-black/50"
+            className="fixed inset-0 z-50 backdrop-blur-md bg-black/40"
           />
 
-          {/* البطاقة */}
+          {/* البطاقة العائمة */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative z-10 w-[90vw] max-w-md mx-auto"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
           >
-            {/* زر الإغلاق */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={onClose}
-              className="absolute -top-3 -right-3 z-20 w-10 h-10 rounded-full bg-white/30 backdrop-blur-lg border border-white/40 flex items-center justify-center text-white shadow-xl"
-            >
-              <X className="w-5 h-5" />
-            </motion.button>
+            <div className="pointer-events-auto w-full max-w-sm">
+              {/* زر الإغلاق */}
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={onClose}
+                className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center text-white shadow-lg"
+              >
+                <X className="w-5 h-5" />
+              </motion.button>
 
-            {/* البطاقة الزجاجية */}
-            <div 
-              className="rounded-3xl overflow-hidden shadow-2xl border border-white/20"
-              style={{
-                background: `linear-gradient(135deg, ${themeColor}ee, ${themeColor}cc)`,
-                backdropFilter: 'blur(20px)',
-              }}
-            >
-              {/* تأثير الإضاءة العلوي */}
+              {/* البطاقة الزجاجية */}
               <div 
-                className="absolute top-0 left-0 right-0 h-32 opacity-30 pointer-events-none"
+                className="rounded-3xl overflow-hidden shadow-2xl border border-white/20"
                 style={{
-                  background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%)',
+                  background: `linear-gradient(135deg, ${themeColor}ee, ${themeColor}cc)`,
+                  backdropFilter: 'blur(20px)',
                 }}
-              />
+              >
+                {/* تأثير الإضاءة العلوي */}
+                <div 
+                  className="absolute top-0 left-0 right-0 h-32 opacity-30"
+                  style={{
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%)',
+                  }}
+                />
 
-              {/* محتوى البطاقة */}
-              <div className="relative p-4 sm:p-5 text-white">
-                {/* العنوان */}
-                <motion.div 
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.1, type: "spring" }}
-                  className="flex items-center justify-center gap-3 mb-4"
-                >
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center shadow-lg">
-                    <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                  </div>
-                  <h2 className="text-lg sm:text-xl font-bold drop-shadow-lg">
+                {/* محتوى البطاقة */}
+                <div className="relative p-6 text-center text-white">
+                  {/* الأيقونة */}
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.1, type: "spring" }}
+                    className="mx-auto mb-4 w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center overflow-hidden shadow-lg"
+                  >
+                    <BarChart3 className="w-10 h-10 text-white" />
+                  </motion.div>
+
+                  {/* العنوان */}
+                  <motion.h2 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                    className="text-2xl font-bold mb-1 drop-shadow-lg"
+                  >
                     إحصائيات المتجر
-                  </h2>
-                </motion.div>
+                  </motion.h2>
+                  <motion.p 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="text-white/80 text-sm mb-4"
+                  >
+                    متابعة أداء متجرك
+                  </motion.p>
 
-                {/* شبكة الإحصاءات */}
-                <div className="grid grid-cols-3 gap-2 max-h-[50vh] overflow-y-auto">
-                  {statsItems.map((item, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 + index * 0.03 }}
-                      className="bg-white/10 backdrop-blur-lg rounded-xl p-2 sm:p-3 border border-white/20 hover:bg-white/20 transition-all"
-                    >
-                      {loading ? (
-                        <div className="space-y-2">
-                          <Skeleton className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg bg-white/20" />
-                          <Skeleton className="h-2 sm:h-3 w-full bg-white/20" />
-                          <Skeleton className="h-4 sm:h-5 w-1/2 bg-white/20" />
+                  {/* شبكة الإحصاءات */}
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.25, type: "spring" }}
+                    className="bg-white/95 backdrop-blur p-4 rounded-2xl shadow-xl"
+                  >
+                    <div className="grid grid-cols-3 gap-2">
+                      {statsItems.map((item, index) => (
+                        <div
+                          key={index}
+                          className="text-center p-2 rounded-xl hover:bg-gray-100 transition-colors"
+                        >
+                          {loading ? (
+                            <div className="space-y-1">
+                              <Skeleton className="h-5 w-5 mx-auto rounded-md" />
+                              <Skeleton className="h-2 w-full" />
+                              <Skeleton className="h-4 w-1/2 mx-auto" />
+                            </div>
+                          ) : (
+                            <>
+                              <item.icon 
+                                className="h-5 w-5 mx-auto mb-1" 
+                                style={{ color: themeColor }}
+                              />
+                              <p className="text-[8px] text-gray-500 leading-tight">
+                                {item.title}
+                              </p>
+                              <p 
+                                className="text-sm font-bold"
+                                style={{ color: themeColor }}
+                              >
+                                {item.value.toLocaleString('ar-SA')}
+                              </p>
+                            </>
+                          )}
                         </div>
-                      ) : (
-                        <>
-                          <div className={`inline-flex rounded-lg p-1.5 sm:p-2 mb-1.5 sm:mb-2 bg-gradient-to-br ${item.gradient}`}>
-                            <item.icon className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
-                          </div>
-                          <p className="text-[9px] sm:text-[10px] text-white/70 leading-tight mb-0.5 sm:mb-1">
-                            {item.title}
-                          </p>
-                          <p className="text-sm sm:text-lg font-bold text-white">
-                            {item.value.toLocaleString('ar-SA')}
-                          </p>
-                        </>
-                      )}
-                    </motion.div>
-                  ))}
-                </div>
+                      ))}
+                    </div>
+                  </motion.div>
 
-                {/* رسالة أسفل البطاقة */}
-                <motion.p 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 }}
-                  className="text-white/60 text-[10px] sm:text-xs mt-3 sm:mt-4 text-center"
-                >
-                  📊 تحديث تلقائي كل 30 ثانية
-                </motion.p>
+                  {/* رسالة */}
+                  <motion.p 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.35 }}
+                    className="text-white/70 text-xs mt-3"
+                  >
+                    📊 تحديث تلقائي كل 30 ثانية
+                  </motion.p>
+                </div>
               </div>
             </div>
           </motion.div>
-        </div>
+        </>
       )}
     </AnimatePresence>
   );
