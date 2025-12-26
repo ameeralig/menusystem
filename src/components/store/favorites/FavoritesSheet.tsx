@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Heart, Trash2, ShoppingBag } from "lucide-react";
+import { X, Heart, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Product } from "@/types/product";
 import { optimizeImageUrl } from "@/utils/imageOptimizer";
@@ -31,6 +32,13 @@ const FavoritesSheet: React.FC<FavoritesSheetProps> = ({
   onClear,
   onProductClick,
 }) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
   // الحصول على لون الثيم
   const getThemeColor = () => {
     if (colorTheme?.startsWith('#')) {
@@ -51,11 +59,13 @@ const FavoritesSheet: React.FC<FavoritesSheetProps> = ({
   // فلترة المنتجات المفضلة
   const favoriteProducts = products.filter(p => favorites.includes(p.id));
 
-  return (
+  if (!mounted || !isOpen) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* الخلفية */}
+          {/* الخلفية الضبابية */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -64,122 +74,163 @@ const FavoritesSheet: React.FC<FavoritesSheetProps> = ({
             className="fixed inset-0 z-50 backdrop-blur-md bg-black/40"
           />
 
-          {/* الشيت */}
+          {/* البطاقة العائمة */}
           <motion.div
-            initial={{ opacity: 0, x: 300 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 300 }}
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-sm bg-white dark:bg-gray-900 shadow-2xl"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
           >
-            {/* الهيدر */}
-            <div 
-              className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700"
-              style={{ backgroundColor: `${themeColor}10` }}
-            >
-              <div className="flex items-center gap-2">
-                <Heart className="w-5 h-5" style={{ color: themeColor }} />
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                  المفضلة ({favoriteProducts.length})
-                </h2>
-              </div>
-              <button
+            <div className="pointer-events-auto w-full max-w-sm">
+              {/* زر الإغلاق */}
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={onClose}
-                className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center text-white shadow-lg"
               >
-                <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              </button>
-            </div>
+                <X className="w-5 h-5" />
+              </motion.button>
 
-            {/* المحتوى */}
-            <div className="flex-1 overflow-y-auto h-[calc(100vh-140px)] p-4">
-              {favoriteProducts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <div 
-                    className="w-20 h-20 rounded-full flex items-center justify-center mb-4"
-                    style={{ backgroundColor: `${themeColor}15` }}
+              {/* البطاقة الزجاجية */}
+              <div 
+                className="rounded-3xl overflow-hidden shadow-2xl border border-white/20"
+                style={{
+                  background: `linear-gradient(135deg, ${themeColor}ee, ${themeColor}cc)`,
+                  backdropFilter: 'blur(20px)',
+                }}
+              >
+                {/* تأثير الإضاءة العلوي */}
+                <div 
+                  className="absolute top-0 left-0 right-0 h-32 opacity-30"
+                  style={{
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%)',
+                  }}
+                />
+
+                {/* هيدر البطاقة */}
+                <div className="relative p-5 text-center text-white border-b border-white/20">
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.1, type: "spring" }}
+                    className="mx-auto mb-3 w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center shadow-lg"
                   >
-                    <Heart className="w-10 h-10" style={{ color: themeColor }} />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                    لا توجد منتجات مفضلة
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    اضغط على أيقونة القلب لإضافة منتجات للمفضلة
-                  </p>
+                    <Heart className="w-8 h-8 text-white fill-white" />
+                  </motion.div>
+                  <motion.h2 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                    className="text-xl font-bold drop-shadow-lg"
+                  >
+                    المفضلة
+                  </motion.h2>
+                  <motion.p 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="text-white/80 text-sm"
+                  >
+                    {favoriteProducts.length} منتج محفوظ
+                  </motion.p>
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  {favoriteProducts.map((product) => (
-                    <motion.div
-                      key={product.id}
-                      layout
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, x: 100 }}
-                      className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl"
+
+                {/* محتوى المفضلات */}
+                <div className="relative max-h-[50vh] overflow-y-auto p-4">
+                  {favoriteProducts.length === 0 ? (
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="flex flex-col items-center justify-center py-8 text-center text-white/80"
                     >
-                      {/* الصورة */}
-                      <div 
-                        onClick={() => onProductClick?.(product)}
-                        className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 cursor-pointer hover:scale-105 transition-transform"
-                      >
-                        <img
-                          src={optimizeImageUrl(product.image_url, 'thumbnail')}
-                          alt={product.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src = "https://placehold.co/120x120/e2e8f0/64748b?text=No+Image";
-                          }}
-                        />
-                      </div>
-
-                      {/* التفاصيل */}
-                      <div 
-                        className="flex-1 min-w-0 cursor-pointer"
-                        onClick={() => onProductClick?.(product)}
-                      >
-                        <h3 className="font-semibold text-gray-900 dark:text-white truncate">
-                          {product.name}
-                        </h3>
-                        <p 
-                          className="text-sm font-bold"
-                          style={{ color: themeColor }}
-                        >
-                          {formatPrice(product.price)} د.ع
-                        </p>
-                      </div>
-
-                      {/* زر الحذف */}
-                      <button
-                        onClick={() => onRemove(product.id)}
-                        className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-full bg-red-50 dark:bg-red-900/30 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <Heart className="w-12 h-12 mb-3 opacity-50" />
+                      <p className="text-sm">لا توجد منتجات مفضلة</p>
+                      <p className="text-xs opacity-70">اضغط على أيقونة القلب لإضافة منتجات</p>
                     </motion.div>
-                  ))}
+                  ) : (
+                    <div className="space-y-2">
+                      {favoriteProducts.map((product, index) => (
+                        <motion.div
+                          key={product.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className="flex items-center gap-3 p-2.5 bg-white/15 backdrop-blur-sm rounded-xl border border-white/10"
+                        >
+                          {/* الصورة */}
+                          <div 
+                            onClick={() => {
+                              onClose();
+                              setTimeout(() => onProductClick?.(product), 300);
+                            }}
+                            className="w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden bg-white/20 cursor-pointer hover:scale-105 transition-transform"
+                          >
+                            <img
+                              src={optimizeImageUrl(product.image_url, 'thumbnail')}
+                              alt={product.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src = "https://placehold.co/120x120/e2e8f0/64748b?text=No+Image";
+                              }}
+                            />
+                          </div>
+
+                          {/* التفاصيل */}
+                          <div 
+                            className="flex-1 min-w-0 cursor-pointer"
+                            onClick={() => {
+                              onClose();
+                              setTimeout(() => onProductClick?.(product), 300);
+                            }}
+                          >
+                            <h3 className="font-semibold text-white text-sm truncate">
+                              {product.name}
+                            </h3>
+                            <p className="text-white/90 text-xs font-medium">
+                              {formatPrice(product.price)} د.ع
+                            </p>
+                          </div>
+
+                          {/* زر الحذف */}
+                          <button
+                            onClick={() => onRemove(product.id)}
+                            className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-red-500/50 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
                 </div>
+              </div>
+
+              {/* أزرار الإجراءات - خارج البطاقة */}
+              {favoriteProducts.length > 0 && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="flex gap-2 mt-4"
+                >
+                  <Button
+                    variant="outline"
+                    onClick={onClear}
+                    className="flex-1 h-12 rounded-2xl bg-white/10 backdrop-blur-lg border-white/20 text-white hover:bg-red-500/30"
+                  >
+                    <Trash2 className="w-5 h-5 mr-2" />
+                    <span className="text-sm">مسح الكل</span>
+                  </Button>
+                </motion.div>
               )}
             </div>
-
-            {/* الفوتر */}
-            {favoriteProducts.length > 0 && (
-              <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-                <Button
-                  variant="outline"
-                  onClick={onClear}
-                  className="w-full h-11 rounded-xl text-red-500 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/20"
-                >
-                  <Trash2 className="w-4 h-4 ml-2" />
-                  مسح الكل
-                </Button>
-              </div>
-            )}
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

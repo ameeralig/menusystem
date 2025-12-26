@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Settings, Plus, Moon, Sun, ShoppingBag, DollarSign, Info, Eye, BarChart3 } from "lucide-react";
+import { Settings, Plus, Moon, Sun, ShoppingBag, DollarSign, Info, Eye, BarChart3, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -302,6 +302,20 @@ const StoreOwnerActionsMenu = ({
               </motion.div>
             )}
           </div>
+
+          {/* زر تسجيل الخروج */}
+          <Button
+            onClick={async () => {
+              await supabase.auth.signOut();
+              toast.success("تم تسجيل الخروج");
+              window.location.reload();
+            }}
+            variant="outline"
+            className="w-full justify-start gap-2 h-10 text-red-500 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/20"
+          >
+            <LogOut className="h-4 w-4" />
+            تسجيل الخروج
+          </Button>
 
           {/* الملف الشخصي */}
           <ProfileSheet colorTheme={colorTheme} />

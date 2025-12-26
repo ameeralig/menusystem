@@ -87,32 +87,44 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
 
   const themeColor = getThemeColor();
 
-  // زر الإجراء المشترك
+  // زر الإجراء المشترك - أيقونة فقط أو مع نص
   const ActionButton = ({ 
     onClick, 
     icon: Icon, 
     label, 
-    gradient 
+    gradient,
+    showLabel = false,
+    badge
   }: { 
     onClick: () => void; 
     icon: React.ElementType; 
     label: string; 
     gradient: string;
+    showLabel?: boolean;
+    badge?: number;
   }) => (
     <motion.div
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
+      whileHover={{ scale: 1.08 }}
+      whileTap={{ scale: 0.92 }}
     >
       <div
         onClick={onClick}
-        className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl shadow-md cursor-pointer transition-all"
+        className="relative flex items-center justify-center w-10 h-10 rounded-xl shadow-md cursor-pointer transition-all"
         style={{
           background: gradient,
           border: '1px solid rgba(255,255,255,0.2)',
         }}
+        title={label}
       >
-        <Icon className="h-4 w-4 text-white" />
-        <span className="text-[10px] font-medium text-white whitespace-nowrap">{label}</span>
+        <Icon className="h-5 w-5 text-white" />
+        {badge && badge > 0 && (
+          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold bg-white text-red-500 rounded-full shadow-md">
+            {badge}
+          </span>
+        )}
+        {showLabel && (
+          <span className="text-[9px] font-medium text-white absolute -bottom-4 whitespace-nowrap">{label}</span>
+        )}
       </div>
     </motion.div>
   );
@@ -124,8 +136,10 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       id: 'favorites',
       onClick: onOpenFavorites,
       icon: Heart,
-      label: favoritesCount > 0 ? `${favoritesCount}` : 'مفضلة',
+      label: 'مفضلة',
       gradient: `linear-gradient(135deg, #ef4444, #dc2626)`,
+      showLabel: false,
+      badge: favoritesCount,
     },
     // زر شارك المنيو
     slug && {
@@ -134,6 +148,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       icon: Share2,
       label: 'شارك',
       gradient: `linear-gradient(135deg, #f59e0b, #d97706)`,
+      showLabel: false,
     },
     // زر تحميل المنيو
     storeName && products.length > 0 && {
@@ -142,14 +157,16 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       icon: Download,
       label: 'تحميل',
       gradient: `linear-gradient(135deg, #10b981, #059669)`,
+      showLabel: false,
     },
-    // زر عجلة الحظ
+    // زر عجلة الحظ - مع نص
     storeOwnerId && products.length > 0 && {
       id: 'wheel',
       onClick: () => setIsWheelModalOpen(true),
       icon: Disc3,
       label: 'حظ',
       gradient: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)`,
+      showLabel: true,
     },
     // زر AI
     storeOwnerId && {
@@ -158,14 +175,16 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       icon: Sparkles,
       label: 'AI',
       gradient: `linear-gradient(135deg, #8b5cf6, #7c3aed)`,
+      showLabel: false,
     },
-    // تقييم للزوار فقط
+    // تقييم للزوار فقط - مع نص
     storeOwnerId && !isStoreOwner && {
       id: 'feedback',
       onClick: () => setIsFeedbackDialogOpen(true),
       icon: MessageSquare,
       label: 'رأيك',
       gradient: `linear-gradient(135deg, #ec4899, #db2777)`,
+      showLabel: true,
     },
   ].filter(Boolean);
 
@@ -190,8 +209,8 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
           borderColor: `${themeColor}25`,
         }}
       >
-        <div className="container mx-auto px-2 py-2">
-          <div className="flex items-center gap-2 max-w-4xl mx-auto">
+        <div className="container mx-auto px-4 sm:px-6 py-2.5">
+          <div className="flex items-center justify-center gap-3 sm:gap-4 max-w-lg mx-auto">
             
             {/* زر/حقل البحث */}
             {isSearchExpanded ? (
@@ -228,19 +247,19 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
               </motion.div>
             ) : (
               <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.92 }}
               >
                 <div
                   onClick={() => setIsSearchExpanded(true)}
-                  className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl shadow-md cursor-pointer transition-all"
+                  className="flex items-center justify-center w-10 h-10 rounded-xl shadow-md cursor-pointer transition-all"
                   style={{
-                    background: `${themeColor}15`,
+                    background: `${themeColor}20`,
                     border: '1px solid rgba(255,255,255,0.1)',
                   }}
+                  title="بحث"
                 >
-                  <Search className="h-4 w-4" style={{ color: themeColor }} />
-                  <span className="text-[10px] font-medium whitespace-nowrap" style={{ color: themeColor }}>بحث</span>
+                  <Search className="h-5 w-5" style={{ color: themeColor }} />
                 </div>
               </motion.div>
             )}
@@ -259,7 +278,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
             )}
 
             {/* الأزرار الرئيسية */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-3 sm:gap-4">
               {primaryButtons.map((btn: any) => (
                 <ActionButton
                   key={btn.id}
@@ -267,9 +286,10 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                   icon={btn.icon}
                   label={btn.label}
                   gradient={btn.gradient}
+                  showLabel={btn.showLabel}
+                  badge={btn.badge}
                 />
               ))}
-
             </div>
           </div>
         </div>

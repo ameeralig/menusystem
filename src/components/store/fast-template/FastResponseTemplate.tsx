@@ -80,6 +80,22 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   const { addItem } = useCart();
   const { favorites, toggleFavorite, isFavorite, clearFavorites, favoritesCount } = useFavorites(slug || 'default');
 
+  // فتح المنتج من رابط المشاركة
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('product');
+    
+    if (productId && products.length > 0) {
+      const sharedProduct = products.find(p => p.id === productId);
+      if (sharedProduct) {
+        setSelectedProduct(sharedProduct);
+        setIsModalOpen(true);
+        // إزالة البارامتر من URL
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+  }, [products]);
+
   // جلب إعدادات الطلبات الخارجية
   useEffect(() => {
     if (!storeOwnerId) return;
