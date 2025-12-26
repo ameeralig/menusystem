@@ -77,16 +77,33 @@ const ShareProductCard: React.FC<ShareProductCardProps> = ({
     try {
       const html2canvas = (await import('html2canvas')).default;
       
+      // انتظار تحميل الصورة
+      const imgElement = cardRef.current.querySelector('img');
+      if (imgElement && !imgElement.complete) {
+        await new Promise((resolve) => {
+          imgElement.onload = resolve;
+          imgElement.onerror = resolve;
+        });
+      }
+      
       const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: null,
-        scale: 2,
+        backgroundColor: getThemeColor(),
+        scale: 3,
         useCORS: true,
-        allowTaint: true,
+        allowTaint: false,
+        logging: false,
+        imageTimeout: 15000,
+        onclone: (clonedDoc) => {
+          const clonedCard = clonedDoc.querySelector('[data-card]');
+          if (clonedCard) {
+            (clonedCard as HTMLElement).style.backdropFilter = 'none';
+          }
+        }
       });
       
       const link = document.createElement('a');
       link.download = `${product?.name || 'product'}-share.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.href = canvas.toDataURL('image/png', 1.0);
       link.click();
       
       toast.success("تم تحميل البطاقة!");
@@ -96,26 +113,23 @@ const ShareProductCard: React.FC<ShareProductCardProps> = ({
     } finally {
       setIsDownloading(false);
     }
-  }, [product?.name]);
+  }, [product?.name, getThemeColor]);
 
   // مشاركة مباشرة
   const handleShare = useCallback(async () => {
-    const shareData = {
-      title: product?.name || "منتج",
-      text: `شاهد ${product?.name} من ${storeName}! 🛍️`,
-      url: productUrl,
-    };
-
     if (navigator.share) {
       try {
-        await navigator.share(shareData);
+        await navigator.share({
+          title: product?.name || "منتج",
+          url: productUrl,
+        });
       } catch (error) {
         // المستخدم ألغى المشاركة
       }
     } else {
       handleCopyLink();
     }
-  }, [product?.name, storeName, productUrl, handleCopyLink]);
+  }, [product?.name, productUrl, handleCopyLink]);
 
   if (!isOpen || !product) return null;
 
@@ -158,10 +172,10 @@ const ShareProductCard: React.FC<ShareProductCardProps> = ({
               {/* البطاقة الزجاجية */}
               <div 
                 ref={cardRef}
+                data-card
                 className="rounded-3xl overflow-hidden shadow-2xl border border-white/20"
                 style={{
-                  background: `linear-gradient(135deg, ${themeColor}ee, ${themeColor}cc)`,
-                  backdropFilter: 'blur(20px)',
+                  background: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)`,
                 }}
               >
                 {/* تأثير الإضاءة العلوي */}

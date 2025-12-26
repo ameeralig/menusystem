@@ -139,7 +139,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       label: 'مفضلة',
       gradient: `linear-gradient(135deg, #ef4444, #dc2626)`,
       showLabel: false,
-      badge: favoritesCount,
+      badge: favoritesCount > 0 ? favoritesCount : undefined,
     },
     // زر شارك المنيو
     slug && {
@@ -159,14 +159,14 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       gradient: `linear-gradient(135deg, #10b981, #059669)`,
       showLabel: false,
     },
-    // زر عجلة الحظ - مع نص
+    // زر عجلة الحظ
     storeOwnerId && products.length > 0 && {
       id: 'wheel',
       onClick: () => setIsWheelModalOpen(true),
       icon: Disc3,
       label: 'حظ',
       gradient: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)`,
-      showLabel: true,
+      showLabel: false,
     },
     // زر AI
     storeOwnerId && {
@@ -177,14 +177,14 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       gradient: `linear-gradient(135deg, #8b5cf6, #7c3aed)`,
       showLabel: false,
     },
-    // تقييم للزوار فقط - مع نص
+    // تقييم للزوار فقط
     storeOwnerId && !isStoreOwner && {
       id: 'feedback',
       onClick: () => setIsFeedbackDialogOpen(true),
       icon: MessageSquare,
       label: 'رأيك',
       gradient: `linear-gradient(135deg, #ec4899, #db2777)`,
-      showLabel: true,
+      showLabel: false,
     },
   ].filter(Boolean);
 
