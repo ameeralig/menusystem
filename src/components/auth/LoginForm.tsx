@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -18,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { AlertCircle, Mail } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { logUserActivity } from "@/hooks/analytics/useActivityLogger";
 import { PasswordInput } from "./PasswordInput";
 import { getErrorMessage } from "@/utils/errorHandling";
 
@@ -74,6 +74,9 @@ export function LoginForm() {
           .eq('user_id', data.user.id)
           .eq('is_active', true)
           .maybeSingle();
+
+        // تسجيل نشاط تسجيل الدخول
+        logUserActivity('login', 'auth', { email: values.email });
 
         toast({
           title: "تم تسجيل الدخول بنجاح",

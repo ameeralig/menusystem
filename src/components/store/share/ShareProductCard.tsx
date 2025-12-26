@@ -1,10 +1,11 @@
-import React, { useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Share2, Download, Copy, Check, X, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Product, getDiscountedPrice, hasDiscount } from "@/types/product";
 import { optimizeImageUrl } from "@/utils/imageOptimizer";
+import { logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
 
 interface ShareProductCardProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface ShareProductCardProps {
   storeName?: string;
   slug?: string;
   colorTheme?: string | null;
+  storeOwnerId?: string;
 }
 
 // تنسيق السعر
@@ -27,6 +29,7 @@ const ShareProductCard: React.FC<ShareProductCardProps> = ({
   storeName = "المنيو الرقمي",
   slug,
   colorTheme,
+  storeOwnerId,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
@@ -55,6 +58,16 @@ const ShareProductCard: React.FC<ShareProductCardProps> = ({
   };
 
   const themeColor = getThemeColor();
+
+  // تسجيل نشاط المشاركة
+  useEffect(() => {
+    if (isOpen && storeOwnerId && product) {
+      logVisitorActivity(storeOwnerId, 'share_product', { 
+        product_id: product.id,
+        product_name: product.name 
+      });
+    }
+  }, [isOpen, storeOwnerId, product]);
 
   // نسخ الرابط
   const handleCopyLink = useCallback(async () => {

@@ -4,6 +4,7 @@ import { Edit, Trash2, Plus, Percent, Heart, Share2 } from "lucide-react";
 import { optimizeImageUrl } from "@/utils/imageOptimizer";
 import { Button } from "@/components/ui/button";
 import { isSafari, isIOS } from "@/utils/browserDetect";
+import { logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
 
 interface CompactProductCardProps {
   product: Product;
@@ -15,8 +16,9 @@ interface CompactProductCardProps {
   onAddToCart?: (product: Product) => void;
   showAddButton?: boolean;
   isFavorite?: boolean;
-  onToggleFavorite?: (productId: string) => void;
+  onToggleFavorite?: (productId: string, productName?: string) => void;
   onShare?: (product: Product) => void;
+  storeOwnerId?: string;
 }
 
 // تنسيق السعر بفواصل
@@ -36,6 +38,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
   isFavorite = false,
   onToggleFavorite,
   onShare,
+  storeOwnerId,
 }) => {
   // استخدام حجم thumbnail للبطاقات الصغيرة (120x120, quality 60)
   const optimizedImageUrl = optimizeImageUrl(product.image_url, 'thumbnail');
@@ -87,7 +90,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onToggleFavorite?.(product.id);
+              onToggleFavorite?.(product.id, product.name);
             }}
             className={`p-1.5 rounded-md transition-all shadow-lg ${
               isFavorite 
@@ -112,7 +115,16 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
       )}
 
       <div 
-        onClick={onClick}
+        onClick={() => {
+          onClick?.();
+          // تسجيل نشاط النقر على المنتج
+          if (storeOwnerId && !isStoreOwner) {
+            logVisitorActivity(storeOwnerId, 'product_click', { 
+              product_id: product.id,
+              product_name: product.name 
+            });
+          }
+        }}
         className="flex items-center gap-3 flex-1 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform"
       >
       {/* صورة المنتج - مربع صغير */}
