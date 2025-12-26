@@ -117,7 +117,7 @@ export const useUnifiedStoreData = (slug: string | undefined) => {
         logoUrl: data.logo_url,
         fontSettings: parsedFontSettings,
         darkMode: data.dark_mode || false,
-        template: data.template || "default",
+        template: "fast-response",
       };
 
       setStoreData(unifiedData);

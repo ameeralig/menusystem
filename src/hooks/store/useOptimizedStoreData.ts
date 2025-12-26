@@ -71,7 +71,7 @@ export const useOptimizedStoreData = (slug: string | undefined, forceRefresh: nu
     logoUrl: unifiedData?.logoUrl || null,
     fontSettings: unifiedData?.fontSettings,
     darkMode: unifiedData?.darkMode || false,
-    template: unifiedData?.template || "default",
+    template: "fast-response",
     products: allProducts,
     visibleProducts: products,
     categoryImages,
