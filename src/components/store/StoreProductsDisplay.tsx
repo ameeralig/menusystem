@@ -49,7 +49,7 @@ const StoreProductsDisplay = ({
   storeOwnerId,
   forceRefresh = 0,
   isEmployeeView = false,
-  template = "default",
+  template = "fast-response",
   socialLinks,
   isStoreOwner = false,
   refreshData,
