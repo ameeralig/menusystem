@@ -18,6 +18,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useFavorites } from "@/hooks/store/useFavorites";
 import CartButton from "../external-orders/CartButton";
 import CartSheet from "../external-orders/CartSheet";
+import { logUserActivity } from "@/hooks/analytics/useActivityLogger";
 import FavoritesSheet from "../favorites/FavoritesSheet";
 import ShareProductCard from "../share/ShareProductCard";
 import {
@@ -78,7 +79,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const [shareProduct, setShareProduct] = useState<Product | null>(null);
   const { addItem } = useCart();
-  const { favorites, toggleFavorite, isFavorite, clearFavorites, favoritesCount } = useFavorites(slug || 'default');
+  const { favorites, toggleFavorite, isFavorite, clearFavorites, favoritesCount } = useFavorites(slug || 'default', storeOwnerId);
 
   // فتح المنتج من رابط المشاركة
   useEffect(() => {
@@ -261,6 +262,12 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         }
       }
 
+      // تسجيل نشاط الحذف
+      logUserActivity('product_delete', 'products', { 
+        product_id: productToDelete.id,
+        name: productToDelete.name 
+      });
+
       toast.success("تم حذف المنتج بنجاح");
       refreshData?.();
     } catch (error) {
@@ -355,6 +362,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
                 isFavorite={isFavorite(product.id)}
                 onToggleFavorite={toggleFavorite}
                 onShare={(product) => setShareProduct(product)}
+                storeOwnerId={storeOwnerId}
               />
             ))}
           </div>
@@ -468,6 +476,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         storeName={storeName || undefined}
         slug={slug}
         colorTheme={colorTheme}
+        storeOwnerId={storeOwnerId}
       />
     </div>
   );

@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { optimizeImageUrl } from "@/utils/imageOptimizer";
 import { uploadImage, optimizeImage } from "@/utils/storageHelpers";
+import { logUserActivity } from "@/hooks/analytics/useActivityLogger";
 
 interface EditProductModalProps {
   product: Product | null;
@@ -165,6 +166,12 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
         .eq('id', product.id);
 
       if (updateError) throw updateError;
+
+      // تسجيل النشاط
+      logUserActivity('product_edit', 'products', { 
+        product_id: product.id, 
+        name: name.trim() 
+      });
 
       toast.success("تم حفظ التعديلات بنجاح");
       onSaved();

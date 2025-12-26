@@ -1,9 +1,10 @@
-import React, { useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Share2, Download, Copy, Check, X, QrCode, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import QRCode from "react-qr-code";
+import { logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
 
 interface ShareMenuCardProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface ShareMenuCardProps {
   colorTheme?: string | null;
   logoUrl?: string | null;
   productsCount?: number;
+  storeOwnerId?: string;
 }
 
 const ShareMenuCard: React.FC<ShareMenuCardProps> = ({
@@ -23,6 +25,7 @@ const ShareMenuCard: React.FC<ShareMenuCardProps> = ({
   colorTheme,
   logoUrl,
   productsCount = 0,
+  storeOwnerId,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
@@ -51,6 +54,13 @@ const ShareMenuCard: React.FC<ShareMenuCardProps> = ({
   };
 
   const themeColor = getThemeColor();
+
+  // تسجيل نشاط المشاركة
+  useEffect(() => {
+    if (isOpen && storeOwnerId) {
+      logVisitorActivity(storeOwnerId, 'share_menu', { store_name: storeName });
+    }
+  }, [isOpen, storeOwnerId, storeName]);
 
   // نسخ الرابط
   const handleCopyLink = useCallback(async () => {

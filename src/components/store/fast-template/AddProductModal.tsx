@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { CategorySelectionStep } from "./CategorySelectionStep";
 import { ProductDetailsStep, ProductFormData } from "./ProductDetailsStep";
 import { uploadImage, optimizeImage } from "@/utils/storageHelpers";
+import { logUserActivity } from "@/hooks/analytics/useActivityLogger";
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -118,6 +119,12 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
       ]);
 
       if (error) throw error;
+
+      // تسجيل النشاط
+      logUserActivity('product_add', 'products', { 
+        name: formData.name,
+        category: formData.category 
+      });
 
       toast.success("تم إضافة المنتج بنجاح");
       

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logVisitorActivity, VisitorActionType } from '@/hooks/analytics/useActivityLogger';
 
 const FAVORITES_KEY = 'store_favorites';
 
@@ -6,7 +7,7 @@ export interface FavoritesStore {
   [storeSlug: string]: string[]; // product IDs
 }
 
-export const useFavorites = (storeSlug: string) => {
+export const useFavorites = (storeSlug: string, storeOwnerId?: string) => {
   const [favorites, setFavorites] = useState<string[]>([]);
 
   // تحميل المفضلات من localStorage
@@ -34,17 +35,28 @@ export const useFavorites = (storeSlug: string) => {
     }
   }, [storeSlug]);
 
-  // إضافة/إزالة من المفضلة
-  const toggleFavorite = useCallback((productId: string) => {
+  // إضافة/إزالة من المفضلة مع تتبع النشاط
+  const toggleFavorite = useCallback((productId: string, productName?: string) => {
     setFavorites(prev => {
-      const newFavorites = prev.includes(productId)
+      const isRemoving = prev.includes(productId);
+      const newFavorites = isRemoving
         ? prev.filter(id => id !== productId)
         : [...prev, productId];
       
       saveFavorites(newFavorites);
+      
+      // تسجيل نشاط الزائر
+      if (storeOwnerId) {
+        const actionType: VisitorActionType = isRemoving ? 'remove_from_favorites' : 'add_to_favorites';
+        logVisitorActivity(storeOwnerId, actionType, { 
+          product_id: productId,
+          product_name: productName 
+        });
+      }
+      
       return newFavorites;
     });
-  }, [saveFavorites]);
+  }, [saveFavorites, storeOwnerId]);
 
   // التحقق إذا المنتج مفضل
   const isFavorite = useCallback((productId: string) => {

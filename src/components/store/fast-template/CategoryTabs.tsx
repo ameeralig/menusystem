@@ -5,6 +5,7 @@ import { Edit, GripVertical } from "lucide-react";
 import CategoryImageUploadDialog from "./CategoryImageUploadDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { logVisitorActivity, logUserActivity } from "@/hooks/analytics/useActivityLogger";
 
 interface CategoryTabsProps {
   categories: string[];
@@ -182,6 +183,10 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
                   onClick={(e) => {
                     if (!isDragging) {
                       onCategorySelect(category);
+                      // تسجيل نشاط النقر على التصنيف
+                      if (storeOwnerId && !isStoreOwner) {
+                        logVisitorActivity(storeOwnerId, 'category_click', { category_name: category });
+                      }
                     }
                   }}
                   className={`
