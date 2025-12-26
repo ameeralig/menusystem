@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   X, Eye, Package, CheckCircle, Star, Sparkles, 
@@ -19,6 +20,11 @@ const StoreStatsCard: React.FC<StoreStatsCardProps> = ({
   colorTheme,
 }) => {
   const { stats, loading } = useDashboardStats();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const getThemeColor = () => {
     if (colorTheme?.startsWith('#')) {
