@@ -97,9 +97,9 @@ const StoreStatsCard: React.FC<StoreStatsCardProps> = ({
     },
   ];
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -110,7 +110,7 @@ const StoreStatsCard: React.FC<StoreStatsCardProps> = ({
             exit={{ opacity: 0 }}
             onClick={onClose}
             className="fixed inset-0 z-50 backdrop-blur-md bg-black/40"
-            style={{ WebkitBackdropFilter: 'blur(12px)', backdropFilter: 'blur(12px)' }}
+            style={{ WebkitBackdropFilter: "blur(12px)", backdropFilter: "blur(12px)" }}
           />
 
           {/* البطاقة العائمة - نفس بطاقة المشاركة تماماً */}
@@ -121,37 +121,37 @@ const StoreStatsCard: React.FC<StoreStatsCardProps> = ({
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
           >
-            <div className="pointer-events-auto w-full max-w-sm">
+            <div className="pointer-events-auto w-full max-w-sm relative">
               {/* زر الإغلاق - نفس بطاقة المشاركة */}
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={onClose}
-                className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center text-white shadow-lg"
+                className="absolute -top-2 -right-2 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center text-white shadow-lg"
               >
                 <X className="w-5 h-5" />
               </motion.button>
 
               {/* البطاقة الزجاجية - نفس بطاقة المشاركة */}
-              <div 
-                className="rounded-3xl overflow-hidden shadow-2xl border border-white/20"
+              <div
+                className="rounded-3xl overflow-hidden shadow-2xl border border-white/20 relative"
                 style={{
                   background: `linear-gradient(135deg, ${themeColor}ee, ${themeColor}cc)`,
-                  backdropFilter: 'blur(20px)',
+                  backdropFilter: "blur(20px)",
                 }}
               >
                 {/* تأثير الإضاءة العلوي */}
-                <div 
-                  className="absolute top-0 left-0 right-0 h-32 opacity-30"
+                <div
+                  className="absolute top-0 left-0 right-0 h-32 opacity-30 pointer-events-none"
                   style={{
-                    background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%)',
+                    background: "linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%)",
                   }}
                 />
 
                 {/* محتوى البطاقة */}
                 <div className="relative p-6 text-center text-white">
                   {/* الأيقونة */}
-                  <motion.div 
+                  <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.1, type: "spring" }}
@@ -161,7 +161,7 @@ const StoreStatsCard: React.FC<StoreStatsCardProps> = ({
                   </motion.div>
 
                   {/* العنوان */}
-                  <motion.h2 
+                  <motion.h2
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.15 }}
@@ -169,7 +169,7 @@ const StoreStatsCard: React.FC<StoreStatsCardProps> = ({
                   >
                     إحصائيات المتجر
                   </motion.h2>
-                  <motion.p 
+                  <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2 }}
@@ -179,7 +179,7 @@ const StoreStatsCard: React.FC<StoreStatsCardProps> = ({
                   </motion.p>
 
                   {/* شبكة الإحصاءات في إطار أبيض مثل QR */}
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.25, type: "spring" }}
@@ -187,10 +187,7 @@ const StoreStatsCard: React.FC<StoreStatsCardProps> = ({
                   >
                     <div className="grid grid-cols-3 gap-3">
                       {statsItems.map((item, index) => (
-                        <div
-                          key={index}
-                          className="text-center py-2"
-                        >
+                        <div key={index} className="text-center py-2">
                           {loading ? (
                             <div className="space-y-1">
                               <Skeleton className="h-5 w-5 mx-auto rounded-md" />
@@ -199,18 +196,18 @@ const StoreStatsCard: React.FC<StoreStatsCardProps> = ({
                             </div>
                           ) : (
                             <>
-                              <item.icon 
-                                className="h-5 w-5 mx-auto mb-1" 
+                              <item.icon
+                                className="h-5 w-5 mx-auto mb-1"
                                 style={{ color: themeColor }}
                               />
                               <p className="text-[9px] text-gray-500 leading-tight">
                                 {item.title}
                               </p>
-                              <p 
+                              <p
                                 className="text-base font-bold"
                                 style={{ color: themeColor }}
                               >
-                                {item.value.toLocaleString('ar-SA')}
+                                {item.value.toLocaleString("ar-SA")}
                               </p>
                             </>
                           )}
@@ -220,7 +217,7 @@ const StoreStatsCard: React.FC<StoreStatsCardProps> = ({
                   </motion.div>
 
                   {/* رسالة */}
-                  <motion.p 
+                  <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.35 }}
@@ -234,7 +231,8 @@ const StoreStatsCard: React.FC<StoreStatsCardProps> = ({
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 
