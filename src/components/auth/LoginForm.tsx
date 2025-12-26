@@ -92,12 +92,22 @@ export function LoginForm() {
           if (storeData?.slug) {
             navigate(`/${storeData.slug}`);
           } else {
-            navigate("/dashboard");
+            navigate("/");
           }
         } else {
-          // مستخدم عادي - تعيين علامة لعرض نافذة الاختيار
-          sessionStorage.setItem("showLoginRedirect", "true");
-          navigate("/dashboard");
+          // مستخدم عادي - التوجيه مباشرة لصفحة المتجر
+          const { data: storeData } = await supabase
+            .from('store_settings')
+            .select('slug')
+            .eq('user_id', data.user.id)
+            .maybeSingle();
+
+          if (storeData?.slug) {
+            navigate(`/${storeData.slug}`);
+          } else {
+            // المستخدم ليس لديه متجر بعد
+            navigate("/");
+          }
         }
       }
     } catch (error: any) {
