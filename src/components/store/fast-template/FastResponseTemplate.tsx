@@ -15,8 +15,11 @@ import { sortCategoriesByOrder } from "@/utils/categorySort";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useCart } from "@/contexts/CartContext";
+import { useFavorites } from "@/hooks/store/useFavorites";
 import CartButton from "../external-orders/CartButton";
 import CartSheet from "../external-orders/CartSheet";
+import FavoritesSheet from "../favorites/FavoritesSheet";
+import ShareProductCard from "../share/ShareProductCard";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -72,7 +75,10 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [externalOrdersEnabled, setExternalOrdersEnabled] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState(0);
+  const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
+  const [shareProduct, setShareProduct] = useState<Product | null>(null);
   const { addItem } = useCart();
+  const { favorites, toggleFavorite, isFavorite, clearFavorites, favoritesCount } = useFavorites(slug || 'default');
 
   // جلب إعدادات الطلبات الخارجية
   useEffect(() => {
@@ -330,6 +336,9 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
                 onDelete={() => handleDelete(product)}
                 onAddToCart={handleAddToCart}
                 showAddButton={externalOrdersEnabled && !isStoreOwner}
+                isFavorite={isFavorite(product.id)}
+                onToggleFavorite={toggleFavorite}
+                onShare={(product) => setShareProduct(product)}
               />
             ))}
           </div>
@@ -373,6 +382,8 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         externalOrdersEnabled={externalOrdersEnabled}
         deliveryFee={deliveryFee}
         logoUrl={logoUrl}
+        favoritesCount={favoritesCount}
+        onOpenFavorites={() => setIsFavoritesOpen(true)}
       />
 
       {/* نافذة تفاصيل المنتج */}
@@ -417,6 +428,31 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* نافذة المفضلات */}
+      <FavoritesSheet
+        isOpen={isFavoritesOpen}
+        onClose={() => setIsFavoritesOpen(false)}
+        favorites={favorites}
+        products={products}
+        colorTheme={colorTheme}
+        onRemove={toggleFavorite}
+        onClear={clearFavorites}
+        onProductClick={(product) => {
+          setIsFavoritesOpen(false);
+          handleProductClick(product);
+        }}
+      />
+
+      {/* بطاقة مشاركة المنتج */}
+      <ShareProductCard
+        isOpen={!!shareProduct}
+        onClose={() => setShareProduct(null)}
+        product={shareProduct}
+        storeName={storeName || undefined}
+        slug={slug}
+        colorTheme={colorTheme}
+      />
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Disc3, MessageSquare, Search, X, Sparkles, Share2, Download } from "lucide-react";
+import { Disc3, MessageSquare, Search, X, Sparkles, Share2, Download, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
@@ -36,6 +36,8 @@ interface BottomActionsBarProps {
   externalOrdersEnabled?: boolean;
   deliveryFee?: number;
   logoUrl?: string | null;
+  favoritesCount?: number;
+  onOpenFavorites?: () => void;
 }
 
 const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
@@ -54,6 +56,8 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   externalOrdersEnabled = false,
   deliveryFee = 0,
   logoUrl,
+  favoritesCount = 0,
+  onOpenFavorites,
 }) => {
   const [isInfoSheetOpen, setIsInfoSheetOpen] = useState(false);
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
@@ -115,6 +119,14 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
 
   // الأزرار الرئيسية (تظهر دائماً)
   const primaryButtons = [
+    // زر المفضلة - للزوار فقط
+    !isStoreOwner && onOpenFavorites && {
+      id: 'favorites',
+      onClick: onOpenFavorites,
+      icon: Heart,
+      label: favoritesCount > 0 ? `${favoritesCount}` : 'مفضلة',
+      gradient: `linear-gradient(135deg, #ef4444, #dc2626)`,
+    },
     // زر شارك المنيو
     slug && {
       id: 'share',

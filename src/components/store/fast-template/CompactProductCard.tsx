@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Product, getDiscountedPrice, hasDiscount } from "@/types/product";
-import { Edit, Trash2, Plus, Percent } from "lucide-react";
+import { Edit, Trash2, Plus, Percent, Heart, Share2 } from "lucide-react";
 import { optimizeImageUrl } from "@/utils/imageOptimizer";
 import { Button } from "@/components/ui/button";
 import { isSafari, isIOS } from "@/utils/browserDetect";
@@ -14,6 +14,9 @@ interface CompactProductCardProps {
   onDelete?: () => void;
   onAddToCart?: (product: Product) => void;
   showAddButton?: boolean;
+  isFavorite?: boolean;
+  onToggleFavorite?: (productId: string) => void;
+  onShare?: (product: Product) => void;
 }
 
 // تنسيق السعر بفواصل
@@ -29,7 +32,10 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
   onEdit,
   onDelete,
   onAddToCart,
-  showAddButton = false
+  showAddButton = false,
+  isFavorite = false,
+  onToggleFavorite,
+  onShare,
 }) => {
   // استخدام حجم thumbnail للبطاقات الصغيرة (120x120, quality 60)
   const optimizedImageUrl = optimizeImageUrl(product.image_url, 'thumbnail');
@@ -71,6 +77,36 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
             title="حذف"
           >
             <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* أزرار المفضلة والمشاركة - للزوار */}
+      {!isStoreOwner && (
+        <div className="absolute top-2 left-2 flex gap-1 z-10">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite?.(product.id);
+            }}
+            className={`p-1.5 rounded-md transition-all shadow-lg ${
+              isFavorite 
+                ? 'bg-red-500 text-white' 
+                : 'bg-white/80 dark:bg-gray-700/80 text-gray-500 hover:text-red-500 backdrop-blur-sm'
+            }`}
+            title={isFavorite ? "إزالة من المفضلة" : "إضافة للمفضلة"}
+          >
+            <Heart className={`w-3.5 h-3.5 ${isFavorite ? 'fill-current' : ''}`} />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onShare?.(product);
+            }}
+            className="p-1.5 bg-white/80 dark:bg-gray-700/80 text-gray-500 hover:text-blue-500 rounded-md transition-all shadow-lg backdrop-blur-sm"
+            title="مشاركة"
+          >
+            <Share2 className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
