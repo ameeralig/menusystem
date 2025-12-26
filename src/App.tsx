@@ -18,10 +18,8 @@ const Login = lazy(() => import("./pages/auth/Login"));
 const Signup = lazy(() => import("./pages/auth/Signup"));
 const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 
-// لوحة التحكم والصفحات الثقيلة - تحمّل عند الحاجة فقط
-const Dashboard = lazy(() => import("./pages/Dashboard"));
+// صفحات أخرى
 const QRGenerator = lazy(() => import("./pages/QRGenerator"));
-
 const SalesManagement = lazy(() => import("./pages/SalesManagement"));
 
 // صفحات الأدمن - تحمّل فقط للمسؤولين
@@ -52,7 +50,6 @@ const App = () => (
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/signup" element={<Signup />} />
               <Route path="/auth/reset-password" element={<ResetPassword />} />
-              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/qr-generator" element={<QRGenerator />} />
               <Route path="/:slug" element={<ProductPreview />} />
               

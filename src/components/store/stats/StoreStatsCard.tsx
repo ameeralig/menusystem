@@ -6,7 +6,7 @@ import {
   Calendar, TrendingUp, RotateCcw, BarChart3 
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { useStoreStats } from "@/hooks/store/useStoreStats";
 
 interface StoreStatsCardProps {
   isOpen: boolean;
@@ -19,7 +19,7 @@ const StoreStatsCard: React.FC<StoreStatsCardProps> = ({
   onClose,
   colorTheme,
 }) => {
-  const { stats, loading } = useDashboardStats();
+  const { stats, loading } = useStoreStats();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
