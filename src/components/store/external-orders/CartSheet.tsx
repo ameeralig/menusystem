@@ -4,8 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useCart } from "@/contexts/CartContext";
-import { Minus, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Minus, Plus, Trash2, MapPin, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 interface CartSheetProps {
@@ -27,9 +27,59 @@ const CartSheet = ({ isOpen, onClose, deliveryFee, storePhone, storeName }: Cart
   const [customerAddress, setCustomerAddress] = useState("");
   const [customerNotes, setCustomerNotes] = useState("");
   const [showCheckoutForm, setShowCheckoutForm] = useState(false);
+  
+  // حالات الموقع الجغرافي
+  const [locationCoords, setLocationCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [locationPermissionDenied, setLocationPermissionDenied] = useState(false);
 
   const subtotal = getTotal();
   const total = subtotal + deliveryFee;
+
+  // طلب الموقع تلقائياً عند عرض نموذج الدفع
+  useEffect(() => {
+    if (showCheckoutForm && !locationCoords && !locationPermissionDenied) {
+      requestLocation();
+    }
+  }, [showCheckoutForm]);
+
+  const requestLocation = async () => {
+    if (!navigator.geolocation) {
+      toast.error("المتصفح لا يدعم تحديد الموقع");
+      return;
+    }
+
+    setIsGettingLocation(true);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setLocationCoords({ lat: latitude, lng: longitude });
+        setIsGettingLocation(false);
+        toast.success("تم تحديد موقعك بنجاح");
+      },
+      (error) => {
+        setIsGettingLocation(false);
+        if (error.code === error.PERMISSION_DENIED) {
+          setLocationPermissionDenied(true);
+          toast.error("تم رفض صلاحية الموقع. يمكنك إدخال العنوان يدوياً");
+        } else {
+          toast.error("تعذر تحديد الموقع. يمكنك إدخال العنوان يدوياً");
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  };
+
+  // إنشاء رابط خرائط جوجل
+  const getGoogleMapsLink = () => {
+    if (!locationCoords) return null;
+    return `https://www.google.com/maps?q=${locationCoords.lat},${locationCoords.lng}`;
+  };
 
   const handleCheckout = () => {
     if (items.length === 0) {
@@ -40,8 +90,13 @@ const CartSheet = ({ isOpen, onClose, deliveryFee, storePhone, storeName }: Cart
   };
 
   const handleCompleteOrder = () => {
-    if (!customerName.trim() || !customerPhone.trim() || !customerAddress.trim()) {
-      toast.error("الرجاء إدخال جميع البيانات المطلوبة");
+    if (!customerName.trim() || !customerPhone.trim()) {
+      toast.error("الرجاء إدخال الاسم ورقم الهاتف");
+      return;
+    }
+
+    if (!customerAddress.trim() && !locationCoords) {
+      toast.error("الرجاء إدخال العنوان أو السماح بتحديد موقعك");
       return;
     }
 
@@ -72,7 +127,16 @@ const CartSheet = ({ isOpen, onClose, deliveryFee, storePhone, storeName }: Cart
     message += `*بيانات الزبون:*\n`;
     message += `الاسم: ${customerName}\n`;
     message += `الهاتف: ${customerPhone}\n`;
-    message += `العنوان: ${customerAddress}\n`;
+    
+    if (customerAddress.trim()) {
+      message += `العنوان: ${customerAddress}\n`;
+    }
+    
+    // إضافة رابط الموقع إذا كان متوفراً
+    if (locationCoords) {
+      const mapsLink = getGoogleMapsLink();
+      message += `📍 الموقع على الخريطة: ${mapsLink}\n`;
+    }
     
     if (customerNotes.trim()) {
       message += `ملاحظات: ${customerNotes}\n`;
@@ -91,6 +155,8 @@ const CartSheet = ({ isOpen, onClose, deliveryFee, storePhone, storeName }: Cart
     setCustomerPhone("");
     setCustomerAddress("");
     setCustomerNotes("");
+    setLocationCoords(null);
+    setLocationPermissionDenied(false);
     setShowCheckoutForm(false);
     onClose();
     toast.success("تم إرسال الطلب إلى الواتساب");
@@ -238,13 +304,75 @@ const CartSheet = ({ isOpen, onClose, deliveryFee, storePhone, storeName }: Cart
                 />
               </div>
 
+              {/* قسم الموقع الجغرافي */}
+              <div className="space-y-2">
+                <Label>الموقع الجغرافي</Label>
+                
+                {isGettingLocation ? (
+                  <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+                    <span className="text-sm text-blue-700 dark:text-blue-300">
+                      جاري تحديد موقعك...
+                    </span>
+                  </div>
+                ) : locationCoords ? (
+                  <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5 text-green-500" />
+                      <span className="text-sm text-green-700 dark:text-green-300 font-medium">
+                        تم تحديد موقعك بنجاح
+                      </span>
+                    </div>
+                    <a
+                      href={getGoogleMapsLink() || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 dark:text-blue-400 underline mt-1 block"
+                    >
+                      عرض الموقع على الخريطة
+                    </a>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="mt-2 text-xs h-7"
+                      onClick={() => {
+                        setLocationCoords(null);
+                        setLocationPermissionDenied(false);
+                      }}
+                    >
+                      تغيير الموقع
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={requestLocation}
+                      disabled={isGettingLocation}
+                    >
+                      <MapPin className="h-4 w-4 ml-2" />
+                      تحديد موقعي تلقائياً
+                    </Button>
+                    {locationPermissionDenied && (
+                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                        تم رفض صلاحية الموقع. يمكنك إدخال العنوان يدوياً أدناه
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <div>
-                <Label htmlFor="customer-address">العنوان *</Label>
+                <Label htmlFor="customer-address">
+                  العنوان {!locationCoords && '*'}
+                </Label>
                 <Textarea
                   id="customer-address"
                   value={customerAddress}
                   onChange={(e) => setCustomerAddress(e.target.value)}
-                  placeholder="أدخل عنوانك بالتفصيل"
+                  placeholder={locationCoords ? "أضف تفاصيل إضافية للعنوان (اختياري)" : "أدخل عنوانك بالتفصيل"}
                   rows={3}
                 />
               </div>

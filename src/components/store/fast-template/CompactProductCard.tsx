@@ -84,9 +84,25 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
         </div>
       )}
 
-      {/* أزرار المفضلة والمشاركة - للزوار */}
+      {/* أزرار المفضلة والمشاركة والإضافة - للزوار */}
       {!isStoreOwner && (
         <div className="absolute top-2 left-2 flex gap-1 z-10">
+          {/* زر الإضافة للسلة */}
+          {showAddButton && product.is_available !== false && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddToCart?.(product);
+              }}
+              className="p-1.5 rounded-md transition-all shadow-lg text-white"
+              style={{
+                backgroundColor: colorTheme?.startsWith('#') ? colorTheme : '#22c55e',
+              }}
+              title="إضافة للسلة"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+          )}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -222,22 +238,6 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
       </div>
       </div>
 
-      {/* زر الإضافة للسلة */}
-      {showAddButton && product.is_available !== false && !isStoreOwner && (
-        <Button
-          size="icon"
-          className="h-8 w-8"
-          onClick={(e) => {
-            e.stopPropagation();
-            onAddToCart?.(product);
-          }}
-          style={{
-            backgroundColor: colorTheme?.startsWith('#') ? colorTheme : undefined,
-          }}
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
-      )}
     </div>
   );
 };
