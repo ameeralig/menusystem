@@ -165,14 +165,16 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       onClick: () => setIsWheelModalOpen(true),
       icon: Disc3,
       label: 'حظ',
-      gradient: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)`,
+      gradient: `linear-gradient(135deg, #f59e0b, #d97706)`,
       showLabel: false,
     },
-    // زر AI
+    // زر AI - نستخدم أيقونة خاصة
     storeOwnerId && {
       id: 'ai',
       onClick: () => setIsAIAssistantOpen(true),
-      icon: Sparkles,
+      icon: () => (
+        <span className="text-xs font-bold text-white">AI</span>
+      ),
       label: 'AI',
       gradient: `linear-gradient(135deg, #8b5cf6, #7c3aed)`,
       showLabel: false,

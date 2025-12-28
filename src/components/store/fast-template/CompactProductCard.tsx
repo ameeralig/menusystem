@@ -170,16 +170,17 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
           }}
         />
         
-        {/* شارة جديد أو غير متوفر أو خصم */}
-        {hasDiscount(product.discount_percentage) && (
-          <span className="absolute top-1 left-1 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium flex items-center gap-0.5">
-            <Percent className="w-2.5 h-2.5" />
-            {product.discount_percentage}
+        {/* شارة جديد - أعلى اليمين */}
+        {product.is_new && (
+          <span className="absolute top-1 right-1 bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium z-10">
+            جديد
           </span>
         )}
-        {product.is_new && (
-          <span className="absolute top-1 right-1 bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
-            جديد
+        {/* شارة الخصم - أسفل اليمين */}
+        {hasDiscount(product.discount_percentage) && (
+          <span className="absolute bottom-1 right-1 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium flex items-center gap-0.5 z-10">
+            <Percent className="w-2.5 h-2.5" />
+            {formatPrice(product.price - getDiscountedPrice(product.price, product.discount_percentage))} د.ع
           </span>
         )}
         {product.is_available === false && (
