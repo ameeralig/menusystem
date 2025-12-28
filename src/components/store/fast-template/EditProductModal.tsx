@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Product } from "@/types/product";
-import { X, Upload, Loader2 } from "lucide-react";
+import { X, Upload, Loader2, Percent } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -34,6 +34,8 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
   const [isPopular, setIsPopular] = useState(false);
   const [isAvailable, setIsAvailable] = useState(true);
   const [discountPercentage, setDiscountPercentage] = useState("");
+  const [originalPrice, setOriginalPrice] = useState("");
+  const [discountMethod, setDiscountMethod] = useState<'percentage' | 'original_price'>('original_price');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -52,6 +54,15 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
       setIsPopular(product.is_popular || false);
       setIsAvailable(product.is_available !== false);
       setDiscountPercentage(product.discount_percentage?.toString() || "");
+      setOriginalPrice(product.original_price?.toString() || "");
+      // تحديد طريقة الخصم بناءً على البيانات الموجودة
+      if (product.original_price && product.original_price > product.price) {
+        setDiscountMethod('original_price');
+      } else if (product.discount_percentage && product.discount_percentage > 0) {
+        setDiscountMethod('percentage');
+      } else {
+        setDiscountMethod('original_price');
+      }
       setImagePreview(product.image_url || null);
       setImageFile(null);
       
@@ -149,7 +160,13 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
       }
 
       // تحديث بيانات المنتج
-      const discountValue = discountPercentage ? parseFloat(discountPercentage) : 0;
+      const discountValue = discountMethod === 'percentage' && discountPercentage 
+        ? parseFloat(discountPercentage) 
+        : 0;
+      const originalPriceValue = discountMethod === 'original_price' && originalPrice 
+        ? parseFloat(originalPrice) 
+        : null;
+      
       const { error: updateError } = await supabase
         .from('products')
         .update({
@@ -161,6 +178,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
           is_popular: isPopular,
           is_available: isAvailable,
           discount_percentage: discountValue >= 0 && discountValue <= 100 ? discountValue : 0,
+          original_price: originalPriceValue,
           image_url: imageUrl
         })
         .eq('id', product.id);
@@ -270,39 +288,97 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                     />
                   </div>
 
-                  {/* السعر والخصم */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="price" className="text-foreground">السعر (دينار عراقي) *</Label>
-                      <Input
-                        id="price"
-                        type="number"
-                        value={price}
-                        onChange={(e) => setPrice(e.target.value)}
-                        placeholder="0"
-                        min="0"
-                        step="0.01"
-                        className="mt-2 bg-background text-foreground border-border"
-                      />
+                  {/* السعر */}
+                  <div>
+                    <Label htmlFor="price" className="text-foreground">السعر (دينار عراقي) *</Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      placeholder="0"
+                      min="0"
+                      step="0.01"
+                      className="mt-2 bg-background text-foreground border-border"
+                    />
+                  </div>
+
+                  {/* طريقة الخصم */}
+                  <div className="space-y-4">
+                    <Label className="text-foreground">طريقة الخصم</Label>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant={discountMethod === 'original_price' ? "default" : "outline"}
+                        onClick={() => {
+                          setDiscountMethod('original_price');
+                          setDiscountPercentage('');
+                        }}
+                        className="flex-1 text-sm"
+                        size="sm"
+                      >
+                        سعر قبل وبعد
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={discountMethod === 'percentage' ? "default" : "outline"}
+                        onClick={() => {
+                          setDiscountMethod('percentage');
+                          setOriginalPrice('');
+                        }}
+                        className="flex-1 text-sm"
+                        size="sm"
+                      >
+                        <Percent className="w-4 h-4 ml-1" />
+                        نسبة مئوية
+                      </Button>
                     </div>
-                    <div>
-                      <Label htmlFor="discount" className="text-foreground">نسبة الخصم (%)</Label>
-                      <Input
-                        id="discount"
-                        type="number"
-                        value={discountPercentage}
-                        onChange={(e) => setDiscountPercentage(e.target.value)}
-                        placeholder="0"
-                        min="0"
-                        max="100"
-                        step="1"
-                        className="mt-2 bg-background text-foreground border-border"
-                      />
-                    </div>
+
+                    {discountMethod === 'original_price' ? (
+                      <div>
+                        <Label htmlFor="original_price" className="text-foreground">السعر الأصلي (قبل الخصم)</Label>
+                        <Input
+                          id="original_price"
+                          type="number"
+                          value={originalPrice}
+                          onChange={(e) => setOriginalPrice(e.target.value)}
+                          placeholder="مثال: 5000"
+                          min="0"
+                          step="0.01"
+                          className="mt-2 bg-background text-foreground border-border"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          السعر الحالي ({price || '0'} د.ع) سيكون السعر الجديد بعد الخصم
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <Label htmlFor="discount" className="text-foreground">نسبة الخصم (%)</Label>
+                        <Input
+                          id="discount"
+                          type="number"
+                          value={discountPercentage}
+                          onChange={(e) => setDiscountPercentage(e.target.value)}
+                          placeholder="0"
+                          min="0"
+                          max="100"
+                          step="1"
+                          className="mt-2 bg-background text-foreground border-border"
+                        />
+                      </div>
+                    )}
                   </div>
                   
                   {/* معاينة السعر بعد الخصم */}
-                  {discountPercentage && parseFloat(discountPercentage) > 0 && price && (
+                  {discountMethod === 'original_price' && originalPrice && parseFloat(originalPrice) > parseFloat(price || '0') && (
+                    <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                      <p className="text-sm text-green-700 dark:text-green-300">
+                        السعر الجديد: <span className="font-bold">{new Intl.NumberFormat('ar-IQ').format(parseFloat(price || '0'))} د.ع</span>
+                        <span className="mr-2 text-gray-500 line-through text-xs">{new Intl.NumberFormat('ar-IQ').format(parseFloat(originalPrice))} د.ع</span>
+                      </p>
+                    </div>
+                  )}
+                  {discountMethod === 'percentage' && discountPercentage && parseFloat(discountPercentage) > 0 && price && (
                     <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                       <p className="text-sm text-green-700 dark:text-green-300">
                         السعر بعد الخصم: <span className="font-bold">{new Intl.NumberFormat('ar-IQ').format(parseFloat(price) - (parseFloat(price) * parseFloat(discountPercentage) / 100))} د.ع</span>

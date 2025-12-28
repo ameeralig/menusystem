@@ -515,6 +515,7 @@ export type Database = {
           is_new: boolean | null
           is_popular: boolean | null
           name: string
+          original_price: number | null
           price: number
           user_id: string
         }
@@ -531,6 +532,7 @@ export type Database = {
           is_new?: boolean | null
           is_popular?: boolean | null
           name: string
+          original_price?: number | null
           price: number
           user_id: string
         }
@@ -547,6 +549,7 @@ export type Database = {
           is_new?: boolean | null
           is_popular?: boolean | null
           name?: string
+          original_price?: number | null
           price?: number
           user_id?: string
         }

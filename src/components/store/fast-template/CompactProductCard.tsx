@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Product, getDiscountedPrice, hasDiscount } from "@/types/product";
-import { Edit, Trash2, Plus, Percent, Heart, Share2 } from "lucide-react";
+import { Product, getDiscountedPrice, hasDiscount, getOriginalPrice } from "@/types/product";
+import { Edit, Trash2, Plus, Heart, Share2 } from "lucide-react";
 import { optimizeImageUrl } from "@/utils/imageOptimizer";
 import { Button } from "@/components/ui/button";
 import { isSafari, isIOS } from "@/utils/browserDetect";
@@ -176,13 +176,6 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
             جديد
           </span>
         )}
-        {/* شارة الخصم - أسفل اليمين */}
-        {hasDiscount(product.discount_percentage) && (
-          <span className="absolute bottom-1 right-1 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium flex items-center gap-0.5 z-10">
-            <Percent className="w-2.5 h-2.5" />
-            {formatPrice(product.price - getDiscountedPrice(product.price, product.discount_percentage))} د.ع
-          </span>
-        )}
         {product.is_available === false && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
             <span className="text-white text-[10px] font-medium">غير متوفر</span>
@@ -198,7 +191,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
         
         {/* السعر */}
         <div className="flex items-center gap-2 flex-wrap">
-          {hasDiscount(product.discount_percentage) ? (
+          {hasDiscount(product.discount_percentage, product.original_price, product.price) ? (
             <>
               <span 
                 className="text-base sm:text-lg font-bold"
@@ -206,10 +199,10 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
                   color: colorTheme?.startsWith('#') ? colorTheme : undefined 
                 }}
               >
-                {formatPrice(getDiscountedPrice(product.price, product.discount_percentage))} د.ع
+                {formatPrice(getDiscountedPrice(product.price, product.discount_percentage, product.original_price))} د.ع
               </span>
               <span className="text-xs text-gray-400 line-through">
-                {formatPrice(product.price)} د.ع
+                {formatPrice(getOriginalPrice(product.price, product.discount_percentage, product.original_price))} د.ع
               </span>
             </>
           ) : (
