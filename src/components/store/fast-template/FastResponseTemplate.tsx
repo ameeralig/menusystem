@@ -3,6 +3,7 @@ import { Product } from "@/types/product";
 import { CategoryImage } from "@/types/categoryImage";
 import CategoryTabs from "./CategoryTabs";
 import CompactProductCard from "./CompactProductCard";
+import TextOnlyProductCard from "./TextOnlyProductCard";
 import ProductDetailsModal from "./ProductDetailsModal";
 import EditProductModal from "./EditProductModal";
 import EmptyCategoryMessage from "../EmptyCategoryMessage";
@@ -47,6 +48,7 @@ interface FastResponseTemplateProps {
   refreshData?: () => void;
   isLoading?: boolean;
   logoUrl?: string | null;
+  template?: string | null; // قالب العرض (fast-response أو n-0)
 }
 
 const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
@@ -63,8 +65,10 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   isStoreOwner = false,
   refreshData,
   isLoading = false,
-  logoUrl
+  logoUrl,
+  template = "fast-response"
 }) => {
+  const isLightTemplate = template === "n-0"; // قالب N-0 الخفيف بدون صور المنتجات
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -347,23 +351,41 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
             ))}
           </div>
         ) : filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className={`grid gap-3 ${isLightTemplate ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'}`}>
             {filteredProducts.map((product) => (
-              <CompactProductCard
-                key={product.id}
-                product={product}
-                colorTheme={colorTheme}
-                onClick={() => handleProductClick(product)}
-                isStoreOwner={isStoreOwner}
-                onEdit={() => handleEdit(product)}
-                onDelete={() => handleDelete(product)}
-                onAddToCart={handleAddToCart}
-                showAddButton={externalOrdersEnabled && !isStoreOwner}
-                isFavorite={isFavorite(product.id)}
-                onToggleFavorite={toggleFavorite}
-                onShare={(product) => setShareProduct(product)}
-                storeOwnerId={storeOwnerId}
-              />
+              isLightTemplate ? (
+                <TextOnlyProductCard
+                  key={product.id}
+                  product={product}
+                  colorTheme={colorTheme}
+                  onClick={() => handleProductClick(product)}
+                  isStoreOwner={isStoreOwner}
+                  onEdit={() => handleEdit(product)}
+                  onDelete={() => handleDelete(product)}
+                  onAddToCart={handleAddToCart}
+                  showAddButton={externalOrdersEnabled && !isStoreOwner}
+                  isFavorite={isFavorite(product.id)}
+                  onToggleFavorite={toggleFavorite}
+                  onShare={(product) => setShareProduct(product)}
+                  storeOwnerId={storeOwnerId}
+                />
+              ) : (
+                <CompactProductCard
+                  key={product.id}
+                  product={product}
+                  colorTheme={colorTheme}
+                  onClick={() => handleProductClick(product)}
+                  isStoreOwner={isStoreOwner}
+                  onEdit={() => handleEdit(product)}
+                  onDelete={() => handleDelete(product)}
+                  onAddToCart={handleAddToCart}
+                  showAddButton={externalOrdersEnabled && !isStoreOwner}
+                  isFavorite={isFavorite(product.id)}
+                  onToggleFavorite={toggleFavorite}
+                  onShare={(product) => setShareProduct(product)}
+                  storeOwnerId={storeOwnerId}
+                />
+              )
             ))}
           </div>
         ) : null}
