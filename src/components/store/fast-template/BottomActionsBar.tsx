@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Disc3, MessageSquare, Search, X, Share2, Download, Heart, Info } from "lucide-react";
+import { Disc3, MessageSquare, Search, X, Share2, Download, Heart, Info, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
@@ -129,17 +129,38 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
     </motion.div>
   );
 
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+
+  // عناصر قائمة المزيد (المعلومات، المشاركة، التحميل)
+  const moreMenuItems = [
+    // زر المعلومات
+    contactInfo && {
+      id: 'info',
+      onClick: () => { setIsInfoSheetOpen(true); setIsMoreMenuOpen(false); },
+      icon: Info,
+      label: 'معلومات المتجر',
+      color: '#3b82f6',
+    },
+    // زر شارك المنيو
+    slug && {
+      id: 'share',
+      onClick: () => { setIsShareCardOpen(true); setIsMoreMenuOpen(false); },
+      icon: Share2,
+      label: 'مشاركة المنيو',
+      color: '#f59e0b',
+    },
+    // زر تحميل المنيو
+    storeName && products.length > 0 && {
+      id: 'download',
+      onClick: () => { setIsMenuDownloadOpen(true); setIsMoreMenuOpen(false); },
+      icon: Download,
+      label: 'تحميل المنيو',
+      color: '#10b981',
+    },
+  ].filter(Boolean);
+
   // الأزرار الرئيسية (تظهر دائماً)
   const primaryButtons = [
-    // زر المعلومات - للزوار فقط
-    !isStoreOwner && contactInfo && {
-      id: 'info',
-      onClick: () => setIsInfoSheetOpen(true),
-      icon: Info,
-      label: 'معلومات',
-      gradient: `linear-gradient(135deg, #3b82f6, #2563eb)`,
-      showLabel: false,
-    },
     // زر المفضلة - للزوار فقط
     !isStoreOwner && onOpenFavorites && {
       id: 'favorites',
@@ -150,24 +171,6 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       showLabel: false,
       badge: favoritesCount > 0 ? favoritesCount : undefined,
     },
-    // زر شارك المنيو
-    slug && {
-      id: 'share',
-      onClick: () => setIsShareCardOpen(true),
-      icon: Share2,
-      label: 'شارك',
-      gradient: `linear-gradient(135deg, #f59e0b, #d97706)`,
-      showLabel: false,
-    },
-    // زر تحميل المنيو
-    storeName && products.length > 0 && {
-      id: 'download',
-      onClick: () => setIsMenuDownloadOpen(true),
-      icon: Download,
-      label: 'تحميل',
-      gradient: `linear-gradient(135deg, #10b981, #059669)`,
-      showLabel: false,
-    },
     // زر عجلة الحظ
     storeOwnerId && products.length > 0 && {
       id: 'wheel',
@@ -177,7 +180,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       gradient: `linear-gradient(135deg, #f59e0b, #d97706)`,
       showLabel: false,
     },
-    // زر AI - نستخدم أيقونة خاصة
+    // زر AI
     storeOwnerId && {
       id: 'ai',
       onClick: () => setIsAIAssistantOpen(true),
@@ -286,6 +289,52 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                 onOpenFeedback={() => setIsOwnerFeedbackOpen(true)}
                 hasContactInfo={!!contactInfo}
               />
+            )}
+
+            {/* زر المزيد - أول زر على اليمين */}
+            {moreMenuItems.length > 0 && (
+              <Popover open={isMoreMenuOpen} onOpenChange={setIsMoreMenuOpen}>
+                <PopoverTrigger asChild>
+                  <motion.div
+                    whileHover={{ scale: 1.08 }}
+                    whileTap={{ scale: 0.92 }}
+                  >
+                    <div
+                      className="flex items-center justify-center w-10 h-10 rounded-xl shadow-md cursor-pointer transition-all"
+                      style={{
+                        background: `linear-gradient(135deg, ${themeColor}, ${themeColor}cc)`,
+                        border: '1px solid rgba(255,255,255,0.2)',
+                      }}
+                      title="المزيد"
+                    >
+                      <MoreHorizontal className="h-5 w-5 text-white" />
+                    </div>
+                  </motion.div>
+                </PopoverTrigger>
+                <PopoverContent 
+                  className="w-48 p-2 backdrop-blur-xl border shadow-xl"
+                  style={{
+                    background: `linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9))`,
+                    borderColor: `${themeColor}30`,
+                  }}
+                  align="end"
+                  side="top"
+                  sideOffset={8}
+                >
+                  <div className="flex flex-col gap-1">
+                    {moreMenuItems.map((item: any) => (
+                      <button
+                        key={item.id}
+                        onClick={item.onClick}
+                        className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-gray-100 text-gray-700"
+                      >
+                        <item.icon className="h-4 w-4" style={{ color: item.color }} />
+                        <span>{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
             )}
 
             {/* الأزرار الرئيسية */}
