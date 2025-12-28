@@ -1,20 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
-import { Icon, LatLng } from 'leaflet';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Button } from "@/components/ui/button";
-import { MapPin, Navigation, X } from "lucide-react";
-import 'leaflet/dist/leaflet.css';
-
-// إصلاح أيقونة الـ marker الافتراضية
-const markerIcon = new Icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
+import { MapPin, Navigation, X, Loader2 } from "lucide-react";
 
 interface LocationPickerMapProps {
   isOpen: boolean;
@@ -23,28 +9,8 @@ interface LocationPickerMapProps {
   initialLocation?: { lat: number; lng: number } | null;
 }
 
-// مكون للتعامل مع النقر على الخريطة
-const MapClickHandler = ({ onLocationChange }: { onLocationChange: (latlng: LatLng) => void }) => {
-  useMapEvents({
-    click: (e) => {
-      onLocationChange(e.latlng);
-    },
-  });
-  return null;
-};
-
-// مكون للتحريك إلى موقع معين
-const FlyToLocation = ({ position }: { position: { lat: number; lng: number } | null }) => {
-  const map = useMap();
-  
-  useEffect(() => {
-    if (position) {
-      map.flyTo([position.lat, position.lng], 16, { duration: 1 });
-    }
-  }, [position, map]);
-  
-  return null;
-};
+// مكون الخريطة الداخلي - يُحمَّل ديناميكياً
+const MapContent = React.lazy(() => import('./MapContent'));
 
 const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
   isOpen,
@@ -52,16 +18,17 @@ const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
   onLocationSelect,
   initialLocation
 }) => {
-  // موقع العراق الافتراضي (بغداد)
-  const defaultCenter = { lat: 33.3152, lng: 44.3661 };
   const [selectedPosition, setSelectedPosition] = useState<{ lat: number; lng: number } | null>(
     initialLocation || null
   );
   const [isGettingLocation, setIsGettingLocation] = useState(false);
 
-  const handleMapClick = (latlng: LatLng) => {
-    setSelectedPosition({ lat: latlng.lat, lng: latlng.lng });
-  };
+  // تحديث الموقع عند تغيير initialLocation
+  useEffect(() => {
+    if (initialLocation) {
+      setSelectedPosition(initialLocation);
+    }
+  }, [initialLocation]);
 
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -115,26 +82,20 @@ const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
 
         {/* الخريطة */}
         <div className="relative h-[350px]">
-          <MapContainer
-            center={[initialLocation?.lat || defaultCenter.lat, initialLocation?.lng || defaultCenter.lng]}
-            zoom={initialLocation ? 16 : 6}
-            style={{ height: '100%', width: '100%' }}
-            zoomControl={true}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          <Suspense fallback={
+            <div className="h-full w-full flex items-center justify-center bg-muted">
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <span className="text-sm text-muted-foreground">جاري تحميل الخريطة...</span>
+              </div>
+            </div>
+          }>
+            <MapContent
+              selectedPosition={selectedPosition}
+              onPositionChange={setSelectedPosition}
+              initialLocation={initialLocation}
             />
-            <MapClickHandler onLocationChange={handleMapClick} />
-            <FlyToLocation position={selectedPosition} />
-            
-            {selectedPosition && (
-              <Marker 
-                position={[selectedPosition.lat, selectedPosition.lng]}
-                icon={markerIcon}
-              />
-            )}
-          </MapContainer>
+          </Suspense>
 
           {/* زر تحديد الموقع الحالي */}
           <Button
