@@ -28,6 +28,8 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
     is_new: false,
     is_popular: false,
     discount_percentage: "",
+    original_price: "",
+    discount_method: "original_price",
   });
 
   // State for image upload (shared with ProductDetailsStep)
@@ -103,7 +105,13 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
         }
       }
 
-      const discountValue = formData.discount_percentage ? parseFloat(formData.discount_percentage) : 0;
+      const discountValue = formData.discount_method === 'percentage' && formData.discount_percentage 
+        ? parseFloat(formData.discount_percentage) 
+        : 0;
+      const originalPriceValue = formData.discount_method === 'original_price' && formData.original_price 
+        ? parseFloat(formData.original_price) 
+        : null;
+      
       const { error } = await supabase.from("products").insert([
         {
           name: formData.name,
@@ -115,6 +123,7 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
           is_new: formData.is_new,
           is_popular: formData.is_popular,
           discount_percentage: discountValue >= 0 && discountValue <= 100 ? discountValue : 0,
+          original_price: originalPriceValue,
         },
       ]);
 
@@ -138,6 +147,8 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
         is_new: false,
         is_popular: false,
         discount_percentage: "",
+        original_price: "",
+        discount_method: "original_price",
       });
       setImageUploadState({
         uploadMethod: "url",
@@ -166,6 +177,8 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
       is_new: false,
       is_popular: false,
       discount_percentage: "",
+      original_price: "",
+      discount_method: "original_price",
     });
     setImageUploadState({
       uploadMethod: "url",
