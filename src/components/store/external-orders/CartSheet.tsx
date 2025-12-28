@@ -44,13 +44,45 @@ const CartSheet = ({ isOpen, onClose, deliveryFee, storePhone, storeName }: Cart
   }, [showCheckoutForm]);
 
   const requestLocation = async () => {
+    // التحقق من دعم المتصفح
     if (!navigator.geolocation) {
       toast.error("المتصفح لا يدعم تحديد الموقع");
+      setLocationPermissionDenied(true);
+      return;
+    }
+
+    // التحقق من HTTPS (مطلوب لـ Safari)
+    const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost';
+    if (!isSecure) {
+      toast.error("تحديد الموقع يتطلب اتصال آمن (HTTPS)");
+      setLocationPermissionDenied(true);
       return;
     }
 
     setIsGettingLocation(true);
+    setLocationPermissionDenied(false);
 
+    // التحقق أولاً من حالة الصلاحيات (للمتصفحات التي تدعم ذلك)
+    try {
+      if (navigator.permissions && navigator.permissions.query) {
+        const permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+        
+        if (permissionStatus.state === 'denied') {
+          setIsGettingLocation(false);
+          setLocationPermissionDenied(true);
+          toast.error("صلاحية الموقع مرفوضة. يرجى تفعيلها من إعدادات المتصفح", {
+            duration: 5000,
+            description: "اذهب إلى إعدادات المتصفح > الخصوصية > الموقع"
+          });
+          return;
+        }
+      }
+    } catch (e) {
+      // Safari لا يدعم permissions API - نتابع مباشرة
+      console.log("Permissions API not supported, proceeding with geolocation request");
+    }
+
+    // طلب الموقع مع خيارات محسنة لـ Safari
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
@@ -60,17 +92,37 @@ const CartSheet = ({ isOpen, onClose, deliveryFee, storePhone, storeName }: Cart
       },
       (error) => {
         setIsGettingLocation(false);
-        if (error.code === error.PERMISSION_DENIED) {
-          setLocationPermissionDenied(true);
-          toast.error("تم رفض صلاحية الموقع. يمكنك إدخال العنوان يدوياً");
-        } else {
-          toast.error("تعذر تحديد الموقع. يمكنك إدخال العنوان يدوياً");
+        console.log("Geolocation error:", error.code, error.message);
+        
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            setLocationPermissionDenied(true);
+            toast.error("تم رفض صلاحية الموقع", {
+              duration: 5000,
+              description: "يرجى السماح بالوصول للموقع من إعدادات المتصفح أو إدخال العنوان يدوياً"
+            });
+            break;
+          case error.POSITION_UNAVAILABLE:
+            toast.error("الموقع غير متاح حالياً", {
+              description: "يمكنك إدخال العنوان يدوياً"
+            });
+            break;
+          case error.TIMEOUT:
+            toast.error("انتهت مهلة تحديد الموقع", {
+              description: "حاول مرة أخرى أو أدخل العنوان يدوياً"
+            });
+            break;
+          default:
+            toast.error("حدث خطأ في تحديد الموقع", {
+              description: "يمكنك إدخال العنوان يدوياً"
+            });
         }
       },
       {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
+        // خيارات محسنة لـ Safari و iOS
+        enableHighAccuracy: false, // Safari يعمل أفضل مع false
+        timeout: 15000, // زيادة المهلة لـ Safari
+        maximumAge: 60000, // السماح بموقع محفوظ لدقيقة واحدة
       }
     );
   };
