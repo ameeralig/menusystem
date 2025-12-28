@@ -263,8 +263,8 @@ const StoreProductsDisplay = ({
   // ترتيب التصنيفات باستخدام الدالة الموحدة
   const sortedCategories = sortCategoriesByOrder(categories, categoryImages);
 
-  // إذا كان القالب هو "fast-response" أو "n-0"، نعرض القالب السريع
-  if (template === "fast-response" || template === "n-0") {
+  // إذا كان القالب هو "fast-response"، نعرض القالب السريع
+  if (template === "fast-response") {
     return (
       <FastResponseTemplate
         products={allProducts}
@@ -281,7 +281,6 @@ const StoreProductsDisplay = ({
         refreshData={refreshData}
         isLoading={isLoading && allProducts.length === 0}
         logoUrl={logoUrl}
-        template={template}
       />
     );
   }

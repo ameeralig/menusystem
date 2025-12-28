@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Settings, Plus, Moon, Sun, ShoppingBag, DollarSign, Info, Eye, BarChart3, LogOut, Zap } from "lucide-react";
+import { Settings, Plus, Moon, Sun, ShoppingBag, DollarSign, Info, Eye, BarChart3, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -41,13 +41,12 @@ const StoreOwnerActionsMenu = ({
   const [isLoading, setIsLoading] = useState(false);
   const [showDeliveryFee, setShowDeliveryFee] = useState(false);
   const [showStatsCard, setShowStatsCard] = useState(false);
-  const [lightTemplate, setLightTemplate] = useState(false); // قالب N-0 الخفيف
 
   useEffect(() => {
     const fetchSettings = async () => {
       const { data } = await supabase
         .from("store_settings")
-        .select("dark_mode, external_orders_enabled, delivery_fee, template")
+        .select("dark_mode, external_orders_enabled, delivery_fee")
         .eq("user_id", storeOwnerId)
         .single();
 
@@ -55,7 +54,6 @@ const StoreOwnerActionsMenu = ({
         setDarkMode(data.dark_mode || false);
         setExternalOrdersEnabled(data.external_orders_enabled || false);
         setDeliveryFee(data.delivery_fee?.toString() || "0");
-        setLightTemplate(data.template === "n-0");
       }
     };
 
@@ -140,29 +138,6 @@ const StoreOwnerActionsMenu = ({
     } catch (error) {
       console.error("Error saving delivery fee:", error);
       toast.error("حدث خطأ أثناء الحفظ");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // تبديل قالب N-0 الخفيف (بدون صور المنتجات)
-  const handleLightTemplateToggle = async (checked: boolean) => {
-    setIsLoading(true);
-    try {
-      const templateValue = checked ? "n-0" : "fast-response";
-      const { error } = await supabase
-        .from("store_settings")
-        .update({ template: templateValue })
-        .eq("user_id", storeOwnerId);
-
-      if (error) throw error;
-
-      setLightTemplate(checked);
-      toast.success(checked ? "تم تفعيل قالب N-0 الخفيف" : "تم العودة للقالب الافتراضي");
-      onUpdate?.();
-    } catch (error) {
-      console.error("Error toggling template:", error);
-      toast.error("حدث خطأ أثناء التحديث");
     } finally {
       setIsLoading(false);
     }
@@ -275,22 +250,6 @@ const StoreOwnerActionsMenu = ({
             <Switch
               checked={darkMode}
               onCheckedChange={handleDarkModeToggle}
-              disabled={isLoading}
-            />
-          </div>
-
-          {/* قالب N-0 الخفيف */}
-          <div className="flex items-center justify-between p-3 rounded-lg bg-background/50 backdrop-blur-sm border-2 border-dashed border-amber-300 dark:border-amber-700">
-            <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4 text-amber-500" />
-              <div>
-                <span className="text-sm font-medium">قالب N-0 الخفيف</span>
-                <p className="text-[10px] text-muted-foreground">بدون صور المنتجات - للإنترنت البطيء</p>
-              </div>
-            </div>
-            <Switch
-              checked={lightTemplate}
-              onCheckedChange={handleLightTemplateToggle}
               disabled={isLoading}
             />
           </div>
