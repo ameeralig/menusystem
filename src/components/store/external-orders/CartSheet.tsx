@@ -4,9 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useCart } from "@/contexts/CartContext";
-import { Minus, Plus, Trash2, MapPin, Loader2 } from "lucide-react";
+import { Minus, Plus, Trash2, MapPin, Loader2, Map } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import LocationPickerMap from "./LocationPickerMap";
 
 interface CartSheetProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ const CartSheet = ({ isOpen, onClose, deliveryFee, storePhone, storeName }: Cart
   const [locationCoords, setLocationCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [locationPermissionDenied, setLocationPermissionDenied] = useState(false);
+  const [isMapPickerOpen, setIsMapPickerOpen] = useState(false);
 
   const subtotal = getTotal();
   const total = subtotal + deliveryFee;
@@ -383,33 +385,55 @@ const CartSheet = ({ isOpen, onClose, deliveryFee, storePhone, storeName }: Cart
                     >
                       عرض الموقع على الخريطة
                     </a>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="mt-2 text-xs h-7"
-                      onClick={() => {
-                        setLocationCoords(null);
-                        setLocationPermissionDenied(false);
-                      }}
-                    >
-                      تغيير الموقع
-                    </Button>
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs h-7"
+                        onClick={() => setIsMapPickerOpen(true)}
+                      >
+                        <Map className="h-3 w-3 ml-1" />
+                        تعديل على الخريطة
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs h-7"
+                        onClick={() => {
+                          setLocationCoords(null);
+                          setLocationPermissionDenied(false);
+                        }}
+                      >
+                        مسح الموقع
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full"
-                      onClick={requestLocation}
-                      disabled={isGettingLocation}
-                    >
-                      <MapPin className="h-4 w-4 ml-2" />
-                      تحديد موقعي تلقائياً
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex-1"
+                        onClick={requestLocation}
+                        disabled={isGettingLocation}
+                      >
+                        <MapPin className="h-4 w-4 ml-2" />
+                        تحديد تلقائي
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => setIsMapPickerOpen(true)}
+                      >
+                        <Map className="h-4 w-4 ml-2" />
+                        اختر من الخريطة
+                      </Button>
+                    </div>
                     {locationPermissionDenied && (
                       <p className="text-xs text-amber-600 dark:text-amber-400">
-                        تم رفض صلاحية الموقع. يمكنك إدخال العنوان يدوياً أدناه
+                        تم رفض صلاحية الموقع. يمكنك اختيار موقعك من الخريطة أو إدخال العنوان يدوياً
                       </p>
                     )}
                   </div>
@@ -465,6 +489,18 @@ const CartSheet = ({ isOpen, onClose, deliveryFee, storePhone, storeName }: Cart
             </div>
           </div>
         )}
+
+        {/* خريطة اختيار الموقع */}
+        <LocationPickerMap
+          isOpen={isMapPickerOpen}
+          onClose={() => setIsMapPickerOpen(false)}
+          onLocationSelect={(coords) => {
+            setLocationCoords(coords);
+            setLocationPermissionDenied(false);
+            toast.success("تم تحديد الموقع من الخريطة");
+          }}
+          initialLocation={locationCoords}
+        />
       </SheetContent>
     </Sheet>
   );

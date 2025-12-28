@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Disc3, MessageSquare, Search, X, Sparkles, Share2, Download, Heart } from "lucide-react";
+import { Disc3, MessageSquare, Search, X, Share2, Download, Heart, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
@@ -131,6 +131,15 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
 
   // الأزرار الرئيسية (تظهر دائماً)
   const primaryButtons = [
+    // زر المعلومات - للزوار فقط
+    !isStoreOwner && contactInfo && {
+      id: 'info',
+      onClick: () => setIsInfoSheetOpen(true),
+      icon: Info,
+      label: 'معلومات',
+      gradient: `linear-gradient(135deg, #3b82f6, #2563eb)`,
+      showLabel: false,
+    },
     // زر المفضلة - للزوار فقط
     !isStoreOwner && onOpenFavorites && {
       id: 'favorites',
