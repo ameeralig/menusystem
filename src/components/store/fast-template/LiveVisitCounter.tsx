@@ -11,35 +11,45 @@ const LiveVisitCounter: React.FC<LiveVisitCounterProps> = ({ storeOwnerId }) => 
   const [visitCount, setVisitCount] = useState(0);
   const [isLive, setIsLive] = useState(false);
 
+  // حساب تاريخ بداية اليوم (الساعة 3 صباحاً)
+  const getTodayStartDate = () => {
+    const today = new Date();
+    today.setHours(3, 0, 0, 0);
+    
+    if (new Date().getHours() < 3) {
+      today.setDate(today.getDate() - 1);
+    }
+    return today.toISOString();
+  };
+
   // جلب عدد الزيارات الحقيقي من قاعدة البيانات
+  const fetchTodayVisits = async () => {
+    if (!storeOwnerId) return;
+
+    const { count, error } = await supabase
+      .from('visitor_analytics')
+      .select('*', { count: 'exact', head: true })
+      .eq('store_owner_id', storeOwnerId)
+      .gte('created_at', getTodayStartDate());
+
+    if (!error && count !== null) {
+      setVisitCount(count);
+      setIsLive(true);
+    }
+  };
+
   useEffect(() => {
     if (!storeOwnerId) return;
 
-    const fetchTodayVisits = async () => {
-      const today = new Date();
-      today.setHours(3, 0, 0, 0); // إعادة التعيين عند الساعة 3 صباحاً
-      
-      if (new Date().getHours() < 3) {
-        today.setDate(today.getDate() - 1);
-      }
-
-      const { count, error } = await supabase
-        .from('visitor_analytics')
-        .select('*', { count: 'exact', head: true })
-        .eq('store_owner_id', storeOwnerId)
-        .gte('created_at', today.toISOString());
-
-      if (!error && count !== null) {
-        setVisitCount(count);
-        setIsLive(true);
-      }
-    };
-
+    // جلب العدد فوراً
     fetchTodayVisits();
 
-    // الاستماع للتحديثات الحية
+    // تحديث تلقائي كل 5 ثواني للتأكد من دقة العدد
+    const interval = setInterval(fetchTodayVisits, 5000);
+
+    // الاستماع للتحديثات الحية أيضاً
     const channel = supabase
-      .channel('live-visit-counter')
+      .channel(`live-visit-counter-${storeOwnerId}`)
       .on(
         'postgres_changes',
         {
@@ -49,13 +59,14 @@ const LiveVisitCounter: React.FC<LiveVisitCounterProps> = ({ storeOwnerId }) => 
           filter: `store_owner_id=eq.${storeOwnerId}`
         },
         () => {
-          // زيادة العداد عند كل زيارة جديدة
-          setVisitCount(prev => prev + 1);
+          // جلب العدد الحقيقي بدلاً من الزيادة اليدوية
+          fetchTodayVisits();
         }
       )
       .subscribe();
 
     return () => {
+      clearInterval(interval);
       supabase.removeChannel(channel);
     };
   }, [storeOwnerId]);
