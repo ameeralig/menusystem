@@ -387,7 +387,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
       />
 
       {/* عداد الزيارات الحية */}
-      <LiveVisitCounter />
+      <LiveVisitCounter storeOwnerId={storeOwnerId} />
 
       {/* الشريط الأفقي السفلي مع البحث المدمج */}
       <BottomActionsBar
