@@ -28,8 +28,9 @@ const LiveVisitCounter: React.FC<LiveVisitCounterProps> = ({ storeOwnerId }) => 
 
     const { count, error } = await supabase
       .from('visitor_analytics')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('store_owner_id', storeOwnerId)
+      .eq('action_type', 'page_view')
       .gte('created_at', getTodayStartDate());
 
     if (!error && count !== null) {
@@ -44,8 +45,8 @@ const LiveVisitCounter: React.FC<LiveVisitCounterProps> = ({ storeOwnerId }) => 
     // جلب العدد فوراً
     fetchTodayVisits();
 
-    // تحديث تلقائي كل 5 ثواني للتأكد من دقة العدد
-    const interval = setInterval(fetchTodayVisits, 5000);
+    // تحديث تلقائي كنسخة احتياط (ليس كل 0.1s لتجنب ضغط على قاعدة البيانات)
+    const interval = setInterval(fetchTodayVisits, 10000);
 
     // الاستماع للتحديثات الحية أيضاً
     const channel = supabase
@@ -58,8 +59,15 @@ const LiveVisitCounter: React.FC<LiveVisitCounterProps> = ({ storeOwnerId }) => 
           table: 'visitor_analytics',
           filter: `store_owner_id=eq.${storeOwnerId}`
         },
-        () => {
-          // جلب العدد الحقيقي بدلاً من الزيادة اليدوية
+        (payload) => {
+          const newRow = (payload as any)?.new as any;
+          if (!newRow || newRow.action_type !== 'page_view') return;
+
+          const startIso = getTodayStartDate();
+          if (newRow.created_at && String(newRow.created_at) < startIso) return;
+
+          // تحديث فوري ثم مزامنة العدد الحقيقي
+          setVisitCount((prev) => prev + 1);
           fetchTodayVisits();
         }
       )
