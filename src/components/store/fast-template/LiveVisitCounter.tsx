@@ -1,37 +1,67 @@
 import React, { useState, useEffect } from "react";
 import { motion, useSpring, useTransform } from "framer-motion";
-import { Eye } from "lucide-react";
+import { Eye, TrendingUp } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-const LiveVisitCounter: React.FC = () => {
+interface LiveVisitCounterProps {
+  storeOwnerId?: string;
+}
+
+const LiveVisitCounter: React.FC<LiveVisitCounterProps> = ({ storeOwnerId }) => {
   const [visitCount, setVisitCount] = useState(0);
-  
-  // Get or initialize today's visit count from localStorage
-  useEffect(() => {
-    const today = new Date().toDateString();
-    const storedData = localStorage.getItem('qrm_visit_data');
-    
-    let data = { date: today, count: 0 };
-    
-    if (storedData) {
-      const parsed = JSON.parse(storedData);
-      // Reset if it's a new day (after 3 AM)
-      const now = new Date();
-      const resetHour = 3;
-      if (parsed.date !== today && now.getHours() >= resetHour) {
-        data = { date: today, count: 1 };
-      } else {
-        data = { ...parsed, count: parsed.count + 1 };
-      }
-    } else {
-      data = { date: today, count: 1 };
-    }
-    
-    localStorage.setItem('qrm_visit_data', JSON.stringify(data));
-    setVisitCount(data.count);
-  }, []);
+  const [isLive, setIsLive] = useState(false);
 
-  // Animated counter using spring
-  const springValue = useSpring(0, { stiffness: 100, damping: 30 });
+  // جلب عدد الزيارات الحقيقي من قاعدة البيانات
+  useEffect(() => {
+    if (!storeOwnerId) return;
+
+    const fetchTodayVisits = async () => {
+      const today = new Date();
+      today.setHours(3, 0, 0, 0); // إعادة التعيين عند الساعة 3 صباحاً
+      
+      if (new Date().getHours() < 3) {
+        today.setDate(today.getDate() - 1);
+      }
+
+      const { count, error } = await supabase
+        .from('visitor_analytics')
+        .select('*', { count: 'exact', head: true })
+        .eq('store_owner_id', storeOwnerId)
+        .gte('created_at', today.toISOString());
+
+      if (!error && count !== null) {
+        setVisitCount(count);
+        setIsLive(true);
+      }
+    };
+
+    fetchTodayVisits();
+
+    // الاستماع للتحديثات الحية
+    const channel = supabase
+      .channel('live-visit-counter')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'visitor_analytics',
+          filter: `store_owner_id=eq.${storeOwnerId}`
+        },
+        () => {
+          // زيادة العداد عند كل زيارة جديدة
+          setVisitCount(prev => prev + 1);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [storeOwnerId]);
+
+  // Animated counter using spring - تحديث سريع
+  const springValue = useSpring(0, { stiffness: 150, damping: 20 });
   const displayValue = useTransform(springValue, (val) => Math.floor(val));
   const [displayCount, setDisplayCount] = useState(0);
 
@@ -73,15 +103,29 @@ const LiveVisitCounter: React.FC = () => {
           <div className="flex items-center gap-2 text-muted-foreground">
             <Eye className="h-4 w-4" />
             <span className="text-sm">عدد الزيارات اليوم</span>
+            {isLive && (
+              <motion.div
+                animate={{ opacity: [1, 0.5, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="flex items-center gap-1"
+              >
+                <span className="w-2 h-2 bg-green-500 rounded-full" />
+                <span className="text-[10px] text-green-600 dark:text-green-400">مباشر</span>
+              </motion.div>
+            )}
           </div>
           
           <motion.div 
-            className="text-4xl font-bold text-primary"
-            initial={{ scale: 0.5 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 200, damping: 15 }}
+            className="text-4xl font-bold text-primary flex items-center gap-2"
+            key={displayCount}
+            initial={{ scale: 1 }}
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 0.3 }}
           >
             {displayCount}
+            {visitCount > 0 && (
+              <TrendingUp className="h-5 w-5 text-green-500" />
+            )}
           </motion.div>
         </div>
 
