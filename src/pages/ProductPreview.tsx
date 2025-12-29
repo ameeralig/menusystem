@@ -1,5 +1,5 @@
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import StoreSkeleton from "@/components/store/skeletons/StoreSkeleton";
@@ -12,23 +12,25 @@ import { useEmployeeAuth } from "@/hooks/employees/useEmployeeAuth";
 import EmployeePanel from "@/components/employees/EmployeePanel";
 import { CartProvider } from "@/contexts/CartContext";
 import StoreProductsDisplay from "@/components/store/StoreProductsDisplay";
+import { logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
 
 const ProductPreview = () => {
   const { slug } = useParams<{ slug: string }>();
   const { forceRefresh, refreshData } = useRefreshData();
-  const { 
-    storeData, 
-    isLoading, 
-    storeOwnerId, 
+  const {
+    storeData,
+    isLoading,
+    storeOwnerId,
     identificationError,
     loadingProgress,
-    loadingStates 
+    loadingStates
   } = useOptimizedStoreData(slug, forceRefresh);
   const [isAutoRefresh, setIsAutoRefresh] = useState<boolean>(true);
   const [lastManualRefresh, setLastManualRefresh] = useState<number>(Date.now());
   const [employeeSystemEnabled, setEmployeeSystemEnabled] = useState(false);
   const { employee, logout } = useEmployeeAuth(storeOwnerId);
   const [isStoreOwner, setIsStoreOwner] = useState(false);
+  const hasRecordedViewRef = useRef(false);
 
   // التحقق من أن المستخدم الحالي هو مالك المتجر
   useEffect(() => {
@@ -46,6 +48,13 @@ const ProductPreview = () => {
   useEffect(() => {
     if (!storeOwnerId || isLoading) return;
 
+    const getVisitDayKey = () => {
+      const d = new Date();
+      d.setHours(3, 0, 0, 0);
+      if (new Date().getHours() < 3) d.setDate(d.getDate() - 1);
+      return d.toISOString().slice(0, 10);
+    };
+
     const initializeStoreData = async () => {
       // جلب حالة نظام الموظفين
       const { data } = await supabase
@@ -53,21 +62,41 @@ const ProductPreview = () => {
         .select('employee_system_enabled')
         .eq('user_id', storeOwnerId)
         .single();
-      
+
       if (data) {
         setEmployeeSystemEnabled(data.employee_system_enabled || false);
       }
 
-      // تسجيل المشاهدة
+      // تسجيل المشاهدة (مرة واحدة لكل تحميل صفحة)
+      if (hasRecordedViewRef.current) return;
+      hasRecordedViewRef.current = true;
+
+      // 1) تحديث إجمالي المشاهدات
       try {
         await supabase.rpc('increment_page_view', { store_user_id: storeOwnerId });
       } catch (error) {
         console.error("خطأ في تسجيل المشاهدة:", error);
       }
+
+      // 2) تسجيل زيارة اليوم (لـ Live counter) - لا نحسب زيارة المالك أو الموظف
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const isOwner = user?.id === storeOwnerId;
+        if (isOwner || employee) return;
+
+        const dayKey = getVisitDayKey();
+        const storageKey = `visit_logged_${storeOwnerId}_${dayKey}`;
+        if (sessionStorage.getItem(storageKey)) return;
+
+        sessionStorage.setItem(storageKey, '1');
+        await logVisitorActivity(storeOwnerId, 'page_view', { slug });
+      } catch (error) {
+        console.error("خطأ في تسجيل زيارة اليوم:", error);
+      }
     };
 
     initializeStoreData();
-  }, [storeOwnerId, isLoading]);
+  }, [storeOwnerId, isLoading, employee, slug]);
 
   // تحسين meta tags - إنشاء مرة واحدة فقط
   useEffect(() => {
