@@ -1,94 +1,61 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, useSpring, useTransform } from "framer-motion";
-import { Eye, TrendingUp } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Eye } from "lucide-react";
 
-interface LiveVisitCounterProps {
-  storeOwnerId?: string;
-}
-
-const LiveVisitCounter: React.FC<LiveVisitCounterProps> = ({ storeOwnerId }) => {
-  const [visitCount, setVisitCount] = useState(0);
-  const [isLive, setIsLive] = useState(false);
-
-  // حساب تاريخ بداية اليوم (الساعة 3 صباحاً)
-  const getTodayStartDate = () => {
-    const today = new Date();
-    today.setHours(3, 0, 0, 0);
+const LiveVisitCounter: React.FC = () => {
+  // حساب القيمة الابتدائية بناءً على اليوم (تُعاد الساعة 3 صباحاً)
+  const getDailyStartValue = useCallback(() => {
+    const now = new Date();
+    const resetHour = 3;
     
-    if (new Date().getHours() < 3) {
-      today.setDate(today.getDate() - 1);
-    }
-    return today.toISOString();
-  };
+    // حساب تاريخ اليوم مع مراعاة الساعة 3 صباحاً
+    const dayKey = now.getHours() < resetHour 
+      ? new Date(now.getTime() - 24 * 60 * 60 * 1000).toDateString()
+      : now.toDateString();
+    
+    // توليد رقم عشوائي ثابت لليوم (120-280)
+    const seed = dayKey.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+    const randomStart = 120 + (seed % 161); // 120 to 280
+    
+    return randomStart;
+  }, []);
 
-  // جلب عدد الزيارات الحقيقي من قاعدة البيانات
-  const fetchTodayVisits = async () => {
-    if (!storeOwnerId) return;
+  const [baseCount] = useState(getDailyStartValue);
+  const [additionalCount, setAdditionalCount] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
-    const { count, error } = await supabase
-      .from('visitor_analytics')
-      .select('id', { count: 'exact', head: true })
-      .eq('store_owner_id', storeOwnerId)
-      .eq('action_type', 'page_view')
-      .gte('created_at', getTodayStartDate());
-
-    if (!error && count !== null) {
-      setVisitCount(count);
-      setIsLive(true);
-    }
-  };
-
+  // تحديث العداد كل ثانية بزيادة عشوائية طبيعية
   useEffect(() => {
-    if (!storeOwnerId) return;
+    const interval = setInterval(() => {
+      // توقف عشوائي لجعله أكثر طبيعية (10% احتمال التوقف)
+      if (Math.random() < 0.1) {
+        setIsPaused(true);
+        setTimeout(() => setIsPaused(false), 2000 + Math.random() * 3000);
+        return;
+      }
 
-    // جلب العدد فوراً
-    fetchTodayVisits();
+      if (!isPaused) {
+        // زيادة عشوائية بين 1-3
+        const increment = Math.floor(Math.random() * 3) + 1;
+        setAdditionalCount(prev => prev + increment);
+      }
+    }, 1000);
 
-    // تحديث تلقائي كنسخة احتياط (ليس كل 0.1s لتجنب ضغط على قاعدة البيانات)
-    const interval = setInterval(fetchTodayVisits, 10000);
+    return () => clearInterval(interval);
+  }, [isPaused]);
 
-    // الاستماع للتحديثات الحية أيضاً
-    const channel = supabase
-      .channel(`live-visit-counter-${storeOwnerId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'visitor_analytics',
-          filter: `store_owner_id=eq.${storeOwnerId}`
-        },
-        (payload) => {
-          const newRow = (payload as any)?.new as any;
-          if (!newRow || newRow.action_type !== 'page_view') return;
+  const totalCount = baseCount + additionalCount;
 
-          const startIso = getTodayStartDate();
-          if (newRow.created_at && String(newRow.created_at) < startIso) return;
-
-          // تحديث فوري ثم مزامنة العدد الحقيقي
-          setVisitCount((prev) => prev + 1);
-          fetchTodayVisits();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      clearInterval(interval);
-      supabase.removeChannel(channel);
-    };
-  }, [storeOwnerId]);
-
-  // Animated counter using spring - تحديث سريع
-  const springValue = useSpring(0, { stiffness: 150, damping: 20 });
+  // Animated counter using spring
+  const springValue = useSpring(totalCount, { stiffness: 150, damping: 20 });
   const displayValue = useTransform(springValue, (val) => Math.floor(val));
-  const [displayCount, setDisplayCount] = useState(0);
+  const [displayCount, setDisplayCount] = useState(totalCount);
 
   useEffect(() => {
-    springValue.set(visitCount);
+    springValue.set(totalCount);
     const unsubscribe = displayValue.on("change", (v) => setDisplayCount(v));
     return () => unsubscribe();
-  }, [visitCount, springValue, displayValue]);
+  }, [totalCount, springValue, displayValue]);
 
   // Highlight keywords in text
   const highlightText = (text: string, keywords: string[]) => {
@@ -103,7 +70,7 @@ const LiveVisitCounter: React.FC<LiveVisitCounterProps> = ({ storeOwnerId }) => 
   };
 
   const mainText = "أكثر من 130 شريك يعتمدون هذا النظام لأن زبائنهم يهتمون بالتجربة السلسة والسريعة";
-  const subText = "المنصات الذكية ما تنتظر… هي تسبق";
+  const subText = "الأنظمة الذكية ما تنتظر… هي تسبق";
   const highlightKeywords = ["130", "التجربة", "الذكية"];
 
   return (
@@ -115,53 +82,60 @@ const LiveVisitCounter: React.FC<LiveVisitCounterProps> = ({ storeOwnerId }) => 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl border border-gray-200/50 dark:border-gray-700/50 py-6 px-4 shadow-sm"
+        className="relative overflow-hidden rounded-[14px] p-[14px]"
+        style={{
+          background: 'linear-gradient(135deg, rgba(30, 30, 40, 0.95) 0%, rgba(20, 20, 30, 0.98) 100%)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), 0 0 60px rgba(var(--primary-rgb, 99, 102, 241), 0.1)',
+        }}
       >
-        {/* عداد الزيارات */}
-        <div className="flex flex-col items-center gap-3 mb-4">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Eye className="h-4 w-4" />
-            <span className="text-sm">عدد الزيارات اليوم</span>
-            {isLive && (
-              <motion.div
-                animate={{ opacity: [1, 0.5, 1] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-                className="flex items-center gap-1"
-              >
-                <span className="w-2 h-2 bg-green-500 rounded-full" />
-                <span className="text-[10px] text-green-600 dark:text-green-400">مباشر</span>
-              </motion.div>
-            )}
-          </div>
-          
-          <motion.div 
-            className="text-4xl font-bold text-primary flex items-center gap-2"
-            key={displayCount}
-            initial={{ scale: 1 }}
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 0.3 }}
-          >
-            {displayCount}
-            {visitCount > 0 && (
-              <TrendingUp className="h-5 w-5 text-green-500" />
-            )}
-          </motion.div>
-        </div>
+        {/* Soft glow effect */}
+        <div 
+          className="absolute inset-0 opacity-20"
+          style={{
+            background: 'radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.3), transparent 60%)',
+          }}
+        />
 
-        {/* النص التسويقي */}
-        <div className="text-center space-y-2">
-          <p 
-            className="text-sm font-semibold text-foreground/90 leading-relaxed"
-            dangerouslySetInnerHTML={{ 
-              __html: highlightText(mainText, highlightKeywords) 
-            }}
-          />
-          <p 
-            className="text-xs text-muted-foreground/80"
-            dangerouslySetInnerHTML={{ 
-              __html: highlightText(subText, highlightKeywords) 
-            }}
-          />
+        <div className="relative z-10 flex flex-col items-center gap-3">
+          {/* Counter Section */}
+          <div className="flex items-center gap-3">
+            <Eye className="h-5 w-5 text-white/70" />
+            <span className="text-sm text-[#bdbdbd]/90">عدد الزيارات اليوم</span>
+            
+            {/* Pulsing dot divider */}
+            <motion.div
+              animate={{ opacity: [0.4, 1, 0.4], scale: [0.8, 1, 0.8] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              className="w-1.5 h-1.5 rounded-full bg-primary"
+            />
+            
+            {/* Animated Counter */}
+            <motion.span 
+              className="text-[28px] font-bold text-white"
+              key={displayCount}
+              initial={{ scale: 1 }}
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ duration: 0.3 }}
+            >
+              {displayCount.toLocaleString('ar-EG')}
+            </motion.span>
+          </div>
+
+          {/* Marketing Text */}
+          <div className="text-center space-y-1.5 pt-2 border-t border-white/10">
+            <p 
+              className="text-sm font-medium text-white/90 leading-relaxed"
+              dangerouslySetInnerHTML={{ 
+                __html: highlightText(mainText, highlightKeywords) 
+              }}
+            />
+            <p 
+              className="text-xs text-[#bdbdbd]/80"
+              dangerouslySetInnerHTML={{ 
+                __html: highlightText(subText, highlightKeywords) 
+              }}
+            />
+          </div>
         </div>
       </motion.div>
     </div>
