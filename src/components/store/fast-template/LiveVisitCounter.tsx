@@ -2,60 +2,69 @@ import React, { useState, useEffect, useCallback } from "react";
 import { motion, useSpring, useTransform } from "framer-motion";
 import { Eye } from "lucide-react";
 
+// تعريف المراحل الزمنية
+const PHASES = [
+  { start: 3, end: 10, startValue: 0, endValue: 10, incrementMinutes: 42 },
+  { start: 10, end: 15, startValue: 10, endValue: 30, incrementMinutes: 15 },
+  { start: 15, end: 18, startValue: 30, endValue: 99, incrementMinutes: 3 },
+  { start: 18, end: 25, startValue: 99, endValue: 260, incrementMinutes: 2 }, // 25 = 01:00 next day
+  { start: 25, end: 27, startValue: 260, endValue: 299, incrementMinutes: 3 }, // 27 = 03:00 next day
+];
+
 const LiveVisitCounter: React.FC = () => {
-  // حساب القيمة الابتدائية بناءً على اليوم (تُعاد الساعة 3 صباحاً)
-  const getDailyStartValue = useCallback(() => {
+  // حساب القيمة بناءً على الوقت الحالي فقط - متزامن لجميع المستخدمين
+  const calculateCountByTime = useCallback(() => {
     const now = new Date();
-    const resetHour = 3;
+    let currentHour = now.getHours();
+    const currentMinutes = now.getMinutes();
     
-    // حساب تاريخ اليوم مع مراعاة الساعة 3 صباحاً
-    const dayKey = now.getHours() < resetHour 
-      ? new Date(now.getTime() - 24 * 60 * 60 * 1000).toDateString()
-      : now.toDateString();
+    // تحويل الساعات بعد منتصف الليل (00:00-02:59) إلى 24-26
+    if (currentHour < 3) {
+      currentHour += 24;
+    }
     
-    // توليد رقم عشوائي ثابت لليوم (120-280)
-    const seed = dayKey.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    const randomStart = 120 + (seed % 161); // 120 to 280
+    // البحث عن المرحلة الحالية
+    for (const phase of PHASES) {
+      if (currentHour >= phase.start && currentHour < phase.end) {
+        // حساب الدقائق منذ بداية المرحلة
+        const phaseStartMinutes = phase.start * 60;
+        const currentTotalMinutes = currentHour * 60 + currentMinutes;
+        const minutesSincePhaseStart = currentTotalMinutes - phaseStartMinutes;
+        
+        // حساب عدد الزيادات
+        const increments = Math.floor(minutesSincePhaseStart / phase.incrementMinutes);
+        
+        // حساب القيمة النهائية (لا تتجاوز endValue أو 299)
+        const count = Math.min(phase.startValue + increments, phase.endValue, 299);
+        
+        return count;
+      }
+    }
     
-    return randomStart;
+    return 0; // الساعة 3 صباحاً - إعادة التعيين
   }, []);
 
-  const [baseCount] = useState(getDailyStartValue);
-  const [additionalCount, setAdditionalCount] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  const [visitCount, setVisitCount] = useState(calculateCountByTime);
 
-  // تحديث العداد كل ثانية بزيادة عشوائية طبيعية
+  // تحديث العداد كل دقيقة
   useEffect(() => {
     const interval = setInterval(() => {
-      // توقف عشوائي لجعله أكثر طبيعية (10% احتمال التوقف)
-      if (Math.random() < 0.1) {
-        setIsPaused(true);
-        setTimeout(() => setIsPaused(false), 2000 + Math.random() * 3000);
-        return;
-      }
-
-      if (!isPaused) {
-        // زيادة عشوائية بين 1-3
-        const increment = Math.floor(Math.random() * 3) + 1;
-        setAdditionalCount(prev => prev + increment);
-      }
-    }, 1000);
+      setVisitCount(calculateCountByTime());
+    }, 60000); // كل دقيقة
 
     return () => clearInterval(interval);
-  }, [isPaused]);
-
-  const totalCount = baseCount + additionalCount;
+  }, [calculateCountByTime]);
 
   // Animated counter using spring
-  const springValue = useSpring(totalCount, { stiffness: 150, damping: 20 });
+  const springValue = useSpring(visitCount, { stiffness: 150, damping: 20 });
   const displayValue = useTransform(springValue, (val) => Math.floor(val));
-  const [displayCount, setDisplayCount] = useState(totalCount);
+  const [displayCount, setDisplayCount] = useState(visitCount);
 
   useEffect(() => {
-    springValue.set(totalCount);
+    springValue.set(visitCount);
     const unsubscribe = displayValue.on("change", (v) => setDisplayCount(v));
     return () => unsubscribe();
-  }, [totalCount, springValue, displayValue]);
+  }, [visitCount, springValue, displayValue]);
 
   // Highlight keywords in text
   const highlightText = (text: string, keywords: string[]) => {
