@@ -240,7 +240,7 @@ const FeedbackDialog = ({ isOpen, onClose, storeOwnerId, colorTheme }: FeedbackD
                       </div>
 
                       {/* المحتوى */}
-                      <div className="bg-white/95 rounded-2xl p-4">
+                      <div className="bg-white/95 dark:bg-gray-800/95 rounded-2xl p-4">
                         <AnimatePresence mode="wait">
                           <FeedbackWizardSteps
                             currentStep={currentStep}

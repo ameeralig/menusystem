@@ -166,9 +166,8 @@ const StoreOwnerActionsMenu = ({
         </motion.div>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-80 backdrop-blur-xl border shadow-2xl"
+        className="w-80 backdrop-blur-xl border shadow-2xl bg-card"
         style={{
-          background: `linear-gradient(135deg, ${themeColor}08, ${themeColor}15)`,
           borderColor: `${themeColor}40`,
         }}
         align="end"
