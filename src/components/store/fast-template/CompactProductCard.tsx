@@ -223,10 +223,10 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
           )}
         </div>
         
-        {/* الوصف - اختياري على الشاشات الكبيرة فقط */}
+        {/* نص للإشارة إلى وجود تفاصيل */}
         {product.description && (
-          <p className="hidden sm:block text-xs text-gray-600 dark:text-gray-400 line-clamp-1 mt-1">
-            {product.description}
+          <p className="text-xs text-blue-500 dark:text-blue-400 mt-1 font-medium">
+            اضغط لمعرفة تفاصيل مهمة
           </p>
         )}
       </div>
