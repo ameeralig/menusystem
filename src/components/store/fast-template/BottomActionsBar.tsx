@@ -312,9 +312,8 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                   </motion.div>
                 </PopoverTrigger>
                 <PopoverContent 
-                  className="w-48 p-2 backdrop-blur-xl border shadow-xl"
+                  className="w-48 p-2 backdrop-blur-xl border shadow-xl bg-card"
                   style={{
-                    background: `linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9))`,
                     borderColor: `${themeColor}30`,
                   }}
                   align="end"
@@ -326,7 +325,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                       <button
                         key={item.id}
                         onClick={item.onClick}
-                        className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-gray-100 text-gray-700"
+                        className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-muted text-foreground"
                       >
                         <item.icon className="h-4 w-4" style={{ color: item.color }} />
                         <span>{item.label}</span>

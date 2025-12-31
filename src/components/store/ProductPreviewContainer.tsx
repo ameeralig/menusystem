@@ -50,10 +50,23 @@ const ProductPreviewContainer = ({
   const { imageError, imageLoaded, imgSrc, setImageError, setImageLoaded } = useImageLoading(bannerUrl);
   const { getContainerStyle } = useCustomFonts(fontSettings);
   
+  // تطبيق الوضع الداكن على عنصر الـ html
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    
+    return () => {
+      // لا نحذف الكلاس عند unmount لتجنب الوميض
+    };
+  }, [darkMode]);
+  
   // تسجيل تغييرات اللون للتصحيح
   useEffect(() => {
-    console.log("تم تحديث اللون في ProductPreviewContainer:", colorTheme);
-  }, [colorTheme]);
+    console.log("تم تحديث اللون في ProductPreviewContainer:", colorTheme, "Dark Mode:", darkMode);
+  }, [colorTheme, darkMode]);
 
   // إنشاء الأنماط المخصصة للخلفية
   const customBackgroundStyle = getBackgroundStyle(colorTheme, darkMode);
