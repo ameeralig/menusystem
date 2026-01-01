@@ -149,8 +149,8 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       label: 'مشاركة المنيو',
       color: '#f59e0b',
     },
-    // زر تحميل المنيو (يظهر حتى لو لم يتم تعيين اسم المتجر بعد)
-    products.length > 0 && {
+    // زر تحميل المنيو
+    storeName && products.length > 0 && {
       id: 'download',
       onClick: () => { setIsMenuDownloadOpen(true); setIsMoreMenuOpen(false); },
       icon: Download,
@@ -361,7 +361,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
         contactInfo={contactInfo}
         colorTheme={colorTheme}
         socialLinks={socialLinks}
-        storeName={resolvedStoreName}
+        storeName={storeName}
         products={products}
         isStoreOwner={isStoreOwner}
         storeOwnerId={storeOwnerId}
@@ -426,7 +426,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       <ShareMenuCard
         isOpen={isShareCardOpen}
         onClose={() => setIsShareCardOpen(false)}
-        storeName={resolvedStoreName}
+        storeName={storeName}
         slug={slug}
         colorTheme={colorTheme}
         logoUrl={logoUrl}
