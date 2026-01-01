@@ -222,8 +222,8 @@ const StoreOwnerActionsMenu = ({
               </Button>
             )}
 
-            {/* زر معلومات المتجر */}
-            {hasContactInfo && onOpenInfo && (
+            {/* زر معلومات المتجر - يظهر دائماً للمالك لتعديل أو إضافة المعلومات */}
+            {onOpenInfo && (
               <Button
                 onClick={() => {
                   onOpenInfo();
@@ -233,7 +233,7 @@ const StoreOwnerActionsMenu = ({
                 className="justify-start gap-2 h-10"
               >
                 <Info className="h-4 w-4" />
-                معلومات المتجر
+                {hasContactInfo ? "معلومات المتجر" : "إضافة معلومات"}
               </Button>
             )}
           </div>
