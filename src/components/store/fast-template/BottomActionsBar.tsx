@@ -133,8 +133,8 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
 
   // عناصر قائمة المزيد (المعلومات، المشاركة، التحميل)
   const moreMenuItems = [
-    // زر المعلومات
-    contactInfo && {
+    // زر المعلومات - يظهر للزوار فقط إذا كانت هناك معلومات
+    !isStoreOwner && contactInfo && {
       id: 'info',
       onClick: () => { setIsInfoSheetOpen(true); setIsMoreMenuOpen(false); },
       icon: Info,
@@ -312,7 +312,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                   </motion.div>
                 </PopoverTrigger>
                 <PopoverContent 
-                  className="w-48 p-2 backdrop-blur-xl border shadow-xl bg-card"
+                  className="w-48 p-2 border shadow-xl bg-white dark:bg-gray-800"
                   style={{
                     borderColor: `${themeColor}30`,
                   }}

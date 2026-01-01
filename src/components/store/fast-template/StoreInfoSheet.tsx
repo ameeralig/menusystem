@@ -179,7 +179,8 @@ const StoreInfoSheet: React.FC<StoreInfoSheetProps> = ({
     }
   };
 
-  if (!contactInfo || Object.values(contactInfo).every(value => !value)) {
+  // السماح للمالك بفتح البطاقة حتى لو لم تكن هناك معلومات لإضافتها
+  if (!isStoreOwner && (!contactInfo || Object.values(contactInfo).every(value => !value))) {
     return null;
   }
 
