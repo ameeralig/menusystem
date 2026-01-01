@@ -283,12 +283,12 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
     <div className="min-h-screen">
 
       {/* رأس المتجر - مع محرر مضمّن لصاحب المتجر */}
-      {storeName && (
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 pt-2 pb-1 relative z-10">
+      {(isStoreOwner && storeOwnerId) || storeName ? (
+        <div className="bg-background border-b border-border pt-2 pb-1 relative z-10">
           <div className="px-3">
             {isStoreOwner && storeOwnerId ? (
               <InlineStoreNameEditor
-                storeName={storeName}
+                storeName={storeName || null}
                 colorTheme={colorTheme || null}
                 fontSettings={fontSettings}
                 storeOwnerId={storeOwnerId}
@@ -296,14 +296,14 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
               />
             ) : (
               <StoreHeader 
-                storeName={storeName} 
-                colorTheme={colorTheme}
+                storeName={storeName || null}
+                colorTheme={colorTheme || null}
                 fontSettings={fontSettings}
               />
             )}
           </div>
         </div>
-      )}
+      ) : null}
 
 
       {/* شريط التصنيفات */}
