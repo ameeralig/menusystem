@@ -5,6 +5,7 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import HiddenLoginTrigger from "../HiddenLoginTrigger";
 
 interface InlineBannerEditorProps {
   bannerUrl?: string | null;
@@ -15,6 +16,7 @@ interface InlineBannerEditorProps {
   onImageLoad: () => void;
   storeOwnerId: string;
   onUpdate: () => void;
+  showHiddenLogin?: boolean;
 }
 
 const InlineBannerEditor = ({
@@ -26,6 +28,7 @@ const InlineBannerEditor = ({
   onImageLoad,
   storeOwnerId,
   onUpdate,
+  showHiddenLogin = false,
 }: InlineBannerEditorProps) => {
   const [isUploading, setIsUploading] = useState(false);
 
@@ -139,6 +142,9 @@ const InlineBannerEditor = ({
           )
         )}
         <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+
+        {/* الزر المخفي لتسجيل الدخول */}
+        {showHiddenLogin && <HiddenLoginTrigger />}
         
         {/* أزرار التحرير */}
         <div className="absolute top-4 left-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

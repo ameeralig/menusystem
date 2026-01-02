@@ -1,6 +1,7 @@
 
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Skeleton } from "@/components/ui/skeleton";
+import HiddenLoginTrigger from "../HiddenLoginTrigger";
 
 interface BannerSectionProps {
   bannerUrl?: string | null;
@@ -50,6 +51,9 @@ const BannerSection = ({
           )
         )}
         <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+
+        {/* الزر المخفي لتسجيل الدخول */}
+        <HiddenLoginTrigger />
       </AspectRatio>
     </div>
   );
