@@ -270,16 +270,58 @@ const InlineStoreNameEditor = ({
     );
   }
 
-  // إذا لم يكن هناك اسم متجر، عرض حاوية في نفس موضع الاسم
+  // إذا لم يكن هناك اسم متجر، عرض المحرر الكامل مباشرة
   if (!storeName) {
     return (
-      <div 
-        className="text-center mb-2 cursor-pointer group"
-        onClick={() => setIsEditing(true)}
-      >
-        <div className="inline-block px-8 py-4 border-2 border-dashed border-amber-500/50 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 transition-colors">
-          <Edit2 className="h-6 w-6 mx-auto mb-2 text-amber-500 group-hover:scale-110 transition-transform" />
-          <p className="text-xl font-bold text-amber-500">أضف اسم المتجر</p>
+      <div className="text-center mb-4">
+        <div className="inline-block bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 w-full max-w-md mx-auto border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-2 mb-3">
+            <Button
+              onClick={handleSave}
+              disabled={isSaving || !editedName.trim()}
+              className="h-12 w-12 rounded-full bg-green-500 hover:bg-green-600 text-white p-0 flex-shrink-0"
+            >
+              {isSaving ? (
+                <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+              ) : (
+                <Check className="h-6 w-6" />
+              )}
+            </Button>
+            <Input
+              value={editedName}
+              onChange={(e) => setEditedName(e.target.value)}
+              placeholder="اسم المتجر"
+              className="text-xl font-bold text-center h-12 bg-gray-100 dark:bg-gray-700 border-0 rounded-full"
+              dir="rtl"
+            />
+          </div>
+          
+          <div className="flex justify-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="rounded-full px-4 h-10 gap-2">
+                  <Palette className="h-4 w-4" />
+                  <span>تغيير اللون</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-3 z-[100]" align="center">
+                <HexColorPicker color={editedColor} onChange={handleColorChange} />
+              </PopoverContent>
+            </Popover>
+            
+            <Button variant="outline" className="rounded-full px-4 h-10 gap-2" asChild>
+              <label className="cursor-pointer">
+                <Type className="h-4 w-4" />
+                <span>تحميل خط</span>
+                <input
+                  type="file"
+                  accept=".ttf,.otf,.woff,.woff2"
+                  onChange={handleFontUpload}
+                  className="hidden"
+                />
+              </label>
+            </Button>
+          </div>
         </div>
       </div>
     );
