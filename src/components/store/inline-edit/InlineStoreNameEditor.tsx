@@ -270,6 +270,22 @@ const InlineStoreNameEditor = ({
     );
   }
 
+  // إذا لم يكن هناك اسم متجر، عرض زر لإضافته
+  if (!storeName) {
+    return (
+      <div 
+        className="my-4 p-6 bg-amber-500/10 border-2 border-dashed border-amber-500/50 rounded-xl cursor-pointer hover:bg-amber-500/20 transition-colors"
+        onClick={() => setIsEditing(true)}
+      >
+        <div className="text-center">
+          <Edit2 className="h-8 w-8 mx-auto mb-2 text-amber-500" />
+          <p className="text-xl font-bold text-amber-500">اضغط هنا لإضافة اسم المتجر</p>
+          <p className="text-sm text-muted-foreground mt-1">أضف اسمًا مميزًا لمتجرك</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative group">
       <h1 
