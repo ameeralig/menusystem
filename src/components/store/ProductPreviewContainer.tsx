@@ -84,6 +84,7 @@ const ProductPreviewContainer = ({
           onImageLoad={() => setImageLoaded(true)}
           storeOwnerId={storeOwnerId}
           onUpdate={onUpdate}
+          showHiddenLogin={true}
         />
       ) : (
         <BannerSection
