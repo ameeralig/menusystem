@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Settings, Plus, Moon, Sun, ShoppingBag, DollarSign, Info, Eye, BarChart3, LogOut } from "lucide-react";
+import { Settings, Plus, Moon, Sun, ShoppingBag, DollarSign, Info, Eye, BarChart3, LogOut, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import ProfileSheet from "./ProfileSheet";
 import StoreStatsCard from "../stats/StoreStatsCard";
+import EmployeeManagementCard from "../employees/EmployeeManagementCard";
 
 interface StoreOwnerActionsMenuProps {
   storeOwnerId: string;
@@ -41,12 +42,14 @@ const StoreOwnerActionsMenu = ({
   const [isLoading, setIsLoading] = useState(false);
   const [showDeliveryFee, setShowDeliveryFee] = useState(false);
   const [showStatsCard, setShowStatsCard] = useState(false);
+  const [showEmployeeCard, setShowEmployeeCard] = useState(false);
+  const [employeeSystemEnabled, setEmployeeSystemEnabled] = useState(false);
 
   useEffect(() => {
     const fetchSettings = async () => {
       const { data } = await supabase
         .from("store_settings")
-        .select("dark_mode, external_orders_enabled, delivery_fee")
+        .select("dark_mode, external_orders_enabled, delivery_fee, employee_system_enabled")
         .eq("user_id", storeOwnerId)
         .single();
 
@@ -54,6 +57,7 @@ const StoreOwnerActionsMenu = ({
         setDarkMode(data.dark_mode || false);
         setExternalOrdersEnabled(data.external_orders_enabled || false);
         setDeliveryFee(data.delivery_fee?.toString() || "0");
+        setEmployeeSystemEnabled(data.employee_system_enabled || false);
       }
     };
 
@@ -207,6 +211,21 @@ const StoreOwnerActionsMenu = ({
               الإحصائيات
             </Button>
 
+            {/* زر إدارة الموظفين - يظهر فقط إذا كان النظام مفعل */}
+            {employeeSystemEnabled && (
+              <Button
+                onClick={() => {
+                  setShowEmployeeCard(true);
+                  setIsOpen(false);
+                }}
+                className="justify-start gap-2 h-10"
+                style={{ background: '#f59e0b' }}
+              >
+                <Users className="h-4 w-4" />
+                الموظفين
+              </Button>
+            )}
+
             {/* زر عرض الآراء */}
             {onOpenFeedback && (
               <Button
@@ -327,6 +346,14 @@ const StoreOwnerActionsMenu = ({
       isOpen={showStatsCard}
       onClose={() => setShowStatsCard(false)}
       colorTheme={colorTheme}
+    />
+
+    {/* بطاقة إدارة الموظفين */}
+    <EmployeeManagementCard
+      isOpen={showEmployeeCard}
+      onClose={() => setShowEmployeeCard(false)}
+      colorTheme={colorTheme}
+      storeOwnerId={storeOwnerId}
     />
   </>
   );
