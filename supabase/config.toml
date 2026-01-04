@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions."whatsapp-bot"]
 verify_jwt = false
+
+[functions."cleanup-orphaned-files"]
+verify_jwt = true

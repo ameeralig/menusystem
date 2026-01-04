@@ -596,6 +596,33 @@ export type Database = {
         }
         Relationships: []
       }
+      storage_cleanup_logs: {
+        Row: {
+          bucket_name: string
+          created_at: string
+          errors: Json | null
+          files_deleted: number
+          id: string
+          space_freed: number
+        }
+        Insert: {
+          bucket_name: string
+          created_at?: string
+          errors?: Json | null
+          files_deleted?: number
+          id?: string
+          space_freed?: number
+        }
+        Update: {
+          bucket_name?: string
+          created_at?: string
+          errors?: Json | null
+          files_deleted?: number
+          id?: string
+          space_freed?: number
+        }
+        Relationships: []
+      }
       store_settings: {
         Row: {
           ai_assistant_name: string | null
