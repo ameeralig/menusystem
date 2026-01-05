@@ -1,5 +1,5 @@
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import StoreSkeleton from "@/components/store/skeletons/StoreSkeleton";
@@ -9,7 +9,6 @@ import { useRefreshData } from "@/hooks/useRefreshData";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useEmployeeAuth } from "@/hooks/employees/useEmployeeAuth";
-import EmployeePanel from "@/components/employees/EmployeePanel";
 import { CartProvider } from "@/contexts/CartContext";
 import StoreProductsDisplay from "@/components/store/StoreProductsDisplay";
 import { logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
@@ -239,16 +238,7 @@ const ProductPreview = () => {
       </Helmet>
       
       <CartProvider>
-        {employee && (
-          <EmployeePanel
-            employee={employee}
-            onLogout={logout}
-            products={storeData.products || []}
-            storeOwnerId={storeOwnerId!}
-          />
-        )}
-        
-        <div className={employee ? "pt-20" : ""}>
+        <div>
           <ProductPreviewContainer
             colorTheme={storeData.colorTheme} 
             bannerUrl={storeData.bannerUrl}
@@ -276,6 +266,8 @@ const ProductPreview = () => {
               products={storeData.products || []}
               productsLoading={loadingStates.products}
               logoUrl={storeData.logoUrl}
+              employee={employee}
+              onEmployeeLogout={logout}
             />
           </ProductPreviewContainer>
         </div>

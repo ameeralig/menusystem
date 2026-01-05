@@ -37,6 +37,10 @@ interface StoreProductsDisplayProps {
   productsLoading?: boolean;
   /** رابط شعار المتجر */
   logoUrl?: string | null;
+  /** بيانات الموظف */
+  employee?: any;
+  /** دالة تسجيل خروج الموظف */
+  onEmployeeLogout?: () => void;
 }
 
 const StoreProductsDisplay = ({
@@ -56,6 +60,8 @@ const StoreProductsDisplay = ({
   products: productsData = [],
   productsLoading = false,
   logoUrl,
+  employee,
+  onEmployeeLogout,
 }: StoreProductsDisplayProps) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -281,6 +287,8 @@ const StoreProductsDisplay = ({
         refreshData={refreshData}
         isLoading={isLoading && allProducts.length === 0}
         logoUrl={logoUrl}
+        employee={employee}
+        onEmployeeLogout={onEmployeeLogout}
       />
     );
   }
