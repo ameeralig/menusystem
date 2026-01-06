@@ -11,6 +11,7 @@ interface CompactProductCardProps {
   colorTheme?: string | null;
   onClick?: () => void;
   isStoreOwner?: boolean;
+  isEmployee?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
   onAddToCart?: (product: Product) => void;
@@ -31,6 +32,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
   colorTheme,
   onClick,
   isStoreOwner,
+  isEmployee,
   onEdit,
   onDelete,
   onAddToCart,
@@ -84,7 +86,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
         </div>
       )}
 
-      {/* أزرار المفضلة والمشاركة والإضافة - للزوار */}
+      {/* أزرار المفضلة والمشاركة والإضافة - للزوار والموظفين */}
       {!isStoreOwner && (
         <div className="absolute top-2 left-2 flex gap-1 z-10">
           {/* زر الإضافة للسلة */}
@@ -103,30 +105,35 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
               <Plus className="w-3.5 h-3.5" />
             </button>
           )}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleFavorite?.(product.id, product.name);
-            }}
-            className={`p-1.5 rounded-md transition-all shadow-lg ${
-              isFavorite 
-                ? 'bg-red-500 text-white' 
-                : 'bg-white/80 dark:bg-gray-700/80 text-gray-500 hover:text-red-500 backdrop-blur-sm'
-            }`}
-            title={isFavorite ? "إزالة من المفضلة" : "إضافة للمفضلة"}
-          >
-            <Heart className={`w-3.5 h-3.5 ${isFavorite ? 'fill-current' : ''}`} />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onShare?.(product);
-            }}
-            className="p-1.5 bg-white/80 dark:bg-gray-700/80 text-gray-500 hover:text-blue-500 rounded-md transition-all shadow-lg backdrop-blur-sm"
-            title="مشاركة"
-          >
-            <Share2 className="w-3.5 h-3.5" />
-          </button>
+          {/* أزرار المفضلة والمشاركة - للزوار فقط */}
+          {!isEmployee && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleFavorite?.(product.id, product.name);
+                }}
+                className={`p-1.5 rounded-md transition-all shadow-lg ${
+                  isFavorite 
+                    ? 'bg-red-500 text-white' 
+                    : 'bg-white/80 dark:bg-gray-700/80 text-gray-500 hover:text-red-500 backdrop-blur-sm'
+                }`}
+                title={isFavorite ? "إزالة من المفضلة" : "إضافة للمفضلة"}
+              >
+                <Heart className={`w-3.5 h-3.5 ${isFavorite ? 'fill-current' : ''}`} />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onShare?.(product);
+                }}
+                className="p-1.5 bg-white/80 dark:bg-gray-700/80 text-gray-500 hover:text-blue-500 rounded-md transition-all shadow-lg backdrop-blur-sm"
+                title="مشاركة"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+              </button>
+            </>
+          )}
         </div>
       )}
 

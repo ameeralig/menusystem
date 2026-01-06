@@ -361,10 +361,11 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
                 colorTheme={colorTheme}
                 onClick={() => handleProductClick(product)}
                 isStoreOwner={isStoreOwner}
+                isEmployee={!!employee}
                 onEdit={() => handleEdit(product)}
                 onDelete={() => handleDelete(product)}
                 onAddToCart={handleAddToCart}
-                showAddButton={externalOrdersEnabled && !isStoreOwner && !employee}
+                showAddButton={(externalOrdersEnabled && !isStoreOwner && !employee) || !!employee}
                 isFavorite={isFavorite(product.id)}
                 onToggleFavorite={toggleFavorite}
                 onShare={(product) => setShareProduct(product)}

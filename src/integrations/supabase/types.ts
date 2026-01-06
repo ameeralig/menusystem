@@ -227,6 +227,9 @@ export type Database = {
       }
       employees: {
         Row: {
+          can_add_products: boolean | null
+          can_delete_products: boolean | null
+          can_edit_products: boolean | null
           created_at: string | null
           email: string
           full_name: string
@@ -238,6 +241,9 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          can_add_products?: boolean | null
+          can_delete_products?: boolean | null
+          can_edit_products?: boolean | null
           created_at?: string | null
           email: string
           full_name: string
@@ -249,6 +255,9 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          can_add_products?: boolean | null
+          can_delete_products?: boolean | null
+          can_edit_products?: boolean | null
           created_at?: string | null
           email?: string
           full_name?: string
