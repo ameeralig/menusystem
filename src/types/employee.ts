@@ -6,6 +6,9 @@ export interface Employee {
   phone: string | null;
   email: string;
   is_active: boolean;
+  can_add_products?: boolean;
+  can_edit_products?: boolean;
+  can_delete_products?: boolean;
   created_at: string;
   updated_at: string;
 }
