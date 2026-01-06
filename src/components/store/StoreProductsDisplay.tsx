@@ -281,6 +281,7 @@ const StoreProductsDisplay = ({
         refreshData={refreshData}
         isLoading={isLoading && allProducts.length === 0}
         logoUrl={logoUrl}
+        isEmployeeView={isEmployeeView}
       />
     );
   }

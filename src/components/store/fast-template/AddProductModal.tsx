@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { motion, AnimatePresence } from "framer-motion";
+import { createPortal } from "react-dom";
+import { X, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -12,9 +14,10 @@ interface AddProductModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onProductAdded?: () => void;
+  colorTheme?: string | null;
 }
 
-const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductModalProps) => {
+const AddProductModal = ({ isOpen, onOpenChange, onProductAdded, colorTheme }: AddProductModalProps) => {
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [categories, setCategories] = useState<string[]>([]);
@@ -38,6 +41,25 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
     selectedFile: null as File | null,
     previewUrl: null as string | null,
   });
+
+  // الحصول على لون الثيم
+  const getThemeColor = () => {
+    if (colorTheme?.startsWith('#')) {
+      return colorTheme;
+    }
+    
+    const themeColors: { [key: string]: string } = {
+      coral: '#fb923c',
+      purple: '#a855f7',
+      blue: '#3b82f6',
+      green: '#22c55e',
+      red: '#ef4444',
+    };
+    
+    return themeColors[colorTheme || ''] || '#3b82f6';
+  };
+
+  const themeColor = getThemeColor();
 
   useEffect(() => {
     if (isOpen) {
@@ -138,24 +160,7 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
       toast.success("تم إضافة المنتج بنجاح");
       
       // إعادة تعيين النموذج
-      setFormData({
-        name: "",
-        description: "",
-        price: "",
-        image_url: "",
-        category: "",
-        is_new: false,
-        is_popular: false,
-        discount_percentage: "",
-        original_price: "",
-        discount_method: "original_price",
-      });
-      setImageUploadState({
-        uploadMethod: "url",
-        selectedFile: null,
-        previewUrl: null,
-      });
-      setCurrentStep(1);
+      resetForm();
       
       onProductAdded?.();
       onOpenChange(false);
@@ -188,59 +193,144 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded }: AddProductMod
     setCurrentStep(1);
   };
 
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      resetForm();
-    }
-    onOpenChange(open);
+  const handleClose = () => {
+    resetForm();
+    onOpenChange(false);
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">إضافة منتج جديد</DialogTitle>
-          <div className="flex items-center gap-2 mt-4">
-            <div className={cn(
-              "flex items-center justify-center w-8 h-8 rounded-full font-bold",
-              currentStep >= 1 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-            )}>
-              1
-            </div>
-            <div className={cn("h-1 flex-1 rounded", currentStep >= 2 ? "bg-primary" : "bg-muted")} />
-            <div className={cn(
-              "flex items-center justify-center w-8 h-8 rounded-full font-bold",
-              currentStep >= 2 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-            )}>
-              2
-            </div>
-          </div>
-        </DialogHeader>
+  if (!isOpen) return null;
 
-        <div className="mt-4">
-          {currentStep === 1 ? (
-            <CategorySelectionStep
-              categories={categories}
-              selectedCategory={formData.category}
-              onCategorySelect={(category) => setFormData({ ...formData, category })}
-              onNext={() => setCurrentStep(2)}
-              onCategoriesUpdate={setCategories}
-            />
-          ) : (
-            <ProductDetailsStep
-              formData={formData}
-              onFormDataChange={setFormData}
-              onBack={() => setCurrentStep(1)}
-              onSubmit={handleSubmit}
-              loading={loading}
-              imageUploadState={imageUploadState}
-              onImageUploadStateChange={setImageUploadState}
-            />
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+  const modalContent = (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* الخلفية الضبابية */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={handleClose}
+            className="fixed inset-0 z-50 backdrop-blur-md bg-black/40"
+          />
+
+          {/* البطاقة العائمة */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none overflow-y-auto"
+          >
+            <div className="pointer-events-auto w-full max-w-lg my-8">
+              {/* زر الإغلاق */}
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={handleClose}
+                className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center text-white shadow-lg"
+              >
+                <X className="w-5 h-5" />
+              </motion.button>
+
+              {/* البطاقة الزجاجية */}
+              <div 
+                className="rounded-3xl overflow-hidden shadow-2xl border border-white/20"
+                style={{
+                  background: `linear-gradient(135deg, ${themeColor}ee, ${themeColor}cc)`,
+                  backdropFilter: 'blur(20px)',
+                }}
+              >
+                {/* تأثير الإضاءة العلوي */}
+                <div 
+                  className="absolute top-0 left-0 right-0 h-32 opacity-30 pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%)',
+                  }}
+                />
+
+                {/* رأس البطاقة */}
+                <div className="relative p-6 text-center text-white border-b border-white/20">
+                  {/* أيقونة */}
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.1, type: "spring" }}
+                    className="mx-auto mb-4 w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center shadow-lg"
+                  >
+                    <Package className="w-8 h-8 text-white" />
+                  </motion.div>
+
+                  {/* العنوان */}
+                  <motion.h2 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                    className="text-2xl font-bold drop-shadow-lg"
+                  >
+                    إضافة منتج جديد
+                  </motion.h2>
+
+                  {/* مؤشر الخطوات */}
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="flex items-center justify-center gap-2 mt-4"
+                  >
+                    <div className={cn(
+                      "flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm transition-all",
+                      currentStep >= 1 
+                        ? "bg-white text-primary shadow-lg" 
+                        : "bg-white/30 text-white/70"
+                    )}>
+                      1
+                    </div>
+                    <div className={cn(
+                      "h-1 w-12 rounded transition-all",
+                      currentStep >= 2 ? "bg-white" : "bg-white/30"
+                    )} />
+                    <div className={cn(
+                      "flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm transition-all",
+                      currentStep >= 2 
+                        ? "bg-white text-primary shadow-lg" 
+                        : "bg-white/30 text-white/70"
+                    )}>
+                      2
+                    </div>
+                  </motion.div>
+                </div>
+
+                {/* محتوى النموذج */}
+                <div className="relative p-6 bg-white dark:bg-gray-900 max-h-[60vh] overflow-y-auto">
+                  {currentStep === 1 ? (
+                    <CategorySelectionStep
+                      categories={categories}
+                      selectedCategory={formData.category}
+                      onCategorySelect={(category) => setFormData({ ...formData, category })}
+                      onNext={() => setCurrentStep(2)}
+                      onCategoriesUpdate={setCategories}
+                    />
+                  ) : (
+                    <ProductDetailsStep
+                      formData={formData}
+                      onFormDataChange={setFormData}
+                      onBack={() => setCurrentStep(1)}
+                      onSubmit={handleSubmit}
+                      loading={loading}
+                      imageUploadState={imageUploadState}
+                      onImageUploadStateChange={setImageUploadState}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default AddProductModal;

@@ -371,6 +371,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       <AddProductModal
         isOpen={isAddProductModalOpen}
         onOpenChange={setIsAddProductModalOpen}
+        colorTheme={colorTheme}
         onProductAdded={() => {
           window.location.reload();
         }}

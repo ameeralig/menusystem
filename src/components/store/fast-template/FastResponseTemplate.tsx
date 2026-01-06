@@ -47,6 +47,7 @@ interface FastResponseTemplateProps {
   refreshData?: () => void;
   isLoading?: boolean;
   logoUrl?: string | null;
+  isEmployeeView?: boolean;
 }
 
 const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
@@ -63,7 +64,8 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   isStoreOwner = false,
   refreshData,
   isLoading = false,
-  logoUrl
+  logoUrl,
+  isEmployeeView = false,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -358,11 +360,12 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
                 onEdit={() => handleEdit(product)}
                 onDelete={() => handleDelete(product)}
                 onAddToCart={handleAddToCart}
-                showAddButton={externalOrdersEnabled && !isStoreOwner}
+                showAddButton={(externalOrdersEnabled && !isStoreOwner) || isEmployeeView}
                 isFavorite={isFavorite(product.id)}
                 onToggleFavorite={toggleFavorite}
                 onShare={(product) => setShareProduct(product)}
                 storeOwnerId={storeOwnerId}
+                isEmployeeView={isEmployeeView}
               />
             ))}
           </div>
