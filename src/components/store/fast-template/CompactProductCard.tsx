@@ -19,6 +19,7 @@ interface CompactProductCardProps {
   onToggleFavorite?: (productId: string, productName?: string) => void;
   onShare?: (product: Product) => void;
   storeOwnerId?: string;
+  isEmployeeView?: boolean;
 }
 
 // تنسيق السعر بفواصل
@@ -39,6 +40,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
   onToggleFavorite,
   onShare,
   storeOwnerId,
+  isEmployeeView = false,
 }) => {
   // استخدام حجم thumbnail للبطاقات الصغيرة (120x120, quality 60)
   const optimizedImageUrl = optimizeImageUrl(product.image_url, 'thumbnail');
@@ -85,7 +87,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
       )}
 
       {/* أزرار المفضلة والمشاركة والإضافة - للزوار */}
-      {!isStoreOwner && (
+      {!isStoreOwner && !isEmployeeView && (
         <div className="absolute top-2 left-2 flex gap-1 z-10">
           {/* زر الإضافة للسلة */}
           {showAddButton && product.is_available !== false && (
@@ -126,6 +128,26 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
             title="مشاركة"
           >
             <Share2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* زر الإضافة للسلة - للموظفين */}
+      {isEmployeeView && showAddButton && product.is_available !== false && (
+        <div className="absolute top-2 left-2 z-10">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddToCart?.(product);
+            }}
+            className="p-2 rounded-lg transition-all shadow-lg text-white flex items-center gap-1.5"
+            style={{
+              backgroundColor: colorTheme?.startsWith('#') ? colorTheme : '#22c55e',
+            }}
+            title="إضافة للسلة"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="text-xs font-medium">إضافة</span>
           </button>
         </div>
       )}
