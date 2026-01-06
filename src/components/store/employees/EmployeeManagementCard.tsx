@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Users, UtensilsCrossed, Plus, Trash2, UserCheck, UserX, Settings, Package, Edit, ShoppingCart } from "lucide-react";
+import { X, Users, UtensilsCrossed, BarChart3, Plus, Trash2, UserCheck, UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEmployees } from "@/hooks/employees/useEmployees";
@@ -10,9 +10,9 @@ import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Employee } from "@/types/employee";
+import { formatDistanceToNow } from "date-fns";
+import { ar } from "date-fns/locale";
 
 interface EmployeeManagementCardProps {
   isOpen: boolean;
@@ -27,13 +27,12 @@ const EmployeeManagementCard: React.FC<EmployeeManagementCardProps> = ({
   colorTheme,
   storeOwnerId,
 }) => {
-  const { employees, isLoading: employeesLoading, addEmployee, deleteEmployee, toggleEmployeeStatus, updateEmployee } = useEmployees();
+  const { employees, isLoading: employeesLoading, addEmployee, deleteEmployee, toggleEmployeeStatus } = useEmployees();
   const { tables, isLoading: tablesLoading, addTable, deleteTable } = useTables(storeOwnerId);
   
   const [showAddEmployee, setShowAddEmployee] = useState(false);
   const [showAddTable, setShowAddTable] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedEmployeeForPermissions, setSelectedEmployeeForPermissions] = useState<Employee | null>(null);
   
   // بيانات الموظف الجديد
   const [employeeForm, setEmployeeForm] = useState({
@@ -99,10 +98,6 @@ const EmployeeManagementCard: React.FC<EmployeeManagementCardProps> = ({
       setTableForm({ table_number: "", capacity: "4" });
       setShowAddTable(false);
     }
-  };
-
-  const handlePermissionChange = async (emp: Employee, permission: 'can_add_products' | 'can_edit_products' | 'can_delete_products', value: boolean) => {
-    await updateEmployee(emp.id, { [permission]: value });
   };
 
   if (!isOpen) return null;
@@ -288,100 +283,38 @@ const EmployeeManagementCard: React.FC<EmployeeManagementCardProps> = ({
                               key={emp.id}
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
-                              className="rounded-xl bg-white/10 backdrop-blur overflow-hidden"
+                              className="p-3 rounded-xl bg-white/10 backdrop-blur flex items-center justify-between"
                             >
-                              <div className="p-3 flex items-center justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-medium">{emp.full_name}</span>
-                                    <Badge 
-                                      variant={emp.is_active ? "default" : "secondary"}
-                                      className={emp.is_active ? "bg-green-500/80" : "bg-gray-500/50"}
-                                    >
-                                      {emp.is_active ? "نشط" : "غير نشط"}
-                                    </Badge>
-                                  </div>
-                                  <p className="text-white/60 text-xs mt-1">{emp.email}</p>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">{emp.full_name}</span>
+                                  <Badge 
+                                    variant={emp.is_active ? "default" : "secondary"}
+                                    className={emp.is_active ? "bg-green-500/80" : "bg-gray-500/50"}
+                                  >
+                                    {emp.is_active ? "نشط" : "غير نشط"}
+                                  </Badge>
                                 </div>
-                                <div className="flex gap-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setSelectedEmployeeForPermissions(
-                                      selectedEmployeeForPermissions?.id === emp.id ? null : emp
-                                    )}
-                                    className="h-8 w-8 text-white hover:bg-white/20"
-                                    title="الصلاحيات"
-                                  >
-                                    <Settings className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => toggleEmployeeStatus(emp.id, emp.is_active || false)}
-                                    className="h-8 w-8 text-white hover:bg-white/20"
-                                  >
-                                    {emp.is_active ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => deleteEmployee(emp.id)}
-                                    className="h-8 w-8 text-red-300 hover:bg-red-500/20 hover:text-red-200"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
+                                <p className="text-white/60 text-xs mt-1">{emp.email}</p>
                               </div>
-                              
-                              {/* قسم الصلاحيات */}
-                              <AnimatePresence>
-                                {selectedEmployeeForPermissions?.id === emp.id && (
-                                  <motion.div
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: "auto" }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    className="px-3 pb-3 border-t border-white/10"
-                                  >
-                                    <p className="text-white/80 text-xs font-medium py-2">صلاحيات المنتجات:</p>
-                                    <div className="space-y-2">
-                                      <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                          <Package className="h-3.5 w-3.5 text-green-300" />
-                                          <span className="text-xs">إضافة منتجات</span>
-                                        </div>
-                                        <Switch
-                                          checked={emp.can_add_products || false}
-                                          onCheckedChange={(checked) => handlePermissionChange(emp, 'can_add_products', checked)}
-                                          className="scale-75"
-                                        />
-                                      </div>
-                                      <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                          <Edit className="h-3.5 w-3.5 text-blue-300" />
-                                          <span className="text-xs">تعديل منتجات</span>
-                                        </div>
-                                        <Switch
-                                          checked={emp.can_edit_products || false}
-                                          onCheckedChange={(checked) => handlePermissionChange(emp, 'can_edit_products', checked)}
-                                          className="scale-75"
-                                        />
-                                      </div>
-                                      <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                          <Trash2 className="h-3.5 w-3.5 text-red-300" />
-                                          <span className="text-xs">حذف منتجات</span>
-                                        </div>
-                                        <Switch
-                                          checked={emp.can_delete_products || false}
-                                          onCheckedChange={(checked) => handlePermissionChange(emp, 'can_delete_products', checked)}
-                                          className="scale-75"
-                                        />
-                                      </div>
-                                    </div>
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => toggleEmployeeStatus(emp.id, emp.is_active || false)}
+                                  className="h-8 w-8 text-white hover:bg-white/20"
+                                >
+                                  {emp.is_active ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => deleteEmployee(emp.id)}
+                                  className="h-8 w-8 text-red-300 hover:bg-red-500/20 hover:text-red-200"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </motion.div>
                           ))}
                         </div>

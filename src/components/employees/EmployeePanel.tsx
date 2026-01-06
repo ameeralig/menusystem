@@ -30,53 +30,56 @@ interface EmployeePanelProps {
 const EmployeePanel = ({ employee, onLogout, products, storeOwnerId, onAddToCart }: EmployeePanelProps) => {
   const { tables, isLoading: tablesLoading } = useTables(storeOwnerId);
   const { items, updateQuantity, updateNotes, removeItem, clearCart, getTotal } = useCart();
-  const { orders: employeeOrders, createOrder, getOrderWithItems, isCreating, refetchOrders } = useOrders(storeOwnerId, employee.id);
+  const { createOrder, getOrderWithItems, getEmployeeOrders, isCreating } = useOrders();
   const [selectedTable, setSelectedTable] = useState<string>("");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [currentOrder, setCurrentOrder] = useState<any>(null);
   const [showInvoice, setShowInvoice] = useState(false);
+  const [employeeOrders, setEmployeeOrders] = useState<any[]>([]);
   const [showOrdersHistory, setShowOrdersHistory] = useState(false);
+
+  // جلب طلبات الموظف
+  useEffect(() => {
+    if (employee?.id) {
+      loadEmployeeOrders();
+    }
+  }, [employee?.id]);
+
+  const loadEmployeeOrders = async () => {
+    if (employee?.id) {
+      const orders = await getEmployeeOrders(employee.id);
+      setEmployeeOrders(orders || []);
+    }
+  };
 
   const availableProducts = products.filter(p => p.is_available);
 
   const handleCreateOrder = async () => {
     if (!selectedTable || items.length === 0) return;
 
-    const table = tables.find(t => t.id === selectedTable);
-    
-    const orderData = {
-      employee_id: employee.id,
-      table_id: selectedTable,
-      table_number: table?.table_number || null,
-      total_amount: getTotal(),
-      notes: customerName ? `العميل: ${customerName}${customerPhone ? ` - ${customerPhone}` : ''}` : undefined,
-      items: items.map(item => ({
-        product_id: item.product.id,
-        product_name: item.product.name,
-        quantity: item.quantity,
-        unit_price: Number(item.product.price),
-        subtotal: Number(item.product.price) * item.quantity,
-        notes: item.notes,
-      })),
-    };
+    const order = await createOrder(
+      storeOwnerId,
+      employee.id,
+      selectedTable,
+      items,
+      customerName || undefined,
+      customerPhone || undefined
+    );
 
-    try {
-      const order = await createOrder(orderData);
-      if (order) {
-        // جلب الطلب مع العناصر
-        const fullOrderData = await getOrderWithItems(order.id);
-        if (fullOrderData) {
-          setCurrentOrder(fullOrderData);
-          setShowInvoice(true);
-          clearCart();
-          setSelectedTable("");
-          setCustomerName("");
-          setCustomerPhone("");
-        }
+    if (order) {
+      // جلب الطلب مع العناصر
+      const orderData = await getOrderWithItems(order.id);
+      if (orderData) {
+        setCurrentOrder(orderData);
+        setShowInvoice(true);
+        clearCart();
+        setSelectedTable("");
+        setCustomerName("");
+        setCustomerPhone("");
+        // تحديث قائمة الطلبات
+        loadEmployeeOrders();
       }
-    } catch (error) {
-      console.error("Error creating order:", error);
     }
   };
 
@@ -213,7 +216,7 @@ const EmployeePanel = ({ employee, onLogout, products, storeOwnerId, onAddToCart
           </DialogHeader>
           <OrdersHistory
             orders={employeeOrders}
-            onRefresh={refetchOrders}
+            onRefresh={loadEmployeeOrders}
           />
         </DialogContent>
       </Dialog>

@@ -21,8 +21,6 @@ import CartSheet from "../external-orders/CartSheet";
 import { logUserActivity } from "@/hooks/analytics/useActivityLogger";
 import FavoritesSheet from "../favorites/FavoritesSheet";
 import ShareProductCard from "../share/ShareProductCard";
-import EmployeeActionsBar from "../employees/EmployeeActionsBar";
-import { Employee } from "@/types/employee";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,8 +47,6 @@ interface FastResponseTemplateProps {
   refreshData?: () => void;
   isLoading?: boolean;
   logoUrl?: string | null;
-  employee?: any;
-  onEmployeeLogout?: () => void;
 }
 
 const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
@@ -67,9 +63,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   isStoreOwner = false,
   refreshData,
   isLoading = false,
-  logoUrl,
-  employee,
-  onEmployeeLogout
+  logoUrl
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -361,11 +355,10 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
                 colorTheme={colorTheme}
                 onClick={() => handleProductClick(product)}
                 isStoreOwner={isStoreOwner}
-                isEmployee={!!employee}
                 onEdit={() => handleEdit(product)}
                 onDelete={() => handleDelete(product)}
                 onAddToCart={handleAddToCart}
-                showAddButton={(externalOrdersEnabled && !isStoreOwner && !employee) || !!employee}
+                showAddButton={externalOrdersEnabled && !isStoreOwner}
                 isFavorite={isFavorite(product.id)}
                 onToggleFavorite={toggleFavorite}
                 onShare={(product) => setShareProduct(product)}
@@ -376,8 +369,8 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         ) : null}
       </div>
 
-      {/* زر السلة العائم - للزوار فقط */}
-      {externalOrdersEnabled && !isStoreOwner && !employee && (
+      {/* زر السلة العائم */}
+      {externalOrdersEnabled && !isStoreOwner && (
         <CartButton 
           onClick={() => setIsCartOpen(true)}
           colorTheme={colorTheme}
@@ -396,41 +389,26 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
       {/* عداد الزيارات الحية */}
       <LiveVisitCounter />
 
-      {/* شريط الموظف - إذا كان موظف مسجل */}
-      {employee && storeOwnerId && onEmployeeLogout && (
-        <EmployeeActionsBar
-          employee={employee}
-          storeOwnerId={storeOwnerId}
-          colorTheme={colorTheme}
-          onLogout={onEmployeeLogout}
-          searchQuery={searchQuery}
-          onSearchChange={handleSearchChange}
-          onClearSearch={clearSearch}
-        />
-      )}
-
-      {/* الشريط الأفقي السفلي مع البحث المدمج - للمالك والزوار فقط */}
-      {!employee && (
-        <BottomActionsBar
-          slug={slug}
-          storeOwnerId={storeOwnerId}
-          colorTheme={colorTheme}
-          socialLinks={socialLinks}
-          contactInfo={contactInfo}
-          searchQuery={searchQuery}
-          onSearchChange={handleSearchChange}
-          onClearSearch={clearSearch}
-          isStoreOwner={isStoreOwner}
-          storeName={storeName || undefined}
-          fontSettings={fontSettings}
-          products={products}
-          externalOrdersEnabled={externalOrdersEnabled}
-          deliveryFee={deliveryFee}
-          logoUrl={logoUrl}
-          favoritesCount={favoritesCount}
-          onOpenFavorites={() => setIsFavoritesOpen(true)}
-        />
-      )}
+      {/* الشريط الأفقي السفلي مع البحث المدمج */}
+      <BottomActionsBar
+        slug={slug}
+        storeOwnerId={storeOwnerId}
+        colorTheme={colorTheme}
+        socialLinks={socialLinks}
+        contactInfo={contactInfo}
+        searchQuery={searchQuery}
+        onSearchChange={handleSearchChange}
+        onClearSearch={clearSearch}
+        isStoreOwner={isStoreOwner}
+        storeName={storeName || undefined}
+        fontSettings={fontSettings}
+        products={products}
+        externalOrdersEnabled={externalOrdersEnabled}
+        deliveryFee={deliveryFee}
+        logoUrl={logoUrl}
+        favoritesCount={favoritesCount}
+        onOpenFavorites={() => setIsFavoritesOpen(true)}
+      />
 
       {/* نافذة تفاصيل المنتج */}
       <ProductDetailsModal
