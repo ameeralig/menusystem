@@ -37,7 +37,7 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded, colorTheme }: A
 
   // State for image upload (shared with ProductDetailsStep)
   const [imageUploadState, setImageUploadState] = useState({
-    uploadMethod: "url" as "url" | "file",
+    uploadMethod: "url" as "url" | "file" | "repository",
     selectedFile: null as File | null,
     previewUrl: null as string | null,
   });
@@ -104,6 +104,7 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded, colorTheme }: A
 
       let imageUrl = formData.image_url;
 
+      // رفع صورة جديدة أو استخدام رابط المستودع
       if (imageUploadState.uploadMethod === "file" && imageUploadState.selectedFile) {
         try {
           toast.info("جاري رفع الصورة...");

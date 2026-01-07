@@ -4,9 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Upload, ImagePlus, Link as LinkIcon, Star, TrendingUp, ChevronRight, X, Percent } from "lucide-react";
+import { Upload, ImagePlus, Link as LinkIcon, Star, TrendingUp, ChevronRight, X, Percent, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import ImageRepositoryPicker from "@/components/shared/ImageRepositoryPicker";
 
 export interface ProductFormData {
   name: string;
@@ -28,12 +29,12 @@ interface ProductDetailsStepProps {
   onSubmit: () => void;
   loading: boolean;
   imageUploadState: {
-    uploadMethod: "url" | "file";
+    uploadMethod: "url" | "file" | "repository";
     selectedFile: File | null;
     previewUrl: string | null;
   };
   onImageUploadStateChange: (state: {
-    uploadMethod: "url" | "file";
+    uploadMethod: "url" | "file" | "repository";
     selectedFile: File | null;
     previewUrl: string | null;
   }) => void;
@@ -48,6 +49,7 @@ export const ProductDetailsStep = ({
   imageUploadState,
   onImageUploadStateChange,
 }: ProductDetailsStepProps) => {
+  const [showRepositoryPicker, setShowRepositoryPicker] = useState(false);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -66,6 +68,15 @@ export const ProductDetailsStep = ({
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleRepositorySelect = (imageUrl: string, imageId: string) => {
+    onFormDataChange({ ...formData, image_url: imageUrl });
+    onImageUploadStateChange({
+      uploadMethod: "repository",
+      selectedFile: null,
+      previewUrl: imageUrl,
+    });
   };
 
   return (
@@ -218,24 +229,36 @@ export const ProductDetailsStep = ({
 
       <div className="space-y-4">
         <Label>صورة المنتج</Label>
-        <div className="flex gap-4">
+        <div className="grid grid-cols-3 gap-2">
           <Button
             type="button"
             variant={imageUploadState.uploadMethod === "url" ? "default" : "outline"}
             onClick={() => onImageUploadStateChange({ ...imageUploadState, uploadMethod: "url" })}
-            className="flex-1"
+            size="sm"
+            className="text-xs"
           >
-            <LinkIcon className="w-4 h-4 ml-2" />
-            رابط صورة
+            <LinkIcon className="w-3 h-3 ml-1" />
+            رابط
           </Button>
           <Button
             type="button"
             variant={imageUploadState.uploadMethod === "file" ? "default" : "outline"}
             onClick={() => onImageUploadStateChange({ ...imageUploadState, uploadMethod: "file" })}
-            className="flex-1"
+            size="sm"
+            className="text-xs"
           >
-            <Upload className="w-4 h-4 ml-2" />
-            رفع صورة
+            <Upload className="w-3 h-3 ml-1" />
+            رفع
+          </Button>
+          <Button
+            type="button"
+            variant={imageUploadState.uploadMethod === "repository" ? "default" : "outline"}
+            onClick={() => setShowRepositoryPicker(true)}
+            size="sm"
+            className="text-xs"
+          >
+            <ImageIcon className="w-3 h-3 ml-1" />
+            المستودع
           </Button>
         </div>
 
@@ -289,13 +312,33 @@ export const ProductDetailsStep = ({
                 </>
               )}
             </div>
-            <input
-              id="file-upload-modal"
-              type="file"
-              accept="image/*"
-              onChange={handleFileSelect}
-              className="hidden"
+          </div>
+        )}
+
+        {/* معاينة الصورة المختارة من المستودع */}
+        {imageUploadState.uploadMethod === "repository" && imageUploadState.previewUrl && (
+          <div className="relative">
+            <img 
+              src={imageUploadState.previewUrl} 
+              alt="صورة من المستودع" 
+              className="w-full max-h-48 object-cover rounded-lg border"
             />
+            <Button
+              type="button"
+              variant="destructive"
+              size="icon"
+              className="absolute top-2 right-2"
+              onClick={() => {
+                onFormDataChange({ ...formData, image_url: '' });
+                onImageUploadStateChange({
+                  uploadMethod: "url",
+                  previewUrl: null,
+                  selectedFile: null,
+                });
+              }}
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
         )}
       </div>
@@ -320,6 +363,13 @@ export const ProductDetailsStep = ({
           {loading ? "جاري الحفظ..." : "حفظ المنتج"}
         </Button>
       </div>
+
+      {/* مكون اختيار الصور من المستودع */}
+      <ImageRepositoryPicker
+        isOpen={showRepositoryPicker}
+        onClose={() => setShowRepositoryPicker(false)}
+        onSelect={handleRepositorySelect}
+      />
     </div>
   );
 };

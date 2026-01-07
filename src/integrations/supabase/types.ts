@@ -605,6 +605,42 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_images: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string
+          name: string
+          updated_at: string
+          uploaded_by: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url: string
+          name: string
+          updated_at?: string
+          uploaded_by?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string
+          name?: string
+          updated_at?: string
+          uploaded_by?: string | null
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
       storage_cleanup_logs: {
         Row: {
           bucket_name: string
@@ -861,6 +897,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_image_usage: { Args: { image_id: string }; Returns: undefined }
       increment_page_view: {
         Args: { store_user_id: string }
         Returns: undefined

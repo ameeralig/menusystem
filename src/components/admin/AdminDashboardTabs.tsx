@@ -5,6 +5,7 @@ import AdminUsersTab from "@/components/admin/AdminUsersTab";
 import UserNotificationTab from "@/components/admin/users/UserNotificationTab";
 import UserAnalyticsTab from "@/components/admin/analytics/UserAnalyticsTab";
 import StorageManagementTab from "@/components/admin/storage/StorageManagementTab";
+import SharedImagesTab from "@/components/admin/images/SharedImagesTab";
 import FloatingAIChat from "@/components/dashboard/FloatingAIChat";
 import { APIKeysManager } from "@/components/dashboard/APIKeysManager";
 
@@ -59,6 +60,12 @@ const AdminDashboardTabs = () => {
             >
               التحليلات التفصيلية
             </TabsTrigger>
+            <TabsTrigger
+              value="images"
+              className="relative h-9 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none"
+            >
+              مستودع الصور
+            </TabsTrigger>
           </TabsList>
         </div>
         
@@ -84,6 +91,10 @@ const AdminDashboardTabs = () => {
 
         <TabsContent value="analytics" className="space-y-4">
           <UserAnalyticsTab />
+        </TabsContent>
+
+        <TabsContent value="images" className="space-y-4">
+          <SharedImagesTab />
         </TabsContent>
       </Tabs>
       
