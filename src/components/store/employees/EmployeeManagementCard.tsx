@@ -1,18 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Users, UtensilsCrossed, BarChart3, Plus, Trash2, UserCheck, UserX } from "lucide-react";
+import { X, Users, UtensilsCrossed, BarChart3, Plus, Trash2, UserCheck, UserX, TrendingUp, DollarSign, ShoppingBag, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEmployees } from "@/hooks/employees/useEmployees";
 import { useTables } from "@/hooks/employees/useTables";
+import { useEmployeeSales } from "@/hooks/employees/useEmployeeSales";
 import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 
 interface EmployeeManagementCardProps {
   isOpen: boolean;
@@ -29,6 +31,7 @@ const EmployeeManagementCard: React.FC<EmployeeManagementCardProps> = ({
 }) => {
   const { employees, isLoading: employeesLoading, addEmployee, deleteEmployee, toggleEmployeeStatus } = useEmployees();
   const { tables, isLoading: tablesLoading, addTable, deleteTable } = useTables(storeOwnerId);
+  const { stats: salesStats, isLoading: salesLoading } = useEmployeeSales(storeOwnerId);
   
   const [showAddEmployee, setShowAddEmployee] = useState(false);
   const [showAddTable, setShowAddTable] = useState(false);
@@ -47,6 +50,28 @@ const EmployeeManagementCard: React.FC<EmployeeManagementCardProps> = ({
     table_number: "",
     capacity: "4"
   });
+
+  // تحويل بيانات المبيعات للرسم البياني
+  const chartData = useMemo(() => {
+    // تجميع المبيعات حسب التاريخ
+    const salesByDate: Record<string, { date: string; sales: number; orders: number }> = {};
+    
+    salesStats.dailySales.forEach(sale => {
+      if (!salesByDate[sale.sale_date]) {
+        salesByDate[sale.sale_date] = { 
+          date: format(new Date(sale.sale_date), 'EEE', { locale: ar }),
+          sales: 0,
+          orders: 0
+        };
+      }
+      salesByDate[sale.sale_date].sales += Number(sale.total_sales);
+      salesByDate[sale.sale_date].orders += sale.total_orders;
+    });
+    
+    return Object.values(salesByDate)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(-7);
+  }, [salesStats.dailySales]);
 
   const getThemeColor = () => {
     if (colorTheme?.startsWith('#')) return colorTheme;
@@ -169,20 +194,27 @@ const EmployeeManagementCard: React.FC<EmployeeManagementCardProps> = ({
 
                   {/* التبويبات */}
                   <Tabs defaultValue="employees" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 mb-4 bg-white/10 backdrop-blur p-1 rounded-xl">
+                    <TabsList className="grid w-full grid-cols-3 mb-4 bg-white/10 backdrop-blur p-1 rounded-xl">
                       <TabsTrigger 
                         value="employees"
-                        className="rounded-lg text-white data-[state=active]:bg-white/20 data-[state=active]:text-white"
+                        className="rounded-lg text-white text-xs data-[state=active]:bg-white/20 data-[state=active]:text-white"
                       >
-                        <Users className="h-4 w-4 ml-2" />
+                        <Users className="h-3 w-3 ml-1" />
                         الموظفين
                       </TabsTrigger>
                       <TabsTrigger 
                         value="tables"
-                        className="rounded-lg text-white data-[state=active]:bg-white/20 data-[state=active]:text-white"
+                        className="rounded-lg text-white text-xs data-[state=active]:bg-white/20 data-[state=active]:text-white"
                       >
-                        <UtensilsCrossed className="h-4 w-4 ml-2" />
+                        <UtensilsCrossed className="h-3 w-3 ml-1" />
                         الطاولات
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="reports"
+                        className="rounded-lg text-white text-xs data-[state=active]:bg-white/20 data-[state=active]:text-white"
+                      >
+                        <BarChart3 className="h-3 w-3 ml-1" />
+                        التقارير
                       </TabsTrigger>
                     </TabsList>
 
@@ -422,6 +454,112 @@ const EmployeeManagementCard: React.FC<EmployeeManagementCardProps> = ({
                               </Button>
                             </motion.div>
                           ))}
+                        </div>
+                      )}
+                    </TabsContent>
+
+                    {/* تبويب التقارير */}
+                    <TabsContent value="reports" className="mt-0 max-h-[45vh] overflow-y-auto">
+                      {salesLoading ? (
+                        <div className="flex justify-center py-8">
+                          <Spinner className="h-6 w-6 text-white" />
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {/* بطاقات الإحصائيات */}
+                          <div className="grid grid-cols-2 gap-2">
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="p-3 rounded-xl bg-white/10 backdrop-blur text-center"
+                            >
+                              <DollarSign className="h-6 w-6 mx-auto mb-1 text-green-300" />
+                              <p className="text-lg font-bold">{salesStats.totalSales.toLocaleString()}</p>
+                              <p className="text-white/60 text-xs">إجمالي المبيعات</p>
+                            </motion.div>
+                            
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.1 }}
+                              className="p-3 rounded-xl bg-white/10 backdrop-blur text-center"
+                            >
+                              <ShoppingBag className="h-6 w-6 mx-auto mb-1 text-blue-300" />
+                              <p className="text-lg font-bold">{salesStats.totalOrders}</p>
+                              <p className="text-white/60 text-xs">إجمالي الطلبات</p>
+                            </motion.div>
+                          </div>
+
+                          {/* أفضل موظف */}
+                          {salesStats.topEmployee && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.2 }}
+                              className="p-3 rounded-xl bg-gradient-to-r from-amber-500/30 to-yellow-500/30 backdrop-blur flex items-center gap-3"
+                            >
+                              <div className="w-10 h-10 rounded-full bg-amber-400/30 flex items-center justify-center">
+                                <Trophy className="h-5 w-5 text-amber-300" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-medium text-sm">أفضل موظف هذا الأسبوع</p>
+                                <p className="text-amber-200 text-xs">{salesStats.topEmployee.name}</p>
+                              </div>
+                              <div className="text-left">
+                                <p className="font-bold text-amber-200">{salesStats.topEmployee.sales.toLocaleString()}</p>
+                                <p className="text-white/50 text-xs">د.ع</p>
+                              </div>
+                            </motion.div>
+                          )}
+
+                          {/* الرسم البياني */}
+                          {chartData.length > 0 ? (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.3 }}
+                              className="p-4 rounded-xl bg-white/10 backdrop-blur"
+                            >
+                              <div className="flex items-center gap-2 mb-3">
+                                <TrendingUp className="h-4 w-4 text-green-300" />
+                                <p className="text-sm font-medium">المبيعات اليومية</p>
+                              </div>
+                              <div className="h-32">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <BarChart data={chartData}>
+                                    <XAxis 
+                                      dataKey="date" 
+                                      tick={{ fill: 'rgba(255,255,255,0.7)', fontSize: 10 }}
+                                      axisLine={false}
+                                      tickLine={false}
+                                    />
+                                    <YAxis hide />
+                                    <Tooltip
+                                      contentStyle={{
+                                        backgroundColor: 'rgba(0,0,0,0.8)',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        color: 'white',
+                                        fontSize: '12px'
+                                      }}
+                                      formatter={(value: number) => [`${value.toLocaleString()} د.ع`, 'المبيعات']}
+                                    />
+                                    <Bar 
+                                      dataKey="sales" 
+                                      fill="rgba(255,255,255,0.6)" 
+                                      radius={[4, 4, 0, 0]}
+                                    />
+                                  </BarChart>
+                                </ResponsiveContainer>
+                              </div>
+                            </motion.div>
+                          ) : (
+                            <div className="text-center py-8 text-white/60">
+                              <BarChart3 className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                              <p>لا توجد بيانات مبيعات بعد</p>
+                              <p className="text-xs mt-1">ستظهر البيانات بعد إتمام الطلبات</p>
+                            </div>
+                          )}
                         </div>
                       )}
                     </TabsContent>
