@@ -20,24 +20,21 @@ export interface Table {
   created_at: string;
 }
 
-export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'completed' | 'cancelled';
-
 export interface Order {
   id: string;
   store_owner_id: string;
   employee_id: string | null;
   table_id: string | null;
   table_number: string | null;
-  status: OrderStatus;
-  total_amount: number;
-  tax_amount: number;
-  discount_amount: number;
-  final_amount: number;
+  total_amount: number | null;
+  tax_amount: number | null;
+  discount_amount: number | null;
+  final_amount: number | null;
   notes: string | null;
   customer_name: string | null;
   customer_phone: string | null;
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
   completed_at: string | null;
 }
 

@@ -243,7 +243,6 @@ const ProductPreview = () => {
           <EmployeePanel
             employee={employee}
             onLogout={logout}
-            products={storeData.products || []}
             storeOwnerId={storeOwnerId!}
           />
         )}

@@ -4,30 +4,25 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogOut, ShoppingCart, ClipboardList, Package, Receipt, History } from "lucide-react";
-import { Employee, Table } from "@/types/employee";
+import { LogOut, ShoppingCart, ClipboardList, History } from "lucide-react";
+import { Employee } from "@/types/employee";
 import { useTables } from "@/hooks/employees/useTables";
 import { useCart } from "@/contexts/CartContext";
 import { useOrders } from "@/hooks/employees/useOrders";
 import Cart from "./Cart";
-import ProductsGrid from "./ProductsGrid";
 import OrderInvoice from "./OrderInvoice";
 import OrdersHistory from "./OrdersHistory";
-import { Product } from "@/types/product";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface EmployeePanelProps {
   employee: Employee;
   onLogout: () => void;
-  products: Product[];
   storeOwnerId: string;
-  onAddToCart?: (product: Product, quantity: number) => void;
 }
 
-const EmployeePanel = ({ employee, onLogout, products, storeOwnerId, onAddToCart }: EmployeePanelProps) => {
+const EmployeePanel = ({ employee, onLogout, storeOwnerId }: EmployeePanelProps) => {
   const { tables, isLoading: tablesLoading } = useTables(storeOwnerId);
   const { items, updateQuantity, updateNotes, removeItem, clearCart, getTotal } = useCart();
   const { createOrder, getOrderWithItems, getEmployeeOrders, isCreating } = useOrders();
@@ -53,7 +48,7 @@ const EmployeePanel = ({ employee, onLogout, products, storeOwnerId, onAddToCart
     }
   };
 
-  const availableProducts = products.filter(p => p.is_available);
+  
 
   const handleCreateOrder = async () => {
     if (!selectedTable || items.length === 0) return;
