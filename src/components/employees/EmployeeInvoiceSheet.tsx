@@ -45,50 +45,49 @@ const EmployeeInvoiceSheet = ({
   const content = (
     <AnimatePresence>
       {isOpen && (
-        <>
-          {/* الخلفية الضبابية */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 z-[60] backdrop-blur-md bg-black/40"
-          />
-
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 print:p-0 print:inset-auto"
+          style={{ backdropFilter: 'blur(12px)', backgroundColor: 'rgba(0,0,0,0.4)' }}
+          onClick={onClose}
+        >
           {/* البطاقة */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none"
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md max-h-[90vh] flex flex-col relative print:max-w-none print:max-h-none"
+            id="invoice-print-content"
           >
-            <div className="pointer-events-auto w-full max-w-md max-h-[90vh] flex flex-col">
-              {/* زر الإغلاق */}
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={onClose}
-                className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center text-white shadow-lg"
-              >
-                <X className="w-5 h-5" />
-              </motion.button>
+            {/* زر الإغلاق */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={onClose}
+              className="absolute -top-2 -right-2 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center text-white shadow-lg print:hidden"
+            >
+              <X className="w-5 h-5" />
+            </motion.button>
 
-              {/* البطاقة الزجاجية */}
-              <div 
-                className="rounded-3xl overflow-hidden shadow-2xl border border-white/20 flex flex-col max-h-full bg-white"
+            {/* البطاقة الزجاجية */}
+            <div 
+              className="rounded-3xl overflow-hidden shadow-2xl border border-white/20 flex flex-col max-h-full bg-white print:rounded-none print:shadow-none print:border-none"
               >
-                {/* الرأس الملون */}
-                <div 
-                  className="relative p-4 text-center text-white"
-                  style={{ backgroundColor: themeColor }}
-                >
-                  <div className="mx-auto mb-2 w-12 h-12 rounded-xl bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center">
-                    <Receipt className="w-6 h-6 text-white" />
-                  </div>
-                  <h2 className="text-xl font-bold">الفاتورة</h2>
-                  <p className="text-white/80 text-sm">#{order.id.slice(0, 8)}</p>
+              {/* الرأس الملون */}
+              <div 
+                className="relative p-4 text-center text-white print:text-black print:bg-white"
+                style={{ backgroundColor: themeColor }}
+              >
+                <div className="mx-auto mb-2 w-12 h-12 rounded-xl bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center print:bg-gray-100 print:border-gray-300">
+                  <Receipt className="w-6 h-6 text-white print:text-black" />
                 </div>
+                <h2 className="text-xl font-bold">الفاتورة</h2>
+                <p className="text-white/80 text-sm print:text-gray-600">#{order.id.slice(0, 8)}</p>
+              </div>
 
                 {/* معلومات الطلب */}
                 <div className="p-4 border-b bg-gray-50">
@@ -175,21 +174,20 @@ const EmployeeInvoiceSheet = ({
                   </div>
                 </div>
 
-                {/* زر الطباعة */}
-                <div className="p-4">
-                  <Button
-                    onClick={handlePrint}
-                    className="w-full"
-                    style={{ backgroundColor: themeColor }}
-                  >
-                    <Printer className="w-4 h-4 ml-2" />
-                    طباعة الفاتورة
-                  </Button>
-                </div>
+              {/* زر الطباعة */}
+              <div className="p-4 print:hidden">
+                <Button
+                  onClick={handlePrint}
+                  className="w-full"
+                  style={{ backgroundColor: themeColor }}
+                >
+                  <Printer className="w-4 h-4 ml-2" />
+                  طباعة الفاتورة
+                </Button>
               </div>
             </div>
           </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   );

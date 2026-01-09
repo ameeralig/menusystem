@@ -467,11 +467,14 @@
   }
 
   #invoice-content,
-  #invoice-content * {
+  #invoice-content *,
+  #invoice-print-content,
+  #invoice-print-content * {
     visibility: visible;
   }
 
-  #invoice-content {
+  #invoice-content,
+  #invoice-print-content {
     position: absolute;
     left: 0;
     top: 0;
@@ -483,8 +486,16 @@
     display: none !important;
   }
 
+  /* إزالة الخلفية الضبابية */
+  .fixed {
+    position: static !important;
+    backdrop-filter: none !important;
+    background: transparent !important;
+  }
+
   /* تحسين عرض الفاتورة */
   @page {
-    margin: 1cm;
+    margin: 0.5cm;
+    size: 80mm auto;
   }
 }
