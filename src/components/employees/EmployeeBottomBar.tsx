@@ -77,48 +77,59 @@ const EmployeeBottomBar = ({
 
   return (
     <>
-      {/* الشريط السفلي */}
+      {/* الشريط السفلي المصغر */}
       <motion.div
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="fixed bottom-0 left-0 right-0 z-50 p-3"
+        className="fixed bottom-2 left-2 right-2 z-50"
       >
         <div 
-          className="mx-auto max-w-lg rounded-2xl shadow-2xl border border-white/20 overflow-hidden"
+          className="mx-auto max-w-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden"
           style={{
-            background: `linear-gradient(135deg, ${themeColor}dd, ${themeColor}aa)`,
+            background: `linear-gradient(135deg, ${themeColor}ee, ${themeColor}cc)`,
             backdropFilter: 'blur(20px)',
           }}
         >
-          {/* معلومات الموظف */}
-          <div className="px-4 py-2 border-b border-white/10">
-            <p className="text-white text-sm font-medium text-center">
+          {/* صف واحد يجمع الاسم والأزرار */}
+          <div className="flex items-center justify-between px-3 py-2">
+            <p className="text-white text-xs font-medium truncate max-w-[100px]">
               {employee.full_name}
             </p>
-          </div>
 
-          {/* الأزرار */}
-          <div className="flex items-center justify-around p-3 gap-2">
-            <ActionButton
-              icon={LogOut}
-              label="خروج"
-              onClick={onLogout}
-              variant="danger"
-            />
-            
-            <ActionButton
-              icon={History}
-              label="الفواتير"
-              onClick={() => setShowOrders(true)}
-            />
-            
-            <ActionButton
-              icon={ShoppingCart}
-              label="السلة"
-              onClick={() => setShowCart(true)}
-              badge={items.length}
-            />
+            <div className="flex items-center gap-1">
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={onLogout}
+                className="w-9 h-9 rounded-xl bg-red-500/30 text-red-200 flex items-center justify-center"
+              >
+                <LogOut className="w-4 h-4" />
+              </motion.button>
+              
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setShowOrders(true)}
+                className="w-9 h-9 rounded-xl bg-white/15 text-white flex items-center justify-center"
+              >
+                <History className="w-4 h-4" />
+              </motion.button>
+              
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setShowCart(true)}
+                className="w-9 h-9 rounded-xl bg-white/15 text-white flex items-center justify-center relative"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                {items.length > 0 && (
+                  <span 
+                    className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center text-white"
+                    style={{ backgroundColor: themeColor }}
+                  >
+                    {items.length}
+                  </span>
+                )}
+              </motion.button>
+            </div>
           </div>
         </div>
       </motion.div>

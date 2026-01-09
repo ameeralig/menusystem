@@ -67,34 +67,32 @@ const EmployeeOrdersSheet = ({
   const content = (
     <AnimatePresence>
       {isOpen && (
-        <>
-          {/* الخلفية الضبابية */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 z-50 backdrop-blur-md bg-black/40"
-          />
-
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backdropFilter: 'blur(12px)', backgroundColor: 'rgba(0,0,0,0.4)' }}
+          onClick={onClose}
+        >
           {/* البطاقة */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md max-h-[85vh] flex flex-col relative"
           >
-            <div className="pointer-events-auto w-full max-w-md max-h-[85vh] flex flex-col">
-              {/* زر الإغلاق */}
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={onClose}
-                className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center text-white shadow-lg"
-              >
-                <X className="w-5 h-5" />
-              </motion.button>
+            {/* زر الإغلاق */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={onClose}
+              className="absolute -top-2 -right-2 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center text-white shadow-lg"
+            >
+              <X className="w-5 h-5" />
+            </motion.button>
 
               {/* البطاقة الزجاجية */}
               <div 
@@ -180,9 +178,8 @@ const EmployeeOrdersSheet = ({
                   )}
                 </ScrollArea>
               </div>
-            </div>
           </motion.div>
-        </>
+        </motion.div>
       )}
 
       {/* عرض الفاتورة */}
