@@ -244,10 +244,11 @@ const ProductPreview = () => {
             employee={employee}
             onLogout={logout}
             storeOwnerId={storeOwnerId!}
+            colorTheme={storeData.colorTheme}
           />
         )}
         
-        <div className={employee ? "pt-20" : ""}>
+        <div className={employee ? "pb-28" : ""}>
           <ProductPreviewContainer
             colorTheme={storeData.colorTheme} 
             bannerUrl={storeData.bannerUrl}
