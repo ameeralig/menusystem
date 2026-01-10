@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { optimizeImageUrl } from "@/utils/imageOptimizer";
-import { uploadImage, optimizeImage } from "@/utils/storageHelpers";
+import { uploadImage, optimizeImage, deleteOldImageIfExists } from "@/utils/storageHelpers";
 import { logUserActivity } from "@/hooks/analytics/useActivityLogger";
 import ImageRepositoryPicker from "@/components/shared/ImageRepositoryPicker";
 interface EditProductModalProps {
@@ -141,6 +141,9 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
         try {
           toast.info("جاري رفع الصورة...");
           
+          // حذف الصورة القديمة أولاً
+          await deleteOldImageIfExists(product.image_url, 'product-images');
+          
           // تحسين الصورة قبل الرفع
           const optimizedFile = await optimizeImage(imageFile);
           
@@ -152,20 +155,6 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
           }
 
           console.log("تم رفع الصورة بنجاح:", imageUrl);
-
-          // حذف الصورة القديمة إذا كانت موجودة (فقط إذا لم تكن من المستودع)
-          if (product.image_url && !product.image_url.includes('/shared/')) {
-            try {
-              const oldFileName = product.image_url.split('/').pop()?.split('?')[0];
-              if (oldFileName) {
-                await supabase.storage
-                  .from('product-images')
-                  .remove([`${product.user_id}/${oldFileName}`]);
-              }
-            } catch (deleteError) {
-              console.warn("لم يتم حذف الصورة القديمة:", deleteError);
-            }
-          }
         } catch (uploadError: any) {
           console.error("خطأ في رفع الصورة:", uploadError);
           toast.error("فشل في رفع الصورة: " + (uploadError.message || "خطأ غير معروف"));
