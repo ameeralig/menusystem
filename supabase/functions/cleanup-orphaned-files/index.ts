@@ -106,7 +106,19 @@ async function getUsedUrls(supabase: any): Promise<Set<string>> {
     })
   }
   
-  console.log(`📊 تم العثور على ${usedUrls.size} رابط مستخدم في قاعدة البيانات`)
+  // 6. URLs من جدول shared_images (مستودع الصور المشتركة)
+  const { data: sharedImages } = await supabase
+    .from('shared_images')
+    .select('image_url')
+    .not('image_url', 'is', null)
+  
+  if (sharedImages) {
+    sharedImages.forEach((s: any) => {
+      if (s.image_url) usedUrls.add(s.image_url)
+    })
+  }
+  
+  console.log(`📊 تم العثور على ${usedUrls.size} رابط مستخدم في قاعدة البيانات (شامل ${sharedImages?.length || 0} صورة مشتركة)`)
   return usedUrls
 }
 
