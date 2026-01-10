@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Receipt, Calendar, DollarSign, Eye } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useOrders } from "@/hooks/employees/useOrders";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -46,6 +45,21 @@ const EmployeeOrdersSheet = ({
       loadOrders();
     }
   }, [isOpen, employeeId]);
+
+  // منع التمرير على الصفحة الرئيسية عند فتح البطاقة
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [isOpen]);
 
   const loadOrders = async () => {
     setLoading(true);
@@ -112,7 +126,11 @@ const EmployeeOrdersSheet = ({
                 </div>
 
                 {/* المحتوى */}
-                <ScrollArea className="flex-1 p-4">
+                <div 
+                  className="flex-1 overflow-y-auto overscroll-contain p-4"
+                  style={{ WebkitOverflowScrolling: 'touch' }}
+                  onTouchMove={(e) => e.stopPropagation()}
+                >
                   {loading ? (
                     <div className="text-center py-8 text-white/70">
                       <div className="animate-spin w-8 h-8 border-2 border-white/30 border-t-white rounded-full mx-auto mb-4" />
@@ -176,7 +194,7 @@ const EmployeeOrdersSheet = ({
                       ))}
                     </div>
                   )}
-                </ScrollArea>
+                </div>
               </div>
           </motion.div>
         </motion.div>
