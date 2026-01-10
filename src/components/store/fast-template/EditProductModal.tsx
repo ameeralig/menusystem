@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Product } from "@/types/product";
-import { X, Upload, Loader2, Percent } from "lucide-react";
+import { X, Upload, Loader2, Percent, FolderOpen } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { optimizeImageUrl } from "@/utils/imageOptimizer";
 import { uploadImage, optimizeImage } from "@/utils/storageHelpers";
 import { logUserActivity } from "@/hooks/analytics/useActivityLogger";
-
+import ImageRepositoryPicker from "@/components/shared/ImageRepositoryPicker";
 interface EditProductModalProps {
   product: Product | null;
   isOpen: boolean;
@@ -39,6 +39,8 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [showImagePicker, setShowImagePicker] = useState(false);
+  const [selectedRepositoryImage, setSelectedRepositoryImage] = useState<string | null>(null);
   
   // Progressive Loading للصورة الموجودة
   const [displayedImage, setDisplayedImage] = useState<string>("");
@@ -65,6 +67,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
       }
       setImagePreview(product.image_url || null);
       setImageFile(null);
+      setSelectedRepositoryImage(null);
       
       // Progressive Loading للصورة
       if (product.image_url) {
@@ -95,12 +98,20 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
         return;
       }
       setImageFile(file);
+      setSelectedRepositoryImage(null);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleRepositoryImageSelect = (imageUrl: string) => {
+    setSelectedRepositoryImage(imageUrl);
+    setImagePreview(imageUrl);
+    setImageFile(null);
+    setShowImagePicker(false);
   };
 
   const handleSave = async () => {
@@ -121,8 +132,12 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
     try {
       let imageUrl = product.image_url;
 
+      // استخدام صورة من المستودع
+      if (selectedRepositoryImage) {
+        imageUrl = selectedRepositoryImage;
+      }
       // رفع الصورة الجديدة إذا تم اختيارها
-      if (imageFile) {
+      else if (imageFile) {
         try {
           toast.info("جاري رفع الصورة...");
           
@@ -138,8 +153,8 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
 
           console.log("تم رفع الصورة بنجاح:", imageUrl);
 
-          // حذف الصورة القديمة إذا كانت موجودة
-          if (product.image_url) {
+          // حذف الصورة القديمة إذا كانت موجودة (فقط إذا لم تكن من المستودع)
+          if (product.image_url && !product.image_url.includes('/shared/')) {
             try {
               const oldFileName = product.image_url.split('/').pop()?.split('?')[0];
               if (oldFileName) {
@@ -258,14 +273,24 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                           />
                         </div>
                       )}
-                      <label htmlFor="product-image" className="cursor-pointer">
-                        <div className="flex items-center gap-2 px-4 py-2 bg-muted dark:bg-gray-800 hover:bg-muted/80 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                          <Upload className="w-4 h-4 text-foreground" />
-                          <span className="text-sm text-foreground">
-                            {imageFile ? "تغيير الصورة" : "اختيار صورة جديدة"}
-                          </span>
-                        </div>
-                      </label>
+                      <div className="flex gap-2 flex-wrap justify-center">
+                        <label htmlFor="product-image" className="cursor-pointer">
+                          <div className="flex items-center gap-2 px-4 py-2 bg-muted dark:bg-gray-800 hover:bg-muted/80 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                            <Upload className="w-4 h-4 text-foreground" />
+                            <span className="text-sm text-foreground">
+                              {imageFile ? "تغيير الصورة" : "رفع صورة"}
+                            </span>
+                          </div>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowImagePicker(true)}
+                          className="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition-colors"
+                        >
+                          <FolderOpen className="w-4 h-4" />
+                          <span className="text-sm">من المستودع</span>
+                        </button>
+                      </div>
                       <input
                         id="product-image"
                         type="file"
@@ -467,6 +492,13 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
           </div>
         </>
       )}
+
+      {/* نافذة اختيار الصورة من المستودع */}
+      <ImageRepositoryPicker
+        isOpen={showImagePicker}
+        onClose={() => setShowImagePicker(false)}
+        onSelect={handleRepositoryImageSelect}
+      />
     </AnimatePresence>
   );
 };
