@@ -331,3 +331,61 @@ export const extractFilePathFromUrl = (url: string, bucket: string): string | nu
     return null;
   }
 };
+
+/**
+ * حذف الصورة القديمة من التخزين عند استبدالها
+ * @param oldImageUrl رابط الصورة القديمة
+ * @param bucket اسم المستودع
+ * @returns نجاح أو فشل العملية
+ */
+export const deleteOldImageIfExists = async (
+  oldImageUrl: string | null | undefined,
+  bucket: string = 'product-images'
+): Promise<boolean> => {
+  try {
+    // لا حاجة لحذف إذا لم تكن هناك صورة قديمة
+    if (!oldImageUrl) {
+      console.log("لا توجد صورة قديمة لحذفها");
+      return true;
+    }
+
+    // تجاهل روابط المستودع المشترك (صور shared)
+    if (oldImageUrl.includes('/shared/')) {
+      console.log("تجاهل حذف صورة من المستودع المشترك");
+      return true;
+    }
+
+    // تجاهل الروابط الخارجية (غير Supabase)
+    if (!oldImageUrl.includes('supabase.co') && !oldImageUrl.includes('supabase.in') && !oldImageUrl.includes('zqlckixwpyrwdwrsuhsg')) {
+      console.log("تجاهل حذف صورة خارجية (غير Supabase)");
+      return true;
+    }
+
+    // استخراج مسار الملف من الرابط
+    const filePath = extractFilePathFromUrl(oldImageUrl, bucket);
+    
+    if (!filePath) {
+      console.log("لم يتم العثور على مسار الملف للحذف");
+      return true;
+    }
+
+    console.log(`جاري حذف الصورة القديمة: ${filePath}`);
+    
+    const { error } = await supabase.storage
+      .from(bucket)
+      .remove([filePath]);
+
+    if (error) {
+      console.warn("تحذير: فشل حذف الصورة القديمة:", error);
+      // لا نريد إيقاف العملية بسبب فشل الحذف
+      return false;
+    }
+
+    console.log("تم حذف الصورة القديمة بنجاح");
+    return true;
+  } catch (error) {
+    console.warn("تحذير: خطأ أثناء حذف الصورة القديمة:", error);
+    // لا نريد إيقاف العملية بسبب خطأ في الحذف
+    return false;
+  }
+};

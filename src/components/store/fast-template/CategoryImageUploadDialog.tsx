@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { uploadImage } from "@/utils/storageHelpers";
+import { uploadImage, deleteOldImageIfExists } from "@/utils/storageHelpers";
 
 interface CategoryImageUploadDialogProps {
   open: boolean;
@@ -120,6 +120,11 @@ const CategoryImageUploadDialog = ({
         
         URL.revokeObjectURL(objectUrl);
         processedFile = new File([blob], file.name.replace(/\.heic$/i, '.jpg'), { type: 'image/jpeg' });
+      }
+
+      // حذف الصورة القديمة قبل رفع الجديدة
+      if (currentImageUrl) {
+        await deleteOldImageIfExists(currentImageUrl, 'product-images');
       }
 
       const publicUrl = await uploadImage('product-images', processedFile, userId, 'categories');

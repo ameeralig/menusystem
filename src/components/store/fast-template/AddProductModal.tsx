@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CategorySelectionStep } from "./CategorySelectionStep";
 import { ProductDetailsStep, ProductFormData } from "./ProductDetailsStep";
-import { uploadImage, optimizeImage } from "@/utils/storageHelpers";
+import { uploadImage, optimizeImage, deleteOldImageIfExists } from "@/utils/storageHelpers";
 import { logUserActivity } from "@/hooks/analytics/useActivityLogger";
 
 interface AddProductModalProps {
