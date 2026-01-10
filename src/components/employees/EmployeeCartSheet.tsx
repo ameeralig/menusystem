@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ShoppingCart, Minus, Plus, Trash2, ClipboardList } from "lucide-react";
@@ -52,6 +52,21 @@ const EmployeeCartSheet = ({
   };
 
   const themeColor = getThemeColor();
+
+  // منع التمرير على الصفحة الرئيسية عند فتح البطاقة
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [isOpen]);
 
   const handleCreateOrder = async () => {
     if (!selectedTable || items.length === 0) {
@@ -131,7 +146,11 @@ const EmployeeCartSheet = ({
                 </div>
 
                 {/* المحتوى */}
-                <ScrollArea className="flex-1 p-4">
+                <div 
+                  className="flex-1 overflow-y-auto overscroll-contain p-4"
+                  style={{ WebkitOverflowScrolling: 'touch' }}
+                  onTouchMove={(e) => e.stopPropagation()}
+                >
                   {items.length === 0 ? (
                     <div className="text-center py-8 text-white/70">
                       <ShoppingCart className="w-16 h-16 mx-auto mb-4 opacity-50" />
@@ -232,7 +251,7 @@ const EmployeeCartSheet = ({
                       </div>
                     </div>
                   )}
-                </ScrollArea>
+                </div>
 
                 {/* الإجمالي وزر الإنشاء */}
                 {items.length > 0 && (
