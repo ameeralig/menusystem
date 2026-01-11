@@ -4,10 +4,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Upload, ImagePlus, Link as LinkIcon, Star, TrendingUp, ChevronRight, X, Percent, Image as ImageIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Upload, ImagePlus, Link as LinkIcon, Star, TrendingUp, ChevronRight, X, Percent, Image as ImageIcon, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import ImageRepositoryPicker from "@/components/shared/ImageRepositoryPicker";
+import { formatBytes } from "@/utils/cloudinaryUpload";
 
 export interface ProductFormData {
   name: string;
@@ -18,8 +20,8 @@ export interface ProductFormData {
   is_new: boolean;
   is_popular: boolean;
   discount_percentage: string;
-  original_price: string; // السعر الأصلي (طريقة خصم بديلة)
-  discount_method: 'percentage' | 'original_price'; // طريقة الخصم
+  original_price: string;
+  discount_method: 'percentage' | 'original_price';
 }
 
 interface ProductDetailsStepProps {
@@ -32,11 +34,13 @@ interface ProductDetailsStepProps {
     uploadMethod: "url" | "file" | "repository";
     selectedFile: File | null;
     previewUrl: string | null;
+    useCloudinary?: boolean;
   };
   onImageUploadStateChange: (state: {
     uploadMethod: "url" | "file" | "repository";
     selectedFile: File | null;
     previewUrl: string | null;
+    useCloudinary?: boolean;
   }) => void;
 }
 
@@ -54,8 +58,8 @@ export const ProductDetailsStep = ({
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("حجم الملف كبير جداً. الحد الأقصى هو 5MB");
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("حجم الملف كبير جداً. الحد الأقصى هو 10MB");
         return;
       }
       const reader = new FileReader();
@@ -76,6 +80,14 @@ export const ProductDetailsStep = ({
       uploadMethod: "repository",
       selectedFile: null,
       previewUrl: imageUrl,
+      useCloudinary: false,
+    });
+  };
+
+  const toggleCloudinaryMode = () => {
+    onImageUploadStateChange({
+      ...imageUploadState,
+      useCloudinary: !imageUploadState.useCloudinary,
     });
   };
 
@@ -272,8 +284,41 @@ export const ProductDetailsStep = ({
               className="w-full"
             />
           </div>
-        ) : (
+        ) : imageUploadState.uploadMethod === "file" ? (
           <div className="space-y-4">
+            {/* خيار التحسين عبر Cloudinary */}
+            <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
+              <div className="flex items-center gap-2">
+                <Zap className={cn(
+                  "h-4 w-4",
+                  imageUploadState.useCloudinary ? "text-yellow-500" : "text-muted-foreground"
+                )} />
+                <div>
+                  <span className="text-sm font-medium">تحسين WebP</span>
+                  <p className="text-xs text-muted-foreground">تقليل الحجم وتحسين الأداء</p>
+                </div>
+              </div>
+              <Switch
+                checked={imageUploadState.useCloudinary || false}
+                onCheckedChange={toggleCloudinaryMode}
+              />
+            </div>
+
+            {/* معلومات الملف المحدد */}
+            {imageUploadState.selectedFile && (
+              <div className="flex items-center justify-between p-2 bg-muted/50 rounded-lg text-sm">
+                <span className="truncate max-w-[200px]">{imageUploadState.selectedFile.name}</span>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-xs">
+                    {imageUploadState.selectedFile.type.split('/')[1]?.toUpperCase()}
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    {formatBytes(imageUploadState.selectedFile.size)}
+                  </Badge>
+                </div>
+              </div>
+            )}
+            
             <div 
               className={cn(
                 "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors",
@@ -312,8 +357,16 @@ export const ProductDetailsStep = ({
                 </>
               )}
             </div>
+            
+            <input
+              id="file-upload-modal"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileSelect}
+            />
           </div>
-        )}
+        ) : null}
 
         {/* معاينة الصورة المختارة من المستودع */}
         {imageUploadState.uploadMethod === "repository" && imageUploadState.previewUrl && (
@@ -334,6 +387,7 @@ export const ProductDetailsStep = ({
                   uploadMethod: "url",
                   previewUrl: null,
                   selectedFile: null,
+                  useCloudinary: false,
                 });
               }}
             >

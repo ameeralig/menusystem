@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions."cleanup-orphaned-files"]
 verify_jwt = true
+
+[functions."cloudinary-optimize"]
+verify_jwt = false
