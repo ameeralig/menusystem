@@ -7,7 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CategorySelectionStep } from "./CategorySelectionStep";
 import { ProductDetailsStep, ProductFormData } from "./ProductDetailsStep";
-import { uploadImage, optimizeImage, deleteOldImageIfExists } from "@/utils/storageHelpers";
+import { uploadImage, optimizeImage } from "@/utils/storageHelpers";
+import { uploadToCloudinary, getOriginalImageInfo } from "@/utils/cloudinaryUpload";
 import { logUserActivity } from "@/hooks/analytics/useActivityLogger";
 
 interface AddProductModalProps {
@@ -36,10 +37,16 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded, colorTheme }: A
   });
 
   // State for image upload (shared with ProductDetailsStep)
-  const [imageUploadState, setImageUploadState] = useState({
-    uploadMethod: "url" as "url" | "file" | "repository",
-    selectedFile: null as File | null,
-    previewUrl: null as string | null,
+  const [imageUploadState, setImageUploadState] = useState<{
+    uploadMethod: "url" | "file" | "repository";
+    selectedFile: File | null;
+    previewUrl: string | null;
+    useCloudinary?: boolean;
+  }>({
+    uploadMethod: "url",
+    selectedFile: null,
+    previewUrl: null,
+    useCloudinary: false,
   });
 
   // الحصول على لون الثيم
@@ -107,13 +114,29 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded, colorTheme }: A
       // رفع صورة جديدة أو استخدام رابط المستودع
       if (imageUploadState.uploadMethod === "file" && imageUploadState.selectedFile) {
         try {
-          toast.info("جاري رفع الصورة...");
+          const originalInfo = getOriginalImageInfo(imageUploadState.selectedFile);
           
-          // تحسين الصورة قبل الرفع
-          const optimizedFile = await optimizeImage(imageUploadState.selectedFile);
-          
-          // استخدام دالة uploadImage المحسنة
-          imageUrl = await uploadImage("product-images", optimizedFile, user.id, "");
+          if (imageUploadState.useCloudinary) {
+            // رفع محسّن عبر Cloudinary
+            toast.info("جاري التحسين عبر Cloudinary...");
+            
+            const result = await uploadToCloudinary(imageUploadState.selectedFile, {
+              convertToWebp: true,
+              folder: `${user.id}/products`
+            });
+            
+            imageUrl = result.url;
+            
+            toast.success(
+              `تم الرفع! توفير ${result.savings.formatted} (${result.savings.percentage}%)`,
+              { description: `${originalInfo.sizeFormatted} → ${result.optimized.sizeFormatted}` }
+            );
+          } else {
+            // رفع عادي
+            toast.info("جاري رفع الصورة...");
+            const optimizedFile = await optimizeImage(imageUploadState.selectedFile);
+            imageUrl = await uploadImage("product-images", optimizedFile, user.id, "");
+          }
           
           if (!imageUrl) {
             throw new Error("فشل في الحصول على رابط الصورة");
@@ -190,6 +213,7 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded, colorTheme }: A
       uploadMethod: "url",
       selectedFile: null,
       previewUrl: null,
+      useCloudinary: false,
     });
     setCurrentStep(1);
   };
