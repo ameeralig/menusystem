@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { 
   Image as ImageIcon, 
   Upload, 
@@ -12,11 +13,13 @@ import {
   Loader2,
   Plus,
   X,
-  Filter
+  Filter,
+  Zap
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { optimizeImage, uploadImage } from "@/utils/storageHelpers";
+import { uploadToCloudinary, getOriginalImageInfo, formatBytes } from "@/utils/cloudinaryUpload";
 import { 
   Dialog,
   DialogContent,
@@ -52,6 +55,8 @@ const SharedImagesTab = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [useCloudinary, setUseCloudinary] = useState(false);
+  const [savingsInfo, setSavingsInfo] = useState<string | null>(null);
   
   // حقول الإضافة
   const [newImage, setNewImage] = useState({
@@ -110,6 +115,8 @@ const SharedImagesTab = () => {
     }
 
     setUploading(true);
+    setSavingsInfo(null);
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -117,11 +124,28 @@ const SharedImagesTab = () => {
         return;
       }
 
-      // تحسين ورفع الصورة
-      const optimizedFile = await optimizeImage(newImage.file);
-      const imageUrl = await uploadImage("product-images", optimizedFile, "shared", "");
+      let imageUrl: string;
+      const originalInfo = getOriginalImageInfo(newImage.file);
 
-      if (!imageUrl) throw new Error("فشل في رفع الصورة");
+      if (useCloudinary) {
+        // رفع محسّن عبر Cloudinary
+        const cloudinaryResult = await uploadToCloudinary(newImage.file, {
+          convertToWebp: true,
+          folder: 'shared'
+        });
+
+        imageUrl = cloudinaryResult.url;
+        setSavingsInfo(`تم توفير ${cloudinaryResult.savings.formatted} (${cloudinaryResult.savings.percentage}%)`);
+
+        toast.success(`تم رفع الصورة وتوفير ${cloudinaryResult.savings.formatted}`);
+      } else {
+        // تحسين ورفع الصورة عادي
+        const optimizedFile = await optimizeImage(newImage.file);
+        imageUrl = await uploadImage("product-images", optimizedFile, "shared", "");
+
+        if (!imageUrl) throw new Error("فشل في رفع الصورة");
+        toast.success("تم رفع الصورة بنجاح");
+      }
 
       // حفظ في قاعدة البيانات
       const { error } = await supabase.from('shared_images').insert({
@@ -134,9 +158,9 @@ const SharedImagesTab = () => {
 
       if (error) throw error;
 
-      toast.success("تم رفع الصورة بنجاح");
       setNewImage({ name: "", description: "", category: "عام", file: null, preview: null });
       setDialogOpen(false);
+      setSavingsInfo(null);
       fetchImages();
     } catch (error: any) {
       console.error("Error uploading image:", error);
@@ -153,10 +177,12 @@ const SharedImagesTab = () => {
     }
 
     try {
-      // حذف من التخزين
-      const fileName = image.image_url.split('/').pop()?.split('?')[0];
-      if (fileName) {
-        await supabase.storage.from('product-images').remove([`shared/${fileName}`]);
+      // حذف من التخزين (فقط إذا كانت من Supabase)
+      if (image.image_url.includes('supabase')) {
+        const fileName = image.image_url.split('/').pop()?.split('?')[0];
+        if (fileName) {
+          await supabase.storage.from('product-images').remove([`shared/${fileName}`]);
+        }
       }
 
       // حذف من قاعدة البيانات
@@ -192,7 +218,13 @@ const SharedImagesTab = () => {
           </p>
         </div>
         
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog open={dialogOpen} onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            setSavingsInfo(null);
+            setNewImage({ name: "", description: "", category: "عام", file: null, preview: null });
+          }
+        }}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 ml-2" />
@@ -221,6 +253,12 @@ const SharedImagesTab = () => {
                     >
                       <X className="w-4 h-4" />
                     </Button>
+                    {/* معلومات الملف */}
+                    {newImage.file && (
+                      <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                        {formatBytes(newImage.file.size)} - {newImage.file.type.split('/')[1]?.toUpperCase()}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <label className="flex flex-col items-center justify-center h-48 cursor-pointer hover:bg-muted/50 transition-colors rounded-lg">
@@ -235,6 +273,33 @@ const SharedImagesTab = () => {
                   </label>
                 )}
               </div>
+
+              {/* خيار تحسين Cloudinary */}
+              <div className="flex items-center justify-between bg-muted/50 p-3 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-yellow-500" />
+                  <Label htmlFor="cloudinary-switch" className="text-sm cursor-pointer">
+                    تحسين WebP (Cloudinary)
+                  </Label>
+                </div>
+                <Switch
+                  id="cloudinary-switch"
+                  checked={useCloudinary}
+                  onCheckedChange={setUseCloudinary}
+                />
+              </div>
+
+              {useCloudinary && (
+                <p className="text-xs text-muted-foreground bg-yellow-50 p-2 rounded">
+                  سيتم تحويل الصورة إلى WebP لتوفير المساحة وتحسين سرعة التحميل
+                </p>
+              )}
+
+              {savingsInfo && (
+                <p className="text-sm text-green-600 bg-green-50 p-2 rounded text-center">
+                  {savingsInfo}
+                </p>
+              )}
 
               <div>
                 <Label>اسم الصورة *</Label>
@@ -346,6 +411,15 @@ const SharedImagesTab = () => {
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />
+                {/* شارة Cloudinary */}
+                {image.image_url.includes('cloudinary') && (
+                  <div className="absolute top-2 left-2">
+                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-700 text-xs">
+                      <Zap className="w-3 h-3 mr-1" />
+                      WebP
+                    </Badge>
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <Button
                     variant="destructive"
@@ -396,10 +470,10 @@ const SharedImagesTab = () => {
               <p className="text-sm text-muted-foreground">التصنيفات</p>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
-              <p className="text-2xl font-bold text-primary">
-                {images.filter(img => img.usage_count > 0).length}
+              <p className="text-2xl font-bold text-yellow-600">
+                {images.filter(img => img.image_url.includes('cloudinary')).length}
               </p>
-              <p className="text-sm text-muted-foreground">صور مستخدمة</p>
+              <p className="text-sm text-muted-foreground">صور محسّنة</p>
             </div>
           </div>
         </CardContent>

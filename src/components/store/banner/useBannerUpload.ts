@@ -2,17 +2,31 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { createUniqueFilePath } from "@/utils/storageHelpers";
+import { createUniqueFilePath, deleteOldImageIfExists } from "@/utils/storageHelpers";
+import { uploadToCloudinary, getOriginalImageInfo, formatBytes, type ImageInfo } from "@/utils/cloudinaryUpload";
 
 interface UseBannerUploadProps {
   setBannerUrl: (url: string | null) => void;
   initialUrl?: string | null;
 }
 
+export interface BannerUploadResult {
+  original: ImageInfo;
+  optimized?: ImageInfo;
+  savings?: {
+    bytes: number;
+    percentage: number;
+    formatted: string;
+  };
+}
+
 export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadProps) => {
   const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string>("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [useCloudinary, setUseCloudinary] = useState(false);
+  const [lastUploadResult, setLastUploadResult] = useState<BannerUploadResult | null>(null);
   const { toast } = useToast();
 
   // استعادة الصورة المحفوظة سابقاً
@@ -29,6 +43,8 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
   const handleImageUpload = async (file: File) => {
     try {
       setError(null);
+      setIsUploading(true);
+      setLastUploadResult(null);
       
       if (!file.type.startsWith('image/')) {
         setError("الرجاء اختيار ملف صورة صالح");
@@ -48,44 +64,77 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
 
-      const filePath = createUniqueFilePath(user.id, 'banners', file);
-      
-      // إضافة رأسيات لتجنب التخزين المؤقت
-      const { data, error: uploadError } = await supabase.storage
-        .from('banners')
-        .upload(filePath, file, {
-          cacheControl: '0',
-          upsert: true
+      // حذف الصورة القديمة إذا وجدت
+      if (initialUrl) {
+        await deleteOldImageIfExists(initialUrl, 'banners');
+      }
+
+      const originalInfo = getOriginalImageInfo(file);
+      let finalUrl: string;
+
+      if (useCloudinary) {
+        // رفع محسّن عبر Cloudinary
+        const cloudinaryResult = await uploadToCloudinary(file, {
+          convertToWebp: true,
+          folder: `${user.id}/banners`
         });
 
-      if (uploadError) throw uploadError;
+        finalUrl = cloudinaryResult.url;
+        setLastUploadResult({
+          original: cloudinaryResult.original,
+          optimized: cloudinaryResult.optimized,
+          savings: cloudinaryResult.savings
+        });
 
-      // الحصول على رابط العام
-      const { data: { publicUrl } } = supabase.storage
-        .from('banners')
-        .getPublicUrl(filePath);
+        toast({
+          title: "تم رفع الصورة بنجاح",
+          description: `تم توفير ${cloudinaryResult.savings.formatted} (${cloudinaryResult.savings.percentage}%)`,
+          duration: 3000,
+        });
+      } else {
+        // رفع عادي إلى Supabase
+        const filePath = createUniqueFilePath(user.id, 'banners', file);
+        
+        const { data, error: uploadError } = await supabase.storage
+          .from('banners')
+          .upload(filePath, file, {
+            cacheControl: '0',
+            upsert: true
+          });
 
-      // إضافة معرف زمني للصورة لتجنب التخزين المؤقت
-      const timestamp = new Date().getTime();
-      const baseUrl = publicUrl.split('?')[0];
-      const cachedUrl = `${baseUrl}?t=${timestamp}`;
-      
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('banners')
+          .getPublicUrl(filePath);
+
+        const timestamp = new Date().getTime();
+        const baseUrl = publicUrl.split('?')[0];
+        finalUrl = `${baseUrl}?t=${timestamp}`;
+
+        setLastUploadResult({
+          original: originalInfo
+        });
+
+        toast({
+          title: "تم رفع الصورة بنجاح",
+          description: "يمكنك الآن حفظ التغييرات",
+          duration: 3000,
+        });
+      }
+
       // تحرير عنوان URL المؤقت
       URL.revokeObjectURL(tempPreviewUrl);
       
-      setImageUrl(cachedUrl);
-      setPreviewUrl(cachedUrl);
-      setBannerUrl(cachedUrl); // تحديث الرابط مباشرة هنا
-
-      toast({
-        title: "تم رفع الصورة بنجاح",
-        description: "يمكنك الآن حفظ التغييرات",
-        duration: 3000,
-      });
+      setImageUrl(finalUrl);
+      setPreviewUrl(finalUrl);
+      setBannerUrl(finalUrl);
 
     } catch (error: any) {
       console.error("Error uploading image:", error);
       setError(error.message || "حدث خطأ أثناء رفع الصورة");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -125,6 +174,10 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
     setError,
     imageUrl,
     previewUrl,
+    isUploading,
+    useCloudinary,
+    setUseCloudinary,
+    lastUploadResult,
     handleImageUpload,
     handleUrlChange,
     clearImage
