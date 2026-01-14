@@ -98,21 +98,20 @@ serve(async (req) => {
     
     console.log(`Processing file: ${file.name}, size: ${originalSize}, format: ${originalFormat}`);
 
-    // Prepare upload parameters
+    // Prepare upload parameters (only include params that will be signed)
     const timestamp = Math.floor(Date.now() / 1000).toString();
     const uploadParams: Record<string, string> = {
       folder,
       timestamp,
     };
 
-    // Add WebP transformation if requested
+    // Add WebP format if requested (quality is handled via eager transformation)
     if (convertToWebp) {
       uploadParams.format = 'webp';
-      uploadParams.quality = 'auto:good';
       console.log("WebP conversion enabled");
     }
 
-    // Generate signature
+    // Generate signature with exact params
     const signature = await generateSignature(uploadParams, apiSecret);
 
     // Convert file to base64 (chunk-based to avoid stack overflow for large files)
@@ -127,7 +126,7 @@ serve(async (req) => {
     base64 = btoa(base64);
     const dataUri = `data:${file.type};base64,${base64}`;
 
-    // Upload to Cloudinary
+    // Upload to Cloudinary - only append signed params
     const cloudinaryFormData = new FormData();
     cloudinaryFormData.append('file', dataUri);
     cloudinaryFormData.append('api_key', apiKey);
@@ -137,7 +136,6 @@ serve(async (req) => {
     
     if (convertToWebp) {
       cloudinaryFormData.append('format', 'webp');
-      cloudinaryFormData.append('quality', 'auto:good');
     }
 
     const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
