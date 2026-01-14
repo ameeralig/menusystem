@@ -115,9 +115,16 @@ serve(async (req) => {
     // Generate signature
     const signature = await generateSignature(uploadParams, apiSecret);
 
-    // Convert file to base64
+    // Convert file to base64 (chunk-based to avoid stack overflow for large files)
     const arrayBuffer = await file.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const uint8Array = new Uint8Array(arrayBuffer);
+    let base64 = '';
+    const chunkSize = 8192;
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      const chunk = uint8Array.subarray(i, i + chunkSize);
+      base64 += String.fromCharCode(...chunk);
+    }
+    base64 = btoa(base64);
     const dataUri = `data:${file.type};base64,${base64}`;
 
     // Upload to Cloudinary
