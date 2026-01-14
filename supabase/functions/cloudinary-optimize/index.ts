@@ -16,22 +16,33 @@ interface CloudinaryResponse {
 }
 
 /**
- * Parse CLOUDINARY_URL to extract credentials
- * Format: cloudinary://API_KEY:API_SECRET@CLOUD_NAME
+ * Get Cloudinary credentials from environment variables
  */
-function parseCloudinaryUrl(url: string) {
-  const regex = /cloudinary:\/\/(\d+):([^@]+)@(.+)/;
-  const match = url.match(regex);
+function getCloudinaryCredentials() {
+  const apiKey = Deno.env.get('CLOUDINARY_API_KEY');
+  const apiSecret = Deno.env.get('CLOUDINARY_API_SECRET');
+  const cloudName = Deno.env.get('CLOUDINARY_CLOUD_NAME');
   
-  if (!match) {
-    throw new Error("Invalid CLOUDINARY_URL format");
+  // Check individual secrets first
+  if (apiKey && apiSecret && cloudName) {
+    return { apiKey, apiSecret, cloudName };
   }
   
-  return {
-    apiKey: match[1],
-    apiSecret: match[2],
-    cloudName: match[3]
-  };
+  // Fallback to CLOUDINARY_URL if individual secrets not set
+  const cloudinaryUrl = Deno.env.get('CLOUDINARY_URL');
+  if (cloudinaryUrl) {
+    const regex = /cloudinary:\/\/(\d+):([^@]+)@(.+)/;
+    const match = cloudinaryUrl.match(regex);
+    if (match) {
+      return {
+        apiKey: match[1],
+        apiSecret: match[2],
+        cloudName: match[3]
+      };
+    }
+  }
+  
+  return null;
 }
 
 /**
@@ -56,18 +67,18 @@ serve(async (req) => {
   }
 
   try {
-    const cloudinaryUrl = Deno.env.get('CLOUDINARY_URL');
+    const credentials = getCloudinaryCredentials();
     
-    if (!cloudinaryUrl) {
-      console.error("CLOUDINARY_URL not configured");
+    if (!credentials) {
+      console.error("Cloudinary credentials not configured. Set CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_CLOUD_NAME");
       return new Response(
-        JSON.stringify({ error: "Cloudinary not configured" }),
+        JSON.stringify({ error: "Cloudinary not configured. Missing API credentials." }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const { apiKey, apiSecret, cloudName } = parseCloudinaryUrl(cloudinaryUrl);
-    console.log(`Using Cloudinary cloud: ${cloudName}`);
+    const { apiKey, apiSecret, cloudName } = credentials;
+    console.log(`Using Cloudinary cloud: ${cloudName}, API Key: ${apiKey.substring(0, 4)}...`);
 
     const formData = await req.formData();
     const file = formData.get('file') as File;
