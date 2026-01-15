@@ -49,6 +49,29 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
   const imgRef = useRef<HTMLImageElement>(null);
   const isSafariBrowser = isSafari() || isIOS();
   
+  // استخراج صيغة الصورة من الرابط
+  const getImageFormat = (url?: string | null): string | null => {
+    if (!url) return null;
+    try {
+      // تنظيف الرابط من المعاملات
+      const cleanUrl = url.split('?')[0];
+      const extension = cleanUrl.split('.').pop()?.toLowerCase();
+      if (extension && ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'avif'].includes(extension)) {
+        return extension === 'jpeg' ? 'jpg' : extension;
+      }
+      // للصور من Cloudinary
+      if (url.includes('cloudinary') && url.includes('/f_')) {
+        const formatMatch = url.match(/\/f_(\w+)/);
+        if (formatMatch) return formatMatch[1];
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  };
+  
+  const imageFormat = getImageFormat(product.image_url);
+  
   // Safari: استخدام decode() للتحميل الأسلس
   useEffect(() => {
     if (imageLoaded && imgRef.current && 'decode' in imgRef.current) {
@@ -191,6 +214,13 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
             e.currentTarget.src = "https://placehold.co/120x120/e2e8f0/64748b?text=No+Image";
           }}
         />
+        
+        {/* شارة صيغة الصورة للمالك */}
+        {isStoreOwner && imageFormat && imageLoaded && (
+          <span className="absolute bottom-1 left-1 bg-black/70 text-white text-[9px] px-1.5 py-0.5 rounded font-mono uppercase z-10">
+            {imageFormat}
+          </span>
+        )}
         
         {/* شارة جديد - أعلى اليمين */}
         {product.is_new && (
