@@ -105,6 +105,22 @@ const ImageRepositoryPicker = ({
     setCategoryFilter("all");
   };
 
+  // اختيار مباشر بضغطة واحدة
+  const handleDirectSelect = async (image: SharedImage) => {
+    // زيادة عداد الاستخدام
+    try {
+      await supabase.rpc('increment_image_usage', { image_id: image.id });
+    } catch (error) {
+      console.error("Error incrementing usage:", error);
+    }
+
+    onSelect(image.image_url, image.id);
+    onClose();
+    setSelectedImage(null);
+    setSearchQuery("");
+    setCategoryFilter("all");
+  };
+
   const filteredImages = images.filter(img => {
     const matchesSearch = img.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          (img.description?.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -235,7 +251,7 @@ const ImageRepositoryPicker = ({
                           key={image.id}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => setSelectedImage(image)}
+                          onClick={() => handleDirectSelect(image)}
                           className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer border-2 transition-all ${
                             selectedImage?.id === image.id 
                               ? 'border-primary ring-2 ring-primary/30' 
