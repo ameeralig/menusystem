@@ -5,6 +5,7 @@ import { Helmet } from "react-helmet-async";
 import { useIsMobile } from "@/hooks/use-mobile";
 import qrLogo from "@/assets/qr-logo.png";
 import PartnersSection from "@/components/partners/PartnersSection";
+import PlatformStats from "@/components/home/PlatformStats";
 import SimpleBackground from "@/components/background/SimpleBackground";
 import { QrCode, Sparkles, Zap, Shield, Users, BarChart3, Smartphone, Palette, Bell, Search, Link2, Moon, MessageCircle, RefreshCw, Settings, Camera, Globe, ChevronDown } from "lucide-react";
 import { useRef } from "react";
@@ -205,6 +206,9 @@ const Index = () => {
             </motion.div>
           </div>
         </motion.section>
+
+        {/* Platform Stats */}
+        <PlatformStats />
 
         {/* Partners Section */}
         <PartnersSection />
