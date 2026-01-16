@@ -1,283 +1,318 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import { useIsMobile } from "@/hooks/use-mobile";
 import qrLogo from "@/assets/qr-logo.png";
 import PartnersSection from "@/components/partners/PartnersSection";
 import SimpleBackground from "@/components/background/SimpleBackground";
+import { QrCode, Sparkles, Zap, Shield, Users, BarChart3, Smartphone, Palette, Bell, Search, Link2, Moon, MessageCircle, RefreshCw, Settings, Camera, Globe, ChevronDown } from "lucide-react";
+import { useRef } from "react";
 
 const Index = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: containerRef });
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
+
+  const features = [
+    { title: "إدارة المنتجات", description: "إضافة وتعديل منتجاتك بسهولة مع تنظيم تلقائي", icon: QrCode, color: "from-cyan-400 to-blue-500" },
+    { title: "رمز QR مخصص", description: "أنشئ رمز QR احترافي بألوان مخصصة", icon: Sparkles, color: "from-purple-400 to-pink-500" },
+    { title: "تخصيص المتجر", description: "صمم متجرك بألوان وخطوط خاصة", icon: Palette, color: "from-orange-400 to-red-500" },
+    { title: "نظام الموظفين", description: "إدارة موظفين مع تتبع مبيعات", icon: Users, color: "from-green-400 to-emerald-500" },
+    { title: "إدارة الطاولات", description: "نظام متكامل لإدارة طاولات المطعم", icon: Shield, color: "from-blue-400 to-indigo-500" },
+    { title: "نقاط البيع POS", description: "سلة تسوق مع طباعة فواتير", icon: Zap, color: "from-yellow-400 to-orange-500" },
+    { title: "تقارير المبيعات", description: "تتبع المبيعات مع إحصائيات", icon: BarChart3, color: "from-pink-400 to-rose-500" },
+    { title: "نظام التقييمات", description: "اجمع آراء العملاء", icon: MessageCircle, color: "from-teal-400 to-cyan-500" },
+    { title: "تصميم متجاوب", description: "يعمل على جميع الأجهزة", icon: Smartphone, color: "from-violet-400 to-purple-500" },
+    { title: "بحث متقدم", description: "بحث سريع للمنتجات", icon: Search, color: "from-indigo-400 to-blue-500" },
+    { title: "رابط مخصص", description: "رابط خاص بمتجرك", icon: Link2, color: "from-rose-400 to-pink-500" },
+    { title: "الوضع الليلي", description: "تبديل بين الفاتح والداكن", icon: Moon, color: "from-slate-400 to-gray-500" },
+    { title: "إشعارات WhatsApp", description: "إشعارات فورية للطلبات", icon: Bell, color: "from-green-400 to-teal-500" },
+    { title: "تحديثات فورية", description: "التعديلات تظهر مباشرة", icon: RefreshCw, color: "from-cyan-400 to-blue-500" },
+    { title: "لوحة تحكم", description: "إدارة كاملة من مكان واحد", icon: Settings, color: "from-purple-400 to-violet-500" },
+    { title: "صور عالية الجودة", description: "رفع صور بجودة احترافية", icon: Camera, color: "from-amber-400 to-orange-500" },
+    { title: "روابط اجتماعية", description: "أضف حساباتك الاجتماعية", icon: Globe, color: "from-blue-400 to-cyan-500" },
+    { title: "أداء عالي", description: "سرعة تحميل فائقة", icon: Zap, color: "from-yellow-400 to-amber-500" },
+  ];
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.05 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20, scale: 0.95 },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      scale: 1,
+      transition: { duration: 0.4, ease: "easeOut" }
+    }
+  };
 
   return (
     <>
       <Helmet>
         <title>QRM - منيو رقمي QR | خدمات المنيو الإلكتروني للمطاعم والمقاهي</title>
-        <meta name="description" content="QRM - منصة متكاملة لإدارة المنيو الرقمي عبر رمز QR. خدمات منيو إلكتروني احترافي للمطاعم والمقاهي مع إدارة سهلة وتحديثات فورية. QRM Menu Services." />
+        <meta name="description" content="QRM - منصة متكاملة لإدارة المنيو الرقمي عبر رمز QR. خدمات منيو إلكتروني احترافي للمطاعم والمقاهي مع إدارة سهلة وتحديثات فورية." />
         <link rel="canonical" href="https://qrmenuc.com" />
       </Helmet>
+      
       <SimpleBackground />
-      <div className="min-h-screen relative overflow-hidden font-arabic">
-
-      {/* Header/Navbar */}
-      <header className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 relative z-10">
-        <div className="flex justify-between items-center backdrop-blur-sm bg-white/5 rounded-2xl p-4 border border-white/10">
-          <div className="flex items-center gap-3">
-            <img src={qrLogo} alt="QRM - خدمات المنيو الرقمي QR" className="h-12 sm:h-14 w-auto drop-shadow-2xl" />
-            <div className="flex flex-col">
-              <h1 className="text-xl sm:text-2xl font-black text-white font-cyber tracking-wider drop-shadow-[0_2px_10px_rgba(0,156,255,0.8)]">
-                QRM
-              </h1>
-              <p className="text-xs sm:text-sm text-white font-arabic font-bold drop-shadow-lg">خدمات المنيو والقوائم</p>
+      
+      <div ref={containerRef} className="min-h-screen relative overflow-hidden font-arabic">
+        {/* Header */}
+        <motion.header 
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-6 py-3 sm:py-4"
+        >
+          <div className="container mx-auto">
+            <div className="flex justify-between items-center backdrop-blur-xl bg-white/5 rounded-2xl p-3 sm:p-4 border border-white/10 shadow-2xl shadow-black/20">
+              <motion.div 
+                whileHover={{ scale: 1.02 }}
+                className="flex items-center gap-2 sm:gap-3"
+              >
+                <img src={qrLogo} alt="QRM" className="h-10 sm:h-12 w-auto drop-shadow-2xl" />
+                <div className="flex flex-col">
+                  <h1 className="text-lg sm:text-xl font-black text-white font-cyber tracking-wider">
+                    QRM
+                  </h1>
+                  <p className="text-[10px] sm:text-xs text-white/80 font-arabic font-bold">خدمات المنيو</p>
+                </div>
+              </motion.div>
+              
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  className="text-white hover:text-white hover:bg-white/10 text-xs sm:text-sm border border-white/20 font-bold px-3 sm:px-4 py-2 h-auto"
+                  onClick={() => navigate("/auth/login")}
+                >
+                  <span className="hidden sm:inline">تسجيل الدخول</span>
+                  <span className="sm:hidden">دخول</span>
+                </Button>
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+                  <Button
+                    className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-xs sm:text-sm px-3 sm:px-5 py-2 font-black shadow-lg shadow-cyan-500/30 h-auto"
+                    onClick={() => navigate("/auth/signup")}
+                  >
+                    <span className="hidden sm:inline">إنشاء منيو</span>
+                    <span className="sm:hidden">إنشاء</span>
+                  </Button>
+                </motion.div>
+              </div>
             </div>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              className="text-white hover:text-white hover:bg-white/10 text-xs sm:text-sm md:text-base border border-white/30 font-bold drop-shadow-lg px-2 sm:px-4 py-1.5 sm:py-2 h-auto whitespace-nowrap"
-              onClick={() => navigate("/auth/login")}
-            >
-              تسجيل الدخول
-            </Button>
-            <Button
-              className="bg-gradient-to-r from-[hsl(var(--cyber-blue))] to-[hsl(var(--cyber-purple))] hover:from-[hsl(var(--cyber-purple))] hover:to-[hsl(var(--cyber-pink))] text-white text-xs sm:text-sm md:text-base px-2 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 font-black shadow-xl shadow-[hsl(var(--cyber-blue))]/60 transition-all duration-300 drop-shadow-xl h-auto whitespace-nowrap"
-              onClick={() => navigate("/auth/signup")}
-            >
-              إنشاء منيو
-            </Button>
-          </div>
-        </div>
-      </header>
+        </motion.header>
 
-      {/* Partners Section */}
-      <PartnersSection />
-
-      {/* Hero Section */}
-      <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-20 md:py-32 relative z-10">
-        <div className="grid grid-cols-1 gap-8 md:gap-12 items-center justify-center">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              className="mb-6"
-            >
-              <h1 className="text-4xl sm:text-5xl md:text-7xl font-black leading-tight mb-4 font-cyber tracking-wider drop-shadow-2xl">
-                <span className="bg-gradient-to-r from-[#3baaff] via-[#a78bfa] to-[#f0abfc] bg-clip-text text-transparent filter drop-shadow-[0_0_30px_rgba(59,170,255,0.9)]">
-                  QRM - QR MENU
-                </span>
-              </h1>
-              <p className="text-2xl sm:text-3xl md:text-4xl font-black text-white drop-shadow-[0_4px_20px_rgba(255,255,255,0.8)] font-arabic">
-                QRM - خدمات المنيو والقوائم الرقمية
-              </p>
-            </motion.div>
-            
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-              className="text-lg sm:text-xl text-white/95 mt-6 max-w-2xl mx-auto font-arabic font-bold drop-shadow-[0_4px_15px_rgba(255,255,255,0.7)]"
-            >
-              QRM - منصة متكاملة لإدارة وعرض منتجاتك بكل سهولة عبر رمز QR بتقنية متطورة. نظام QRM للمنيو الرقمي الاحترافي
-            </motion.p>
-
+        {/* Hero Section */}
+        <motion.section 
+          style={{ opacity: heroOpacity, scale: heroScale }}
+          className="min-h-screen flex items-center justify-center pt-24 sm:pt-28 pb-12 sm:pb-16 relative"
+        >
+          <div className="container mx-auto px-4 sm:px-6 text-center">
+            {/* Badge */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.5 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center mt-10"
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/20 mb-6 sm:mb-8"
             >
-              <Button
-                onClick={() => navigate("/checkpoint")}
-                className="bg-transparent border-2 border-[hsl(var(--cyber-blue))] text-[hsl(var(--cyber-blue))] hover:bg-[hsl(var(--cyber-blue))] hover:text-white text-base sm:text-lg px-8 py-6 font-black transition-all duration-300 shadow-lg shadow-[hsl(var(--cyber-blue))]/40 drop-shadow-xl"
-                size={isMobile ? "default" : "lg"}
-              >
-                عرض نموذج QRM
-              </Button>
-
-              <Button
-                onClick={() => navigate("/auth/signup")}
-                className="bg-gradient-to-r from-[hsl(var(--cyber-blue))] to-[hsl(var(--cyber-purple))] hover:from-[hsl(var(--cyber-purple))] hover:to-[hsl(var(--cyber-pink))] text-white text-base sm:text-lg px-8 py-6 font-black shadow-xl shadow-[hsl(var(--cyber-purple))]/60 transition-all duration-300 drop-shadow-2xl"
-                size={isMobile ? "default" : "lg"}
-              >
-                إنشاء منيو QRM الآن
-              </Button>
+              <Sparkles className="w-4 h-4 text-cyan-400" />
+              <span className="text-xs sm:text-sm text-white/90 font-bold">منصة المنيو الرقمي الأولى</span>
             </motion.div>
-          </motion.div>
-        </div>
-      </div>
 
-      {/* Features Section */}
-      <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-24 relative z-10">
-        <div className="text-center mb-12 sm:mb-16">
-            <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
-            className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-4 font-cyber drop-shadow-2xl"
-          >
-            مميزات <span className="bg-gradient-to-r from-[hsl(var(--cyber-blue))] to-[hsl(var(--cyber-purple))] bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(59,170,255,0.8)]">QRM المنيو الرقمي</span>
-          </motion.h2>
-          <p className="text-white/95 text-lg font-bold drop-shadow-[0_2px_12px_rgba(255,255,255,0.7)] font-arabic">كل ما تحتاجه في نظام QRM لعرض منتجاتك بطريقة احترافية</p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
-          {[
-            {
-              title: "إدارة المنتجات والفئات",
-              description: "إضافة وتعديل منتجاتك بسهولة مع تنظيم تلقائي حسب الفئات",
-              icon: "📦",
-              delay: 0.1
-            },
-            {
-              title: "رمز QR مخصص",
-              description: "أنشئ رمز QR احترافي بألوان وأشكال مخصصة لعلامتك التجارية",
-              icon: "📱",
-              delay: 0.2
-            },
-            {
-              title: "تخصيص المتجر",
-              description: "صمم متجرك بألوان وخطوط وصور خاصة تناسب هويتك",
-              icon: "🎨",
-              delay: 0.3
-            },
-            {
-              title: "نظام الموظفين",
-              description: "إضافة موظفين مع صلاحيات وتتبع مبيعات كل موظف",
-              icon: "👥",
-              delay: 0.4
-            },
-            {
-              title: "إدارة الطاولات",
-              description: "نظام متكامل لإدارة طاولات المطعم أو المقهى",
-              icon: "🪑",
-              delay: 0.5
-            },
-            {
-              title: "نظام نقاط البيع POS",
-              description: "سلة تسوق متقدمة للموظفين مع طباعة فواتير احترافية",
-              icon: "💳",
-              delay: 0.6
-            },
-            {
-              title: "تقارير المبيعات",
-              description: "تتبع المبيعات اليومية والشهرية مع إحصائيات تفصيلية",
-              icon: "📊",
-              delay: 0.7
-            },
-            {
-              title: "نظام التقييمات",
-              description: "اجمع آراء العملاء وتقييماتهم لتحسين خدماتك",
-              icon: "⭐",
-              delay: 0.8
-            },
-            {
-              title: "معاينة مباشرة",
-              description: "شاهد متجرك كما يراه العملاء قبل النشر",
-              icon: "👁️",
-              delay: 0.9
-            },
-            {
-              title: "تصميم متجاوب",
-              description: "يعمل بشكل مثالي على الهواتف والأجهزة اللوحية",
-              icon: "📲",
-              delay: 1.0
-            },
-            {
-              title: "بحث متقدم",
-              description: "بحث سريع وفعال للعملاء للوصول للمنتجات بسهولة",
-              icon: "🔍",
-              delay: 1.1
-            },
-            {
-              title: "رابط مخصص",
-              description: "احصل على رابط خاص بمتجرك سهل الحفظ والمشاركة",
-              icon: "🔗",
-              delay: 1.2
-            },
-            {
-              title: "وضع الليل والنهار",
-              description: "تبديل تلقائي بين الوضع الفاتح والداكن",
-              icon: "🌙",
-              delay: 1.3
-            },
-            {
-              title: "إشعارات WhatsApp",
-              description: "إشعارات فورية عبر واتساب للطلبات الجديدة",
-              icon: "💬",
-              delay: 1.4
-            },
-            {
-              title: "تحديثات فورية",
-              description: "التعديلات تظهر مباشرة للعملاء بدون تأخير",
-              icon: "⚡",
-              delay: 1.5
-            },
-            {
-              title: "لوحة تحكم شاملة",
-              description: "إدارة كاملة لكل جوانب متجرك من مكان واحد",
-              icon: "⚙️",
-              delay: 1.6
-            },
-            {
-              title: "صور عالية الجودة",
-              description: "رفع وعرض صور منتجاتك بجودة احترافية",
-              icon: "📸",
-              delay: 1.7
-            },
-            {
-              title: "تواصل اجتماعي",
-              description: "أضف روابط حساباتك الاجتماعية لسهولة التواصل",
-              icon: "🌐",
-              delay: 1.8
-            },
-          ].map((feature, index) => (
-            <div
-              key={index}
-              className="group p-6 backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-2xl shadow-xl hover:shadow-cyber-blue/30 transition-all duration-300"
+            {/* Main Title */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              className="mb-6 sm:mb-8"
             >
-              <div className="h-16 w-16 bg-gradient-to-br from-[hsl(var(--cyber-blue))] to-[hsl(var(--cyber-purple))] rounded-2xl flex items-center justify-center mx-auto mb-4 text-white group-hover:scale-110 transition-transform duration-300 shadow-xl shadow-[hsl(var(--cyber-purple))]/50">
-                <span className="text-3xl">{feature.icon}</span>
-              </div>
-              <h3 className="text-xl font-black mb-2 text-white text-center font-arabic drop-shadow-[0_3px_10px_rgba(255,255,255,0.6)]">{feature.title}</h3>
-              <p className="text-white/95 text-center font-arabic font-bold drop-shadow-[0_2px_10px_rgba(255,255,255,0.5)]">{feature.description}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-4 sm:mb-6">
+                <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 bg-clip-text text-transparent">
+                  QRM
+                </span>
+                <br />
+                <span className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
+                  المنيو الرقمي الذكي
+                </span>
+              </h1>
+            </motion.div>
 
-      {/* Footer */}
-      <footer className="relative z-10 backdrop-blur-xl bg-white/5 border-t border-white/10 py-8 mt-16">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0 flex items-center gap-3">
-              <img src={qrLogo} alt="QRM - خدمات المنيو الرقمي" className="h-12 w-auto drop-shadow-2xl" />
-              <div className="flex flex-col">
-                <h2 className="text-xl font-black text-white font-cyber tracking-wider drop-shadow-[0_2px_10px_rgba(0,156,255,0.8)]">QRM</h2>
-                <p className="text-xs text-white font-arabic font-bold drop-shadow-lg">MENU SERVICES</p>
+            {/* Subtitle */}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              className="text-base sm:text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-8 sm:mb-10 font-bold leading-relaxed px-4"
+            >
+              حوّل قائمة طعامك إلى تجربة رقمية متكاملة
+              <br className="hidden sm:block" />
+              <span className="text-cyan-400">بضغطة زر واحدة</span>
+            </motion.p>
+
+            {/* CTA Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4"
+            >
+              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
+                <Button
+                  onClick={() => navigate("/auth/signup")}
+                  className="w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-base sm:text-lg px-8 sm:px-10 py-5 sm:py-6 font-black shadow-xl shadow-cyan-500/30 rounded-xl"
+                  size="lg"
+                >
+                  ابدأ مجاناً الآن
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
+                <Button
+                  onClick={() => navigate("/checkpoint")}
+                  variant="outline"
+                  className="w-full sm:w-auto border-2 border-white/20 bg-white/5 text-white hover:bg-white/10 text-base sm:text-lg px-8 sm:px-10 py-5 sm:py-6 font-black rounded-xl backdrop-blur-sm"
+                  size="lg"
+                >
+                  عرض نموذج
+                </Button>
+              </motion.div>
+            </motion.div>
+
+            {/* Scroll Indicator */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1, duration: 0.5 }}
+              className="absolute bottom-8 left-1/2 -translate-x-1/2"
+            >
+              <motion.div
+                animate={{ y: [0, 10, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                className="flex flex-col items-center gap-2 text-white/50"
+              >
+                <span className="text-xs font-bold">اكتشف المزيد</span>
+                <ChevronDown className="w-5 h-5" />
+              </motion.div>
+            </motion.div>
+          </div>
+        </motion.section>
+
+        {/* Partners Section */}
+        <PartnersSection />
+
+        {/* Features Section */}
+        <section className="py-16 sm:py-24 relative z-10">
+          <div className="container mx-auto px-4 sm:px-6">
+            {/* Section Header */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              viewport={{ once: true }}
+              className="text-center mb-12 sm:mb-16"
+            >
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4">
+                <span className="text-white">كل ما تحتاجه في </span>
+                <span className="bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">مكان واحد</span>
+              </h2>
+              <p className="text-white/70 text-base sm:text-lg max-w-xl mx-auto font-bold">
+                مميزات احترافية لإدارة منيو رقمي متكامل
+              </p>
+            </motion.div>
+
+            {/* Features Grid */}
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-50px" }}
+              className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4"
+            >
+              {features.map((feature, index) => (
+                <motion.div
+                  key={index}
+                  variants={itemVariants}
+                  whileHover={{ y: -5, scale: 1.02 }}
+                  className="group p-4 sm:p-5 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all duration-300"
+                >
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mx-auto mb-3 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                    <feature.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  </div>
+                  <h3 className="text-sm sm:text-base font-black text-white text-center mb-1 sm:mb-2">{feature.title}</h3>
+                  <p className="text-xs sm:text-sm text-white/60 text-center font-bold line-clamp-2">{feature.description}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-16 sm:py-24 relative z-10">
+          <div className="container mx-auto px-4 sm:px-6">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              viewport={{ once: true }}
+              className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-pink-500/10 border border-white/10 p-8 sm:p-12 md:p-16"
+            >
+              {/* Background Glow */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl" />
+              
+              <div className="relative text-center">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-4 sm:mb-6">
+                  جاهز لإنشاء منيوك الرقمي؟
+                </h2>
+                <p className="text-white/70 text-base sm:text-lg max-w-xl mx-auto mb-8 font-bold">
+                  انضم لآلاف المطاعم والمقاهي التي تستخدم QRM
+                </p>
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+                  <Button
+                    onClick={() => navigate("/auth/signup")}
+                    className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-base sm:text-lg px-10 sm:px-12 py-5 sm:py-6 font-black shadow-xl shadow-cyan-500/30 rounded-xl"
+                    size="lg"
+                  >
+                    ابدأ الآن مجاناً
+                  </Button>
+                </motion.div>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="relative z-10 backdrop-blur-xl bg-white/5 border-t border-white/10 py-8 sm:py-12">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+              <motion.div 
+                whileHover={{ scale: 1.02 }}
+                className="flex items-center gap-3"
+              >
+                <img src={qrLogo} alt="QRM" className="h-10 sm:h-12 w-auto" />
+                <div className="flex flex-col">
+                  <h2 className="text-lg sm:text-xl font-black text-white font-cyber">QRM</h2>
+                  <p className="text-xs text-white/60 font-bold">خدمات المنيو الرقمي</p>
+                </div>
+              </motion.div>
+              
+              <div className="text-center md:text-right">
+                <p className="text-white/60 text-sm font-bold">
+                  جميع الحقوق محفوظة © {new Date().getFullYear()} QRM
+                </p>
               </div>
             </div>
-            <div className="flex justify-center">
-              <span className="text-white text-sm sm:text-base font-bold drop-shadow-lg">
-                QRM - خدمات المنيو الرقمي
-              </span>
-            </div>
           </div>
-          <div className="mt-8 text-center text-white text-sm font-bold drop-shadow-lg">
-            &copy; {new Date().getFullYear()} QRM Menu Services - خدمات المنيو الرقمي. جميع الحقوق محفوظة.
-          </div>
-        </div>
-      </footer>
-    </div>
+        </footer>
+      </div>
     </>
   );
 };

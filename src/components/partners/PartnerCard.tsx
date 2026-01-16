@@ -1,6 +1,6 @@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 interface PartnerCardProps {
   userId: string;
@@ -29,41 +29,49 @@ const PartnerCard = ({ userId, fullName, avatarUrl, storeName, slug }: PartnerCa
   };
 
   return (
-    <Card 
-      className="group hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden border-2 border-primary/30 bg-white hover:border-primary hover:shadow-primary/20"
+    <motion.div
+      whileHover={{ y: -5, scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
       onClick={handleClick}
+      className="cursor-pointer group"
     >
-      <CardContent className="p-6 flex flex-col items-center gap-4">
-        <div className="relative">
-          <Avatar className="h-24 w-24 border-4 border-primary/20 group-hover:border-primary/50 transition-all duration-300 shadow-lg">
-            <AvatarImage 
-              src={avatarUrl || undefined} 
-              alt={fullName || storeName || "شريك"} 
-              className="object-cover"
-              onError={(e) => {
-                console.log('Failed to load avatar:', avatarUrl);
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-            <AvatarFallback className="text-2xl bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-black">
-              {getInitials(fullName || storeName || "U")}
-            </AvatarFallback>
-          </Avatar>
-          <div className="absolute inset-0 rounded-full bg-primary/0 group-hover:bg-primary/10 transition-all duration-300" />
-        </div>
+      <div className="relative p-4 sm:p-5 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all duration-300 overflow-hidden">
+        {/* خلفية متوهجة */}
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         
-        <div className="text-center space-y-1">
-          <h3 className="font-black text-lg text-foreground group-hover:text-primary transition-colors font-arabic">
-            {fullName || storeName || "مستخدم"}
-          </h3>
-          {storeName && fullName && fullName !== storeName && (
-            <p className="text-sm text-muted-foreground font-bold font-arabic">
-              {storeName}
-            </p>
-          )}
+        <div className="relative flex flex-col items-center gap-3">
+          <div className="relative">
+            <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-2 border-white/10 group-hover:border-cyan-500/30 transition-all duration-300 shadow-lg">
+              <AvatarImage 
+                src={avatarUrl || undefined} 
+                alt={fullName || storeName || "شريك"} 
+                className="object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+              <AvatarFallback className="text-lg sm:text-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 text-white font-black">
+                {getInitials(fullName || storeName || "U")}
+              </AvatarFallback>
+            </Avatar>
+            
+            {/* حلقة متحركة */}
+            <div className="absolute inset-0 rounded-full border-2 border-transparent group-hover:border-cyan-500/30 transition-all duration-500 scale-110 opacity-0 group-hover:opacity-100" />
+          </div>
+          
+          <div className="text-center space-y-0.5">
+            <h3 className="font-black text-sm sm:text-base text-white group-hover:text-cyan-400 transition-colors line-clamp-1">
+              {storeName || fullName || "متجر"}
+            </h3>
+            {fullName && storeName && fullName !== storeName && (
+              <p className="text-xs text-white/50 font-bold line-clamp-1">
+                {fullName}
+              </p>
+            )}
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </motion.div>
   );
 };
 
