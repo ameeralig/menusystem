@@ -240,11 +240,9 @@ serve(async (req) => {
     
     console.log('[R2-Upload] تم الرفع بنجاح');
     
-    // بناء الرابط العام
-    // يمكنك استخدام Custom Domain أو R2.dev subdomain
-    const publicUrl = `https://pub-${credentials.accountId}.r2.dev/${credentials.bucketName}/${key}`;
-    // أو إذا لديك Custom Domain:
-    // const publicUrl = `https://cdn.yourdomain.com/${key}`;
+    // بناء الرابط العام باستخدام R2.dev Public Development URL
+    // الرابط العام: https://pub-f762a7c5308344b585c3cfbe0057fae2.r2.dev/
+    const publicUrl = `https://pub-f762a7c5308344b585c3cfbe0057fae2.r2.dev/${key}`;
     
     const result: R2UploadResult = {
       success: true,
