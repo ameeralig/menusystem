@@ -7,9 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CategorySelectionStep } from "./CategorySelectionStep";
 import { ProductDetailsStep, ProductFormData } from "./ProductDetailsStep";
-import { uploadImage, optimizeImage } from "@/utils/storageHelpers";
-import { uploadToCloudinary, getOriginalImageInfo } from "@/utils/cloudinaryUpload";
 import { logUserActivity } from "@/hooks/analytics/useActivityLogger";
+import { useSmartUpload } from "@/hooks/useSmartUpload";
+import { UploadDestination } from "@/components/shared/UploadDestinationSelector";
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -41,13 +41,16 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded, colorTheme }: A
     uploadMethod: "url" | "file" | "repository";
     selectedFile: File | null;
     previewUrl: string | null;
-    useCloudinary?: boolean;
+    uploadDestination?: UploadDestination;
   }>({
     uploadMethod: "url",
     selectedFile: null,
     previewUrl: null,
-    useCloudinary: false,
+    uploadDestination: 'supabase',
   });
+
+  // Smart upload hook
+  const { upload, isUploading: isSmartUploading, uploadProgress } = useSmartUpload();
 
   // الحصول على لون الثيم
   const getThemeColor = () => {
@@ -114,35 +117,24 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded, colorTheme }: A
       // رفع صورة جديدة أو استخدام رابط المستودع
       if (imageUploadState.uploadMethod === "file" && imageUploadState.selectedFile) {
         try {
-          const originalInfo = getOriginalImageInfo(imageUploadState.selectedFile);
+          const destination = imageUploadState.uploadDestination || 'supabase';
           
-          if (imageUploadState.useCloudinary) {
-            // رفع محسّن عبر Cloudinary
-            toast.info("جاري التحسين عبر Cloudinary...");
-            
-            const result = await uploadToCloudinary(imageUploadState.selectedFile, {
-              convertToWebp: true,
-              folder: `${user.id}/products`
-            });
-            
-            imageUrl = result.url;
-            
-            toast.success(
-              `تم الرفع! توفير ${result.savings.formatted} (${result.savings.percentage}%)`,
-              { description: `${originalInfo.sizeFormatted} → ${result.optimized.sizeFormatted}` }
-            );
-          } else {
-            // رفع عادي
-            toast.info("جاري رفع الصورة...");
-            const optimizedFile = await optimizeImage(imageUploadState.selectedFile);
-            imageUrl = await uploadImage("product-images", optimizedFile, user.id, "");
-          }
-          
-          if (!imageUrl) {
+          const result = await upload(
+            imageUploadState.selectedFile,
+            destination,
+            {
+              bucket: 'product-images',
+              folder: '',
+              userId: user.id,
+            }
+          );
+
+          if (!result || !result.url) {
             throw new Error("فشل في الحصول على رابط الصورة");
           }
-          
-          console.log("تم رفع الصورة بنجاح:", imageUrl);
+
+          imageUrl = result.url;
+          console.log(`تم رفع الصورة إلى ${destination}:`, imageUrl);
         } catch (uploadError: any) {
           console.error("خطأ في رفع الصورة:", uploadError);
           toast.error("فشل في رفع الصورة: " + (uploadError.message || "خطأ غير معروف"));
@@ -213,7 +205,7 @@ const AddProductModal = ({ isOpen, onOpenChange, onProductAdded, colorTheme }: A
       uploadMethod: "url",
       selectedFile: null,
       previewUrl: null,
-      useCloudinary: false,
+      uploadDestination: 'supabase',
     });
     setCurrentStep(1);
   };
