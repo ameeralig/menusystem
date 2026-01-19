@@ -5,12 +5,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Upload, ImagePlus, Link as LinkIcon, Star, TrendingUp, ChevronRight, X, Percent, Image as ImageIcon } from "lucide-react";
+import { Upload, ImagePlus, Link as LinkIcon, Star, TrendingUp, ChevronRight, X, Percent, Image as ImageIcon, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import ImageRepositoryPicker from "@/components/shared/ImageRepositoryPicker";
 import { formatBytes } from "@/utils/cloudinaryUpload";
-import UploadDestinationSelector, { UploadDestination } from "@/components/shared/UploadDestinationSelector";
 
 export interface ProductFormData {
   name: string;
@@ -35,13 +34,13 @@ interface ProductDetailsStepProps {
     uploadMethod: "url" | "file" | "repository";
     selectedFile: File | null;
     previewUrl: string | null;
-    uploadDestination?: UploadDestination;
+    useCloudinary?: boolean;
   };
   onImageUploadStateChange: (state: {
     uploadMethod: "url" | "file" | "repository";
     selectedFile: File | null;
     previewUrl: string | null;
-    uploadDestination?: UploadDestination;
+    useCloudinary?: boolean;
   }) => void;
 }
 
@@ -81,13 +80,14 @@ export const ProductDetailsStep = ({
       uploadMethod: "repository",
       selectedFile: null,
       previewUrl: imageUrl,
+      useCloudinary: false,
     });
   };
 
-  const handleDestinationChange = (destination: UploadDestination) => {
+  const toggleCloudinaryMode = () => {
     onImageUploadStateChange({
       ...imageUploadState,
-      uploadDestination: destination,
+      useCloudinary: !imageUploadState.useCloudinary,
     });
   };
 
@@ -286,12 +286,23 @@ export const ProductDetailsStep = ({
           </div>
         ) : imageUploadState.uploadMethod === "file" ? (
           <div className="space-y-4">
-            {/* اختيار وجهة الرفع */}
-            <UploadDestinationSelector
-              value={imageUploadState.uploadDestination || 'supabase'}
-              onChange={handleDestinationChange}
-              compact
-            />
+            {/* خيار التحسين عبر Cloudinary */}
+            <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
+              <div className="flex items-center gap-2">
+                <Zap className={cn(
+                  "h-4 w-4",
+                  imageUploadState.useCloudinary ? "text-yellow-500" : "text-muted-foreground"
+                )} />
+                <div>
+                  <span className="text-sm font-medium">تحسين WebP</span>
+                  <p className="text-xs text-muted-foreground">تقليل الحجم وتحسين الأداء</p>
+                </div>
+              </div>
+              <Switch
+                checked={imageUploadState.useCloudinary || false}
+                onCheckedChange={toggleCloudinaryMode}
+              />
+            </div>
 
             {/* معلومات الملف المحدد */}
             {imageUploadState.selectedFile && (
@@ -376,6 +387,7 @@ export const ProductDetailsStep = ({
                   uploadMethod: "url",
                   previewUrl: null,
                   selectedFile: null,
+                  useCloudinary: false,
                 });
               }}
             >

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Product } from "@/types/product";
-import { X, Upload, Loader2, Percent, FolderOpen, Cloud, Server } from "lucide-react";
+import { X, Upload, Loader2, Percent, FolderOpen } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -10,11 +10,9 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { optimizeImageUrl } from "@/utils/imageOptimizer";
-import { deleteOldImageIfExists } from "@/utils/storageHelpers";
+import { uploadImage, optimizeImage, deleteOldImageIfExists } from "@/utils/storageHelpers";
 import { logUserActivity } from "@/hooks/analytics/useActivityLogger";
 import ImageRepositoryPicker from "@/components/shared/ImageRepositoryPicker";
-import UploadDestinationSelector, { UploadDestination } from "@/components/shared/UploadDestinationSelector";
-import { useSmartUpload } from "@/hooks/useSmartUpload";
 interface EditProductModalProps {
   product: Product | null;
   isOpen: boolean;
@@ -43,10 +41,6 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [selectedRepositoryImage, setSelectedRepositoryImage] = useState<string | null>(null);
-  const [uploadDestination, setUploadDestination] = useState<UploadDestination>('supabase');
-  
-  // Smart upload hook
-  const { upload, isUploading: isSmartUploading } = useSmartUpload();
   
   // Progressive Loading للصورة الموجودة
   const [displayedImage, setDisplayedImage] = useState<string>("");
@@ -145,23 +139,22 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
       // رفع الصورة الجديدة إذا تم اختيارها
       else if (imageFile) {
         try {
-          const result = await upload(
-            imageFile,
-            uploadDestination,
-            {
-              bucket: 'product-images',
-              folder: '',
-              userId: product.user_id,
-              oldImageUrl: product.image_url,
-            }
-          );
+          toast.info("جاري رفع الصورة...");
+          
+          // حذف الصورة القديمة أولاً
+          await deleteOldImageIfExists(product.image_url, 'product-images');
+          
+          // تحسين الصورة قبل الرفع
+          const optimizedFile = await optimizeImage(imageFile);
+          
+          // استخدام دالة uploadImage المحسنة
+          imageUrl = await uploadImage("product-images", optimizedFile, product.user_id, "");
 
-          if (!result || !result.url) {
+          if (!imageUrl) {
             throw new Error("فشل في الحصول على رابط الصورة");
           }
 
-          imageUrl = result.url;
-          console.log(`تم رفع الصورة إلى ${uploadDestination}:`, imageUrl);
+          console.log("تم رفع الصورة بنجاح:", imageUrl);
         } catch (uploadError: any) {
           console.error("خطأ في رفع الصورة:", uploadError);
           toast.error("فشل في رفع الصورة: " + (uploadError.message || "خطأ غير معروف"));
@@ -269,16 +262,6 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                           />
                         </div>
                       )}
-                      {/* اختيار وجهة الرفع */}
-                      <div className="w-full">
-                        <UploadDestinationSelector
-                          value={uploadDestination}
-                          onChange={setUploadDestination}
-                          compact
-                          disabled={isSaving}
-                        />
-                      </div>
-                      
                       <div className="flex gap-2 flex-wrap justify-center">
                         <label htmlFor="product-image" className="cursor-pointer">
                           <div className="flex items-center gap-2 px-4 py-2 bg-muted dark:bg-gray-800 hover:bg-muted/80 dark:hover:bg-gray-700 rounded-lg transition-colors">

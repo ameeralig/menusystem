@@ -21,7 +21,6 @@ const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 // صفحات أخرى
 const QRGenerator = lazy(() => import("./pages/QRGenerator"));
 const SalesManagement = lazy(() => import("./pages/SalesManagement"));
-const R2UploadTest = lazy(() => import("./components/test/R2UploadTest"));
 
 // صفحات الأدمن - تحمّل فقط للمسؤولين
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
@@ -55,7 +54,6 @@ const App = () => (
               <Route path="/:slug" element={<ProductPreview />} />
               
               <Route path="/sales-management" element={<SalesManagement />} />
-              <Route path="/r2-test" element={<R2UploadTest />} />
               
               {/* لوحة التحكم الخاصة بالمسؤول */}
               <Route path="/admin" element={<AdminLogin />} />

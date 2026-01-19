@@ -1,13 +1,11 @@
 import { useState } from "react";
-import { Upload, X, Cloud, Server } from "lucide-react";
+import { Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import HiddenLoginTrigger from "../HiddenLoginTrigger";
-import { useSmartUpload } from "@/hooks/useSmartUpload";
-import { UploadDestination } from "@/components/shared/UploadDestinationSelector";
 
 interface InlineBannerEditorProps {
   bannerUrl?: string | null;
@@ -32,37 +30,50 @@ const InlineBannerEditor = ({
   onUpdate,
   showHiddenLogin = false,
 }: InlineBannerEditorProps) => {
-  const [uploadDestination, setUploadDestination] = useState<UploadDestination>('supabase');
-  const { upload, isUploading } = useSmartUpload();
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // التحقق من نوع الملف
     if (!file.type.startsWith('image/')) {
       toast.error("يرجى اختيار صورة صالحة");
       return;
     }
 
+    // التحقق من حجم الملف (حد أقصى 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast.error("حجم الصورة كبير جداً. الحد الأقصى 5MB");
       return;
     }
 
+    setIsUploading(true);
     try {
-      const result = await upload(file, uploadDestination, {
-        bucket: 'banners',
-        folder: storeOwnerId,
-        userId: storeOwnerId,
-        oldImageUrl: bannerUrl,
-      });
+      // رفع الصورة إلى Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${storeOwnerId}-${Date.now()}.${fileExt}`;
+      const filePath = `${storeOwnerId}/${fileName}`;
 
-      if (!result?.url) throw new Error("فشل رفع الصورة");
+      const { error: uploadError } = await supabase.storage
+        .from('banners')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
+      if (uploadError) throw uploadError;
+
+      // الحصول على URL العام
+      const { data: urlData } = supabase.storage
+        .from('banners')
+        .getPublicUrl(filePath);
+
+      // تحديث قاعدة البيانات
       const { error: updateError } = await supabase
         .from('store_settings')
         .update({
-          banner_url: result.url,
+          banner_url: urlData.publicUrl,
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', storeOwnerId);
@@ -74,6 +85,8 @@ const InlineBannerEditor = ({
     } catch (error) {
       console.error("خطأ في رفع صورة البانر:", error);
       toast.error("فشل رفع صورة البانر");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -95,10 +108,6 @@ const InlineBannerEditor = ({
       console.error("خطأ في حذف صورة البانر:", error);
       toast.error("فشل حذف صورة البانر");
     }
-  };
-
-  const toggleDestination = () => {
-    setUploadDestination(prev => prev === 'supabase' ? 'cloudflare' : 'supabase');
   };
 
   return (
@@ -139,20 +148,6 @@ const InlineBannerEditor = ({
         
         {/* أزرار التحرير */}
         <div className="absolute top-4 left-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          {/* زر اختيار وجهة الرفع */}
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={toggleDestination}
-            className="text-xs"
-          >
-            {uploadDestination === 'cloudflare' ? (
-              <><Cloud className="h-4 w-4 ml-1" /> R2</>
-            ) : (
-              <><Server className="h-4 w-4 ml-1" /> Supabase</>
-            )}
-          </Button>
-          
           <Button
             variant="secondary"
             size="sm"
