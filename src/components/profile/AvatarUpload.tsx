@@ -1,13 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Camera, Loader2, Zap } from "lucide-react";
+import { Camera, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { uploadImage, getUrlWithTimestamp, deleteOldImageIfExists } from "@/utils/storageHelpers";
-import { uploadToCloudinary, getOriginalImageInfo, formatBytes } from "@/utils/cloudinaryUpload";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { getUrlWithTimestamp } from "@/utils/storageHelpers";
+import { useSmartUpload } from "@/hooks/useSmartUpload";
+import UploadDestinationSelector, { UploadDestination } from "@/components/shared/UploadDestinationSelector";
 
 interface AvatarUploadProps {
   currentAvatarUrl: string | null;
@@ -17,12 +16,13 @@ interface AvatarUploadProps {
 }
 
 const AvatarUpload = ({ currentAvatarUrl, userId, userName, onAvatarUpdate }: AvatarUploadProps) => {
-  const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [useCloudinary, setUseCloudinary] = useState(false);
-  const [savingsInfo, setSavingsInfo] = useState<string | null>(null);
+  const [uploadDestination, setUploadDestination] = useState<UploadDestination>('supabase');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  
+  // Smart upload hook
+  const { upload, isUploading } = useSmartUpload();
 
   // تحديث معاينة الصورة عند تغيير currentAvatarUrl
   useEffect(() => {
@@ -88,54 +88,40 @@ const AvatarUpload = ({ currentAvatarUrl, userId, userName, onAvatarUpdate }: Av
       return;
     }
 
-    setIsUploading(true);
-    setSavingsInfo(null);
-
     try {
-      // حذف الصورة القديمة إذا وجدت
-      if (currentAvatarUrl) {
-        await deleteOldImageIfExists(currentAvatarUrl, 'avatars');
-      }
+      const result = await upload(
+        file,
+        uploadDestination,
+        {
+          bucket: 'avatars',
+          folder: '',
+          userId,
+          oldImageUrl: currentAvatarUrl,
+          showToast: false,
+        }
+      );
 
-      let avatarUrl: string;
-      const originalInfo = getOriginalImageInfo(file);
-
-      if (useCloudinary) {
-        // رفع محسّن عبر Cloudinary
-        const cloudinaryResult = await uploadToCloudinary(file, {
-          convertToWebp: true,
-          folder: `${userId}/avatars`
-        });
-
-        avatarUrl = cloudinaryResult.url;
-        setSavingsInfo(`تم توفير ${cloudinaryResult.savings.formatted} (${cloudinaryResult.savings.percentage}%)`);
-
-        toast({
-          title: "تم بنجاح",
-          description: `تم تحديث الصورة وتوفير ${cloudinaryResult.savings.formatted}`,
-        });
-      } else {
-        // رفع عادي إلى Supabase Storage
-        avatarUrl = await uploadImage("avatars", file, userId, "");
-
-        toast({
-          title: "تم بنجاح",
-          description: "تم تحديث صورة الملف الشخصي",
-        });
+      if (!result || !result.url) {
+        throw new Error("فشل في رفع الصورة");
       }
 
       // تحديث قاعدة البيانات
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({ avatar_url: avatarUrl })
+        .update({ avatar_url: result.url })
         .eq("id", userId);
 
       if (updateError) throw updateError;
       
       // تحديث الحالة بـ URL مع timestamp لتجنب الـ cache
-      const urlWithTimestamp = getUrlWithTimestamp(avatarUrl);
+      const urlWithTimestamp = getUrlWithTimestamp(result.url);
       setPreviewUrl(urlWithTimestamp);
-      onAvatarUpdate(avatarUrl);
+      onAvatarUpdate(result.url);
+
+      toast({
+        title: "تم بنجاح",
+        description: `تم تحديث صورة الملف الشخصي عبر ${result.destination === 'cloudflare' ? 'Cloudflare R2' : 'Supabase'}`,
+      });
 
     } catch (error: any) {
       console.error("Error uploading avatar:", error);
@@ -147,7 +133,6 @@ const AvatarUpload = ({ currentAvatarUrl, userId, userName, onAvatarUpdate }: Av
       const fallbackUrl = currentAvatarUrl ? getUrlWithTimestamp(currentAvatarUrl) : null;
       setPreviewUrl(fallbackUrl);
     } finally {
-      setIsUploading(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -188,24 +173,13 @@ const AvatarUpload = ({ currentAvatarUrl, userId, userName, onAvatarUpdate }: Av
         />
       </div>
 
-      {/* خيار تحسين Cloudinary */}
-      <div className="flex items-center gap-2 bg-muted/50 px-3 py-2 rounded-lg">
-        <Switch
-          id="cloudinary-avatar"
-          checked={useCloudinary}
-          onCheckedChange={setUseCloudinary}
-        />
-        <Label htmlFor="cloudinary-avatar" className="text-sm flex items-center gap-1 cursor-pointer">
-          <Zap className="h-3.5 w-3.5 text-yellow-500" />
-          تحسين WebP
-        </Label>
-      </div>
-
-      {savingsInfo && (
-        <p className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
-          {savingsInfo}
-        </p>
-      )}
+      {/* اختيار وجهة الرفع */}
+      <UploadDestinationSelector
+        value={uploadDestination}
+        onChange={setUploadDestination}
+        disabled={isUploading}
+        compact
+      />
 
       <p className="text-sm text-muted-foreground text-center">
         انقر على أيقونة الكاميرا لتحديث صورة الملف الشخصي

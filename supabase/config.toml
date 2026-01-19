@@ -47,3 +47,9 @@ verify_jwt = true
 
 [functions."cloudinary-optimize"]
 verify_jwt = false
+
+[functions."cloudflare-r2-upload"]
+verify_jwt = false
+
+[functions."migrate-shared-images-to-r2"]
+verify_jwt = false
