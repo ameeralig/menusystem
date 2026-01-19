@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Product, getDiscountedPrice, hasDiscount, getOriginalPrice } from "@/types/product";
-import { Edit, Trash2, Plus, Heart, Share2 } from "lucide-react";
+import { Edit, Trash2, Plus, Heart, Share2, Cloud, Server } from "lucide-react";
 import { optimizeImageUrl } from "@/utils/imageOptimizer";
 import { Button } from "@/components/ui/button";
 import { isSafari, isIOS } from "@/utils/browserDetect";
 import { logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
+import { detectImageSource, getImageSourceLabel, getImageSourceColor } from "@/utils/imageSourceDetector";
 
 interface CompactProductCardProps {
   product: Product;
@@ -71,6 +72,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
   };
   
   const imageFormat = getImageFormat(product.image_url);
+  const imageSource = detectImageSource(product.image_url);
   
   // Safari: استخدام decode() للتحميل الأسلس
   useEffect(() => {
@@ -215,11 +217,21 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
           }}
         />
         
-        {/* شارة صيغة الصورة للمالك */}
-        {isStoreOwner && imageFormat && imageLoaded && (
-          <span className="absolute bottom-1 left-1 bg-black/70 text-white text-[9px] px-1.5 py-0.5 rounded font-mono uppercase z-10">
-            {imageFormat}
-          </span>
+        {/* شارة مصدر الصورة للمالك */}
+        {isStoreOwner && imageLoaded && (
+          <div className="absolute bottom-1 left-1 flex items-center gap-1 z-10">
+            {/* شارة مصدر التخزين */}
+            <span className={`flex items-center gap-0.5 ${getImageSourceColor(imageSource)} text-white text-[8px] px-1 py-0.5 rounded font-medium`}>
+              {imageSource === 'r2' ? <Cloud className="w-2.5 h-2.5" /> : <Server className="w-2.5 h-2.5" />}
+              {getImageSourceLabel(imageSource)}
+            </span>
+            {/* صيغة الصورة */}
+            {imageFormat && (
+              <span className="bg-black/70 text-white text-[8px] px-1 py-0.5 rounded font-mono uppercase">
+                {imageFormat}
+              </span>
+            )}
+          </div>
         )}
         
         {/* شارة جديد - أعلى اليمين */}
