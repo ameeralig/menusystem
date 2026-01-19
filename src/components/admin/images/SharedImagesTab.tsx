@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { 
   Image as ImageIcon, 
   Upload, 
@@ -14,12 +13,13 @@ import {
   Plus,
   X,
   Filter,
-  Zap
+  Cloud,
+  RefreshCw
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { optimizeImage, uploadImage } from "@/utils/storageHelpers";
-import { uploadToCloudinary, getOriginalImageInfo, formatBytes } from "@/utils/cloudinaryUpload";
+import { uploadToCloudflareR2 } from "@/utils/cloudflareR2Upload";
+import { formatBytes } from "@/utils/cloudinaryUpload";
 import { 
   Dialog,
   DialogContent,
@@ -35,6 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
 
 interface SharedImage {
   id: string;
@@ -55,8 +56,8 @@ const SharedImagesTab = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [useCloudinary, setUseCloudinary] = useState(false);
-  const [savingsInfo, setSavingsInfo] = useState<string | null>(null);
+  const [migrating, setMigrating] = useState(false);
+  const [migrationProgress, setMigrationProgress] = useState(0);
   
   // حقول الإضافة
   const [newImage, setNewImage] = useState({
@@ -115,7 +116,6 @@ const SharedImagesTab = () => {
     }
 
     setUploading(true);
-    setSavingsInfo(null);
     
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -124,49 +124,78 @@ const SharedImagesTab = () => {
         return;
       }
 
-      let imageUrl: string;
-      const originalInfo = getOriginalImageInfo(newImage.file);
+      // الرفع مباشرة إلى Cloudflare R2
+      console.log('[SharedImages] Uploading to Cloudflare R2...');
+      const r2Result = await uploadToCloudflareR2(newImage.file, {
+        folder: 'shared-images',
+        userId: user.id,
+      });
 
-      if (useCloudinary) {
-        // رفع محسّن عبر Cloudinary
-        const cloudinaryResult = await uploadToCloudinary(newImage.file, {
-          convertToWebp: true,
-          folder: 'shared'
-        });
-
-        imageUrl = cloudinaryResult.url;
-        setSavingsInfo(`تم توفير ${cloudinaryResult.savings.formatted} (${cloudinaryResult.savings.percentage}%)`);
-
-        toast.success(`تم رفع الصورة وتوفير ${cloudinaryResult.savings.formatted}`);
-      } else {
-        // تحسين ورفع الصورة عادي
-        const optimizedFile = await optimizeImage(newImage.file);
-        imageUrl = await uploadImage("product-images", optimizedFile, "shared", "");
-
-        if (!imageUrl) throw new Error("فشل في رفع الصورة");
-        toast.success("تم رفع الصورة بنجاح");
+      if (!r2Result.success || !r2Result.url) {
+        throw new Error('فشل في رفع الصورة إلى Cloudflare R2');
       }
+
+      console.log('[SharedImages] Uploaded to R2:', r2Result.url);
 
       // حفظ في قاعدة البيانات
       const { error } = await supabase.from('shared_images').insert({
         name: newImage.name.trim(),
         description: newImage.description.trim() || null,
-        image_url: imageUrl,
+        image_url: r2Result.url,
         category: newImage.category,
         uploaded_by: user.id
       });
 
       if (error) throw error;
 
+      toast.success("تم رفع الصورة إلى Cloudflare R2 بنجاح");
       setNewImage({ name: "", description: "", category: "عام", file: null, preview: null });
       setDialogOpen(false);
-      setSavingsInfo(null);
       fetchImages();
     } catch (error: any) {
       console.error("Error uploading image:", error);
       toast.error(error.message || "فشل في رفع الصورة");
     } finally {
       setUploading(false);
+    }
+  };
+
+  // نقل الصور الحالية إلى R2
+  const handleMigrateToR2 = async () => {
+    const supabaseImages = images.filter(img => !img.image_url.includes('r2.dev'));
+    
+    if (supabaseImages.length === 0) {
+      toast.info("جميع الصور موجودة بالفعل على Cloudflare R2");
+      return;
+    }
+
+    const confirm = window.confirm(
+      `سيتم نقل ${supabaseImages.length} صورة من Supabase إلى Cloudflare R2. هل تريد المتابعة؟`
+    );
+    if (!confirm) return;
+
+    setMigrating(true);
+    setMigrationProgress(0);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('migrate-shared-images-to-r2');
+      
+      if (error) throw error;
+
+      console.log('[Migration] Result:', data);
+      
+      if (data.success) {
+        toast.success(data.message);
+        fetchImages();
+      } else {
+        throw new Error(data.error || 'فشل في نقل الصور');
+      }
+    } catch (error: any) {
+      console.error('[Migration] Error:', error);
+      toast.error(error.message || "فشل في نقل الصور");
+    } finally {
+      setMigrating(false);
+      setMigrationProgress(0);
     }
   };
 
@@ -208,29 +237,55 @@ const SharedImagesTab = () => {
     return matchesSearch && matchesCategory;
   });
 
+  // عدد الصور على كل منصة
+  const r2ImagesCount = images.filter(img => img.image_url.includes('r2.dev')).length;
+  const supabaseImagesCount = images.filter(img => !img.image_url.includes('r2.dev') && !img.image_url.includes('cloudinary')).length;
+  const cloudinaryImagesCount = images.filter(img => img.image_url.includes('cloudinary')).length;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-xl font-bold">مستودع الصور المشتركة</h2>
           <p className="text-sm text-muted-foreground">
-            إدارة الصور المشتركة التي يمكن للمستخدمين استخدامها في منتجاتهم
+            إدارة الصور المشتركة - يتم رفع الصور الجديدة إلى Cloudflare R2
           </p>
         </div>
         
-        <Dialog open={dialogOpen} onOpenChange={(open) => {
-          setDialogOpen(open);
-          if (!open) {
-            setSavingsInfo(null);
-            setNewImage({ name: "", description: "", category: "عام", file: null, preview: null });
-          }
-        }}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 ml-2" />
-              إضافة صورة
+        <div className="flex gap-2">
+          {/* زر نقل الصور */}
+          {supabaseImagesCount > 0 && (
+            <Button
+              variant="outline"
+              onClick={handleMigrateToR2}
+              disabled={migrating}
+            >
+              {migrating ? (
+                <>
+                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                  جاري النقل...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-4 h-4 ml-2" />
+                  نقل {supabaseImagesCount} صورة إلى R2
+                </>
+              )}
             </Button>
-          </DialogTrigger>
+          )}
+          
+          <Dialog open={dialogOpen} onOpenChange={(open) => {
+            setDialogOpen(open);
+            if (!open) {
+              setNewImage({ name: "", description: "", category: "عام", file: null, preview: null });
+            }
+          }}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="w-4 h-4 ml-2" />
+                إضافة صورة
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>إضافة صورة جديدة</DialogTitle>
@@ -274,31 +329,24 @@ const SharedImagesTab = () => {
                 )}
               </div>
 
-              {/* خيار تحسين Cloudinary */}
-              <div className="flex items-center justify-between bg-muted/50 p-3 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-yellow-500" />
-                  <Label htmlFor="cloudinary-switch" className="text-sm cursor-pointer">
-                    تحسين WebP (Cloudinary)
-                  </Label>
+              {/* معلومات الرفع إلى R2 */}
+              <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
+                <Cloud className="h-5 w-5 text-blue-500" />
+                <div>
+                  <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                    الرفع إلى Cloudflare R2
+                  </p>
+                  <p className="text-xs text-blue-600 dark:text-blue-400">
+                    سيتم رفع الصورة مباشرة إلى خوادم Cloudflare العالمية
+                  </p>
                 </div>
-                <Switch
-                  id="cloudinary-switch"
-                  checked={useCloudinary}
-                  onCheckedChange={setUseCloudinary}
-                />
               </div>
 
-              {useCloudinary && (
-                <p className="text-xs text-muted-foreground bg-yellow-50 p-2 rounded">
-                  سيتم تحويل الصورة إلى WebP لتوفير المساحة وتحسين سرعة التحميل
-                </p>
-              )}
-
-              {savingsInfo && (
-                <p className="text-sm text-green-600 bg-green-50 p-2 rounded text-center">
-                  {savingsInfo}
-                </p>
+              {migrating && (
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">جاري نقل الصور...</p>
+                  <Progress value={migrationProgress} />
+                </div>
               )}
 
               <div>
@@ -357,6 +405,7 @@ const SharedImagesTab = () => {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* فلاتر البحث */}
@@ -411,15 +460,23 @@ const SharedImagesTab = () => {
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />
-                {/* شارة Cloudinary */}
-                {image.image_url.includes('cloudinary') && (
-                  <div className="absolute top-2 left-2">
-                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-700 text-xs">
-                      <Zap className="w-3 h-3 mr-1" />
-                      WebP
+                {/* شارة نوع التخزين */}
+                <div className="absolute top-2 left-2">
+                  {image.image_url.includes('r2.dev') ? (
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-700 text-xs dark:bg-blue-900 dark:text-blue-300">
+                      <Cloud className="w-3 h-3 mr-1" />
+                      R2
                     </Badge>
-                  </div>
-                )}
+                  ) : image.image_url.includes('cloudinary') ? (
+                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-700 text-xs">
+                      Cloudinary
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs dark:bg-green-900 dark:text-green-300">
+                      Supabase
+                    </Badge>
+                  )}
+                </div>
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <Button
                     variant="destructive"
@@ -469,11 +526,17 @@ const SharedImagesTab = () => {
               </p>
               <p className="text-sm text-muted-foreground">التصنيفات</p>
             </div>
-            <div className="text-center p-4 bg-muted rounded-lg">
-              <p className="text-2xl font-bold text-yellow-600">
-                {images.filter(img => img.image_url.includes('cloudinary')).length}
-              </p>
-              <p className="text-sm text-muted-foreground">صور محسّنة</p>
+            <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+              <p className="text-2xl font-bold text-blue-600">{r2ImagesCount}</p>
+              <p className="text-sm text-muted-foreground">Cloudflare R2</p>
+            </div>
+            <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+              <p className="text-2xl font-bold text-green-600">{supabaseImagesCount}</p>
+              <p className="text-sm text-muted-foreground">Supabase</p>
+            </div>
+            <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
+              <p className="text-2xl font-bold text-yellow-600">{cloudinaryImagesCount}</p>
+              <p className="text-sm text-muted-foreground">Cloudinary</p>
             </div>
           </div>
         </CardContent>
