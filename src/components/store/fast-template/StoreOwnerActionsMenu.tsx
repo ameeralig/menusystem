@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Settings, Plus, Moon, Sun, ShoppingBag, DollarSign, Info, Eye, BarChart3, LogOut, Users } from "lucide-react";
+import { Settings, Plus, Moon, Sun, ShoppingBag, DollarSign, Info, Eye, BarChart3, LogOut, Users, Cloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import ProfileSheet from "./ProfileSheet";
 import StoreStatsCard from "../stats/StoreStatsCard";
 import EmployeeManagementCard from "../employees/EmployeeManagementCard";
+import ProductImageMigrationCard from "./ProductImageMigrationCard";
 
 interface StoreOwnerActionsMenuProps {
   storeOwnerId: string;
@@ -43,6 +44,7 @@ const StoreOwnerActionsMenu = ({
   const [showDeliveryFee, setShowDeliveryFee] = useState(false);
   const [showStatsCard, setShowStatsCard] = useState(false);
   const [showEmployeeCard, setShowEmployeeCard] = useState(false);
+  const [showMigrationCard, setShowMigrationCard] = useState(false);
   const [employeeSystemEnabled, setEmployeeSystemEnabled] = useState(false);
 
   useEffect(() => {
@@ -211,6 +213,19 @@ const StoreOwnerActionsMenu = ({
               الإحصائيات
             </Button>
 
+            {/* زر إدارة الصور */}
+            <Button
+              onClick={() => {
+                setShowMigrationCard(true);
+                setIsOpen(false);
+              }}
+              className="justify-start gap-2 h-10"
+              style={{ background: '#f97316' }}
+            >
+              <Cloud className="h-4 w-4" />
+              إدارة الصور
+            </Button>
+
             {/* زر إدارة الموظفين - يظهر فقط إذا كان النظام مفعل */}
             {employeeSystemEnabled && (
               <Button
@@ -354,6 +369,15 @@ const StoreOwnerActionsMenu = ({
       onClose={() => setShowEmployeeCard(false)}
       colorTheme={colorTheme}
       storeOwnerId={storeOwnerId}
+    />
+
+    {/* بطاقة إدارة صور المنتجات */}
+    <ProductImageMigrationCard
+      isOpen={showMigrationCard}
+      onClose={() => setShowMigrationCard(false)}
+      storeOwnerId={storeOwnerId}
+      colorTheme={colorTheme}
+      onMigrationComplete={onUpdate}
     />
   </>
   );
