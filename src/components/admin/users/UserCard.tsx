@@ -1,216 +1,213 @@
-import { User } from "@/components/admin/users/userTypes";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
+import { 
+  User, 
+  Store, 
+  Mail, 
+  Phone, 
+  Eye, 
+  Package, 
+  Clock, 
+  Shield, 
+  Ban, 
+  Trash2, 
+  MessageCircle, 
+  CheckCircle,
+  ExternalLink,
+  Users,
+  UserCheck,
+  UserX,
+  ShieldX,
+  Send
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { 
-  CheckCircle, 
-  Shield, 
-  ShieldX, 
-  Send, 
-  Trash, 
-  UserCheck, 
-  UserX,
-  Store,
-  Package,
-  Eye,
-  Phone,
-  Mail,
-  Calendar,
-  Users,
-  ChevronRight
-} from "lucide-react";
-import { formatDate } from "@/components/admin/users/userUtils";
+import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { User as UserType } from "./userTypes";
+import { formatDate } from "./userUtils";
 
 interface UserCardProps {
-  user: User;
-  openActionDialog: (user: User, action: "ban" | "delete" | "role" | "message" | "approve") => void;
+  user: UserType;
+  openActionDialog: (user: UserType, action: "ban" | "delete" | "role" | "message" | "approve") => void;
   onToggleEmployeeSystem?: (userId: string, currentStatus: boolean) => Promise<void>;
 }
 
 const UserCard = ({ user, openActionDialog, onToggleEmployeeSystem }: UserCardProps) => {
   const navigate = useNavigate();
 
-  const handleViewDetails = () => {
-    navigate(`/admin/users/${user.id}`);
+  const getStatusInfo = () => {
+    if (user.account_status === "pending") {
+      return { label: "قيد المراجعة", color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" };
+    }
+    if (user.status === "banned") {
+      return { label: "محظور", color: "bg-red-500/20 text-red-400 border-red-500/30" };
+    }
+    return { label: "نشط", color: "bg-green-500/20 text-green-400 border-green-500/30" };
   };
 
-  return (
-    <Card className="hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/50">
-      <CardContent className="p-6">
-        <div className="flex flex-col gap-4">
-          {/* Header Section */}
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <h3 className="font-semibold text-lg truncate">{user.email}</h3>
-              </div>
-              
-              {user.store_name && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Store className="h-4 w-4" />
-                  <span className="text-sm">{user.store_name}</span>
-                </div>
-              )}
-            </div>
+  const statusInfo = getStatusInfo();
 
-            {/* Status Badges */}
-            <div className="flex flex-col gap-2 items-end">
-              {user.account_status === "pending" ? (
-                <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">
-                  قيد المراجعة
-                </Badge>
-              ) : user.status === "active" ? (
-                <Badge className="bg-green-500 hover:bg-green-600">نشط</Badge>
-              ) : user.status === "banned" ? (
-                <Badge variant="destructive">محظور</Badge>
-              ) : (
-                <Badge variant="outline">غير معروف</Badge>
-              )}
-              
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      whileHover={{ y: -3 }}
+      transition={{ duration: 0.3 }}
+      className="relative overflow-hidden rounded-2xl backdrop-blur-xl bg-white/5 border border-white/10 group"
+    >
+      {/* Header Gradient */}
+      <div className={`h-1.5 bg-gradient-to-r ${
+        user.status === 'banned' 
+          ? 'from-red-500 to-rose-600' 
+          : user.account_status === 'pending' 
+            ? 'from-yellow-500 to-orange-500' 
+            : 'from-cyan-400 to-blue-500'
+      }`} />
+
+      <div className="p-5">
+        {/* User Info Header */}
+        <div className="flex items-start gap-4 mb-4">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-400/20 to-blue-500/20 border border-white/10 flex items-center justify-center flex-shrink-0">
+            <User className="w-6 h-6 text-cyan-400" />
+          </div>
+          
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <h3 className="font-bold text-white truncate text-sm">
+                {user.store_name || 'بدون اسم متجر'}
+              </h3>
               {user.role === "admin" && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <Shield className="h-3 w-3" />
+                <Badge className="bg-purple-500/20 text-purple-400 border border-purple-500/30 text-[10px] px-1.5">
+                  <Shield className="w-3 h-3 ml-1" />
                   مسؤول
                 </Badge>
               )}
             </div>
+            <p className="text-white/50 text-xs truncate flex items-center gap-1">
+              <Mail className="w-3 h-3" />
+              {user.email}
+            </p>
           </div>
+        </div>
 
-          {/* Stats Section */}
-          <div className="grid grid-cols-3 gap-4 py-4 border-y">
-            <div className="flex flex-col items-center text-center">
-              <Eye className="h-5 w-5 text-primary mb-1" />
-              <span className="text-2xl font-bold">{user.visitsCount}</span>
-              <span className="text-xs text-muted-foreground">زيارة</span>
+        {/* Status Badge */}
+        <div className="mb-4">
+          <Badge className={`${statusInfo.color} border text-xs`}>
+            {statusInfo.label}
+          </Badge>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+            <div className="flex items-center gap-2 text-white/50 text-[10px] mb-1">
+              <Eye className="w-3 h-3" />
+              الزيارات
             </div>
-            
-            <div className="flex flex-col items-center text-center border-x">
-              <Package className="h-5 w-5 text-primary mb-1" />
-              <span className="text-2xl font-bold">{user.productsCount}</span>
-              <span className="text-xs text-muted-foreground">منتج</span>
-            </div>
-            
-            <div className="flex flex-col items-center text-center">
-              <Users className="h-5 w-5 text-primary mb-1" />
-              <span className="text-2xl font-bold">-</span>
-              <span className="text-xs text-muted-foreground">موظف</span>
-            </div>
+            <p className="text-white font-bold text-lg">{user.visitsCount?.toLocaleString('ar-EG') || 0}</p>
           </div>
-
-          {/* Info Section */}
-          <div className="space-y-2 text-sm">
-            {user.phone && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Phone className="h-4 w-4" />
-                <span>{user.phone}</span>
-              </div>
-            )}
-            
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span>آخر نشاط: {formatDate(user.lastActivity)}</span>
+          <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+            <div className="flex items-center gap-2 text-white/50 text-[10px] mb-1">
+              <Package className="w-3 h-3" />
+              المنتجات
             </div>
+            <p className="text-white font-bold text-lg">{user.productsCount?.toLocaleString('ar-EG') || 0}</p>
           </div>
+        </div>
 
-          {/* Employee System Toggle */}
-          <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-            <span className="text-sm font-medium">نظام الموظفين</span>
+        {/* Phone if available */}
+        {user.phone && (
+          <div className="flex items-center gap-2 text-white/50 text-xs mb-3 bg-white/5 rounded-xl p-2.5 border border-white/5">
+            <Phone className="w-3 h-3" />
+            <span dir="ltr">{user.phone}</span>
+          </div>
+        )}
+
+        {/* Last Activity */}
+        <div className="flex items-center gap-2 text-white/40 text-[10px] mb-4">
+          <Clock className="w-3 h-3" />
+          آخر نشاط: {formatDate(user.lastActivity)}
+        </div>
+
+        {/* Employee System Toggle */}
+        {onToggleEmployeeSystem && (
+          <div className="flex items-center justify-between bg-white/5 rounded-xl p-3 border border-white/5 mb-4">
+            <div className="flex items-center gap-2 text-white/70 text-xs">
+              <Users className="w-4 h-4" />
+              نظام الموظفين
+            </div>
             <div className="flex items-center gap-2">
               <Switch
                 checked={user.employee_system_enabled || false}
                 onCheckedChange={() => onToggleEmployeeSystem?.(user.id, user.employee_system_enabled || false)}
-                disabled={!onToggleEmployeeSystem}
               />
-              <span className="text-xs text-muted-foreground">
+              <span className="text-[10px] text-white/50">
                 {user.employee_system_enabled ? 'مفعل' : 'معطل'}
               </span>
             </div>
           </div>
+        )}
 
-          {/* Actions Section */}
-          <div className="flex flex-wrap gap-2">
-            {user.account_status === "pending" && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => openActionDialog(user, "approve")}
-                className="flex-1 bg-green-50 hover:bg-green-100 border-green-200"
-              >
-                <CheckCircle className="h-4 w-4 mr-1 text-green-600" />
-                الموافقة
-              </Button>
-            )}
-            
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-1.5">
+          {user.account_status === 'pending' && (
             <Button
               size="sm"
-              variant="outline"
-              onClick={() => openActionDialog(user, "ban")}
-              className="flex-1"
+              onClick={() => openActionDialog(user, 'approve')}
+              className="flex-1 h-8 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-[10px] font-bold px-2"
             >
-              {user.status === "banned" ? (
-                <>
-                  <UserCheck className="h-4 w-4 mr-1" />
-                  إلغاء الحظر
-                </>
-              ) : (
-                <>
-                  <UserX className="h-4 w-4 mr-1" />
-                  حظر
-                </>
-              )}
+              <CheckCircle className="w-3 h-3 ml-1" />
+              موافقة
             </Button>
-            
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => openActionDialog(user, "role")}
-              className="flex-1"
-            >
-              {user.role === "admin" ? (
-                <>
-                  <ShieldX className="h-4 w-4 mr-1" />
-                  إزالة الإدارة
-                </>
-              ) : (
-                <>
-                  <Shield className="h-4 w-4 mr-1" />
-                  ترقية
-                </>
-              )}
-            </Button>
-            
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => openActionDialog(user, "message")}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-            
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={() => openActionDialog(user, "delete")}
-            >
-              <Trash className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* View Details Button */}
-          <Button 
-            variant="ghost" 
-            className="w-full mt-2" 
-            onClick={handleViewDetails}
+          )}
+          
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => openActionDialog(user, 'ban')}
+            className="h-8 w-8 p-0 rounded-lg bg-white/5 text-white/70 hover:bg-red-500/20 hover:text-red-400 border border-white/5"
           >
-            عرض التفاصيل الكاملة
-            <ChevronRight className="h-4 w-4 mr-2" />
+            {user.status === "banned" ? <UserCheck className="w-3.5 h-3.5" /> : <UserX className="w-3.5 h-3.5" />}
+          </Button>
+          
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => openActionDialog(user, 'role')}
+            className="h-8 w-8 p-0 rounded-lg bg-white/5 text-white/70 hover:bg-purple-500/20 hover:text-purple-400 border border-white/5"
+          >
+            {user.role === "admin" ? <ShieldX className="w-3.5 h-3.5" /> : <Shield className="w-3.5 h-3.5" />}
+          </Button>
+          
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => openActionDialog(user, 'message')}
+            className="h-8 w-8 p-0 rounded-lg bg-white/5 text-white/70 hover:bg-blue-500/20 hover:text-blue-400 border border-white/5"
+          >
+            <Send className="w-3.5 h-3.5" />
+          </Button>
+          
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => openActionDialog(user, 'delete')}
+            className="h-8 w-8 p-0 rounded-lg bg-white/5 text-white/70 hover:bg-red-500/20 hover:text-red-400 border border-white/5"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </Button>
+          
+          <Button
+            size="sm"
+            onClick={() => navigate(`/admin/users/${user.id}`)}
+            className="flex-1 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-white text-[10px] font-bold border border-white/10 px-2"
+          >
+            <ExternalLink className="w-3 h-3 ml-1" />
+            التفاصيل
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </motion.div>
   );
 };
 
