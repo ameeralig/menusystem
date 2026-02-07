@@ -371,13 +371,11 @@ serve(async (req) => {
         throw userError;
       }
       
-      const hundredYearsFromNow = new Date();
-      hundredYearsFromNow.setFullYear(hundredYearsFromNow.getFullYear() + 100);
-      
+      // 1) حظر المستخدم من تسجيل الدخول باستخدام ban_duration
       const { error: suspendError } = await supabase.auth.admin.updateUserById(
         userId,
         { 
-          banned_until: hundredYearsFromNow.toISOString(),
+          ban_duration: '876000h',
           user_metadata: {
             ...userData?.user?.user_metadata,
             is_suspended: true
@@ -389,6 +387,18 @@ serve(async (req) => {
         console.error('خطأ في إيقاف المستخدم:', suspendError);
         throw suspendError;
       }
+      
+      // 2) تحديث store_settings لمنع عرض المتجر للزوار
+      const { error: storeError } = await supabase
+        .from('store_settings')
+        .update({ is_suspended: true })
+        .eq('user_id', userId);
+      
+      if (storeError) {
+        console.warn('خطأ في تحديث حالة المتجر:', storeError);
+      }
+      
+      console.log(`تم إيقاف المستخدم ${userId} بنجاح`);
       
       return new Response(
         JSON.stringify({ success: true, action: 'suspend' }),
@@ -409,10 +419,11 @@ serve(async (req) => {
       const updatedMetadata = { ...userData?.user?.user_metadata };
       delete updatedMetadata.is_suspended;
       
+      // 1) إلغاء حظر المستخدم
       const { error: unsuspendError } = await supabase.auth.admin.updateUserById(
         userId,
         { 
-          banned_until: null,
+          ban_duration: 'none',
           user_metadata: updatedMetadata
         }
       );
@@ -421,6 +432,18 @@ serve(async (req) => {
         console.error('خطأ في إعادة تشغيل المستخدم:', unsuspendError);
         throw unsuspendError;
       }
+      
+      // 2) إعادة تفعيل المتجر للزوار
+      const { error: storeError } = await supabase
+        .from('store_settings')
+        .update({ is_suspended: false })
+        .eq('user_id', userId);
+      
+      if (storeError) {
+        console.warn('خطأ في تحديث حالة المتجر:', storeError);
+      }
+      
+      console.log(`تم إعادة تشغيل المستخدم ${userId} بنجاح`);
       
       return new Response(
         JSON.stringify({ success: true, action: 'unsuspend' }),

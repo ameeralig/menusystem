@@ -75,7 +75,8 @@ export const useOptimizedStoreData = (slug: string | undefined, forceRefresh: nu
     products: allProducts,
     visibleProducts: products,
     categoryImages,
-    categories
+    categories,
+    isSuspended: unifiedData?.isSuspended || false,
   };
 
   return {
