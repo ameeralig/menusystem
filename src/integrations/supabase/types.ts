@@ -681,6 +681,7 @@ export type Database = {
           employee_system_enabled: boolean | null
           external_orders_enabled: boolean | null
           font_settings: Json | null
+          is_suspended: boolean | null
           loading_tips: Json | null
           logo_url: string | null
           n8n_webhook_url: string | null
@@ -704,6 +705,7 @@ export type Database = {
           employee_system_enabled?: boolean | null
           external_orders_enabled?: boolean | null
           font_settings?: Json | null
+          is_suspended?: boolean | null
           loading_tips?: Json | null
           logo_url?: string | null
           n8n_webhook_url?: string | null
@@ -727,6 +729,7 @@ export type Database = {
           employee_system_enabled?: boolean | null
           external_orders_enabled?: boolean | null
           font_settings?: Json | null
+          is_suspended?: boolean | null
           loading_tips?: Json | null
           logo_url?: string | null
           n8n_webhook_url?: string | null

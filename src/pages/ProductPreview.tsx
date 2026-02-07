@@ -186,6 +186,26 @@ const ProductPreview = () => {
     };
   }, [storeOwnerId, refreshData, isAutoRefresh]);
 
+  // عرض رسالة إيقاف الخدمة إذا كان المتجر موقوفاً
+  if (storeData?.isSuspended && !isStoreOwner) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
+        <div className="text-center space-y-6 p-8 max-w-md">
+          <div className="w-20 h-20 rounded-full bg-orange-500/20 flex items-center justify-center mx-auto">
+            <span className="text-4xl">⚠️</span>
+          </div>
+          <h2 className="text-2xl font-bold text-white">تم إيقاف الخدمة</h2>
+          <p className="text-gray-400 leading-relaxed">
+            تم إيقاف هذا المتجر مؤقتاً من قبل إدارة <span className="text-orange-400 font-bold">QRM</span>
+          </p>
+          <p className="text-gray-500 text-sm">
+            للاستفسار يرجى التواصل مع الدعم الفني
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // عرض رسالة خطأ إذا لم يتم العثور على المتجر
   if (identificationError && !loadingStates.identifying) {
     return (
