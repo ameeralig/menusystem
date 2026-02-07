@@ -113,20 +113,28 @@ export const useUsers = () => {
       const rolesMap = new Map(rolesData ? rolesData.map((role: any) => [role.user_id, role.role]) : []);
       
       // دمج البيانات
-      const enrichedUsers = userData?.users ? userData.users.map((user: any) => ({
-        id: user.id,
-        email: user.email || '',
-        created_at: user.created_at,
-        store_name: storeMap.get(user.id) || null,
-        status: user.banned_until ? "banned" : "active",
-        role: rolesMap.get(user.id) || 'user',
-        lastActivity: user.last_sign_in_at || user.created_at,
-        visitsCount: viewsMap.get(user.id) || 0,
-        productsCount: productsMap.get(user.id) || 0,
-        phone: user.user_metadata?.phone || null,
-        account_status: user.user_metadata?.account_status || 'active',
-        employee_system_enabled: employeeSystemMap.get(user.id) || false
-      })) : [];
+      const enrichedUsers = userData?.users ? userData.users.map((user: any) => {
+        // تحديد الحالة: suspended إذا كان banned مع علامة is_suspended
+        let status: "active" | "banned" | "suspended" = "active";
+        if (user.banned_until) {
+          status = user.user_metadata?.is_suspended ? "suspended" : "banned";
+        }
+        
+        return {
+          id: user.id,
+          email: user.email || '',
+          created_at: user.created_at,
+          store_name: storeMap.get(user.id) || null,
+          status,
+          role: rolesMap.get(user.id) || 'user',
+          lastActivity: user.last_sign_in_at || user.created_at,
+          visitsCount: viewsMap.get(user.id) || 0,
+          productsCount: productsMap.get(user.id) || 0,
+          phone: user.user_metadata?.phone || null,
+          account_status: user.user_metadata?.account_status || 'active',
+          employee_system_enabled: employeeSystemMap.get(user.id) || false
+        };
+      }) : [];
 
       // طباعة بيانات المستخدمين المعالجة للتصحيح
       console.log("بيانات المستخدمين المعالجة:", enrichedUsers);
@@ -312,6 +320,37 @@ export const useUsers = () => {
     }
   };
 
+  const toggleUserSuspension = async (userId: string, currentlySuspended: boolean) => {
+    try {
+      const action = currentlySuspended ? 'unsuspend' : 'suspend';
+      
+      const { error } = await supabase.functions.invoke('manage-user', {
+        body: { action, userId }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "تم بنجاح",
+        description: currentlySuspended ? "تم إعادة تشغيل الحساب بنجاح" : "تم إيقاف الحساب مؤقتاً"
+      });
+
+      // تحديث البيانات المحلية
+      setUsers(prev => prev.map(user => 
+        user.id === userId 
+          ? { ...user, status: currentlySuspended ? "active" as const : "suspended" as const }
+          : user
+      ));
+    } catch (error: any) {
+      console.error("Error toggling user suspension:", error);
+      toast({
+        variant: "destructive",
+        title: "خطأ",
+        description: "حدث خطأ أثناء تحديث حالة الحساب"
+      });
+    }
+  };
+
   return {
     users,
     filteredUsers,
@@ -332,6 +371,7 @@ export const useUsers = () => {
     isProcessing,
     handleUserAction,
     openActionDialog,
-    toggleEmployeeSystem
+    toggleEmployeeSystem,
+    toggleUserSuspension
   };
 };

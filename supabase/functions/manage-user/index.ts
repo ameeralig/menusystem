@@ -360,6 +360,74 @@ serve(async (req) => {
       );
     } 
     
+    else if (action === 'suspend') {
+      // إيقاف المستخدم مؤقتاً
+      console.log(`إيقاف المستخدم مؤقتاً: ${userId}`);
+      
+      // جلب بيانات المستخدم الحالية للحفاظ على metadata
+      const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+      if (userError) {
+        console.error('خطأ في جلب بيانات المستخدم:', userError);
+        throw userError;
+      }
+      
+      const hundredYearsFromNow = new Date();
+      hundredYearsFromNow.setFullYear(hundredYearsFromNow.getFullYear() + 100);
+      
+      const { error: suspendError } = await supabase.auth.admin.updateUserById(
+        userId,
+        { 
+          banned_until: hundredYearsFromNow.toISOString(),
+          user_metadata: {
+            ...userData?.user?.user_metadata,
+            is_suspended: true
+          }
+        }
+      );
+      
+      if (suspendError) {
+        console.error('خطأ في إيقاف المستخدم:', suspendError);
+        throw suspendError;
+      }
+      
+      return new Response(
+        JSON.stringify({ success: true, action: 'suspend' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    else if (action === 'unsuspend') {
+      // إعادة تشغيل المستخدم
+      console.log(`إعادة تشغيل المستخدم: ${userId}`);
+      
+      // جلب بيانات المستخدم الحالية للحفاظ على metadata
+      const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+      if (userError) {
+        console.error('خطأ في جلب بيانات المستخدم:', userError);
+        throw userError;
+      }
+      
+      const updatedMetadata = { ...userData?.user?.user_metadata };
+      delete updatedMetadata.is_suspended;
+      
+      const { error: unsuspendError } = await supabase.auth.admin.updateUserById(
+        userId,
+        { 
+          banned_until: null,
+          user_metadata: updatedMetadata
+        }
+      );
+      
+      if (unsuspendError) {
+        console.error('خطأ في إعادة تشغيل المستخدم:', unsuspendError);
+        throw unsuspendError;
+      }
+      
+      return new Response(
+        JSON.stringify({ success: true, action: 'unsuspend' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     // إذا وصلنا هنا فالإجراء غير صالح
     return new Response(
       JSON.stringify({ error: `إجراء غير صالح: ${action}` }),
