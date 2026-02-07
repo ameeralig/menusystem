@@ -17,7 +17,8 @@ import {
   UserCheck,
   UserX,
   ShieldX,
-  Send
+  Send,
+  Power
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -30,14 +31,18 @@ interface UserCardProps {
   user: UserType;
   openActionDialog: (user: UserType, action: "ban" | "delete" | "role" | "message" | "approve") => void;
   onToggleEmployeeSystem?: (userId: string, currentStatus: boolean) => Promise<void>;
+  onToggleSuspension?: (userId: string, currentlySuspended: boolean) => Promise<void>;
 }
 
-const UserCard = ({ user, openActionDialog, onToggleEmployeeSystem }: UserCardProps) => {
+const UserCard = ({ user, openActionDialog, onToggleEmployeeSystem, onToggleSuspension }: UserCardProps) => {
   const navigate = useNavigate();
 
   const getStatusInfo = () => {
     if (user.account_status === "pending") {
       return { label: "قيد المراجعة", color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" };
+    }
+    if (user.status === "suspended") {
+      return { label: "موقف مؤقتاً", color: "bg-orange-500/20 text-orange-400 border-orange-500/30" };
     }
     if (user.status === "banned") {
       return { label: "محظور", color: "bg-red-500/20 text-red-400 border-red-500/30" };
@@ -57,11 +62,13 @@ const UserCard = ({ user, openActionDialog, onToggleEmployeeSystem }: UserCardPr
     >
       {/* Header Gradient */}
       <div className={`h-1.5 bg-gradient-to-r ${
-        user.status === 'banned' 
-          ? 'from-red-500 to-rose-600' 
-          : user.account_status === 'pending' 
-            ? 'from-yellow-500 to-orange-500' 
-            : 'from-cyan-400 to-blue-500'
+        user.status === 'suspended'
+          ? 'from-orange-500 to-amber-500'
+          : user.status === 'banned' 
+            ? 'from-red-500 to-rose-600' 
+            : user.account_status === 'pending' 
+              ? 'from-yellow-500 to-orange-500' 
+              : 'from-cyan-400 to-blue-500'
       }`} />
 
       <div className="p-5">
@@ -128,6 +135,25 @@ const UserCard = ({ user, openActionDialog, onToggleEmployeeSystem }: UserCardPr
           <Clock className="w-3 h-3" />
           آخر نشاط: {formatDate(user.lastActivity)}
         </div>
+
+        {/* Account Suspension Toggle */}
+        {onToggleSuspension && (
+          <div className="flex items-center justify-between bg-white/5 rounded-xl p-3 border border-white/5 mb-4">
+            <div className="flex items-center gap-2 text-white/70 text-xs">
+              <Power className="w-4 h-4" />
+              حالة الحساب
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={user.status !== 'suspended'}
+                onCheckedChange={() => onToggleSuspension(user.id, user.status === 'suspended')}
+              />
+              <span className={`text-[10px] ${user.status === 'suspended' ? 'text-orange-400' : 'text-green-400'}`}>
+                {user.status === 'suspended' ? 'موقف' : 'مفعل'}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Employee System Toggle */}
         {onToggleEmployeeSystem && (

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Search, RefreshCw, Filter, Users } from "lucide-react";
+import { Search, RefreshCw, Filter, Users, PowerOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -31,17 +31,19 @@ const AdminUsersTab = () => {
     isProcessing,
     handleUserAction,
     openActionDialog,
-    toggleEmployeeSystem
+    toggleEmployeeSystem,
+    toggleUserSuspension
   } = useUsers();
 
   const totalUsers = filteredUsers.length;
   const activeUsers = filteredUsers.filter(u => u.status === 'active').length;
+  const suspendedUsers = filteredUsers.filter(u => u.status === 'suspended').length;
   const pendingUsers = filteredUsers.filter(u => u.account_status === 'pending_approval').length;
 
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <StatCard
           title="إجمالي المستخدمين"
           value={totalUsers}
@@ -55,6 +57,13 @@ const AdminUsersTab = () => {
           icon={Users}
           color="from-green-400 to-emerald-500"
           delay={0.1}
+        />
+        <StatCard
+          title="الموقوفين مؤقتاً"
+          value={suspendedUsers}
+          icon={PowerOff}
+          color="from-orange-400 to-amber-500"
+          delay={0.15}
         />
         <StatCard
           title="بانتظار الموافقة"
@@ -139,6 +148,7 @@ const AdminUsersTab = () => {
               user={user}
               openActionDialog={openActionDialog}
               onToggleEmployeeSystem={toggleEmployeeSystem}
+              onToggleSuspension={toggleUserSuspension}
             />
           ))}
         </motion.div>

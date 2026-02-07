@@ -7,7 +7,7 @@ interface UserDetails {
   email: string;
   created_at: string;
   store_name: string | null;
-  status: "active" | "banned" | "pending";
+  status: "active" | "banned" | "pending" | "suspended";
   role: string;
   lastActivity: string;
   visitsCount: number;
@@ -111,7 +111,7 @@ export const useUserDetails = (userId: string) => {
         email: user.email || '',
         created_at: user.created_at,
         store_name: storeData?.store_name || null,
-        status: user.banned_until ? "banned" : "active",
+        status: user.banned_until ? (user.user_metadata?.is_suspended ? "suspended" : "banned") : "active",
         role: roleData?.role || 'user',
         lastActivity: user.last_sign_in_at || user.created_at,
         visitsCount: viewsData?.view_count || 0,

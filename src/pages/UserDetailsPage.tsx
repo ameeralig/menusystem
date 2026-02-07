@@ -115,6 +115,11 @@ const UserDetailsPage = () => {
                       <CheckCircle className="h-3 w-3" />
                       نشط
                     </Badge>
+                  ) : userDetails.status === "suspended" ? (
+                    <Badge className="bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      موقف مؤقتاً
+                    </Badge>
                   ) : userDetails.status === "banned" ? (
                     <Badge className="bg-red-500/20 text-red-400 border border-red-500/30">محظور</Badge>
                   ) : (

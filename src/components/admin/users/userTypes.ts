@@ -1,5 +1,5 @@
 
-export type UserStatus = "active" | "banned" | "pending";
+export type UserStatus = "active" | "banned" | "pending" | "suspended";
 
 export interface User {
   id: string;
