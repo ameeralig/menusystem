@@ -6,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { getUrlWithTimestamp } from "@/utils/storageHelpers";
 import { useSmartUpload } from "@/hooks/useSmartUpload";
-import UploadDestinationSelector, { UploadDestination } from "@/components/shared/UploadDestinationSelector";
 
 interface AvatarUploadProps {
   currentAvatarUrl: string | null;
@@ -17,14 +16,10 @@ interface AvatarUploadProps {
 
 const AvatarUpload = ({ currentAvatarUrl, userId, userName, onAvatarUpdate }: AvatarUploadProps) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [uploadDestination, setUploadDestination] = useState<UploadDestination>('supabase');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-  
-  // Smart upload hook
   const { upload, isUploading } = useSmartUpload();
 
-  // تحديث معاينة الصورة عند تغيير currentAvatarUrl
   useEffect(() => {
     if (currentAvatarUrl) {
       const urlWithTimestamp = getUrlWithTimestamp(currentAvatarUrl);
@@ -47,65 +42,32 @@ const AvatarUpload = ({ currentAvatarUrl, userId, userName, onAvatarUpdate }: Av
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // قائمة بصيغ الصور المقبولة
-    const allowedImageTypes = [
-      'image/jpeg',
-      'image/jpg', 
-      'image/png',
-      'image/gif',
-      'image/webp',
-      'image/svg+xml',
-      'image/bmp',
-      'image/tiff',
-      'image/heic',
-      'image/heif'
-    ];
-
-    // قائمة بالامتدادات المقبولة كنسخة احتياطية
     const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.tiff', '.heic', '.heif'];
-    
-    // التحقق من نوع الملف أو الامتداد
     const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
-    const isValidType = file.type.startsWith("image/") || allowedImageTypes.includes(file.type.toLowerCase());
+    const isValidType = file.type.startsWith("image/");
     const isValidExtension = allowedExtensions.includes(fileExtension);
 
     if (!isValidType && !isValidExtension) {
-      toast({
-        title: "خطأ",
-        description: "يرجى اختيار ملف صورة صالح (JPG, PNG, GIF, WEBP, SVG, BMP, TIFF, HEIC)",
-        variant: "destructive",
-      });
+      toast({ title: "خطأ", description: "يرجى اختيار ملف صورة صالح", variant: "destructive" });
       return;
     }
 
-    // التحقق من حجم الملف (10MB max)
     if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: "خطأ",
-        description: "حجم الصورة يجب أن يكون أقل من 10 ميجابايت",
-        variant: "destructive",
-      });
+      toast({ title: "خطأ", description: "حجم الصورة يجب أن يكون أقل من 10 ميجابايت", variant: "destructive" });
       return;
     }
 
     try {
-      const result = await upload(
-        file,
-        uploadDestination,
-        {
-          bucket: 'avatars',
-          folder: '',
-          userId,
-          oldImageUrl: currentAvatarUrl,
-          showToast: false,
-        }
-      );
+      const result = await upload(file, {
+        bucket: 'avatars',
+        folder: '',
+        userId,
+        oldImageUrl: currentAvatarUrl,
+        showToast: false,
+      });
 
-      if (!result || !result.url) {
-        throw new Error("فشل في رفع الصورة");
-      }
+      if (!result || !result.url) throw new Error("فشل في رفع الصورة");
 
-      // تحديث قاعدة البيانات
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ avatar_url: result.url })
@@ -113,29 +75,19 @@ const AvatarUpload = ({ currentAvatarUrl, userId, userName, onAvatarUpdate }: Av
 
       if (updateError) throw updateError;
       
-      // تحديث الحالة بـ URL مع timestamp لتجنب الـ cache
       const urlWithTimestamp = getUrlWithTimestamp(result.url);
       setPreviewUrl(urlWithTimestamp);
       onAvatarUpdate(result.url);
 
-      toast({
-        title: "تم بنجاح",
-        description: `تم تحديث صورة الملف الشخصي عبر ${result.destination === 'cloudflare' ? 'Cloudflare R2' : 'Supabase'}`,
-      });
+      toast({ title: "تم بنجاح", description: "تم تحديث صورة الملف الشخصي" });
 
     } catch (error: any) {
       console.error("Error uploading avatar:", error);
-      toast({
-        title: "خطأ في رفع الصورة",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "خطأ في رفع الصورة", description: error.message, variant: "destructive" });
       const fallbackUrl = currentAvatarUrl ? getUrlWithTimestamp(currentAvatarUrl) : null;
       setPreviewUrl(fallbackUrl);
     } finally {
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -157,11 +109,7 @@ const AvatarUpload = ({ currentAvatarUrl, userId, userName, onAvatarUpdate }: Av
           onClick={() => fileInputRef.current?.click()}
           disabled={isUploading}
         >
-          {isUploading ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
-          ) : (
-            <Camera className="h-5 w-5" />
-          )}
+          {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
         </Button>
 
         <input
@@ -172,14 +120,6 @@ const AvatarUpload = ({ currentAvatarUrl, userId, userName, onAvatarUpdate }: Av
           onChange={handleFileSelect}
         />
       </div>
-
-      {/* اختيار وجهة الرفع */}
-      <UploadDestinationSelector
-        value={uploadDestination}
-        onChange={setUploadDestination}
-        disabled={isUploading}
-        compact
-      />
 
       <p className="text-sm text-muted-foreground text-center">
         انقر على أيقونة الكاميرا لتحديث صورة الملف الشخصي

@@ -2,8 +2,9 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { createUniqueFilePath, deleteOldImageIfExists } from "@/utils/storageHelpers";
-import { uploadToCloudinary, getOriginalImageInfo, formatBytes, type ImageInfo } from "@/utils/cloudinaryUpload";
+import { deleteOldImageIfExists } from "@/utils/storageHelpers";
+import { uploadToCloudflareR2 } from "@/utils/cloudflareR2Upload";
+import { getOriginalImageInfo, type ImageInfo } from "@/utils/cloudinaryUpload";
 
 interface UseBannerUploadProps {
   setBannerUrl: (url: string | null) => void;
@@ -25,11 +26,9 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
   const [imageUrl, setImageUrl] = useState<string>("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [useCloudinary, setUseCloudinary] = useState(false);
   const [lastUploadResult, setLastUploadResult] = useState<BannerUploadResult | null>(null);
   const { toast } = useToast();
 
-  // استعادة الصورة المحفوظة سابقاً
   useEffect(() => {
     if (initialUrl) {
       const timestamp = new Date().getTime();
@@ -57,73 +56,35 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
         return;
       }
 
-      // إنشاء عنوان URL مؤقت للمعاينة قبل الرفع
       const tempPreviewUrl = URL.createObjectURL(file);
       setPreviewUrl(tempPreviewUrl);
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("يجب تسجيل الدخول أولاً");
 
-      // حذف الصورة القديمة إذا وجدت
       if (initialUrl) {
         await deleteOldImageIfExists(initialUrl, 'banners');
       }
 
       const originalInfo = getOriginalImageInfo(file);
-      let finalUrl: string;
 
-      if (useCloudinary) {
-        // رفع محسّن عبر Cloudinary
-        const cloudinaryResult = await uploadToCloudinary(file, {
-          convertToWebp: true,
-          folder: `${user.id}/banners`
-        });
+      // رفع إلى Cloudflare R2
+      const r2Result = await uploadToCloudflareR2(file, {
+        folder: 'banners',
+        userId: user.id,
+      });
 
-        finalUrl = cloudinaryResult.url;
-        setLastUploadResult({
-          original: cloudinaryResult.original,
-          optimized: cloudinaryResult.optimized,
-          savings: cloudinaryResult.savings
-        });
+      if (!r2Result.success || !r2Result.url) throw new Error("فشل رفع الصورة إلى R2");
 
-        toast({
-          title: "تم رفع الصورة بنجاح",
-          description: `تم توفير ${cloudinaryResult.savings.formatted} (${cloudinaryResult.savings.percentage}%)`,
-          duration: 3000,
-        });
-      } else {
-        // رفع عادي إلى Supabase
-        const filePath = createUniqueFilePath(user.id, 'banners', file);
-        
-        const { data, error: uploadError } = await supabase.storage
-          .from('banners')
-          .upload(filePath, file, {
-            cacheControl: '0',
-            upsert: true
-          });
+      const finalUrl = r2Result.url;
+      setLastUploadResult({ original: originalInfo });
 
-        if (uploadError) throw uploadError;
+      toast({
+        title: "تم رفع الصورة بنجاح",
+        description: "يمكنك الآن حفظ التغييرات",
+        duration: 3000,
+      });
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('banners')
-          .getPublicUrl(filePath);
-
-        const timestamp = new Date().getTime();
-        const baseUrl = publicUrl.split('?')[0];
-        finalUrl = `${baseUrl}?t=${timestamp}`;
-
-        setLastUploadResult({
-          original: originalInfo
-        });
-
-        toast({
-          title: "تم رفع الصورة بنجاح",
-          description: "يمكنك الآن حفظ التغييرات",
-          duration: 3000,
-        });
-      }
-
-      // تحرير عنوان URL المؤقت
       URL.revokeObjectURL(tempPreviewUrl);
       
       setImageUrl(finalUrl);
@@ -139,23 +100,15 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
   };
 
   const handleUrlChange = (url: string) => {
-    if (!url) {
-      clearImage();
-      return;
-    }
-    
+    if (!url) { clearImage(); return; }
     try {
-      // تأكد من أن URL صالح
       new URL(url);
-      
-      // إضافة معرف زمني للصورة بعد إزالة أي معرفات موجودة
       const timestamp = new Date().getTime();
       const baseUrl = url.split('?')[0];
       const updatedUrl = `${baseUrl}?t=${timestamp}`;
-      
       setImageUrl(updatedUrl);
       setPreviewUrl(updatedUrl);
-      setBannerUrl(updatedUrl); // تحديث الرابط مباشرة هنا
+      setBannerUrl(updatedUrl);
       setError(null);
     } catch (e) {
       setError("الرجاء إدخال رابط صحيح للصورة");
@@ -170,16 +123,7 @@ export const useBannerUpload = ({ setBannerUrl, initialUrl }: UseBannerUploadPro
   };
 
   return {
-    error,
-    setError,
-    imageUrl,
-    previewUrl,
-    isUploading,
-    useCloudinary,
-    setUseCloudinary,
-    lastUploadResult,
-    handleImageUpload,
-    handleUrlChange,
-    clearImage
+    error, setError, imageUrl, previewUrl, isUploading,
+    lastUploadResult, handleImageUpload, handleUrlChange, clearImage
   };
 };
