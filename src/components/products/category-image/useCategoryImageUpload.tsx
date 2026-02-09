@@ -3,8 +3,9 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { CategoryImage } from "@/types/categoryImage";
-import { uploadImage, deleteImage, extractFilePathFromUrl } from "@/utils/storageHelpers";
-import { uploadToCloudinary, getOriginalImageInfo, formatBytes } from "@/utils/cloudinaryUpload";
+import { extractFilePathFromUrl, deleteImage } from "@/utils/storageHelpers";
+import { uploadToCloudflareR2 } from "@/utils/cloudflareR2Upload";
+import { getOriginalImageInfo, formatBytes } from "@/utils/cloudinaryUpload";
 
 interface UseCategoryImageUploadProps {
   categoryImages: CategoryImage[];
@@ -34,7 +35,6 @@ export const useCategoryImageUpload = ({
   onUpdateImages
 }: UseCategoryImageUploadProps) => {
   const [uploading, setUploading] = useState<string | null>(null);
-  const [useCloudinary, setUseCloudinary] = useState(false);
   const [lastUploadResult, setLastUploadResult] = useState<CategoryUploadResult | null>(null);
   const { toast } = useToast();
 
@@ -69,41 +69,25 @@ export const useCategoryImageUpload = ({
       }
 
       const originalInfo = getOriginalImageInfo(file);
-      let imageUrl: string;
+      
+      // رفع إلى Cloudflare R2
+      console.log(`رفع صورة التصنيف إلى R2: ${category}`);
+      const r2Result = await uploadToCloudflareR2(file, {
+        folder: `product-images/categories`,
+        userId,
+      });
 
-      if (useCloudinary) {
-        // رفع محسّن عبر Cloudinary
-        console.log(`رفع محسّن عبر Cloudinary للتصنيف: ${category}`);
-        const cloudinaryResult = await uploadToCloudinary(file, {
-          convertToWebp: true,
-          folder: `${userId}/categories`
-        });
-
-        imageUrl = cloudinaryResult.url;
-        setLastUploadResult({
-          original: cloudinaryResult.original,
-          optimized: cloudinaryResult.optimized,
-          savings: cloudinaryResult.savings
-        });
-
-        toast({
-          title: "تم رفع الصورة بنجاح",
-          description: `تم توفير ${cloudinaryResult.savings.formatted} (${cloudinaryResult.savings.percentage}%)`,
-        });
-      } else {
-        // رفع عادي إلى Supabase
-        console.log(`رفع صورة جديدة للتصنيف: ${category}`);
-        imageUrl = await uploadImage(bucketName, file, userId, category);
-
-        setLastUploadResult({
-          original: originalInfo
-        });
-
-        toast({
-          title: "تم رفع الصورة بنجاح",
-          description: `تم تحديث صورة التصنيف ${category}`,
-        });
+      if (!r2Result.success || !r2Result.url) {
+        throw new Error("فشل رفع الصورة إلى R2");
       }
+
+      const imageUrl = r2Result.url;
+      setLastUploadResult({ original: originalInfo });
+
+      toast({
+        title: "تم رفع الصورة بنجاح",
+        description: `تم تحديث صورة التصنيف ${category}`,
+      });
 
       // تحديث أو إنشاء سجل لصورة التصنيف
       if (existingImage) {
@@ -320,8 +304,6 @@ export const useCategoryImageUpload = ({
 
   return {
     uploading,
-    useCloudinary,
-    setUseCloudinary,
     lastUploadResult,
     handleFileUpload,
     handleUrlUpload,

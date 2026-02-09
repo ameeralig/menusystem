@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { uploadImage, deleteOldImageIfExists } from "@/utils/storageHelpers";
+import { useSmartUpload } from "@/hooks/useSmartUpload";
 
 interface CategoryImageUploadDialogProps {
   open: boolean;
@@ -45,6 +45,7 @@ const CategoryImageUploadDialog = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [productsCount, setProductsCount] = useState(0);
+  const { upload } = useSmartUpload();
 
   useEffect(() => {
     setNewCategoryName(category);
@@ -97,39 +98,27 @@ const CategoryImageUploadDialog = ({
         toast.info("جاري تحويل الصورة...");
         const img = new Image();
         const objectUrl = URL.createObjectURL(file);
-        
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = () => reject(new Error('فشل تحميل الصورة'));
-          img.src = objectUrl;
-        });
-
+        await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = () => reject(new Error('فشل تحميل الصورة')); img.src = objectUrl; });
         const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0);
-        
+        canvas.width = img.width; canvas.height = img.height;
+        const ctx = canvas.getContext('2d'); ctx?.drawImage(img, 0, 0);
         const blob = await new Promise<Blob>((resolve, reject) => {
-          canvas.toBlob(
-            (b) => b ? resolve(b) : reject(new Error('فشل تحويل الصورة')),
-            'image/jpeg',
-            0.9
-          );
+          canvas.toBlob((b) => b ? resolve(b) : reject(new Error('فشل تحويل الصورة')), 'image/jpeg', 0.9);
         });
-        
         URL.revokeObjectURL(objectUrl);
         processedFile = new File([blob], file.name.replace(/\.heic$/i, '.jpg'), { type: 'image/jpeg' });
       }
 
-      // حذف الصورة القديمة قبل رفع الجديدة
-      if (currentImageUrl) {
-        await deleteOldImageIfExists(currentImageUrl, 'product-images');
-      }
+      const result = await upload(processedFile, {
+        bucket: 'product-images',
+        folder: 'categories',
+        userId,
+        showToast: false,
+      });
 
-      const publicUrl = await uploadImage('product-images', processedFile, userId, 'categories');
-      await updateCategoryImage(publicUrl);
-      
+      if (!result?.url) throw new Error("فشل رفع الصورة");
+
+      await updateCategoryImage(result.url);
       toast.success("تم رفع الصورة بنجاح");
     } catch (error) {
       console.error('خطأ في رفع الصورة:', error);

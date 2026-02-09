@@ -1,13 +1,10 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { uploadImage, optimizeImage, deleteOldImageIfExists } from "@/utils/storageHelpers";
 import { uploadToCloudflareR2 } from "@/utils/cloudflareR2Upload";
-import { UploadDestination } from "@/components/shared/UploadDestinationSelector";
 
 export interface SmartUploadResult {
   success: boolean;
   url: string;
-  destination: UploadDestination;
   fileSize: number;
 }
 
@@ -20,8 +17,7 @@ export interface SmartUploadOptions {
 }
 
 /**
- * Hook موحد للرفع الذكي
- * يدعم Supabase Storage و Cloudflare R2
+ * Hook موحد للرفع إلى Cloudflare R2
  */
 export const useSmartUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
@@ -29,65 +25,34 @@ export const useSmartUpload = () => {
 
   const upload = async (
     file: File,
-    destination: UploadDestination,
     options: SmartUploadOptions
   ): Promise<SmartUploadResult | null> => {
-    const { bucket, folder = '', userId, oldImageUrl, showToast = true } = options;
+    const { bucket, folder = '', userId, showToast = true } = options;
 
     setIsUploading(true);
     setUploadProgress("جاري التحضير...");
 
     try {
-      // حذف الصورة القديمة إذا وجدت
-      if (oldImageUrl) {
-        await deleteOldImageIfExists(oldImageUrl, bucket);
+      setUploadProgress("جاري الرفع إلى Cloudflare R2...");
+      
+      const result = await uploadToCloudflareR2(file, {
+        folder: `${bucket}/${folder}`.replace(/\/+/g, '/').replace(/\/$/, ''),
+        userId,
+      });
+
+      if (!result.success || !result.url) {
+        throw new Error("فشل الرفع إلى Cloudflare R2");
       }
 
-      let url: string;
-
-      if (destination === 'cloudflare') {
-        // الرفع إلى Cloudflare R2
-        setUploadProgress("جاري الرفع إلى Cloudflare R2...");
-        
-        const result = await uploadToCloudflareR2(file, {
-          folder: `${bucket}/${folder}`.replace(/\/+/g, '/').replace(/\/$/, ''),
-          userId,
+      if (showToast) {
+        toast.success("تم رفع الصورة بنجاح", {
+          description: `الحجم: ${formatBytes(file.size)}`
         });
-
-        if (!result.success || !result.url) {
-          throw new Error("فشل الرفع إلى Cloudflare R2");
-        }
-
-        url = result.url;
-        
-        if (showToast) {
-          toast.success("تم الرفع إلى Cloudflare R2", {
-            description: `الحجم: ${formatBytes(file.size)}`
-          });
-        }
-      } else {
-        // الرفع إلى Supabase Storage
-        setUploadProgress("جاري تحسين الصورة...");
-        const optimizedFile = await optimizeImage(file);
-        
-        setUploadProgress("جاري الرفع إلى Supabase...");
-        url = await uploadImage(bucket, optimizedFile, userId, folder);
-
-        if (!url) {
-          throw new Error("فشل الحصول على رابط الصورة");
-        }
-
-        if (showToast) {
-          toast.success("تم الرفع إلى Supabase", {
-            description: `الحجم: ${formatBytes(file.size)}`
-          });
-        }
       }
 
       return {
         success: true,
-        url,
-        destination,
+        url: result.url,
         fileSize: file.size,
       };
 
@@ -112,7 +77,6 @@ export const useSmartUpload = () => {
   };
 };
 
-// دالة مساعدة لتنسيق حجم الملف
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
   const k = 1024;

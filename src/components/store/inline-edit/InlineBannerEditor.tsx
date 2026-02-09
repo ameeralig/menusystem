@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Upload, X, Cloud, Server } from "lucide-react";
+import { Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -7,7 +6,6 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import HiddenLoginTrigger from "../HiddenLoginTrigger";
 import { useSmartUpload } from "@/hooks/useSmartUpload";
-import { UploadDestination } from "@/components/shared/UploadDestinationSelector";
 
 interface InlineBannerEditorProps {
   bannerUrl?: string | null;
@@ -32,7 +30,6 @@ const InlineBannerEditor = ({
   onUpdate,
   showHiddenLogin = false,
 }: InlineBannerEditorProps) => {
-  const [uploadDestination, setUploadDestination] = useState<UploadDestination>('supabase');
   const { upload, isUploading } = useSmartUpload();
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,7 +47,7 @@ const InlineBannerEditor = ({
     }
 
     try {
-      const result = await upload(file, uploadDestination, {
+      const result = await upload(file, {
         bucket: 'banners',
         folder: storeOwnerId,
         userId: storeOwnerId,
@@ -97,10 +94,6 @@ const InlineBannerEditor = ({
     }
   };
 
-  const toggleDestination = () => {
-    setUploadDestination(prev => prev === 'supabase' ? 'cloudflare' : 'supabase');
-  };
-
   return (
     <div className="relative w-full overflow-hidden group">
       <AspectRatio ratio={16 / 5} className="w-full">
@@ -134,25 +127,10 @@ const InlineBannerEditor = ({
         )}
         <div className="absolute inset-0 bg-black bg-opacity-30"></div>
 
-        {/* الزر المخفي لتسجيل الدخول */}
         {showHiddenLogin && <HiddenLoginTrigger />}
         
         {/* أزرار التحرير */}
         <div className="absolute top-4 left-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          {/* زر اختيار وجهة الرفع */}
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={toggleDestination}
-            className="text-xs"
-          >
-            {uploadDestination === 'cloudflare' ? (
-              <><Cloud className="h-4 w-4 ml-1" /> R2</>
-            ) : (
-              <><Server className="h-4 w-4 ml-1" /> Supabase</>
-            )}
-          </Button>
-          
           <Button
             variant="secondary"
             size="sm"

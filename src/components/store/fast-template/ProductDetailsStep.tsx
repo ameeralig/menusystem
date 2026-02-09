@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import ImageRepositoryPicker from "@/components/shared/ImageRepositoryPicker";
 import { formatBytes } from "@/utils/cloudinaryUpload";
-import UploadDestinationSelector, { UploadDestination } from "@/components/shared/UploadDestinationSelector";
 
 export interface ProductFormData {
   name: string;
@@ -35,13 +34,11 @@ interface ProductDetailsStepProps {
     uploadMethod: "url" | "file" | "repository";
     selectedFile: File | null;
     previewUrl: string | null;
-    uploadDestination?: UploadDestination;
   };
   onImageUploadStateChange: (state: {
     uploadMethod: "url" | "file" | "repository";
     selectedFile: File | null;
     previewUrl: string | null;
-    uploadDestination?: UploadDestination;
   }) => void;
 }
 
@@ -81,13 +78,6 @@ export const ProductDetailsStep = ({
       uploadMethod: "repository",
       selectedFile: null,
       previewUrl: imageUrl,
-    });
-  };
-
-  const handleDestinationChange = (destination: UploadDestination) => {
-    onImageUploadStateChange({
-      ...imageUploadState,
-      uploadDestination: destination,
     });
   };
 
@@ -286,13 +276,6 @@ export const ProductDetailsStep = ({
           </div>
         ) : imageUploadState.uploadMethod === "file" ? (
           <div className="space-y-4">
-            {/* اختيار وجهة الرفع */}
-            <UploadDestinationSelector
-              value={imageUploadState.uploadDestination || 'supabase'}
-              onChange={handleDestinationChange}
-              compact
-            />
-
             {/* معلومات الملف المحدد */}
             {imageUploadState.selectedFile && (
               <div className="flex items-center justify-between p-2 bg-muted/50 rounded-lg text-sm">
@@ -406,7 +389,6 @@ export const ProductDetailsStep = ({
         </Button>
       </div>
 
-      {/* مكون اختيار الصور من المستودع */}
       <ImageRepositoryPicker
         isOpen={showRepositoryPicker}
         onClose={() => setShowRepositoryPicker(false)}

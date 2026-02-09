@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Product } from "@/types/product";
-import { X, Upload, Loader2, Percent, FolderOpen, Cloud, Server } from "lucide-react";
+import { X, Upload, Loader2, Percent, FolderOpen } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -13,7 +13,6 @@ import { optimizeImageUrl } from "@/utils/imageOptimizer";
 import { deleteOldImageIfExists } from "@/utils/storageHelpers";
 import { logUserActivity } from "@/hooks/analytics/useActivityLogger";
 import ImageRepositoryPicker from "@/components/shared/ImageRepositoryPicker";
-import UploadDestinationSelector, { UploadDestination } from "@/components/shared/UploadDestinationSelector";
 import { useSmartUpload } from "@/hooks/useSmartUpload";
 interface EditProductModalProps {
   product: Product | null;
@@ -43,7 +42,6 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [selectedRepositoryImage, setSelectedRepositoryImage] = useState<string | null>(null);
-  const [uploadDestination, setUploadDestination] = useState<UploadDestination>('supabase');
   
   // Smart upload hook
   const { upload, isUploading: isSmartUploading } = useSmartUpload();
@@ -145,23 +143,18 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
       // رفع الصورة الجديدة إذا تم اختيارها
       else if (imageFile) {
         try {
-          const result = await upload(
-            imageFile,
-            uploadDestination,
-            {
+          const result = await upload(imageFile, {
               bucket: 'product-images',
               folder: '',
               userId: product.user_id,
               oldImageUrl: product.image_url,
-            }
-          );
+            });
 
           if (!result || !result.url) {
             throw new Error("فشل في الحصول على رابط الصورة");
           }
 
           imageUrl = result.url;
-          console.log(`تم رفع الصورة إلى ${uploadDestination}:`, imageUrl);
         } catch (uploadError: any) {
           console.error("خطأ في رفع الصورة:", uploadError);
           toast.error("فشل في رفع الصورة: " + (uploadError.message || "خطأ غير معروف"));
@@ -269,15 +262,6 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                           />
                         </div>
                       )}
-                      {/* اختيار وجهة الرفع */}
-                      <div className="w-full">
-                        <UploadDestinationSelector
-                          value={uploadDestination}
-                          onChange={setUploadDestination}
-                          compact
-                          disabled={isSaving}
-                        />
-                      </div>
                       
                       <div className="flex gap-2 flex-wrap justify-center">
                         <label htmlFor="product-image" className="cursor-pointer">
