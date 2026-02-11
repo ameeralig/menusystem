@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Cloud, Server, ArrowRight, Loader2, CheckCircle, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -109,7 +110,7 @@ const ProductImageMigrationCard = ({
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -119,7 +120,7 @@ const ProductImageMigrationCard = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 backdrop-blur-md bg-black/40"
+            className="fixed inset-0 z-[9999] backdrop-blur-md bg-black/40"
           />
 
           {/* البطاقة العائمة */}
@@ -128,22 +129,22 @@ const ProductImageMigrationCard = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none"
           >
-            <div className="pointer-events-auto w-full max-w-sm">
+            <div className="pointer-events-auto w-full max-w-sm relative">
               {/* زر الإغلاق */}
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={onClose}
-                className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center text-white shadow-lg"
+                className="absolute -top-2 -right-2 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center text-white shadow-lg"
               >
                 <X className="w-5 h-5" />
               </motion.button>
 
               {/* البطاقة الزجاجية */}
               <div
-                className="rounded-3xl overflow-hidden shadow-2xl border border-white/20"
+                className="rounded-3xl overflow-hidden shadow-2xl border border-white/20 relative"
                 style={{
                   background: `linear-gradient(135deg, ${themeColor}ee, ${themeColor}cc)`,
                   backdropFilter: 'blur(20px)',
@@ -151,7 +152,7 @@ const ProductImageMigrationCard = ({
               >
                 {/* تأثير الإضاءة العلوي */}
                 <div
-                  className="absolute top-0 left-0 right-0 h-32 opacity-30"
+                  className="absolute top-0 left-0 right-0 h-32 opacity-30 pointer-events-none"
                   style={{
                     background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%)',
                   }}
@@ -211,12 +212,12 @@ const ProductImageMigrationCard = ({
                           <p className="text-[10px] text-white/70">Supabase</p>
                         </div>
                         <div className="bg-white/15 backdrop-blur rounded-xl p-3 text-center border border-white/10">
-                          <span className="text-[10px] font-bold text-white/90">CDN</span>
+                          <span className="text-[10px] font-bold text-white/90 block mb-1">CDN</span>
                           <p className="text-2xl font-bold">{stats.cloudinary}</p>
                           <p className="text-[10px] text-white/70">Cloudinary</p>
                         </div>
                         <div className="bg-white/15 backdrop-blur rounded-xl p-3 text-center border border-white/10">
-                          <span className="text-[10px] font-bold text-white/90">EXT</span>
+                          <span className="text-[10px] font-bold text-white/90 block mb-1">EXT</span>
                           <p className="text-2xl font-bold">{stats.external}</p>
                           <p className="text-[10px] text-white/70">روابط خارجية</p>
                         </div>
@@ -256,7 +257,6 @@ const ProductImageMigrationCard = ({
                 transition={{ delay: 0.4 }}
                 className="flex gap-2 mt-4"
               >
-                {/* تحديث */}
                 <Button
                   variant="outline"
                   onClick={fetchStats}
@@ -267,12 +267,11 @@ const ProductImageMigrationCard = ({
                   <span className="text-sm">تحديث</span>
                 </Button>
 
-                {/* نقل إلى R2 */}
                 {stats.supabase > 0 && (
                   <Button
                     onClick={handleMigration}
                     disabled={isMigrating}
-                    className="flex-1 h-12 rounded-2xl shadow-lg"
+                    className="flex-1 h-12 rounded-2xl shadow-lg text-white"
                     style={{ backgroundColor: themeColor }}
                   >
                     {isMigrating ? (
@@ -290,7 +289,8 @@ const ProductImageMigrationCard = ({
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 
