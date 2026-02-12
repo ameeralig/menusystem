@@ -32,11 +32,30 @@ const ProductPreview = () => {
   const [isStoreOwner, setIsStoreOwner] = useState(false);
   const hasRecordedViewRef = useRef(false);
 
-  // التحقق من أن المستخدم الحالي هو مالك المتجر
+  // التحقق من أن المستخدم الحالي هو مالك المتجر أو أدمن
   useEffect(() => {
     const checkStoreOwner = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      setIsStoreOwner(user?.id === storeOwnerId);
+      if (!user) {
+        setIsStoreOwner(false);
+        return;
+      }
+      
+      // المالك الأصلي
+      if (user.id === storeOwnerId) {
+        setIsStoreOwner(true);
+        return;
+      }
+      
+      // التحقق إذا كان أدمن
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+      
+      setIsStoreOwner(!!roleData);
     };
     
     if (storeOwnerId) {
