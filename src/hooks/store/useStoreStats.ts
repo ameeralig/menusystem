@@ -14,7 +14,7 @@ interface StoreStats {
   aiMessages: number;
 }
 
-export const useStoreStats = () => {
+export const useStoreStats = (storeOwnerId?: string) => {
   const [stats, setStats] = useState<StoreStats>({
     totalViews: 0,
     todayViews: 0,
@@ -31,8 +31,12 @@ export const useStoreStats = () => {
 
   const fetchStats = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      let userId = storeOwnerId;
+      if (!userId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        userId = user?.id;
+      }
+      if (!userId) {
         setLoading(false);
         return;
       }
@@ -41,7 +45,7 @@ export const useStoreStats = () => {
       const { data: pageViews } = await supabase
         .from("page_views")
         .select("view_count, last_viewed_at")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .maybeSingle();
 
       const totalViews = pageViews?.view_count || 0;
@@ -57,7 +61,7 @@ export const useStoreStats = () => {
       const { data: products } = await supabase
         .from("products")
         .select("id, is_available, is_popular, is_new")
-        .eq("user_id", user.id);
+        .eq("user_id", userId);
 
       const totalProducts = products?.length || 0;
       const activeProducts = products?.filter(p => p.is_available !== false)?.length || 0;
@@ -68,7 +72,7 @@ export const useStoreStats = () => {
       const { count: aiCount } = await supabase
         .from("customer_ai_messages")
         .select("id", { count: "exact", head: true })
-        .eq("store_owner_id", user.id);
+        .eq("store_owner_id", userId);
 
       setStats({
         totalViews,
@@ -93,7 +97,7 @@ export const useStoreStats = () => {
     fetchStats();
     const interval = setInterval(fetchStats, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [storeOwnerId]);
 
   return { stats, loading, refetch: fetchStats };
 };

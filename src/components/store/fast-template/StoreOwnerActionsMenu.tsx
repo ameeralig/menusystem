@@ -361,6 +361,7 @@ const StoreOwnerActionsMenu = ({
       isOpen={showStatsCard}
       onClose={() => setShowStatsCard(false)}
       colorTheme={colorTheme}
+      storeOwnerId={storeOwnerId}
     />
 
     {/* بطاقة إدارة الموظفين */}

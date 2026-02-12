@@ -12,14 +12,16 @@ interface StoreStatsCardProps {
   isOpen: boolean;
   onClose: () => void;
   colorTheme?: string | null;
+  storeOwnerId?: string;
 }
 
 const StoreStatsCard: React.FC<StoreStatsCardProps> = ({
   isOpen,
   onClose,
   colorTheme,
+  storeOwnerId,
 }) => {
-  const { stats, loading } = useStoreStats();
+  const { stats, loading } = useStoreStats(storeOwnerId);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
