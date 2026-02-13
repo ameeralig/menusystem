@@ -16,6 +16,9 @@ interface UnifiedStoreData {
   darkMode: boolean;
   template: string;
   isSuspended: boolean;
+  adsEnabled: boolean;
+  adsType: string | null;
+  customAds: string[];
 }
 
 const defaultFontSettings: FontSettings = {
@@ -67,7 +70,10 @@ export const useUnifiedStoreData = (slug: string | undefined) => {
           font_settings,
           dark_mode,
           template,
-          is_suspended
+          is_suspended,
+          ads_enabled,
+          ads_type,
+          custom_ads
         `)
         .eq("slug", slug.trim())
         .maybeSingle();
@@ -121,6 +127,9 @@ export const useUnifiedStoreData = (slug: string | undefined) => {
         darkMode: data.dark_mode || false,
         template: "fast-response",
         isSuspended: (data as any).is_suspended || false,
+        adsEnabled: (data as any).ads_enabled || false,
+        adsType: (data as any).ads_type || null,
+        customAds: Array.isArray((data as any).custom_ads) ? (data as any).custom_ads : [],
       };
 
       setStoreData(unifiedData);

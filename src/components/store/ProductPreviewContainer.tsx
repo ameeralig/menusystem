@@ -2,6 +2,7 @@
 import { ReactNode, useEffect } from "react";
 import BannerSection from "./preview/BannerSection";
 import InlineBannerEditor from "./inline-edit/InlineBannerEditor";
+import AdBanner from "./ads/AdBanner";
 import { useImageLoading } from "@/hooks/store/useImageLoading";
 import { useCustomFonts } from "@/hooks/store/useCustomFonts";
 import { getBackgroundStyle, getThemeClasses } from "@/utils/previewStyles";
@@ -34,6 +35,9 @@ interface ProductPreviewContainerProps {
   isStoreOwner?: boolean;
   storeOwnerId?: string;
   onUpdate?: () => void;
+  adsEnabled?: boolean;
+  adsType?: string | null;
+  customAds?: string[];
 }
 
 const ProductPreviewContainer = ({ 
@@ -45,7 +49,10 @@ const ProductPreviewContainer = ({
   darkMode = false,
   isStoreOwner = false,
   storeOwnerId,
-  onUpdate
+  onUpdate,
+  adsEnabled = false,
+  adsType,
+  customAds = []
 }: ProductPreviewContainerProps) => {
   const { imageError, imageLoaded, imgSrc, setImageError, setImageLoaded } = useImageLoading(bannerUrl);
   const { getContainerStyle } = useCustomFonts(fontSettings);
@@ -74,7 +81,10 @@ const ProductPreviewContainer = ({
 
   return (
     <div className={`flex flex-col ${themeClasses}`} style={getContainerStyle()}>
-      {isStoreOwner && storeOwnerId && onUpdate ? (
+      {/* شريط الإعلانات - يظهر بدل البانر عند التفعيل */}
+      {adsEnabled && adsType ? (
+        <AdBanner adsType={adsType as "google" | "custom"} customAds={customAds} colorTheme={colorTheme} />
+      ) : isStoreOwner && storeOwnerId && onUpdate ? (
         <InlineBannerEditor
           bannerUrl={bannerUrl}
           imgSrc={imgSrc}
