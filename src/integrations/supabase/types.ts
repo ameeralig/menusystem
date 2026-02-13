@@ -670,11 +670,14 @@ export type Database = {
       }
       store_settings: {
         Row: {
+          ads_enabled: boolean | null
+          ads_type: string | null
           ai_assistant_name: string | null
           banner_url: string | null
           color_theme: string | null
           contact_info: Json | null
           created_at: string
+          custom_ads: Json | null
           custom_domain: string | null
           dark_mode: boolean | null
           delivery_fee: number | null
@@ -694,11 +697,14 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ads_enabled?: boolean | null
+          ads_type?: string | null
           ai_assistant_name?: string | null
           banner_url?: string | null
           color_theme?: string | null
           contact_info?: Json | null
           created_at?: string
+          custom_ads?: Json | null
           custom_domain?: string | null
           dark_mode?: boolean | null
           delivery_fee?: number | null
@@ -718,11 +724,14 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ads_enabled?: boolean | null
+          ads_type?: string | null
           ai_assistant_name?: string | null
           banner_url?: string | null
           color_theme?: string | null
           contact_info?: Json | null
           created_at?: string
+          custom_ads?: Json | null
           custom_domain?: string | null
           dark_mode?: boolean | null
           delivery_fee?: number | null

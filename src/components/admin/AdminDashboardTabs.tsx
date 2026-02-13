@@ -8,6 +8,7 @@ import {
   Bell, 
   LineChart, 
   Image,
+  Megaphone,
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
@@ -17,6 +18,7 @@ import UserNotificationTab from "@/components/admin/users/UserNotificationTab";
 import UserAnalyticsTab from "@/components/admin/analytics/UserAnalyticsTab";
 import StorageManagementTab from "@/components/admin/storage/StorageManagementTab";
 import SharedImagesTab from "@/components/admin/images/SharedImagesTab";
+import AdsManagementTab from "@/components/admin/ads/AdsManagementTab";
 import FloatingAIChat from "@/components/dashboard/FloatingAIChat";
 import { APIKeysManager } from "@/components/dashboard/APIKeysManager";
 
@@ -28,6 +30,7 @@ const tabs = [
   { id: 'notifications', label: 'الإشعارات', icon: Bell, color: 'from-pink-400 to-rose-500' },
   { id: 'analytics', label: 'التحليلات', icon: LineChart, color: 'from-indigo-400 to-blue-500' },
   { id: 'images', label: 'مستودع الصور', icon: Image, color: 'from-teal-400 to-cyan-500' },
+  { id: 'ads', label: 'الإعلانات', icon: Megaphone, color: 'from-amber-400 to-orange-500' },
 ];
 
 const AdminDashboardTabs = () => {
@@ -50,6 +53,8 @@ const AdminDashboardTabs = () => {
         return <UserAnalyticsTab />;
       case 'images':
         return <SharedImagesTab />;
+      case 'ads':
+        return <AdsManagementTab />;
       default:
         return <AdminStatsTab />;
     }

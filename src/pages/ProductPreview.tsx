@@ -297,6 +297,9 @@ const ProductPreview = () => {
             isStoreOwner={isStoreOwner}
             storeOwnerId={storeOwnerId || undefined}
             onUpdate={refreshData}
+            adsEnabled={storeData.adsEnabled}
+            adsType={storeData.adsType}
+            customAds={storeData.customAds}
           >
             <StoreProductsDisplay 
               storeName={storeData.storeName} 

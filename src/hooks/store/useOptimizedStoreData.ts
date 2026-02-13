@@ -77,6 +77,9 @@ export const useOptimizedStoreData = (slug: string | undefined, forceRefresh: nu
     categoryImages,
     categories,
     isSuspended: unifiedData?.isSuspended || false,
+    adsEnabled: unifiedData?.adsEnabled || false,
+    adsType: unifiedData?.adsType || null,
+    customAds: unifiedData?.customAds || [],
   };
 
   return {
