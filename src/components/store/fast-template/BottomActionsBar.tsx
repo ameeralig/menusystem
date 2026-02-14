@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Disc3, MessageSquare, Search, X, Share2, Download, Heart, Info, MoreHorizontal } from "lucide-react";
+import { Gamepad2, MessageSquare, Search, X, Share2, Download, Heart, Info, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
@@ -8,6 +8,8 @@ import StoreInfoSheet from "./StoreInfoSheet";
 import AddProductModal from "./AddProductModal";
 import CustomerAIAssistant from "./CustomerAIAssistant";
 import WheelModal from "../WheelModal";
+import GamesMenuModal from "../games/GamesMenuModal";
+import MemoryMatchGame from "../games/MemoryMatchGame";
 import FeedbackDialog from "../feedback/FeedbackDialog";
 import OwnerFeedbackSheet from "../feedback/OwnerFeedbackSheet";
 import StoreOwnerActionsMenu from "./StoreOwnerActionsMenu";
@@ -63,6 +65,8 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
+  const [isGamesMenuOpen, setIsGamesMenuOpen] = useState(false);
+  const [isMemoryGameOpen, setIsMemoryGameOpen] = useState(false);
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
   const [isOwnerFeedbackOpen, setIsOwnerFeedbackOpen] = useState(false);
   const [isShareCardOpen, setIsShareCardOpen] = useState(false);
@@ -171,12 +175,12 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       showLabel: false,
       badge: favoritesCount > 0 ? favoritesCount : undefined,
     },
-    // زر عجلة الحظ
+    // زر الألعاب (يجمع عجلة الحظ + طابق واربح)
     storeOwnerId && products.length > 0 && {
-      id: 'wheel',
-      onClick: () => setIsWheelModalOpen(true),
-      icon: Disc3,
-      label: 'حظ',
+      id: 'games',
+      onClick: () => setIsGamesMenuOpen(true),
+      icon: Gamepad2,
+      label: 'ألعاب',
       gradient: `linear-gradient(135deg, #f59e0b, #d97706)`,
       showLabel: false,
     },
@@ -403,7 +407,24 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
         />
       )}
 
-      {/* FeedbackDialog - للزوار */}
+      {/* GamesMenuModal */}
+      <GamesMenuModal
+        isOpen={isGamesMenuOpen}
+        onClose={() => setIsGamesMenuOpen(false)}
+        onSelectGame={(gameId) => {
+          if (gameId === "wheel") setIsWheelModalOpen(true);
+          if (gameId === "memory") setIsMemoryGameOpen(true);
+        }}
+        colorTheme={colorTheme}
+      />
+
+      {/* MemoryMatchGame */}
+      <MemoryMatchGame
+        isOpen={isMemoryGameOpen}
+        onClose={() => setIsMemoryGameOpen(false)}
+        products={products}
+        colorTheme={colorTheme || undefined}
+      />
       {storeOwnerId && !isStoreOwner && (
         <FeedbackDialog
           isOpen={isFeedbackDialogOpen}
