@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Timer, RotateCcw, Trophy, X, Smartphone, ArrowRight } from "lucide-react";
+import { Timer, RotateCcw, Trophy, X, Smartphone, ArrowRight, Star, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Product } from "@/types/product";
@@ -21,13 +21,16 @@ interface DifficultyConfig {
   pairs: number;
   time: number;
   emoji: string;
+  cols: number;
 }
 
 const DIFFICULTIES: Record<Difficulty, DifficultyConfig> = {
-  easy: { label: "سهل", pairs: 4, time: 60, emoji: "😊" },
-  medium: { label: "متوسط", pairs: 6, time: 45, emoji: "🤔" },
-  hard: { label: "صعب", pairs: 8, time: 30, emoji: "🔥" },
+  easy: { label: "سهل", pairs: 4, time: 60, emoji: "😊", cols: 4 },
+  medium: { label: "متوسط", pairs: 6, time: 45, emoji: "🤔", cols: 4 },
+  hard: { label: "صعب", pairs: 8, time: 30, emoji: "🔥", cols: 4 },
 };
+
+const PLACEHOLDER_EMOJIS = ["🍕", "🍔", "🌮", "🍣", "🎂", "🍩", "☕", "🥤", "🍗", "🥗", "🍜", "🧁", "🍦", "🥐", "🫐", "🍇"];
 
 interface MemoryMatchGameProps {
   isOpen: boolean;
@@ -53,8 +56,11 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
   const [isGuest, setIsGuest] = useState(true);
   const [highScore, setHighScore] = useState<number | null>(null);
   const [shakeCards, setShakeCards] = useState<number[]>([]);
+  const [comboCount, setComboCount] = useState(0);
+  const [showCombo, setShowCombo] = useState(false);
+  const [lastMatchTime, setLastMatchTime] = useState(0);
 
-  const getThemeColor = useCallback(() => {
+  const themeColor = useMemo(() => {
     if (colorTheme?.startsWith("#")) return colorTheme;
     const colors: Record<string, string> = {
       coral: "#fb923c", purple: "#a855f7", blue: "#3b82f6",
@@ -63,33 +69,32 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
     return colors[colorTheme || ""] || "#3b82f6";
   }, [colorTheme]);
 
-  const themeColor = getThemeColor();
-
-  // Placeholder images if not enough products
-  const placeholderImages = useMemo(() => [
-    "🍕", "🍔", "🌮", "🍣", "🎂", "🍩", "☕", "🥤",
-    "🍗", "🥗", "🍜", "🧁", "🍦", "🥐", "🫐", "🍇"
-  ], []);
-
-  const initializeGame = useCallback((diff: Difficulty) => {
+  // بناء أزواج البطاقات من صور المنتجات الحقيقية
+  const buildCardPairs = useCallback((diff: Difficulty) => {
     const config = DIFFICULTIES[diff];
-    const availableProducts = products.filter(p => p.image_url);
-    
-    const cardPairs: { imageUrl: string; name: string }[] = [];
-    
+    const productsWithImages = products.filter(p => p.image_url && p.image_url.trim() !== "");
+    const pairs: { imageUrl: string; name: string }[] = [];
+
     for (let i = 0; i < config.pairs; i++) {
-      if (i < availableProducts.length) {
-        cardPairs.push({
-          imageUrl: availableProducts[i].image_url!,
-          name: availableProducts[i].name,
+      if (i < productsWithImages.length) {
+        pairs.push({
+          imageUrl: productsWithImages[i].image_url!,
+          name: productsWithImages[i].name,
         });
       } else {
-        cardPairs.push({
+        // fallback to emoji
+        pairs.push({
           imageUrl: "",
-          name: placeholderImages[i % placeholderImages.length],
+          name: PLACEHOLDER_EMOJIS[i % PLACEHOLDER_EMOJIS.length],
         });
       }
     }
+    return pairs;
+  }, [products]);
+
+  const initializeGame = useCallback((diff: Difficulty) => {
+    const config = DIFFICULTIES[diff];
+    const cardPairs = buildCardPairs(diff);
 
     const allCards: MemoryCard[] = [];
     cardPairs.forEach((pair, index) => {
@@ -99,7 +104,7 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
       );
     });
 
-    // Shuffle
+    // Fisher-Yates shuffle
     for (let i = allCards.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [allCards[i], allCards[j]] = [allCards[j], allCards[i]];
@@ -111,17 +116,16 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
     setTimeLeft(config.time);
     setMatchedPairs(0);
     setShakeCards([]);
+    setComboCount(0);
+    setShowCombo(false);
     setGameState("playing");
     setDifficulty(diff);
-  }, [products, placeholderImages]);
+  }, [buildCardPairs]);
 
   // Timer
   useEffect(() => {
     if (gameState !== "playing") return;
-    if (timeLeft <= 0) {
-      setGameState("lost");
-      return;
-    }
+    if (timeLeft <= 0) { setGameState("lost"); return; }
     const timer = setInterval(() => setTimeLeft(t => t - 1), 1000);
     return () => clearInterval(timer);
   }, [gameState, timeLeft]);
@@ -130,14 +134,13 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
   useEffect(() => {
     if (gameState === "playing" && matchedPairs === DIFFICULTIES[difficulty].pairs) {
       setGameState("won");
-      const score = timeLeft * 10 + Math.max(0, 100 - moves * 5);
+      const score = timeLeft * 10 + Math.max(0, 100 - moves * 5) + comboCount * 15;
       if (!highScore || score > highScore) setHighScore(score);
     }
-  }, [matchedPairs, difficulty, gameState, timeLeft, moves, highScore]);
+  }, [matchedPairs, difficulty, gameState, timeLeft, moves, highScore, comboCount]);
 
   const handleCardClick = useCallback((cardId: number) => {
     if (flippedCards.length >= 2) return;
-    
     const card = cards.find(c => c.id === cardId);
     if (!card || card.isFlipped || card.isMatched) return;
 
@@ -145,25 +148,33 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
       c.id === cardId ? { ...c, isFlipped: true } : c
     );
     setCards(newCards);
-
     const newFlipped = [...flippedCards, cardId];
     setFlippedCards(newFlipped);
 
     if (newFlipped.length === 2) {
       setMoves(m => m + 1);
       const [first, second] = newFlipped.map(id => newCards.find(c => c.id === id)!);
-      
+
       if (first.pairId === second.pairId) {
-        // Match!
+        const now = Date.now();
+        const isCombo = now - lastMatchTime < 3000 && lastMatchTime > 0;
+        if (isCombo) {
+          setComboCount(c => c + 1);
+          setShowCombo(true);
+          setTimeout(() => setShowCombo(false), 1000);
+        } else {
+          setComboCount(0);
+        }
+        setLastMatchTime(now);
+
         setTimeout(() => {
           setCards(prev => prev.map(c =>
             c.pairId === first.pairId ? { ...c, isMatched: true } : c
           ));
           setMatchedPairs(p => p + 1);
           setFlippedCards([]);
-        }, 500);
+        }, 400);
       } else {
-        // No match
         setShakeCards([first.id, second.id]);
         setTimeout(() => {
           setCards(prev => prev.map(c =>
@@ -171,10 +182,11 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
           ));
           setFlippedCards([]);
           setShakeCards([]);
-        }, 800);
+          setComboCount(0);
+        }, 700);
       }
     }
-  }, [cards, flippedCards]);
+  }, [cards, flippedCards, lastMatchTime]);
 
   const saveProgress = () => {
     if (phoneNumber.length >= 10) {
@@ -194,14 +206,20 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
     }
   };
 
-  const getGridCols = () => {
-    const total = cards.length;
-    if (total <= 8) return "grid-cols-4";
-    if (total <= 12) return "grid-cols-4";
-    return "grid-cols-4";
+  const score = useMemo(() => {
+    return timeLeft * 10 + Math.max(0, 100 - moves * 5) + comboCount * 15;
+  }, [timeLeft, moves, comboCount]);
+
+  const getStars = (s: number) => {
+    if (s >= 300) return 3;
+    if (s >= 150) return 2;
+    return 1;
   };
 
   if (!isOpen) return null;
+
+  const totalPairs = DIFFICULTIES[difficulty].pairs;
+  const progress = totalPairs > 0 ? (matchedPairs / totalPairs) * 100 : 0;
 
   return (
     <AnimatePresence>
@@ -209,28 +227,32 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3"
         onClick={(e) => e.target === e.currentTarget && onClose()}
       >
         <motion.div
-          initial={{ scale: 0.9, y: 20 }}
+          initial={{ scale: 0.85, y: 30 }}
           animate={{ scale: 1, y: 0 }}
-          exit={{ scale: 0.9, y: 20 }}
-          className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-background shadow-2xl"
+          exit={{ scale: 0.85, y: 30 }}
+          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+          className="w-full max-w-md max-h-[92vh] overflow-y-auto rounded-2xl bg-background shadow-2xl border border-border/50"
           style={{ direction: "rtl" }}
         >
           {/* Header */}
           <div
-            className="flex items-center justify-between p-4 rounded-t-2xl text-white"
-            style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}cc)` }}
+            className="flex items-center justify-between p-3.5 text-white"
+            style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}bb)` }}
           >
-            <h2 className="text-lg font-bold">🧠 طابق واربح</h2>
-            <button onClick={onClose} className="p-1 rounded-full hover:bg-white/20">
-              <X className="h-5 w-5" />
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🧠</span>
+              <h2 className="text-base font-bold">طابق واربح</h2>
+            </div>
+            <button onClick={onClose} className="p-1.5 rounded-full hover:bg-white/20 transition-colors">
+              <X className="h-4 w-4" />
             </button>
           </div>
 
-          <div className="p-4">
+          <div className="p-3.5">
             {/* Login State */}
             {gameState === "login" && (
               <div className="space-y-4 text-center py-6">
@@ -246,14 +268,10 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
                   dir="ltr"
                 />
                 <div className="flex gap-2">
-                  <Button onClick={loadProgress} className="flex-1" style={{ background: themeColor }}>
+                  <Button onClick={loadProgress} className="flex-1 text-white" style={{ background: themeColor }}>
                     حفظ ومتابعة
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => { setIsGuest(true); setGameState("menu"); }}
-                    className="flex-1"
-                  >
+                  <Button variant="outline" onClick={() => { setIsGuest(true); setGameState("menu"); }} className="flex-1">
                     متابعة كضيف
                   </Button>
                 </div>
@@ -262,45 +280,46 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
 
             {/* Menu State */}
             {gameState === "menu" && (
-              <div className="space-y-4 py-4">
-                <div className="text-center space-y-2">
-                  <h3 className="text-xl font-bold">اختر مستوى الصعوبة</h3>
+              <div className="space-y-3 py-2">
+                <div className="text-center space-y-1.5">
+                  <h3 className="text-lg font-bold">اختر مستوى الصعوبة</h3>
                   {highScore !== null && (
                     <p className="text-sm text-muted-foreground">
                       🏆 أعلى نتيجة: <span className="font-bold" style={{ color: themeColor }}>{highScore}</span>
                     </p>
                   )}
+                  <p className="text-xs text-muted-foreground">
+                    {products.filter(p => p.image_url).length > 0
+                      ? `📸 ${Math.min(products.filter(p => p.image_url).length, 8)} صور منتجات متاحة`
+                      : "سيتم استخدام رموز تعبيرية"}
+                  </p>
                 </div>
-                <div className="grid gap-3">
+                <div className="grid gap-2.5">
                   {(Object.entries(DIFFICULTIES) as [Difficulty, DifficultyConfig][]).map(([key, config]) => (
                     <motion.button
                       key={key}
                       whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                      whileTap={{ scale: 0.97 }}
                       onClick={() => initializeGame(key)}
-                      className="flex items-center justify-between p-4 rounded-xl border-2 transition-colors hover:border-primary"
-                      style={{ borderColor: `${themeColor}30` }}
+                      className="flex items-center justify-between p-3.5 rounded-xl border-2 transition-all hover:shadow-md"
+                      style={{ borderColor: `${themeColor}30`, background: `${themeColor}05` }}
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-2xl">{config.emoji}</span>
                         <div className="text-right">
-                          <p className="font-bold">{config.label}</p>
+                          <p className="font-bold text-sm">{config.label}</p>
                           <p className="text-xs text-muted-foreground">
                             {config.pairs} أزواج • {config.time} ثانية
                           </p>
                         </div>
                       </div>
-                      <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
                     </motion.button>
                   ))}
                 </div>
                 {isGuest && (
-                  <Button
-                    variant="ghost"
-                    className="w-full text-sm"
-                    onClick={() => setGameState("login")}
-                  >
-                    <Smartphone className="h-4 w-4 ml-2" />
+                  <Button variant="ghost" className="w-full text-xs" onClick={() => setGameState("login")}>
+                    <Smartphone className="h-3.5 w-3.5 ml-1.5" />
                     حفظ تقدمي
                   </Button>
                 )}
@@ -309,74 +328,88 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
 
             {/* Playing State */}
             {gameState === "playing" && (
-              <div className="space-y-3">
-                {/* Stats Bar */}
-                <div className="flex items-center justify-between text-sm font-medium">
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted">
-                    <Timer className="h-4 w-4" />
-                    <span className={timeLeft <= 10 ? "text-destructive animate-pulse" : ""}>
-                      {timeLeft}s
-                    </span>
+              <div className="space-y-2.5">
+                {/* Stats */}
+                <div className="flex items-center justify-between text-xs font-medium">
+                  <div className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg ${timeLeft <= 10 ? "bg-destructive/10 text-destructive" : "bg-muted"}`}>
+                    <Timer className="h-3.5 w-3.5" />
+                    <span className={timeLeft <= 10 ? "animate-pulse font-bold" : ""}>{timeLeft}s</span>
                   </div>
-                  <div className="px-3 py-1.5 rounded-lg bg-muted">
-                    {DIFFICULTIES[difficulty].emoji} {DIFFICULTIES[difficulty].label}
+                  <div className="px-2.5 py-1.5 rounded-lg bg-muted flex items-center gap-1">
+                    {DIFFICULTIES[difficulty].emoji}
+                    <span>{matchedPairs}/{totalPairs}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted">
-                    <span>المحاولات: {moves}</span>
+                  <div className="px-2.5 py-1.5 rounded-lg bg-muted">
+                    المحاولات: {moves}
                   </div>
                 </div>
 
-                {/* Progress */}
-                <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
+                {/* Progress Bar */}
+                <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
                   <motion.div
                     className="h-full rounded-full"
-                    style={{ background: themeColor }}
-                    animate={{ width: `${(matchedPairs / DIFFICULTIES[difficulty].pairs) * 100}%` }}
+                    style={{ background: `linear-gradient(90deg, ${themeColor}, ${themeColor}cc)` }}
+                    animate={{ width: `${progress}%` }}
                     transition={{ duration: 0.3 }}
                   />
                 </div>
 
+                {/* Combo indicator */}
+                <AnimatePresence>
+                  {showCombo && (
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      className="text-center"
+                    >
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold text-white" style={{ background: themeColor }}>
+                        <Zap className="h-3 w-3" /> كومبو x{comboCount + 1}! 🔥
+                      </span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 {/* Cards Grid */}
-                <div className={`grid ${getGridCols()} gap-2`}>
+                <div className="grid grid-cols-4 gap-1.5">
                   {cards.map((card) => (
                     <motion.div
                       key={card.id}
                       animate={
                         shakeCards.includes(card.id)
-                          ? { x: [0, -5, 5, -5, 5, 0] }
+                          ? { x: [0, -4, 4, -4, 4, 0], transition: { duration: 0.4 } }
                           : card.isMatched
-                          ? { scale: [1, 1.1, 1] }
+                          ? { scale: [1, 1.08, 1], transition: { duration: 0.3 } }
                           : {}
                       }
-                      transition={{ duration: 0.4 }}
                       onClick={() => handleCardClick(card.id)}
-                      className="aspect-square cursor-pointer perspective-500"
+                      className="aspect-square cursor-pointer"
                     >
                       <div
-                        className={`relative w-full h-full transition-transform duration-300 preserve-3d ${
-                          card.isFlipped || card.isMatched ? "rotate-y-180" : ""
+                        className={`relative w-full h-full transition-transform duration-300 ${
+                          card.isFlipped || card.isMatched ? "[transform:rotateY(180deg)]" : ""
                         }`}
                         style={{ transformStyle: "preserve-3d" }}
                       >
-                        {/* Card Back */}
+                        {/* Back */}
                         <div
-                          className="absolute inset-0 rounded-xl flex items-center justify-center text-2xl font-bold text-white backface-hidden"
+                          className="absolute inset-0 rounded-lg flex items-center justify-center text-lg font-bold text-white shadow-sm"
                           style={{
-                            background: `linear-gradient(135deg, ${themeColor}, ${themeColor}aa)`,
+                            background: `linear-gradient(145deg, ${themeColor}, ${themeColor}99)`,
                             backfaceVisibility: "hidden",
                           }}
                         >
                           ❓
                         </div>
-                        {/* Card Front */}
+                        {/* Front */}
                         <div
-                          className={`absolute inset-0 rounded-xl flex items-center justify-center overflow-hidden backface-hidden ${
-                            card.isMatched ? "ring-2 ring-green-500 shadow-lg shadow-green-500/30" : ""
+                          className={`absolute inset-0 rounded-lg flex items-center justify-center overflow-hidden shadow-sm ${
+                            card.isMatched ? "ring-2 ring-green-500 shadow-green-500/20" : ""
                           }`}
                           style={{
                             transform: "rotateY(180deg)",
                             backfaceVisibility: "hidden",
-                            background: card.isMatched ? "#f0fdf4" : "#f8fafc",
+                            background: card.isMatched ? "#ecfdf5" : "#f8fafc",
                           }}
                         >
                           {card.imageUrl ? (
@@ -384,10 +417,14 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
                               src={card.imageUrl}
                               alt={card.name}
                               className="w-full h-full object-cover"
-                              loading="lazy"
+                              loading="eager"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                                (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-2xl">🖼️</span>`;
+                              }}
                             />
                           ) : (
-                            <span className="text-3xl">{card.name}</span>
+                            <span className="text-2xl">{card.name}</span>
                           )}
                         </div>
                       </div>
@@ -395,14 +432,9 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
                   ))}
                 </div>
 
-                {/* Reset Button */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  onClick={() => initializeGame(difficulty)}
-                >
-                  <RotateCcw className="h-4 w-4 ml-2" />
+                {/* Reset */}
+                <Button variant="outline" size="sm" className="w-full text-xs" onClick={() => initializeGame(difficulty)}>
+                  <RotateCcw className="h-3.5 w-3.5 ml-1.5" />
                   إعادة البدء
                 </Button>
               </div>
@@ -410,34 +442,43 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
 
             {/* Won State */}
             {gameState === "won" && (
-              <div className="text-center py-6 space-y-4">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 200 }}
-                >
-                  <Trophy className="h-16 w-16 mx-auto" style={{ color: themeColor }} />
+              <div className="text-center py-5 space-y-3">
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200 }}>
+                  <Trophy className="h-14 w-14 mx-auto" style={{ color: themeColor }} />
                 </motion.div>
-                <h3 className="text-2xl font-bold">🎉 أحسنت!</h3>
-                <p className="text-muted-foreground">
-                  أكملت اللعبة بـ {moves} محاولة وتبقى {timeLeft} ثانية
+                <h3 className="text-xl font-bold">🎉 أحسنت!</h3>
+                <div className="flex justify-center gap-1">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ scale: 0, rotate: -30 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ delay: 0.2 + i * 0.15, type: "spring" }}
+                    >
+                      <Star
+                        className="h-7 w-7"
+                        fill={i < getStars(score) ? themeColor : "transparent"}
+                        stroke={themeColor}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {moves} محاولة • {timeLeft} ثانية متبقية
                 </p>
-                <div
-                  className="text-3xl font-bold py-2"
-                  style={{ color: themeColor }}
-                >
-                  {timeLeft * 10 + Math.max(0, 100 - moves * 5)} نقطة
+                <div className="text-2xl font-bold" style={{ color: themeColor }}>
+                  {score} نقطة
                 </div>
                 <div className="flex gap-2">
-                  <Button onClick={() => initializeGame(difficulty)} className="flex-1" style={{ background: themeColor }}>
+                  <Button onClick={() => initializeGame(difficulty)} className="flex-1 text-white" style={{ background: themeColor }}>
                     العب مرة أخرى
                   </Button>
                   <Button variant="outline" onClick={() => setGameState("menu")} className="flex-1">
-                    القائمة الرئيسية
+                    القائمة
                   </Button>
                 </div>
                 {isGuest && (
-                  <Button variant="ghost" size="sm" onClick={() => setGameState("login")}>
+                  <Button variant="ghost" size="sm" className="text-xs" onClick={() => { saveProgress(); setGameState("login"); }}>
                     💾 حفظ النتيجة
                   </Button>
                 )}
@@ -446,21 +487,16 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
 
             {/* Lost State */}
             {gameState === "lost" && (
-              <div className="text-center py-6 space-y-4">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring" }}
-                  className="text-6xl"
-                >
+              <div className="text-center py-5 space-y-3">
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }} className="text-5xl">
                   ⏰
                 </motion.div>
-                <h3 className="text-2xl font-bold">انتهى الوقت!</h3>
-                <p className="text-muted-foreground">
-                  وجدت {matchedPairs} من {DIFFICULTIES[difficulty].pairs} أزواج
+                <h3 className="text-xl font-bold">انتهى الوقت!</h3>
+                <p className="text-sm text-muted-foreground">
+                  وجدت {matchedPairs} من {totalPairs} أزواج
                 </p>
                 <div className="flex gap-2">
-                  <Button onClick={() => initializeGame(difficulty)} className="flex-1" style={{ background: themeColor }}>
+                  <Button onClick={() => initializeGame(difficulty)} className="flex-1 text-white" style={{ background: themeColor }}>
                     حاول ثانية
                   </Button>
                   <Button variant="outline" onClick={() => setGameState("menu")} className="flex-1">
