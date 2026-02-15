@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Disc3, Grid3X3 } from "lucide-react";
+import { X, Disc3, Grid3X3, Tag } from "lucide-react";
 
 interface GameOption {
   id: string;
@@ -49,6 +49,13 @@ const GamesMenuModal: React.FC<GamesMenuModalProps> = ({
       icon: <Grid3X3 className="h-8 w-8" />,
       emoji: "🧠",
     },
+    {
+      id: "price",
+      name: "خمّن السعر",
+      description: "هل تعرف أسعار المنتجات؟ اختبر نفسك!",
+      icon: <Tag className="h-8 w-8" />,
+      emoji: "🏷️",
+    },
   ];
 
   if (!isOpen) return null;
@@ -70,7 +77,6 @@ const GamesMenuModal: React.FC<GamesMenuModalProps> = ({
           className="w-full max-w-sm rounded-t-2xl sm:rounded-2xl bg-background shadow-2xl overflow-hidden"
           style={{ direction: "rtl" }}
         >
-          {/* Header */}
           <div
             className="flex items-center justify-between p-4 text-white"
             style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}cc)` }}
@@ -81,20 +87,16 @@ const GamesMenuModal: React.FC<GamesMenuModalProps> = ({
             </button>
           </div>
 
-          {/* Games List */}
           <div className="p-4 space-y-3">
             {games.map((game, index) => (
               <motion.button
                 key={game.id}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * 0.08 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                  onClose();
-                  onSelectGame(game.id);
-                }}
+                onClick={() => { onClose(); onSelectGame(game.id); }}
                 className="w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-colors hover:border-primary text-right"
                 style={{ borderColor: `${themeColor}25` }}
               >
