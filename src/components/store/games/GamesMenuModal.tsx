@@ -116,7 +116,7 @@ const GamesMenuModal: React.FC<GamesMenuModalProps> = ({
 
           <div className="p-4 pt-0">
             <p className="text-center text-xs text-muted-foreground">
-              المزيد من الألعاب قريباً! 🎮
+               الألعاب قيد التطوير! 🎮
             </p>
           </div>
         </motion.div>
