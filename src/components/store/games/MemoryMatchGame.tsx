@@ -459,7 +459,7 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
                   className="text-3xl font-black" style={{ color: themeColor }}>{score} نقطة</motion.div>
 
                 <GameLeaderboard scores={lbScores} loading={lbLoading} currentScore={score}
-                  onSaveScore={(name) => saveScore(name, score, { difficulty, moves, timeLeft })}
+                  onSaveScore={(name, phone) => saveScore(name, score, phone, { difficulty, moves, timeLeft })}
                   themeColor={themeColor} gameTitle="طابق واربح" showSaveForm={score > 0} />
 
                 <div className="flex gap-2 pt-2">
