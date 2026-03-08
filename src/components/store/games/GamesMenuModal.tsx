@@ -56,6 +56,13 @@ const GamesMenuModal: React.FC<GamesMenuModalProps> = ({
       icon: <Tag className="h-8 w-8" />,
       emoji: "🏷️",
     },
+    {
+      id: "billpayer",
+      name: "من سيدفع الحساب؟",
+      description: "أضف أسماء أصدقائك وخلّ الحظ يختار مين يدفع!",
+      icon: <CreditCard className="h-8 w-8" />,
+      emoji: "💸",
+    },
   ];
 
   if (!isOpen) return null;
