@@ -50,31 +50,58 @@ const StoreOwnerActionsMenu = ({
   const [isGeneratingIcons, setIsGeneratingIcons] = useState(false);
   const [iconGenProgress, setIconGenProgress] = useState("");
   const [iconStyle, setIconStyle] = useState<"flat" | "3d" | "cartoon">("flat");
+  const [allCategories, setAllCategories] = useState<string[]>([]);
+  const [selectedIconCategories, setSelectedIconCategories] = useState<string[]>([]);
+
+  // جلب التصنيفات عند فتح القائمة
+  const fetchCategories = async () => {
+    const { data: products } = await supabase
+      .from('products')
+      .select('category')
+      .eq('user_id', storeOwnerId)
+      .not('category', 'is', null);
+
+    if (products) {
+      const unique = [...new Set(products.map(p => p.category).filter(Boolean))] as string[];
+      setAllCategories(unique);
+      setSelectedIconCategories(unique); // تحديد الكل افتراضياً
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) fetchCategories();
+  }, [isOpen]);
+
+  const toggleCategorySelection = (cat: string) => {
+    setSelectedIconCategories(prev =>
+      prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIconCategories.length === allCategories.length) {
+      setSelectedIconCategories([]);
+    } else {
+      setSelectedIconCategories([...allCategories]);
+    }
+  };
 
   const handleGenerateAllIcons = async () => {
+    if (selectedIconCategories.length === 0) {
+      toast.error("يرجى اختيار تصنيف واحد على الأقل");
+      return;
+    }
+    
     setIsGeneratingIcons(true);
     setIsOpen(false);
     try {
-      // جلب كل التصنيفات من المنتجات
-      const { data: products } = await supabase
-        .from('products')
-        .select('category')
-        .eq('user_id', storeOwnerId)
-        .not('category', 'is', null);
-
-      if (!products || products.length === 0) {
-        toast.error("لا توجد تصنيفات لتوليد أيقونات لها");
-        setIsGeneratingIcons(false);
-        return;
-      }
-
-      const uniqueCategories = [...new Set(products.map(p => p.category).filter(Boolean))] as string[];
-      toast.info(`جاري توليد أيقونات لـ ${uniqueCategories.length} تصنيف...`);
+      const categoriesToGenerate = selectedIconCategories;
+      toast.info(`جاري توليد أيقونات لـ ${categoriesToGenerate.length} تصنيف...`);
 
       let successCount = 0;
-      for (let i = 0; i < uniqueCategories.length; i++) {
-        const cat = uniqueCategories[i];
-        setIconGenProgress(`${i + 1}/${uniqueCategories.length}: ${cat}`);
+      for (let i = 0; i < categoriesToGenerate.length; i++) {
+        const cat = categoriesToGenerate[i];
+        setIconGenProgress(`${i + 1}/${categoriesToGenerate.length}: ${cat}`);
         
         try {
           const { data, error } = await supabase.functions.invoke('generate-category-icon', {
@@ -85,8 +112,7 @@ const StoreOwnerActionsMenu = ({
             successCount++;
           }
           
-          // تأخير بين الطلبات لتجنب rate limiting
-          if (i < uniqueCategories.length - 1) {
+          if (i < categoriesToGenerate.length - 1) {
             await new Promise(r => setTimeout(r, 2000));
           }
         } catch (err) {
@@ -94,7 +120,7 @@ const StoreOwnerActionsMenu = ({
         }
       }
 
-      toast.success(`تم توليد ${successCount} أيقونة من ${uniqueCategories.length} تصنيف ✨`);
+      toast.success(`تم توليد ${successCount} أيقونة من ${categoriesToGenerate.length} تصنيف ✨`);
       onUpdate?.();
     } catch (error) {
       console.error("خطأ في توليد الأيقونات:", error);
@@ -413,9 +439,41 @@ const StoreOwnerActionsMenu = ({
               ))}
             </div>
 
+            {/* اختيار التصنيفات */}
+            {allCategories.length > 0 && (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-muted-foreground">اختر التصنيفات:</span>
+                  <button
+                    onClick={toggleSelectAll}
+                    className="text-[11px] font-medium hover:underline"
+                    style={{ color: themeColor }}
+                  >
+                    {selectedIconCategories.length === allCategories.length ? "إلغاء الكل" : "تحديد الكل"}
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+                  {allCategories.map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => toggleCategorySelection(cat)}
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all ${
+                        selectedIconCategories.includes(cat)
+                          ? "text-white border-transparent"
+                          : "border-border bg-background/80 text-muted-foreground hover:border-current"
+                      }`}
+                      style={selectedIconCategories.includes(cat) ? { background: themeColor } : {}}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <Button
               onClick={handleGenerateAllIcons}
-              disabled={isGeneratingIcons}
+              disabled={isGeneratingIcons || selectedIconCategories.length === 0}
               className="w-full justify-center gap-2 h-9"
               style={{ background: 'linear-gradient(135deg, #8b5cf6, #ec4899)' }}
             >
@@ -425,7 +483,9 @@ const StoreOwnerActionsMenu = ({
                   <span className="text-white text-xs">{iconGenProgress || "جاري التوليد..."}</span>
                 </>
               ) : (
-                <span className="text-white text-xs">توليد الأيقونات ✨</span>
+                <span className="text-white text-xs">
+                  توليد {selectedIconCategories.length > 0 ? `(${selectedIconCategories.length})` : ""} أيقونات ✨
+                </span>
               )}
             </Button>
           </div>
