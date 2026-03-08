@@ -43,6 +43,7 @@ interface BottomActionsBarProps {
   logoUrl?: string | null;
   favoritesCount?: number;
   onOpenFavorites?: () => void;
+  categoryImages?: CategoryImage[];
 }
 
 const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
