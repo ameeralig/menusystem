@@ -39,6 +39,7 @@ interface MemoryMatchGameProps {
   onClose: () => void;
   products: Product[];
   colorTheme?: string;
+  storeOwnerId?: string;
 }
 
 const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
