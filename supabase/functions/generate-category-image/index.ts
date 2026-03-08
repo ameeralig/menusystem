@@ -128,10 +128,8 @@ serve(async (req) => {
       throw new Error(`R2 upload failed: ${r2Response.status}`);
     }
 
-    // Construct public URL
-    const publicUrl = `https://pub-${R2_ACCOUNT_ID}.r2.dev/${key}`;
-    // Try custom domain pattern used in the project
-    const finalUrl = `https://${R2_BUCKET_NAME}.r2.dev/${key}`;
+    // Construct public URL using the same pattern as other R2 uploads
+    const finalUrl = `https://pub-f762a7c5308344b585c3cfbe0057fae2.r2.dev/${key}`;
 
     console.log(`✅ Generated and uploaded image for "${categoryName}": ${finalUrl}`);
 
