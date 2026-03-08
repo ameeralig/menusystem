@@ -216,7 +216,7 @@ const TextOnlyTemplate: React.FC<TextOnlyTemplateProps> = ({
         </div>
         {/* موجة سفلية */}
         <svg className="w-full h-8 block" viewBox="0 0 1440 60" preserveAspectRatio="none">
-          <path d="M0,60 L0,20 Q360,0 720,20 Q1080,40 1440,20 L1440,60 Z" fill="#faf9f6" />
+          <path d="M0,60 L0,20 Q360,0 720,20 Q1080,40 1440,20 L1440,60 Z" fill={theme.light} />
         </svg>
       </div>
 
