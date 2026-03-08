@@ -303,7 +303,7 @@ const TextOnlyTemplate: React.FC<TextOnlyTemplateProps> = ({
                         <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-all duration-300 rounded-2xl z-20" />
                       </motion.button>
                     );
-                  }))
+                  })
                 )}
               </div>
             </motion.div>
