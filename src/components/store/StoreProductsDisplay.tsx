@@ -15,6 +15,7 @@ import StoreInfo from "./StoreInfo";
 import { sortCategoriesByOrder } from "@/utils/categorySort";
 import { FontSettings, ContactInfo } from "@/types/store";
 import FastResponseTemplate from "./fast-template/FastResponseTemplate";
+import TextOnlyTemplate from "./text-template/TextOnlyTemplate";
 import BottomActionsBar from "./fast-template/BottomActionsBar";
 
 interface StoreProductsDisplayProps {
