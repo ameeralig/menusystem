@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Medal, Crown, User, X, Save } from "lucide-react";
+import { Trophy, Crown, X, Save, Star, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GameScore } from "@/hooks/store/useGameLeaderboard";
@@ -16,10 +16,10 @@ interface GameLeaderboardProps {
   showSaveForm?: boolean;
 }
 
-const RANK_ICONS = [
-  <Crown className="h-5 w-5 text-yellow-500" />,
-  <Medal className="h-5 w-5 text-gray-400" />,
-  <Medal className="h-5 w-5 text-amber-700" />,
+const RANK_STYLES = [
+  { bg: "from-yellow-400/20 to-amber-500/10", border: "border-yellow-400/50", icon: "🥇", glow: "shadow-yellow-500/20" },
+  { bg: "from-gray-300/20 to-slate-400/10", border: "border-gray-400/40", icon: "🥈", glow: "shadow-gray-400/10" },
+  { bg: "from-amber-600/15 to-orange-700/10", border: "border-amber-600/30", icon: "🥉", glow: "shadow-amber-600/10" },
 ];
 
 const GameLeaderboard: React.FC<GameLeaderboardProps> = ({
@@ -34,11 +34,16 @@ const GameLeaderboard: React.FC<GameLeaderboardProps> = ({
 }) => {
   const [playerName, setPlayerName] = useState("");
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (playerName.trim() && onSaveScore) {
+      setSaving(true);
       onSaveScore(playerName.trim());
-      setSaved(true);
+      setTimeout(() => {
+        setSaved(true);
+        setSaving(false);
+      }, 500);
     }
   };
 
@@ -51,122 +56,177 @@ const GameLeaderboard: React.FC<GameLeaderboardProps> = ({
       {/* Save Score Form */}
       {showSaveForm && !saved && currentScore !== undefined && currentScore > 0 && (
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-3 rounded-2xl border-2 space-y-2"
-          style={{ borderColor: `${themeColor}40`, background: `${themeColor}08` }}
+          initial={{ opacity: 0, y: -15, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ type: "spring", stiffness: 300 }}
+          className="relative p-4 rounded-2xl border-2 space-y-3 overflow-hidden"
+          style={{ borderColor: `${themeColor}50`, background: `linear-gradient(135deg, ${themeColor}12, ${themeColor}05)` }}
         >
-          <div className="flex items-center gap-2 text-sm font-bold text-foreground">
-            <Save className="h-4 w-4" style={{ color: themeColor }} />
-            <span>سجّل نتيجتك في لوحة المتصدرين!</span>
+          {/* Sparkle effect */}
+          {isNewHighScore && (
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
+              className="absolute -top-6 -right-6 w-16 h-16 opacity-20"
+              style={{ background: `conic-gradient(from 0deg, transparent, ${themeColor}, transparent)`, borderRadius: "50%" }}
+            />
+          )}
+
+          <div className="relative flex items-center gap-2">
+            <motion.div
+              animate={isNewHighScore ? { rotate: [0, -10, 10, 0], scale: [1, 1.1, 1] } : {}}
+              transition={{ repeat: Infinity, duration: 2 }}
+            >
+              <Sparkles className="h-5 w-5" style={{ color: themeColor }} />
+            </motion.div>
+            <div>
+              <span className="text-sm font-bold text-foreground block">سجّل اسمك! 🏆</span>
+              {isNewHighScore && (
+                <span className="text-[10px] font-bold" style={{ color: themeColor }}>
+                  🎉 رقم قياسي جديد!
+                </span>
+              )}
+            </div>
           </div>
-          <div className="flex gap-2">
+          <div className="relative flex gap-2">
             <Input
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSave()}
               placeholder="اكتب اسمك..."
-              className="flex-1 rounded-xl text-sm"
+              className="flex-1 rounded-xl text-sm h-11 border-2 focus-visible:ring-0"
+              style={{ borderColor: `${themeColor}30` }}
               maxLength={20}
             />
             <Button
               onClick={handleSave}
-              disabled={!playerName.trim()}
-              className="rounded-xl text-white px-4"
-              style={{ background: themeColor }}
+              disabled={!playerName.trim() || saving}
+              className="rounded-xl text-white px-5 h-11 font-bold shadow-lg"
+              style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}cc)`, boxShadow: `0 4px 15px ${themeColor}40` }}
             >
-              حفظ
+              {saving ? "..." : "حفظ"}
             </Button>
           </div>
-          {isNewHighScore && (
-            <p className="text-xs text-center font-medium" style={{ color: themeColor }}>
-              🎉 رقم قياسي جديد!
-            </p>
-          )}
         </motion.div>
       )}
 
       {saved && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center py-2 rounded-xl text-sm font-bold bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-400"
+          initial={{ opacity: 0, scale: 0.8, y: -10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          className="flex items-center justify-center gap-2 py-3 rounded-2xl text-sm font-bold bg-green-50 text-green-600 dark:bg-green-950/50 dark:text-green-400 border border-green-200 dark:border-green-800"
         >
-          ✅ تم حفظ نتيجتك بنجاح!
+          <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: 2, duration: 0.3 }}>✅</motion.span>
+          تم حفظ نتيجتك بنجاح!
         </motion.div>
       )}
 
-      {/* Leaderboard Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Trophy className="h-4 w-4" style={{ color: themeColor }} />
-          <span className="text-sm font-bold text-foreground">🏆 لوحة المتصدرين</span>
-        </div>
-        {onClose && (
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
-            <X className="h-4 w-4" />
-          </button>
-        )}
-      </div>
-
-      {/* Scores List */}
-      {loading ? (
-        <div className="text-center py-6 text-sm text-muted-foreground">جاري التحميل...</div>
-      ) : scores.length === 0 ? (
-        <div className="text-center py-6 space-y-2">
-          <span className="text-3xl block">🏆</span>
-          <p className="text-sm text-muted-foreground">لا توجد نتائج بعد</p>
-          <p className="text-xs text-muted-foreground">كن أول من يسجل نتيجة!</p>
-        </div>
-      ) : (
-        <div className="space-y-1.5">
-          {scores.map((entry, idx) => (
+      {/* Leaderboard */}
+      <div className="rounded-2xl border border-border/40 overflow-hidden bg-card/50">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border/30"
+          style={{ background: `linear-gradient(135deg, ${themeColor}10, ${themeColor}05)` }}>
+          <div className="flex items-center gap-2">
             <motion.div
-              key={entry.id}
-              initial={{ opacity: 0, x: -15 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: idx * 0.05 }}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
-                idx === 0
-                  ? "border-2 shadow-sm"
-                  : "bg-muted/50"
-              }`}
-              style={idx === 0 ? {
-                borderColor: `${themeColor}40`,
-                background: `${themeColor}08`,
-              } : {}}
+              animate={{ y: [0, -2, 0] }}
+              transition={{ repeat: Infinity, duration: 2 }}
             >
-              {/* Rank */}
-              <div className="w-7 flex justify-center shrink-0">
-                {idx < 3 ? (
-                  RANK_ICONS[idx]
-                ) : (
-                  <span className="text-xs font-bold text-muted-foreground">{idx + 1}</span>
-                )}
-              </div>
-
-              {/* Name */}
-              <div className="flex-1 min-w-0">
-                <p className={`text-sm font-bold truncate ${idx === 0 ? "" : "text-foreground"}`}
-                  style={idx === 0 ? { color: themeColor } : {}}>
-                  {entry.player_name}
-                </p>
-                <p className="text-[10px] text-muted-foreground">
-                  {new Date(entry.created_at).toLocaleDateString("ar-SA")}
-                </p>
-              </div>
-
-              {/* Score */}
-              <div className={`text-sm font-black px-2.5 py-1 rounded-lg ${
-                idx === 0 ? "text-white" : "bg-muted text-foreground"
-              }`}
-                style={idx === 0 ? { background: themeColor } : {}}>
-                {entry.score}
-              </div>
+              <Trophy className="h-4 w-4" style={{ color: themeColor }} />
             </motion.div>
-          ))}
+            <span className="text-sm font-black text-foreground">لوحة المتصدرين</span>
+          </div>
+          {onClose && (
+            <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-muted/50">
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
-      )}
+
+        {/* Scores */}
+        <div className="p-3">
+          {loading ? (
+            <div className="text-center py-8 space-y-2">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                className="w-6 h-6 border-2 border-muted-foreground/30 border-t-foreground rounded-full mx-auto"
+              />
+              <p className="text-xs text-muted-foreground">جاري التحميل...</p>
+            </div>
+          ) : scores.length === 0 ? (
+            <div className="text-center py-8 space-y-2">
+              <motion.span
+                animate={{ y: [0, -5, 0] }}
+                transition={{ repeat: Infinity, duration: 2 }}
+                className="text-4xl block"
+              >🏆</motion.span>
+              <p className="text-sm text-muted-foreground font-medium">لا توجد نتائج بعد</p>
+              <p className="text-xs text-muted-foreground">كن أول من يسجل نتيجة! 🚀</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {scores.map((entry, idx) => {
+                const rankStyle = idx < 3 ? RANK_STYLES[idx] : null;
+                return (
+                  <motion.div
+                    key={entry.id}
+                    initial={{ opacity: 0, x: -20, scale: 0.95 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    transition={{ delay: idx * 0.06, type: "spring", stiffness: 300 }}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                      rankStyle
+                        ? `bg-gradient-to-l ${rankStyle.bg} border ${rankStyle.border} shadow-sm ${rankStyle.glow}`
+                        : "bg-muted/30 hover:bg-muted/50"
+                    }`}
+                  >
+                    {/* Rank */}
+                    <div className="w-7 flex justify-center shrink-0">
+                      {rankStyle ? (
+                        <motion.span
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: 0.2 + idx * 0.1, type: "spring" }}
+                          className="text-lg"
+                        >
+                          {rankStyle.icon}
+                        </motion.span>
+                      ) : (
+                        <span className="text-xs font-black text-muted-foreground w-5 h-5 rounded-full bg-muted flex items-center justify-center">
+                          {idx + 1}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Name */}
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-bold truncate ${idx === 0 ? "" : "text-foreground"}`}
+                        style={idx === 0 ? { color: themeColor } : {}}>
+                        {entry.player_name}
+                      </p>
+                      <p className="text-[9px] text-muted-foreground">
+                        {new Date(entry.created_at).toLocaleDateString("ar-SA")}
+                      </p>
+                    </div>
+
+                    {/* Score */}
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.3 + idx * 0.05, type: "spring" }}
+                      className={`text-sm font-black px-3 py-1.5 rounded-xl ${
+                        idx === 0 ? "text-white shadow-md" : "bg-muted text-foreground"
+                      }`}
+                      style={idx === 0 ? { background: `linear-gradient(135deg, ${themeColor}, ${themeColor}cc)`, boxShadow: `0 4px 12px ${themeColor}30` } : {}}
+                    >
+                      {entry.score}
+                    </motion.div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
