@@ -396,6 +396,9 @@ const StoreProductsDisplay = ({
                 fontSettings={fontSettings}
                 categoryImages={categoryImages}
                 isLoading={isLoading && categories.length === 0}
+                isStoreOwner={isStoreOwner}
+                storeOwnerId={storeOwnerId}
+                refreshData={refreshData}
               />
             </motion.div>
           )}
