@@ -18,7 +18,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useFavorites } from "@/hooks/store/useFavorites";
 import CartButton from "../external-orders/CartButton";
 import CartSheet from "../external-orders/CartSheet";
-import { logUserActivity } from "@/hooks/analytics/useActivityLogger";
+import { logUserActivity, logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
 import FavoritesSheet from "../favorites/FavoritesSheet";
 import ShareProductCard from "../share/ShareProductCard";
 import {
@@ -202,7 +202,11 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
     if (onSearchChange) {
       onSearchChange(query);
     }
-  }, [onSearchChange]);
+    // تسجيل نشاط البحث عند كتابة 3 أحرف أو أكثر
+    if (query.trim().length === 3 && storeOwnerId && !isStoreOwner) {
+      logVisitorActivity(storeOwnerId, 'search', { query: query.trim() });
+    }
+  }, [onSearchChange, storeOwnerId, isStoreOwner]);
 
   // مسح البحث
   const clearSearch = useCallback(() => {
@@ -216,7 +220,15 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   const handleProductClick = useCallback((product: Product) => {
     setSelectedProduct(product);
     setIsModalOpen(true);
-  }, []);
+    // تسجيل نشاط عرض تفاصيل المنتج
+    if (storeOwnerId && !isStoreOwner) {
+      logVisitorActivity(storeOwnerId, 'product_view', { 
+        product_id: product.id, 
+        product_name: product.name,
+        category: product.category 
+      });
+    }
+  }, [storeOwnerId, isStoreOwner]);
 
   // معالجة إغلاق النافذة
   const handleCloseModal = useCallback(() => {
@@ -240,7 +252,15 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   const handleAddToCart = useCallback((product: Product) => {
     addItem(product, 1);
     toast.success(`تمت إضافة ${product.name} إلى السلة`);
-  }, [addItem]);
+    // تسجيل نشاط الإضافة للسلة
+    if (storeOwnerId && !isStoreOwner) {
+      logVisitorActivity(storeOwnerId, 'add_to_cart', {
+        product_id: product.id,
+        product_name: product.name,
+        price: product.price
+      });
+    }
+  }, [addItem, storeOwnerId, isStoreOwner]);
 
   // تأكيد الحذف
   const confirmDelete = useCallback(async () => {
@@ -387,6 +407,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         deliveryFee={deliveryFee}
         storePhone={contactInfo?.phone}
         storeName={storeName || undefined}
+        storeOwnerId={storeOwnerId}
       />
 
       {/* عداد الزيارات الحية */}

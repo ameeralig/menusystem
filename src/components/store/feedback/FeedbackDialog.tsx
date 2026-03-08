@@ -5,6 +5,7 @@ import { CheckCircle, ChevronRight, ChevronLeft, Send, Sparkles, X, MessageSquar
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import FeedbackWizardSteps from "./FeedbackWizardSteps";
+import { logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
 
 interface FeedbackDialogProps {
   isOpen: boolean;
@@ -87,6 +88,12 @@ const FeedbackDialog = ({ isOpen, onClose, storeOwnerId, colorTheme }: FeedbackD
       });
 
       if (error) throw error;
+
+      // تسجيل نشاط إرسال التقييم
+      logVisitorActivity(storeOwnerId, 'feedback_submit', {
+        type: formData.feedbackType,
+        visitor_name: formData.visitorName.trim()
+      });
 
       try {
         await supabase.functions.invoke('send-whatsapp-notification', {

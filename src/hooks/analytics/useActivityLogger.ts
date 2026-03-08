@@ -19,7 +19,13 @@ export type VisitorActionType =
   | 'category_click' | 'add_to_favorites' | 'remove_from_favorites'
   | 'share_menu' | 'share_product' | 'search'
   | 'contact_click' | 'social_link_click' | 'wheel_spin'
-  | 'ai_chat' | 'add_to_cart' | 'checkout';
+  | 'ai_chat' | 'add_to_cart' | 'checkout'
+  | 'feedback_submit' | 'feedback_open'
+  | 'game_open' | 'game_play' | 'game_complete'
+  | 'menu_download' | 'store_info_view'
+  | 'banner_click' | 'logo_click'
+  | 'search_open' | 'search_query'
+  | 'favorites_open' | 'cart_open';
 
 // تسجيل نشاط المستخدم (صاحب المتجر)
 export const logUserActivity = async (

@@ -8,6 +8,7 @@ import { Minus, Plus, Trash2, MapPin, Loader2, Map } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import LocationPickerMap from "./LocationPickerMap";
+import { logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
 
 interface CartSheetProps {
   isOpen: boolean;
@@ -15,13 +16,14 @@ interface CartSheetProps {
   deliveryFee: number;
   storePhone?: string;
   storeName?: string;
+  storeOwnerId?: string;
 }
 
 const formatPrice = (price: number): string => {
   return new Intl.NumberFormat('ar-IQ').format(price);
 };
 
-const CartSheet = ({ isOpen, onClose, deliveryFee, storePhone, storeName }: CartSheetProps) => {
+const CartSheet = ({ isOpen, onClose, deliveryFee, storePhone, storeName, storeOwnerId }: CartSheetProps) => {
   const { items, updateQuantity, removeItem, clearCart, getTotal } = useCart();
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -141,6 +143,10 @@ const CartSheet = ({ isOpen, onClose, deliveryFee, storePhone, storeName }: Cart
       return;
     }
     setShowCheckoutForm(true);
+    // تسجيل نشاط فتح صفحة الدفع
+    if (storeOwnerId) {
+      logVisitorActivity(storeOwnerId, 'cart_open', { items_count: items.length, total: subtotal });
+    }
   };
 
   const handleCompleteOrder = () => {
@@ -202,6 +208,11 @@ const CartSheet = ({ isOpen, onClose, deliveryFee, storePhone, storeName }: Cart
     
     // فتح الواتساب
     window.open(whatsappUrl, '_blank');
+    
+    // تسجيل نشاط إتمام الطلب
+    if (storeOwnerId) {
+      logVisitorActivity(storeOwnerId, 'checkout', { items_count: items.length, total });
+    }
     
     // مسح السلة وإغلاق النافذة
     clearCart();

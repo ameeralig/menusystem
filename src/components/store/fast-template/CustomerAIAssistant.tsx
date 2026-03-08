@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Send, Sparkles, User, X, ShoppingCart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -116,6 +117,14 @@ const CustomerAIAssistant = ({
     const userMessage = input.trim();
     setInput("");
     setIsLoading(true);
+
+    // تسجيل نشاط استخدام المساعد الذكي
+    if (!isStoreOwner) {
+      logVisitorActivity(storeOwnerId, 'ai_chat', { 
+        action: 'message_sent',
+        message_preview: userMessage.substring(0, 50)
+      });
+    }
 
     const tempUserMsg: Message = {
       id: crypto.randomUUID(),
