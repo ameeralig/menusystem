@@ -143,6 +143,10 @@ const CartSheet = ({ isOpen, onClose, deliveryFee, storePhone, storeName, storeO
       return;
     }
     setShowCheckoutForm(true);
+    // تسجيل نشاط فتح صفحة الدفع
+    if (storeOwnerId) {
+      logVisitorActivity(storeOwnerId, 'cart_open', { items_count: items.length, total: subtotal });
+    }
   };
 
   const handleCompleteOrder = () => {
