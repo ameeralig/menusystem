@@ -471,6 +471,7 @@ const TextOnlyTemplate: React.FC<TextOnlyTemplateProps> = ({
         logoUrl={logoUrl}
         favoritesCount={favoritesCount}
         onOpenFavorites={() => setIsFavoritesOpen(true)}
+        categoryImages={categoryImages}
       />
 
       <ProductDetailsModal

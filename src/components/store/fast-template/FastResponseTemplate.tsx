@@ -411,6 +411,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         logoUrl={logoUrl}
         favoritesCount={favoritesCount}
         onOpenFavorites={() => setIsFavoritesOpen(true)}
+        categoryImages={categoryImages}
       />
 
       {/* نافذة تفاصيل المنتج */}
