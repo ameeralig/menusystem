@@ -170,7 +170,7 @@ const TextOnlyTemplate: React.FC<TextOnlyTemplateProps> = ({
   const showCategories = !selectedCategory && !searchQuery.trim();
 
   return (
-    <div className="min-h-screen" style={{ background: "#faf9f6" }}>
+    <div className="min-h-screen -mx-4 sm:-mx-6 -mt-4 sm:-mt-6" style={{ background: "#faf9f6" }}>
 
       {/* ═══════ الهيدر الأنيق ═══════ */}
       <div className="relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${theme.primary}, ${theme.dark})` }}>
