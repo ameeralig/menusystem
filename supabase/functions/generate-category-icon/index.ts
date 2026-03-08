@@ -39,22 +39,19 @@ serve(async (req) => {
 
     const styleDesc = stylePrompts[iconStyle || "flat"] || stylePrompts.flat;
 
-    // Use a very specific, direct prompt
-    const prompt = `Create a 512x512 pixel icon of "${categoryName}" food/drink item.
+    // Use a very specific, direct prompt - request JPEG-friendly (opaque) output
+    const prompt = `Generate a single icon for the restaurant menu category "${categoryName}".
 
 Style: ${styleDesc}
 
-Requirements:
-- Draw a single, large, colorful illustration of "${categoryName}" centered in the image
-- The illustration must fill at least 70% of the image area  
-- Use a solid light gray (#EEEEEE) background
-- Make it colorful with rich, vibrant colors
-- DO NOT include any text, words, letters or numbers
-- This is for a restaurant menu category icon
+CRITICAL REQUIREMENTS:
+- Draw a large, colorful food/drink illustration representing "${categoryName}"
+- Use a SOLID BRIGHT colored background (like orange, blue, green, or yellow - NOT white, NOT transparent, NOT gray)
+- The illustration must be centered and fill 70% of the image
+- Use rich, vibrant, saturated colors
+- NO text, NO words, NO letters, NO numbers anywhere
+- Make the background a solid bright color, never white or transparent`;
 
-Example: if the category is "coffee", draw a large colorful coffee cup. If "cake", draw a colorful cake slice.`;
-
-    // Use the higher quality model for better results
     const model = "google/gemini-2.5-flash-image";
     console.log(`Sending prompt to AI with model ${model}...`);
 
