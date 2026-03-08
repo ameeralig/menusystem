@@ -1,10 +1,28 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
+
+function buildPrompt(categoryName: string, storeName: string | null, style: string, customPrompt?: string): string {
+  const storeContext = storeName ? ` for a store named "${storeName}"` : '';
+
+  switch (style) {
+    case 'realistic':
+      return `Generate a high-quality, realistic photograph for a restaurant/cafe menu category called "${categoryName}"${storeContext}. The image should be a professional food photography style shot with beautiful lighting, shallow depth of field, and appetizing presentation. No text in the image. Clean composition suitable for a menu category header.`;
+
+    case 'cartoon':
+      return `Generate a colorful, fun cartoon illustration for a restaurant/cafe menu category called "${categoryName}"${storeContext}. The image should be a playful, hand-drawn cartoon style with vibrant colors, cute characters or food items, and a cheerful mood. No text in the image. Clean white background. Suitable for a food/drink menu category header.`;
+
+    case 'custom':
+      return `Generate an image for a restaurant/cafe menu category called "${categoryName}"${storeContext}. Style instructions: ${customPrompt || 'modern and elegant'}. No text in the image. Clean composition suitable for a menu category header.`;
+
+    case 'icon':
+    default:
+      return `Generate a clean, modern, minimalist icon or illustration for a restaurant/cafe menu category called "${categoryName}"${storeContext}. The image should be a simple, elegant icon-style illustration on a clean white background. No text in the image. Suitable for a food/drink menu category header. Professional, appetizing, and visually appealing.`;
+  }
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -12,7 +30,7 @@ serve(async (req) => {
   }
 
   try {
-    const { categoryName, storeName } = await req.json();
+    const { categoryName, storeName, style = 'icon', customPrompt } = await req.json();
 
     if (!categoryName) {
       return new Response(
@@ -26,9 +44,8 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    const prompt = `Generate a clean, modern, minimalist icon or illustration for a restaurant/cafe menu category called "${categoryName}"${storeName ? ` for a store named "${storeName}"` : ''}. The image should be a simple, elegant icon-style illustration on a clean white background. No text in the image. Suitable for a food/drink menu category header. Professional, appetizing, and visually appealing.`;
-
-    console.log(`Generating image for category: ${categoryName}`);
+    const prompt = buildPrompt(categoryName, storeName, style, customPrompt);
+    console.log(`Generating ${style} image for category: ${categoryName}`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -56,9 +73,8 @@ serve(async (req) => {
       throw new Error('No image generated');
     }
 
-    console.log(`✅ AI image generated for "${categoryName}", uploading to R2...`);
+    console.log(`✅ AI image generated for "${categoryName}" (${style}), uploading to R2...`);
 
-    // Convert base64 to binary
     const base64Data = imageUrl.replace(/^data:image\/\w+;base64,/, '');
     const binaryStr = atob(base64Data);
     const bytes = new Uint8Array(binaryStr.length);
@@ -66,17 +82,13 @@ serve(async (req) => {
       bytes[i] = binaryStr.charCodeAt(i);
     }
 
-    // Create a safe filename (no Arabic characters)
-    const safeFileName = `ai-cat-${Date.now()}.png`;
-
-    // Build FormData to call the existing cloudflare-r2-upload function
+    const safeFileName = `ai-cat-${style}-${Date.now()}.png`;
     const blob = new Blob([bytes], { type: 'image/png' });
     const formData = new FormData();
     formData.append('file', blob, safeFileName);
     formData.append('folder', 'category-images');
     formData.append('userId', 'ai-generated');
 
-    // Call the existing R2 upload function
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -95,7 +107,7 @@ serve(async (req) => {
     }
 
     const uploadResult = await uploadResponse.json();
-    
+
     if (!uploadResult.success || !uploadResult.url) {
       throw new Error('R2 upload returned no URL');
     }
@@ -103,10 +115,10 @@ serve(async (req) => {
     console.log(`✅ Uploaded to R2: ${uploadResult.url}`);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         imageUrl: uploadResult.url,
-        key: uploadResult.key 
+        key: uploadResult.key
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
