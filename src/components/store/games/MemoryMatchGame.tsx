@@ -92,8 +92,8 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
     const allCards: MemoryCard[] = [];
     cardPairs.forEach((pair, index) => {
       allCards.push(
-        { id: index * 2, ...pair, pairId: index, isFlipped: false, isMatched: false },
-        { id: index * 2 + 1, ...pair, pairId: index, isFlipped: false, isMatched: false }
+        { id: index * 2, ...pair, pairId: index, isFlipped: true, isMatched: false },
+        { id: index * 2 + 1, ...pair, pairId: index, isFlipped: true, isMatched: false }
       );
     });
     for (let i = allCards.length - 1; i > 0; i--) {
@@ -103,6 +103,12 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
     setCards(allCards); setFlippedCards([]); setMoves(0); setTimeLeft(config.time);
     setMatchedPairs(0); setShakeCards([]); setComboCount(0); setShowCombo(false);
     setGameState("playing"); setDifficulty(diff); setRecentMatch(null);
+    // إظهار جميع البطاقات لمدة ثانيتين ثم إخفاؤها
+    setIsPreviewPhase(true);
+    setTimeout(() => {
+      setCards(prev => prev.map(c => ({ ...c, isFlipped: false })));
+      setIsPreviewPhase(false);
+    }, 2000);
   }, [buildCardPairs]);
 
   useEffect(() => {
