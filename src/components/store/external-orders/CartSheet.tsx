@@ -16,6 +16,7 @@ interface CartSheetProps {
   deliveryFee: number;
   storePhone?: string;
   storeName?: string;
+  storeOwnerId?: string;
 }
 
 const formatPrice = (price: number): string => {
