@@ -18,7 +18,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useFavorites } from "@/hooks/store/useFavorites";
 import CartButton from "../external-orders/CartButton";
 import CartSheet from "../external-orders/CartSheet";
-import { logUserActivity } from "@/hooks/analytics/useActivityLogger";
+import { logUserActivity, logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
 import FavoritesSheet from "../favorites/FavoritesSheet";
 import ShareProductCard from "../share/ShareProductCard";
 import {
