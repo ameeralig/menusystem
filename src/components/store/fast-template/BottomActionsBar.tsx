@@ -276,7 +276,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                 whileTap={{ scale: 0.92 }}
               >
                 <div
-                  onClick={() => setIsSearchExpanded(true)}
+                  onClick={() => { setIsSearchExpanded(true); trackAction('search_open'); }}
                   className="flex items-center justify-center w-10 h-10 rounded-xl shadow-md cursor-pointer transition-all"
                   style={{
                     background: `${themeColor}20`,
