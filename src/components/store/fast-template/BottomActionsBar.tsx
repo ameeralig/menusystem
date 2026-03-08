@@ -439,6 +439,14 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
         products={products}
         colorTheme={colorTheme || undefined}
       />
+
+      {/* BillPayerGame */}
+      <BillPayerGame
+        isOpen={isBillPayerOpen}
+        onClose={() => setIsBillPayerOpen(false)}
+        colorTheme={colorTheme || undefined}
+      />
+
       {storeOwnerId && !isStoreOwner && (
         <FeedbackDialog
           isOpen={isFeedbackDialogOpen}
