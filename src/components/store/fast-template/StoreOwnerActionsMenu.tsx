@@ -16,6 +16,8 @@ import ProfileSheet from "./ProfileSheet";
 import StoreStatsCard from "../stats/StoreStatsCard";
 import EmployeeManagementCard from "../employees/EmployeeManagementCard";
 import ProductImageMigrationCard from "./ProductImageMigrationCard";
+import CategoryImageGenerator from "../text-template/CategoryImageGenerator";
+import { CategoryImage } from "@/types/categoryImage";
 
 interface StoreOwnerActionsMenuProps {
   storeOwnerId: string;
