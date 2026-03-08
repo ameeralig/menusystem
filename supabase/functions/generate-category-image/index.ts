@@ -24,13 +24,123 @@ function buildPrompt(categoryName: string, storeName: string | null, style: stri
   }
 }
 
+/**
+ * Extract R2 key from a public R2 URL to delete the old file
+ */
+function extractR2Key(url: string): string | null {
+  try {
+    // R2 public URL pattern: https://pub-xxx.r2.dev/folder/filename.ext
+    const urlObj = new URL(url);
+    if (urlObj.hostname.includes('r2.dev')) {
+      // Remove leading slash
+      return urlObj.pathname.slice(1);
+    }
+  } catch {}
+  return null;
+}
+
+/**
+ * Delete an old file from R2 using S3-compatible API
+ */
+async function deleteFromR2(key: string): Promise<boolean> {
+  try {
+    const accessKeyId = Deno.env.get('CLOUDFLARE_R2_ACCESS_KEY_ID')!;
+    const secretAccessKey = Deno.env.get('CLOUDFLARE_R2_SECRET_ACCESS_KEY')!;
+    const accountId = Deno.env.get('CLOUDFLARE_R2_ACCOUNT_ID')!;
+    const bucketName = Deno.env.get('CLOUDFLARE_R2_BUCKET_NAME')!;
+
+    const url = new URL(`https://${accountId}.r2.cloudflarestorage.com/${bucketName}/${key}`);
+    const region = 'auto';
+    const service = 's3';
+    const date = new Date();
+    const amzDate = date.toISOString().replace(/[:-]|\.\d{3}/g, '');
+    const dateStamp = amzDate.substring(0, 8);
+
+    const headers: Record<string, string> = {
+      'host': url.host,
+      'x-amz-date': amzDate,
+      'x-amz-content-sha256': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', // empty body hash
+    };
+
+    // Create canonical request
+    const sortedHeaders = Object.keys(headers).sort();
+    const signedHeadersStr = sortedHeaders.join(';');
+    const canonicalHeaders = sortedHeaders.map(k => `${k}:${headers[k]}`).join('\n') + '\n';
+    const canonicalRequest = [
+      'DELETE',
+      url.pathname,
+      '',
+      canonicalHeaders,
+      signedHeadersStr,
+      headers['x-amz-content-sha256'],
+    ].join('\n');
+
+    const scope = `${dateStamp}/${region}/${service}/aws4_request`;
+    const stringToSign = [
+      'AWS4-HMAC-SHA256',
+      amzDate,
+      scope,
+      await sha256Hex(new TextEncoder().encode(canonicalRequest)),
+    ].join('\n');
+
+    const signingKey = await getSignatureKey(secretAccessKey, dateStamp, region, service);
+    const signature = await hmacHex(signingKey, new TextEncoder().encode(stringToSign));
+
+    const authorization = `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${scope}, SignedHeaders=${signedHeadersStr}, Signature=${signature}`;
+
+    const response = await fetch(url.toString(), {
+      method: 'DELETE',
+      headers: {
+        ...headers,
+        'Authorization': authorization,
+      },
+    });
+
+    if (response.ok || response.status === 204) {
+      console.log(`✅ Deleted old R2 file: ${key}`);
+      return true;
+    } else {
+      console.error(`⚠️ Failed to delete R2 file ${key}: ${response.status}`);
+      return false;
+    }
+  } catch (err) {
+    console.error(`⚠️ Error deleting R2 file:`, err);
+    return false;
+  }
+}
+
+async function sha256Hex(data: Uint8Array): Promise<string> {
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function hmacHex(key: ArrayBuffer, data: Uint8Array): Promise<string> {
+  const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', cryptoKey, data);
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function hmacSign(key: ArrayBuffer, data: Uint8Array): Promise<ArrayBuffer> {
+  const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  return crypto.subtle.sign('HMAC', cryptoKey, data);
+}
+
+async function getSignatureKey(secret: string, dateStamp: string, region: string, service: string): Promise<ArrayBuffer> {
+  const enc = new TextEncoder();
+  let key = await hmacSign(enc.encode('AWS4' + secret), enc.encode(dateStamp));
+  key = await hmacSign(key, enc.encode(region));
+  key = await hmacSign(key, enc.encode(service));
+  key = await hmacSign(key, enc.encode('aws4_request'));
+  return key;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { categoryName, storeName, style = 'icon', customPrompt } = await req.json();
+    const { categoryName, storeName, style = 'icon', customPrompt, oldImageUrl } = await req.json();
 
     if (!categoryName) {
       return new Response(
@@ -42,6 +152,15 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
+    }
+
+    // Delete old R2 image if exists
+    if (oldImageUrl) {
+      const oldKey = extractR2Key(oldImageUrl);
+      if (oldKey) {
+        console.log(`🗑️ Deleting old image: ${oldKey}`);
+        await deleteFromR2(oldKey);
+      }
     }
 
     const prompt = buildPrompt(categoryName, storeName, style, customPrompt);
