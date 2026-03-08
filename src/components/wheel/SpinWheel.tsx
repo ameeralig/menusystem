@@ -1,8 +1,7 @@
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Product } from '@/types/product';
 import { toast } from 'sonner';
 
@@ -13,420 +12,400 @@ interface SpinWheelProps {
   hideResult?: boolean;
 }
 
+// Procedural audio engine
+const useWheelSounds = () => {
+  const ctxRef = useRef<AudioContext | null>(null);
+  const getCtx = () => {
+    if (!ctxRef.current) ctxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    return ctxRef.current;
+  };
+
+  const playSpinSound = useCallback(() => {
+    try {
+      const ctx = getCtx();
+      const totalTicks = 50;
+      const duration = 4.2;
+
+      for (let i = 0; i < totalTicks; i++) {
+        const progress = i / totalTicks;
+        const easeOut = 1 - Math.pow(1 - progress, 3.5);
+        const time = ctx.currentTime + easeOut * duration;
+        const intensity = 1 - (progress * 0.7);
+
+        if (progress < 0.4 || Math.random() > progress * 0.8) {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          const filter = ctx.createBiquadFilter();
+          osc.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(300 + intensity * 100, time);
+          osc.frequency.exponentialRampToValueAtTime(150, time + 0.05);
+          filter.type = 'highpass'; filter.frequency.setValueAtTime(200, time);
+          gain.gain.setValueAtTime(0, time);
+          gain.gain.linearRampToValueAtTime(0.3 * intensity, time + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+          osc.start(time); osc.stop(time + 0.08);
+        }
+      }
+
+      // Final stop sound
+      setTimeout(() => {
+        try {
+          const ctx2 = getCtx();
+          const finalOsc = ctx2.createOscillator();
+          const finalGain = ctx2.createGain();
+          finalOsc.connect(finalGain); finalGain.connect(ctx2.destination);
+          finalOsc.type = 'triangle';
+          finalOsc.frequency.setValueAtTime(180, ctx2.currentTime);
+          finalOsc.frequency.exponentialRampToValueAtTime(120, ctx2.currentTime + 0.2);
+          finalGain.gain.setValueAtTime(0.3, ctx2.currentTime);
+          finalGain.gain.exponentialRampToValueAtTime(0.001, ctx2.currentTime + 0.2);
+          finalOsc.start(); finalOsc.stop(ctx2.currentTime + 0.2);
+        } catch {}
+      }, 4200);
+    } catch {}
+  }, []);
+
+  const playWinSound = useCallback(() => {
+    try {
+      const ctx = getCtx();
+      [523, 659, 784, 1047, 1319].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        const t = ctx.currentTime + i * 0.12;
+        gain.gain.setValueAtTime(0.2, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+        osc.start(t); osc.stop(t + 0.3);
+      });
+    } catch {}
+  }, []);
+
+  return { playSpinSound, playWinSound };
+};
+
 const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, colorTheme = "default", hideResult = false }) => {
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [result, setResult] = useState<Product | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [showWinEffect, setShowWinEffect] = useState(false);
   const wheelRef = useRef<HTMLDivElement>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { playSpinSound, playWinSound } = useWheelSounds();
 
-  // إنشاء صوت دوران العجلة محسّن وواقعي
-  const playSpinSound = useCallback(() => {
-    try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      
-      // إنشاء صوت النقر الواقعي للعجلة
-      const createRealisticTick = (time: number, intensity: number) => {
-        // صوت النقر الأساسي
-        const clickOscillator = audioContext.createOscillator();
-        const clickGain = audioContext.createGain();
-        const clickFilter = audioContext.createBiquadFilter();
-        
-        clickOscillator.connect(clickFilter);
-        clickFilter.connect(clickGain);
-        clickGain.connect(audioContext.destination);
-        
-        // تضبيط الصوت ليكون أكثر واقعية
-        clickOscillator.type = 'square';
-        clickOscillator.frequency.setValueAtTime(300 + intensity * 100, time);
-        clickOscillator.frequency.exponentialRampToValueAtTime(150, time + 0.05);
-        
-        clickFilter.type = 'highpass';
-        clickFilter.frequency.setValueAtTime(200, time);
-        
-        clickGain.gain.setValueAtTime(0, time);
-        clickGain.gain.linearRampToValueAtTime(0.4 * intensity, time + 0.01);
-        clickGain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
-        
-        clickOscillator.start(time);
-        clickOscillator.stop(time + 0.08);
-        
-        // إضافة صوت خشخشة خفيف
-        const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * 0.1, audioContext.sampleRate);
-        const noiseData = noiseBuffer.getChannelData(0);
-        for (let i = 0; i < noiseData.length; i++) {
-          noiseData[i] = (Math.random() * 2 - 1) * 0.1 * intensity;
-        }
-        
-        const noiseSource = audioContext.createBufferSource();
-        const noiseGain = audioContext.createGain();
-        const noiseFilter = audioContext.createBiquadFilter();
-        
-        noiseSource.buffer = noiseBuffer;
-        noiseSource.connect(noiseFilter);
-        noiseFilter.connect(noiseGain);
-        noiseGain.connect(audioContext.destination);
-        
-        noiseFilter.type = 'bandpass';
-        noiseFilter.frequency.setValueAtTime(800, time);
-        
-        noiseGain.gain.setValueAtTime(0, time);
-        noiseGain.gain.linearRampToValueAtTime(0.2 * intensity, time + 0.01);
-        noiseGain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
-        
-        noiseSource.start(time);
-      };
-      
-      // محاكاة دوران العجلة مع تباطؤ تدريجي
-      const totalTicks = 50; // زيادة عدد النقرات لمزيد من الواقعية
-      const duration = 4.2; // تطابق مدة الانيميشن الجديدة
-      
-      for (let i = 0; i < totalTicks; i++) {
-        // حساب الوقت مع تباطؤ تدريجي (المسافات تزيد تدريجياً)
-        const progress = i / totalTicks;
-        const easeOut = 1 - Math.pow(1 - progress, 3.5); // منحنى تباطؤ أكثر سلاسة
-        const time = audioContext.currentTime + easeOut * duration;
-        
-        // شدة الصوت تقل تدريجياً
-        const intensity = 1 - (progress * 0.7);
-        
-        // تكرار النقرات يقل تدريجياً
-        if (progress < 0.4 || Math.random() > progress * 0.8) {
-          createRealisticTick(time, intensity);
-        }
-      }
-      
-      // صوت التوقف النهائي - نقرة أخيرة مكتومة
-      setTimeout(() => {
-        const finalClick = audioContext.createOscillator();
-        const finalGain = audioContext.createGain();
-        
-        finalClick.connect(finalGain);
-        finalGain.connect(audioContext.destination);
-        
-        finalClick.type = 'triangle';
-        finalClick.frequency.setValueAtTime(180, audioContext.currentTime);
-        finalClick.frequency.exponentialRampToValueAtTime(120, audioContext.currentTime + 0.2);
-        
-        finalGain.gain.setValueAtTime(0.3, audioContext.currentTime);
-        finalGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
-        
-        finalClick.start();
-        finalClick.stop(audioContext.currentTime + 0.2);
-      }, 4200); // تطابق المدة الجديدة
-      
-    } catch (error) {
-      console.log('Audio not supported');
-    }
-  }, []);
-
-  // ألوان العجلة محسّنة للأداء
+  // Theme-aware wheel colors
   const wheelColors = useMemo(() => {
-    const colorMap: { [key: string]: string } = {
-      default: '#6E7681',
-      coral: '#ff9178',
-      purple: '#8B5CF6',
-      blue: '#3B82F6',
-      green: '#10B981',
-      pink: '#EC4899',
-      teal: '#14B8A6',
-      amber: '#F59E0B',
-      indigo: '#6366F1',
-      rose: '#F43F5E'
+    const colorMap: Record<string, string> = {
+      default: '#6E7681', coral: '#ff9178', purple: '#8B5CF6', blue: '#3B82F6',
+      green: '#10B981', pink: '#EC4899', teal: '#14B8A6', amber: '#F59E0B',
+      indigo: '#6366F1', rose: '#F43F5E',
     };
+    const mainColor = colorTheme?.startsWith('#') ? colorTheme : (colorMap[colorTheme || ''] || colorMap.default);
 
-    const mainColor = colorMap[colorTheme] || colorMap.default;
-    
-    // تحويل لون hex إلى HSL مُحسّن
     const hexToHsl = (hex: string): [number, number, number] => {
       const r = parseInt(hex.slice(1, 3), 16) / 255;
       const g = parseInt(hex.slice(3, 5), 16) / 255;
       const b = parseInt(hex.slice(5, 7), 16) / 255;
-      
-      const max = Math.max(r, g, b);
-      const min = Math.min(r, g, b);
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
       let h = 0, s = 0;
       const l = (max + min) / 2;
-      
       if (max !== min) {
         const d = max - min;
         s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-        
-        switch (max) {
-          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-          case g: h = (b - r) / d + 2; break;
-          case b: h = (r - g) / d + 4; break;
-        }
+        switch (max) { case r: h = (g - b) / d + (g < b ? 6 : 0); break; case g: h = (b - r) / d + 2; break; case b: h = (r - g) / d + 4; break; }
         h /= 6;
       }
-      
       return [h * 360, s * 100, l * 100];
     };
 
-    const [hue, saturation, lightness] = hexToHsl(mainColor);
-    
-    // إنشاء تدرجات محسّنة
+    const [hue, sat, light] = hexToHsl(mainColor);
     return products.map((_, i) => {
-      const adjustedHue = (hue + (i * (360 / products.length))) % 360;
-      const adjustedSaturation = Math.max(40, saturation - (i % 3) * 10);
-      const adjustedLightness = Math.max(45, Math.min(75, lightness + (i % 4) * 8));
-      return `hsl(${adjustedHue}, ${adjustedSaturation}%, ${adjustedLightness}%)`;
+      const h = (hue + (i * (360 / products.length))) % 360;
+      const s = Math.max(45, sat - (i % 3) * 8);
+      const l = Math.max(40, Math.min(70, light + (i % 2 === 0 ? 8 : -5)));
+      return `hsl(${h}, ${s}%, ${l}%)`;
     });
   }, [products.length, colorTheme]);
 
-  // التأكد من وجود منتجات
+  const sectorAngle = useMemo(() => 360 / products.length, [products.length]);
+
   if (!products || products.length === 0) {
     return (
-      <Card className="p-8 text-center mx-auto max-w-md">
-        <p className="text-muted-foreground">لا توجد منتجات متاحة للعجلة</p>
-      </Card>
+      <div className="text-center py-12 space-y-3">
+        <motion.span animate={{ y: [0, -8, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="text-5xl block">🎡</motion.span>
+        <p className="text-sm text-muted-foreground font-medium">لا توجد منتجات متاحة للعجلة</p>
+      </div>
     );
   }
 
-  // حساب زاوية كل قطاع (مُحسّن)
-  const sectorAngle = useMemo(() => 360 / products.length, [products.length]);
-
-  const handleSpin = useCallback(() => {
+  const handleSpin = () => {
     if (isSpinning) return;
-    
     setIsSpinning(true);
     setResult(null);
-    playSpinSound();
-    
-    // حساب الدوران العشوائي (10-15 دورة كاملة + زاوية عشوائية لمزيد من الواقعية)
-    const spins = Math.floor(Math.random() * 6) + 10; // 10-15 دورات
+    setShowWinEffect(false);
+    if (soundEnabled) playSpinSound();
+
+    const spins = Math.floor(Math.random() * 6) + 10;
     const finalAngle = Math.random() * 360;
     const totalRotation = rotation + (spins * 360) + finalAngle;
-    
     setRotation(totalRotation);
-    
-    // تحديد المنتج الفائز بعد انتهاء الدوران - حساب صحيح للمنتج تحت السهم
+
     setTimeout(() => {
-      // السهم في الأعلى، يجب تعويض إزاحة اتجاه conic-gradient (تبدأ من اليمين 0°)
-      // نحسب زاوية الإزاحة بحيث يشير السهم للأعلى (270° من المرجع الافتراضي)
       const adjustedRotation = (360 - (totalRotation % 360)) % 360;
-      const pointerOffsetDeg = 270; // أعلى العجلة
+      const pointerOffsetDeg = 270;
       const adjustedWithOffset = (adjustedRotation + pointerOffsetDeg) % 360;
       const winnerIndex = Math.floor(adjustedWithOffset / sectorAngle) % products.length;
       const winner = products[winnerIndex];
-      
+
       setResult(winner);
       setIsSpinning(false);
+      setShowWinEffect(true);
+      if (soundEnabled) playWinSound();
       onResult?.(winner);
-      
       toast.success(`🎉 النتيجة: ${winner.name}!`);
-    }, 4500); // تطابق مدة الانيميشن الجديدة
-  }, [isSpinning, rotation, sectorAngle, products, onResult, playSpinSound]);
 
-  const resetWheel = useCallback(() => {
+      setTimeout(() => setShowWinEffect(false), 3000);
+    }, 4500);
+  };
+
+  const resetWheel = () => {
     setRotation(0);
     setResult(null);
-  }, []);
+    setShowWinEffect(false);
+  };
+
+  // Generate conic gradient
+  const conicGradient = useMemo(() => {
+    return products.map((_, index) => {
+      const startAngle = index * sectorAngle;
+      const endAngle = (index + 1) * sectorAngle;
+      const color = wheelColors[index % wheelColors.length];
+      const hslMatch = color.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
+      if (hslMatch) {
+        const [h, s, l] = hslMatch.slice(1, 4).map(Number);
+        const lighter = `hsl(${h}, ${Math.min(100, s + 12)}%, ${Math.min(80, l + 12)}%)`;
+        const darker = `hsl(${h}, ${Math.max(30, s - 8)}%, ${Math.max(30, l - 12)}%)`;
+        return `${darker} ${startAngle}deg, ${color} ${startAngle + sectorAngle * 0.3}deg, ${lighter} ${startAngle + sectorAngle * 0.7}deg, ${color} ${endAngle}deg`;
+      }
+      return `${color} ${startAngle}deg, ${color} ${endAngle}deg`;
+    }).join(', ');
+  }, [products.length, sectorAngle, wheelColors]);
+
+  const themeColor = colorTheme?.startsWith('#') ? colorTheme : ({
+    coral: '#ff9178', purple: '#8B5CF6', blue: '#3B82F6', green: '#10B981',
+    pink: '#EC4899', teal: '#14B8A6', amber: '#F59E0B', indigo: '#6366F1', rose: '#F43F5E',
+  }[colorTheme || ''] || '#3B82F6');
 
   return (
-    <div className="flex flex-col items-center gap-4 sm:gap-6 p-2 sm:p-6 w-full">
-      {/* العجلة */}
+    <div className="flex flex-col items-center gap-4 w-full py-2">
+      {/* Sound toggle */}
+      <div className="flex justify-end w-full px-1">
+        <button onClick={() => setSoundEnabled(!soundEnabled)}
+          className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all">
+          {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+        </button>
+      </div>
+
+      {/* Wheel container */}
       <div className="relative flex justify-center w-full">
-        {/* المؤشر المحسّن */}
-        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-3 sm:-translate-y-4 z-10">
-          <div className="flex flex-col items-center">
-            <div 
-              className="w-0 h-0 border-l-6 sm:border-l-8 border-r-6 sm:border-r-8 border-b-12 sm:border-b-16 border-l-transparent border-r-transparent"
+        {/* Outer glow ring */}
+        <motion.div
+          animate={isSpinning ? { opacity: [0.3, 0.7, 0.3], scale: [1, 1.02, 1] } : { opacity: 0.15 }}
+          transition={{ repeat: isSpinning ? Infinity : 0, duration: 1 }}
+          className="absolute w-[calc(100%-8px)] aspect-square max-w-[22rem] rounded-full"
+          style={{
+            top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+            boxShadow: `0 0 40px ${themeColor}40, 0 0 80px ${themeColor}20`,
+          }}
+        />
+
+        {/* Pointer / Arrow */}
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-2 z-20">
+          <motion.div animate={showWinEffect ? { y: [0, -5, 0], scale: [1, 1.2, 1] } : {}}
+            transition={{ repeat: showWinEffect ? 3 : 0, duration: 0.3 }}
+            className="flex flex-col items-center">
+            <div className="w-0 h-0"
               style={{
-                borderBottomColor: 'hsl(45, 100%, 50%)',
-                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4)) drop-shadow(0 0 10px hsl(45, 100%, 70%))'
-              }}
-            ></div>
-            <div 
-              className="w-5 h-6 sm:w-6 sm:h-8 rounded-b-md"
+                borderLeft: '10px solid transparent', borderRight: '10px solid transparent',
+                borderBottom: '22px solid #f59e0b',
+                filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.4)) drop-shadow(0 0 8px rgba(245,158,11,0.6))',
+              }} />
+            <div className="w-5 h-5 rounded-b-md -mt-0.5"
               style={{
-                background: 'linear-gradient(180deg, hsl(45, 100%, 50%) 0%, hsl(43, 74%, 49%) 50%, hsl(43, 74%, 43%) 100%)',
-                boxShadow: '0 4px 8px rgba(0,0,0,0.3), 0 0 15px hsl(45, 100%, 70%)'
-              }}
-            ></div>
-          </div>
+                background: 'linear-gradient(180deg, #f59e0b, #d97706)',
+                boxShadow: '0 3px 8px rgba(0,0,0,0.3), 0 0 12px rgba(245,158,11,0.5)',
+              }} />
+          </motion.div>
         </div>
-        
-        {/* العجلة الدوارة المحسّنة */}
+
+        {/* The Wheel */}
         <motion.div
           ref={wheelRef}
-          className="relative w-72 h-72 sm:w-96 sm:h-96 rounded-full shadow-2xl overflow-hidden"
+          className="relative w-72 h-72 sm:w-80 sm:h-80 rounded-full overflow-hidden"
           animate={{ rotate: rotation }}
-          transition={{ 
+          transition={{
             duration: isSpinning ? 4.5 : 0,
             ease: isSpinning ? [0.25, 0.46, 0.45, 0.94] : "linear",
-            type: "tween"
+            type: "tween",
           }}
-          style={useMemo(() => ({
-            background: `conic-gradient(${products.map((_, index) => {
-              const startAngle = (index * sectorAngle);
-              const endAngle = ((index + 1) * sectorAngle);
-              const color1 = wheelColors[index] || wheelColors[index % wheelColors.length];
-              // تدرج لوني متقدم مع تأثيرات إضاءة
-              const hslMatch = color1.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
-              if (hslMatch) {
-                const [h, s, l] = hslMatch.slice(1, 4).map(Number);
-                const color2 = `hsl(${h}, ${Math.min(100, s + 15)}%, ${Math.min(85, l + 15)}%)`;
-                const color3 = `hsl(${h}, ${Math.max(30, s - 10)}%, ${Math.max(30, l - 15)}%)`;
-                return `${color3} ${startAngle}deg, ${color1} ${startAngle + (sectorAngle/3)}deg, ${color2} ${startAngle + (2*sectorAngle/3)}deg, ${color1} ${endAngle}deg`;
-              }
-              return `${color1} ${startAngle}deg, ${color1} ${endAngle}deg`;
-            }).join(', ')})`,
-            border: '6px solid rgba(255, 255, 255, 0.3)',
-            boxShadow: `
-              0 0 50px rgba(255, 255, 255, 0.2),
-              0 0 100px rgba(255, 255, 255, 0.1),
-              inset 0 0 30px rgba(255, 255, 255, 0.1),
-              0 20px 40px rgba(0, 0, 0, 0.3)
-            `
-          }), [products.length, sectorAngle, wheelColors])}
+          style={{
+            background: `conic-gradient(${conicGradient})`,
+            border: '5px solid hsl(var(--border))',
+            boxShadow: `0 0 30px rgba(0,0,0,0.15), inset 0 0 20px rgba(255,255,255,0.1), 0 12px 30px rgba(0,0,0,0.2)`,
+          }}
         >
-          {/* خطوط فاصلة محسّنة بين القطاعات */}
-          {products.map((_, index) => {
-            const angle = index * sectorAngle;
-            const radian = (angle * Math.PI) / 180;
-            const x1 = Math.cos(radian - Math.PI/2) * 20 + 192;
-            const y1 = Math.sin(radian - Math.PI/2) * 20 + 192;
-            const x2 = Math.cos(radian - Math.PI/2) * 192 + 192;
-            const y2 = Math.sin(radian - Math.PI/2) * 192 + 192;
-            
-            return (
-              <div
-                key={`line-${index}`}
-                className="absolute w-1 origin-bottom"
-                style={{
-                  left: x1,
-                  top: y1,
-                  height: Math.sqrt((x2-x1)**2 + (y2-y1)**2),
-                  transform: `rotate(${angle + 90}deg)`,
-                  transformOrigin: 'bottom',
-                  background: 'linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.3), rgba(255,255,255,0.1))',
-                  boxShadow: '0 0 4px rgba(255,255,255,0.5)'
-                }}
-              />
-            );
-          })}
+          {/* Sector divider lines */}
+          {products.map((_, index) => (
+            <div key={`line-${index}`}
+              className="absolute top-1/2 left-1/2 origin-left"
+              style={{
+                width: '50%', height: '1.5px',
+                transform: `rotate(${index * sectorAngle}deg)`,
+                background: 'linear-gradient(90deg, transparent 15%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.2) 100%)',
+              }}
+            />
+          ))}
 
-          {/* أسماء المنتجات المحسّنة */}
+          {/* Product names */}
           {products.map((product, index) => {
             const angle = (index * sectorAngle) + (sectorAngle / 2);
-            
             return (
-              <div
-                key={product.id}
-                className="absolute"
-                style={{
-                  left: '50%',
-                  top: '50%',
-                  transform: `rotate(${angle}deg)`,
-                  transformOrigin: '0 0',
-                  width: '140px',
-                  height: '20px'
-                }}
-              >
-                {/* النص من المنتصف للطرف مع تأثيرات محسّنة */}
-                <div 
-                  className="absolute flex items-center justify-start"
-                  style={{
-                    left: '40px', // بداية النص من المركز
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    width: '130px'
-                  }}
-                >
-                  <p 
-                    className="text-sm font-bold whitespace-nowrap overflow-hidden text-ellipsis text-white"
-                    style={{
-                      textShadow: '2px 2px 4px rgba(0,0,0,0.9), 1px 1px 2px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.6)',
-                      filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.4))'
-                    }}
-                  >
-                    {product.name.length > 12 ? product.name.substring(0, 12) + '...' : product.name}
+              <div key={product.id} className="absolute" style={{
+                left: '50%', top: '50%',
+                transform: `rotate(${angle}deg)`, transformOrigin: '0 0',
+                width: '140px', height: '20px',
+              }}>
+                <div className="absolute flex items-center" style={{
+                  left: '35px', top: '50%', transform: 'translateY(-50%)', width: '120px',
+                }}>
+                  <p className="text-[11px] sm:text-xs font-bold whitespace-nowrap overflow-hidden text-ellipsis text-white"
+                    style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.8), 0 0 6px rgba(0,0,0,0.5)' }}>
+                    {product.name.length > 14 ? product.name.substring(0, 14) + '…' : product.name}
                   </p>
                 </div>
               </div>
             );
           })}
-          
-          {/* دائرة مركزية قابلة للضغط لبدء الدوران */}
-          {!isSpinning && !result && (
-            <motion.div 
-              className="absolute w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center z-20"
-              style={{
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                background: `
-                  radial-gradient(circle, 
-                    rgba(255,255,255,0.95) 0%, 
-                    rgba(255,255,255,0.8) 30%, 
-                    rgba(255,255,255,0.6) 70%, 
-                    rgba(255,255,255,0.3) 100%
-                  )
-                `,
-                boxShadow: `
-                  0 0 25px rgba(255,255,255,0.8),
-                  inset 0 0 25px rgba(255,255,255,0.4),
-                  0 6px 12px rgba(0,0,0,0.4)
-                `,
-                border: '3px solid rgba(255,255,255,0.9)',
-                cursor: 'pointer'
-              }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleSpin}
-              initial={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.5 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="text-center">
-                <div className="text-xl sm:text-2xl mb-1">🎯</div>
-                <div className="text-[10px] sm:text-xs font-bold text-gray-700">اضغط</div>
-              </div>
-            </motion.div>
+
+          {/* Center button */}
+          <AnimatePresence>
+            {!isSpinning && (
+              <motion.div
+                initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+                className="absolute z-20 cursor-pointer"
+                style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+                whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                onClick={handleSpin}
+              >
+                <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full flex flex-col items-center justify-center shadow-xl border-3 border-white/50"
+                  style={{
+                    background: result
+                      ? `linear-gradient(135deg, ${themeColor}, ${themeColor}cc)`
+                      : 'radial-gradient(circle, rgba(255,255,255,0.95), rgba(255,255,255,0.7))',
+                    boxShadow: `0 0 20px rgba(255,255,255,0.6), inset 0 0 15px rgba(255,255,255,0.3), 0 4px 12px rgba(0,0,0,0.3)`,
+                  }}>
+                  <motion.span
+                    animate={!result ? { scale: [1, 1.15, 1] } : {}}
+                    transition={{ repeat: !result ? Infinity : 0, duration: 1.5 }}
+                    className="text-xl sm:text-2xl"
+                  >
+                    {result ? '🔄' : '🎯'}
+                  </motion.span>
+                  <span className={`text-[8px] sm:text-[9px] font-black ${result ? 'text-white' : 'text-foreground/70'}`}>
+                    {result ? 'أعد' : 'أدر'}
+                  </span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Spinning center */}
+          {isSpinning && (
+            <div className="absolute z-20" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+              <motion.div
+                animate={{ rotate: -rotation, scale: [1, 1.05, 1] }}
+                transition={{ rotate: { duration: 4.5, ease: [0.25, 0.46, 0.45, 0.94] }, scale: { repeat: Infinity, duration: 0.5 } }}
+                className="w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center"
+                style={{
+                  background: `linear-gradient(135deg, ${themeColor}, ${themeColor}cc)`,
+                  boxShadow: `0 0 25px ${themeColor}60, 0 4px 12px rgba(0,0,0,0.3)`,
+                }}
+              >
+                <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 0.4 }}
+                  className="text-xl text-white">🎲</motion.span>
+              </motion.div>
+            </div>
           )}
         </motion.div>
+
+        {/* Win particles */}
+        <AnimatePresence>
+          {showWinEffect && (
+            <>
+              {Array.from({ length: 16 }).map((_, i) => (
+                <motion.div key={i}
+                  initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
+                  animate={{
+                    opacity: [0, 1, 0], scale: [0, 1, 0],
+                    x: (Math.random() - 0.5) * 300,
+                    y: (Math.random() - 0.5) * 300,
+                    rotate: Math.random() * 720,
+                  }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 1.5, delay: i * 0.05 }}
+                  className="absolute top-1/2 left-1/2 text-xl pointer-events-none z-30"
+                >
+                  {['🎉', '✨', '🎊', '⭐', '💫', '🌟', '🎯', '🏆'][i % 8]}
+                </motion.div>
+              ))}
+            </>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* إعادة تعيين العجلة فقط */}
-      <div className="flex justify-center mt-4 sm:mt-6">
-        <Button 
-          onClick={resetWheel} 
-          variant="outline" 
-          size="sm"
-          className="border-border bg-background hover:bg-muted text-foreground hover:text-foreground text-xs sm:text-sm"
-        >
-          <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-          إعادة تعيين
+      {/* Buttons */}
+      <div className="flex gap-2 w-full max-w-xs">
+        <Button onClick={resetWheel} variant="outline" size="sm"
+          className="flex-1 rounded-xl text-xs h-9 font-bold">
+          <RotateCcw className="w-3.5 h-3.5 ml-1.5" /> إعادة تعيين
         </Button>
+        {!isSpinning && !result && (
+          <motion.div className="flex-1" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button onClick={handleSpin} size="sm"
+              className="w-full rounded-xl text-xs h-9 font-bold text-white shadow-md"
+              style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}cc)` }}>
+              🎰 أدر العجلة
+            </Button>
+          </motion.div>
+        )}
       </div>
 
-      {/* عرض النتيجة - إخفاؤها إذا كانت hideResult = true */}
+      {/* Result */}
       {!hideResult && result && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center w-full"
-        >
-          <Card className="p-6 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20 mx-auto max-w-md">
-            <h3 className="text-2xl font-bold text-primary mb-2">🎉 النتيجة</h3>
-            <div className="flex items-center justify-center gap-4">
-              {result.image_url && (
-                <img 
-                  src={result.image_url} 
-                  alt={result.name}
-                  className="w-16 h-16 rounded-full object-cover border-2 border-primary"
-                />
-              )}
-              <div>
-                <h4 className="text-xl font-semibold text-foreground">{result.name}</h4>
-                <p className="text-lg text-primary font-bold">{result.price.toLocaleString()} د.ع</p>
-                {result.description && (
-                  <p className="text-sm text-muted-foreground mt-1">{result.description}</p>
-                )}
-              </div>
+        <motion.div initial={{ opacity: 0, y: 15, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ type: "spring", stiffness: 300 }}
+          className="w-full max-w-xs rounded-2xl border-2 p-4 overflow-hidden relative"
+          style={{ borderColor: `${themeColor}40`, background: `${themeColor}08` }}>
+          <div className="absolute inset-0 opacity-5"
+            style={{ backgroundImage: `radial-gradient(circle at 30% 50%, ${themeColor} 1px, transparent 1px)`, backgroundSize: '16px 16px' }} />
+          <div className="relative flex items-center gap-3">
+            {result.image_url && (
+              <motion.img
+                initial={{ scale: 0, rotate: -10 }} animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", delay: 0.1 }}
+                src={result.image_url} alt={result.name}
+                className="w-14 h-14 rounded-xl object-cover border-2 shadow-md"
+                style={{ borderColor: `${themeColor}40` }}
+              />
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-muted-foreground font-medium">🎉 النتيجة</p>
+              <h4 className="text-sm font-black text-foreground truncate">{result.name}</h4>
+              <p className="text-sm font-black" style={{ color: themeColor }}>{result.price.toLocaleString()} د.ع</p>
             </div>
-          </Card>
+          </div>
         </motion.div>
       )}
     </div>
