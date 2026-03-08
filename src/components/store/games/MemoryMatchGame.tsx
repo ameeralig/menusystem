@@ -47,6 +47,7 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
   onClose,
   products,
   colorTheme,
+  storeOwnerId,
 }) => {
   const [gameState, setGameState] = useState<"menu" | "playing" | "won" | "lost" | "login">("menu");
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
