@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Send, Sparkles, User, X, ShoppingCart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
