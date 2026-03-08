@@ -61,6 +61,7 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
   const [showCombo, setShowCombo] = useState(false);
   const [lastMatchTime, setLastMatchTime] = useState(0);
   const [recentMatch, setRecentMatch] = useState<number | null>(null);
+  const [isPreviewPhase, setIsPreviewPhase] = useState(false);
   const { scores: lbScores, loading: lbLoading, saveScore } = useGameLeaderboard(storeOwnerId, "memory");
 
   const themeColor = useMemo(() => {
