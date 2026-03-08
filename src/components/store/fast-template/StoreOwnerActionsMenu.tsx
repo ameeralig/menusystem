@@ -47,6 +47,62 @@ const StoreOwnerActionsMenu = ({
   const [showMigrationCard, setShowMigrationCard] = useState(false);
   const [employeeSystemEnabled, setEmployeeSystemEnabled] = useState(false);
   const [currentTemplate, setCurrentTemplate] = useState("fast-response");
+  const [isGeneratingIcons, setIsGeneratingIcons] = useState(false);
+  const [iconGenProgress, setIconGenProgress] = useState("");
+
+  const handleGenerateAllIcons = async () => {
+    setIsGeneratingIcons(true);
+    setIsOpen(false);
+    try {
+      // جلب كل التصنيفات من المنتجات
+      const { data: products } = await supabase
+        .from('products')
+        .select('category')
+        .eq('user_id', storeOwnerId)
+        .not('category', 'is', null);
+
+      if (!products || products.length === 0) {
+        toast.error("لا توجد تصنيفات لتوليد أيقونات لها");
+        setIsGeneratingIcons(false);
+        return;
+      }
+
+      const uniqueCategories = [...new Set(products.map(p => p.category).filter(Boolean))] as string[];
+      toast.info(`جاري توليد أيقونات لـ ${uniqueCategories.length} تصنيف...`);
+
+      let successCount = 0;
+      for (let i = 0; i < uniqueCategories.length; i++) {
+        const cat = uniqueCategories[i];
+        setIconGenProgress(`${i + 1}/${uniqueCategories.length}: ${cat}`);
+        
+        try {
+          const { data, error } = await supabase.functions.invoke('generate-category-icon', {
+            body: { categoryName: cat, userId: storeOwnerId }
+          });
+
+          if (!error && data?.iconUrl) {
+            successCount++;
+          }
+          
+          // تأخير بين الطلبات لتجنب rate limiting
+          if (i < uniqueCategories.length - 1) {
+            await new Promise(r => setTimeout(r, 2000));
+          }
+        } catch (err) {
+          console.error(`فشل توليد أيقونة ${cat}:`, err);
+        }
+      }
+
+      toast.success(`تم توليد ${successCount} أيقونة من ${uniqueCategories.length} تصنيف ✨`);
+      onUpdate?.();
+    } catch (error) {
+      console.error("خطأ في توليد الأيقونات:", error);
+      toast.error("حدث خطأ أثناء توليد الأيقونات");
+    } finally {
+      setIsGeneratingIcons(false);
+      setIconGenProgress("");
+    }
+  };
 
   useEffect(() => {
     const fetchSettings = async () => {
