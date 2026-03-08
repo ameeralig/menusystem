@@ -129,55 +129,11 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
     });
   }, [products.length, colorTheme]);
 
-  const sectorAngle = useMemo(() => 360 / products.length, [products.length]);
-
-  if (!products || products.length === 0) {
-    return (
-      <div className="text-center py-12 space-y-3">
-        <motion.span animate={{ y: [0, -8, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="text-5xl block">🎡</motion.span>
-        <p className="text-sm text-muted-foreground font-medium">لا توجد منتجات متاحة للعجلة</p>
-      </div>
-    );
-  }
-
-  const handleSpin = () => {
-    if (isSpinning) return;
-    setIsSpinning(true);
-    setResult(null);
-    setShowWinEffect(false);
-    if (soundEnabled) playSpinSound();
-
-    const spins = Math.floor(Math.random() * 6) + 10;
-    const finalAngle = Math.random() * 360;
-    const totalRotation = rotation + (spins * 360) + finalAngle;
-    setRotation(totalRotation);
-
-    setTimeout(() => {
-      const adjustedRotation = (360 - (totalRotation % 360)) % 360;
-      const pointerOffsetDeg = 270;
-      const adjustedWithOffset = (adjustedRotation + pointerOffsetDeg) % 360;
-      const winnerIndex = Math.floor(adjustedWithOffset / sectorAngle) % products.length;
-      const winner = products[winnerIndex];
-
-      setResult(winner);
-      setIsSpinning(false);
-      setShowWinEffect(true);
-      if (soundEnabled) playWinSound();
-      onResult?.(winner);
-      toast.success(`🎉 النتيجة: ${winner.name}!`);
-
-      setTimeout(() => setShowWinEffect(false), 3000);
-    }, 4500);
-  };
-
-  const resetWheel = () => {
-    setRotation(0);
-    setResult(null);
-    setShowWinEffect(false);
-  };
+  const sectorAngle = useMemo(() => 360 / (products.length || 1), [products.length]);
 
   // Generate conic gradient
   const conicGradient = useMemo(() => {
+    if (!products.length) return '';
     return products.map((_, index) => {
       const startAngle = index * sectorAngle;
       const endAngle = (index + 1) * sectorAngle;
@@ -193,10 +149,21 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
     }).join(', ');
   }, [products.length, sectorAngle, wheelColors]);
 
-  const themeColor = colorTheme?.startsWith('#') ? colorTheme : ({
-    coral: '#ff9178', purple: '#8B5CF6', blue: '#3B82F6', green: '#10B981',
-    pink: '#EC4899', teal: '#14B8A6', amber: '#F59E0B', indigo: '#6366F1', rose: '#F43F5E',
-  }[colorTheme || ''] || '#3B82F6');
+  const themeColor = useMemo(() => {
+    return colorTheme?.startsWith('#') ? colorTheme : ({
+      coral: '#ff9178', purple: '#8B5CF6', blue: '#3B82F6', green: '#10B981',
+      pink: '#EC4899', teal: '#14B8A6', amber: '#F59E0B', indigo: '#6366F1', rose: '#F43F5E',
+    }[colorTheme || ''] || '#3B82F6');
+  }, [colorTheme]);
+
+  if (!products || products.length === 0) {
+    return (
+      <div className="text-center py-12 space-y-3">
+        <motion.span animate={{ y: [0, -8, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="text-5xl block">🎡</motion.span>
+        <p className="text-sm text-muted-foreground font-medium">لا توجد منتجات متاحة للعجلة</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center gap-4 w-full py-2">
