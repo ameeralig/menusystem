@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Settings, Plus, Moon, Sun, ShoppingBag, DollarSign, Info, Eye, BarChart3, LogOut, Users, Cloud } from "lucide-react";
+import { Settings, Plus, Moon, Sun, ShoppingBag, DollarSign, Info, Eye, BarChart3, LogOut, Users, Cloud, Layout } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -46,20 +46,22 @@ const StoreOwnerActionsMenu = ({
   const [showEmployeeCard, setShowEmployeeCard] = useState(false);
   const [showMigrationCard, setShowMigrationCard] = useState(false);
   const [employeeSystemEnabled, setEmployeeSystemEnabled] = useState(false);
+  const [currentTemplate, setCurrentTemplate] = useState("fast-response");
 
   useEffect(() => {
     const fetchSettings = async () => {
       const { data } = await supabase
         .from("store_settings")
-        .select("dark_mode, external_orders_enabled, delivery_fee, employee_system_enabled")
+        .select("dark_mode, external_orders_enabled, delivery_fee, employee_system_enabled, template")
         .eq("user_id", storeOwnerId)
-        .single();
+        .maybeSingle();
 
       if (data) {
         setDarkMode(data.dark_mode || false);
         setExternalOrdersEnabled(data.external_orders_enabled || false);
         setDeliveryFee(data.delivery_fee?.toString() || "0");
         setEmployeeSystemEnabled(data.employee_system_enabled || false);
+        setCurrentTemplate(data.template || "fast-response");
       }
     };
 
@@ -144,6 +146,24 @@ const StoreOwnerActionsMenu = ({
     } catch (error) {
       console.error("Error saving delivery fee:", error);
       toast.error("حدث خطأ أثناء الحفظ");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleTemplateChange = async (template: string) => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase
+        .from("store_settings")
+        .update({ template })
+        .eq("user_id", storeOwnerId);
+      if (error) throw error;
+      setCurrentTemplate(template);
+      toast.success(template === "text-only" ? "تم التبديل للقالب النصي" : "تم التبديل للقالب المصور");
+      onUpdate?.();
+    } catch {
+      toast.error("حدث خطأ أثناء التبديل");
     } finally {
       setIsLoading(false);
     }
@@ -270,6 +290,40 @@ const StoreOwnerActionsMenu = ({
                 {hasContactInfo ? "معلومات المتجر" : "إضافة معلومات"}
               </Button>
             )}
+          </div>
+
+          {/* اختيار القالب */}
+          <div className="p-3 rounded-lg bg-background/50 backdrop-blur-sm space-y-2">
+            <div className="flex items-center gap-2 mb-2">
+              <Layout className="h-4 w-4" />
+              <span className="text-sm font-medium">تصميم المتجر</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => handleTemplateChange("fast-response")}
+                disabled={isLoading}
+                className={`p-2.5 rounded-xl border-2 text-xs font-bold transition-all ${
+                  currentTemplate === "fast-response" || currentTemplate === "default"
+                    ? "border-current shadow-sm"
+                    : "border-border opacity-60 hover:opacity-100"
+                }`}
+                style={currentTemplate === "fast-response" || currentTemplate === "default" ? { borderColor: themeColor, color: themeColor } : {}}
+              >
+                🖼️ مع الصور
+              </button>
+              <button
+                onClick={() => handleTemplateChange("text-only")}
+                disabled={isLoading}
+                className={`p-2.5 rounded-xl border-2 text-xs font-bold transition-all ${
+                  currentTemplate === "text-only"
+                    ? "border-current shadow-sm"
+                    : "border-border opacity-60 hover:opacity-100"
+                }`}
+                style={currentTemplate === "text-only" ? { borderColor: themeColor, color: themeColor } : {}}
+              >
+                📝 نصي فقط
+              </button>
+            </div>
           </div>
 
           {/* الوضع الداكن */}

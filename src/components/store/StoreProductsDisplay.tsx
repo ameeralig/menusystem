@@ -15,6 +15,7 @@ import StoreInfo from "./StoreInfo";
 import { sortCategoriesByOrder } from "@/utils/categorySort";
 import { FontSettings, ContactInfo } from "@/types/store";
 import FastResponseTemplate from "./fast-template/FastResponseTemplate";
+import TextOnlyTemplate from "./text-template/TextOnlyTemplate";
 import BottomActionsBar from "./fast-template/BottomActionsBar";
 
 interface StoreProductsDisplayProps {
@@ -262,6 +263,29 @@ const StoreProductsDisplay = ({
 
   // ترتيب التصنيفات باستخدام الدالة الموحدة
   const sortedCategories = sortCategoriesByOrder(categories, categoryImages);
+
+  // القالب النصي (بدون صور)
+  if (template === "text-only") {
+    return (
+      <TextOnlyTemplate
+        products={allProducts}
+        colorTheme={colorTheme}
+        storeName={storeName}
+        onSearchChange={handleSearchChange}
+        contactInfo={contactInfo}
+        slug={slug}
+        storeOwnerId={storeOwnerId}
+        fontSettings={fontSettings}
+        socialLinks={socialLinks}
+        categoryImages={categoryImages}
+        isStoreOwner={isStoreOwner}
+        refreshData={refreshData}
+        isLoading={isLoading && allProducts.length === 0}
+        logoUrl={logoUrl}
+        isEmployeeView={isEmployeeView}
+      />
+    );
+  }
 
   // إذا كان القالب هو "fast-response"، نعرض القالب السريع
   if (template === "fast-response") {
