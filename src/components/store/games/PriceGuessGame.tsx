@@ -109,7 +109,9 @@ const PriceGuessGame: React.FC<PriceGuessGameProps> = ({
   const [pulseCorrect, setPulseCorrect] = useState(false);
   const [showParticles, setShowParticles] = useState(false);
   const [proximityPercent, setProximityPercent] = useState(0);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const { playClick, playCorrect, playWrong, playTick } = useGameSounds();
+  const { scores, loading: lbLoading, saveScore } = useGameLeaderboard(storeOwnerId, "price_guess");
 
   const themeColor = useMemo(() => {
     if (colorTheme?.startsWith("#")) return colorTheme;
