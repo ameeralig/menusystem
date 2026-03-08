@@ -61,6 +61,7 @@ const StoreOwnerActionsMenu = ({
         setExternalOrdersEnabled(data.external_orders_enabled || false);
         setDeliveryFee(data.delivery_fee?.toString() || "0");
         setEmployeeSystemEnabled(data.employee_system_enabled || false);
+        setCurrentTemplate(data.template || "fast-response");
       }
     };
 
