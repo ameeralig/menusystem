@@ -125,7 +125,7 @@ export const useUnifiedStoreData = (slug: string | undefined) => {
         logoUrl: data.logo_url,
         fontSettings: parsedFontSettings,
         darkMode: data.dark_mode || false,
-        template: "fast-response",
+        template: data.template || "fast-response",
         isSuspended: (data as any).is_suspended || false,
         adsEnabled: (data as any).ads_enabled || false,
         adsType: (data as any).ads_type || null,
