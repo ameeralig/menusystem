@@ -248,7 +248,15 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   const handleAddToCart = useCallback((product: Product) => {
     addItem(product, 1);
     toast.success(`تمت إضافة ${product.name} إلى السلة`);
-  }, [addItem]);
+    // تسجيل نشاط الإضافة للسلة
+    if (storeOwnerId && !isStoreOwner) {
+      logVisitorActivity(storeOwnerId, 'add_to_cart', {
+        product_id: product.id,
+        product_name: product.name,
+        price: product.price
+      });
+    }
+  }, [addItem, storeOwnerId, isStoreOwner]);
 
   // تأكيد الحذف
   const confirmDelete = useCallback(async () => {
