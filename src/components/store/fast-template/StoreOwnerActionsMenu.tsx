@@ -50,6 +50,8 @@ const StoreOwnerActionsMenu = ({
   const [isGeneratingIcons, setIsGeneratingIcons] = useState(false);
   const [iconGenProgress, setIconGenProgress] = useState("");
   const [iconStyle, setIconStyle] = useState<"flat" | "3d" | "cartoon">("flat");
+  const [allCategories, setAllCategories] = useState<string[]>([]);
+  const [selectedIconCategories, setSelectedIconCategories] = useState<string[]>([]);
 
   const handleGenerateAllIcons = async () => {
     setIsGeneratingIcons(true);
