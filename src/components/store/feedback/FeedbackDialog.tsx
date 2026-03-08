@@ -89,6 +89,12 @@ const FeedbackDialog = ({ isOpen, onClose, storeOwnerId, colorTheme }: FeedbackD
 
       if (error) throw error;
 
+      // تسجيل نشاط إرسال التقييم
+      logVisitorActivity(storeOwnerId, 'feedback_submit', {
+        type: formData.feedbackType,
+        visitor_name: formData.visitorName.trim()
+      });
+
       try {
         await supabase.functions.invoke('send-whatsapp-notification', {
           body: {
