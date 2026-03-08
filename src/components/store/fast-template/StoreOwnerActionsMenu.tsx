@@ -40,6 +40,9 @@ const StoreOwnerActionsMenu = ({
   onOpenInfo,
   onOpenFeedback,
   hasContactInfo = false,
+  categories = [],
+  categoryImages,
+  storeName,
 }: StoreOwnerActionsMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
