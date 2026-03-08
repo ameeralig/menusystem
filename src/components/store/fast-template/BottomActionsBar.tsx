@@ -302,6 +302,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                 categories={[...new Set(products.map(p => p.category).filter(Boolean) as string[])]}
                 categoryImages={categoryImages}
                 storeName={storeName}
+                products={products}
               />
             )}
 

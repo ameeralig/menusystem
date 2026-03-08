@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Settings, Plus, Moon, Sun, ShoppingBag, DollarSign, Info, Eye, BarChart3, LogOut, Users, Cloud, Layout, Wand2 } from "lucide-react";
+import { Settings, Plus, Moon, Sun, ShoppingBag, DollarSign, Info, Eye, BarChart3, LogOut, Users, Cloud, Layout, Wand2, ImagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,9 @@ import StoreStatsCard from "../stats/StoreStatsCard";
 import EmployeeManagementCard from "../employees/EmployeeManagementCard";
 import ProductImageMigrationCard from "./ProductImageMigrationCard";
 import CategoryImageGenerator from "../text-template/CategoryImageGenerator";
+import ProductImageGenerator from "./ProductImageGenerator";
 import { CategoryImage } from "@/types/categoryImage";
+import { Product } from "@/types/product";
 
 interface StoreOwnerActionsMenuProps {
   storeOwnerId: string;
@@ -30,6 +32,7 @@ interface StoreOwnerActionsMenuProps {
   categories?: string[];
   categoryImages?: CategoryImage[];
   storeName?: string | null;
+  products?: Product[];
 }
 
 const StoreOwnerActionsMenu = ({
@@ -43,6 +46,7 @@ const StoreOwnerActionsMenu = ({
   categories = [],
   categoryImages,
   storeName,
+  products = [],
 }: StoreOwnerActionsMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -56,6 +60,7 @@ const StoreOwnerActionsMenu = ({
   const [employeeSystemEnabled, setEmployeeSystemEnabled] = useState(false);
   const [currentTemplate, setCurrentTemplate] = useState("fast-response");
   const [showImageGenerator, setShowImageGenerator] = useState(false);
+  const [showProductImageGenerator, setShowProductImageGenerator] = useState(false);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -350,6 +355,21 @@ const StoreOwnerActionsMenu = ({
             </Button>
           )}
 
+          {/* زر توليد صور المنتجات */}
+          {products.length > 0 && (
+            <Button
+              onClick={() => {
+                setShowProductImageGenerator(true);
+                setIsOpen(false);
+              }}
+              className="w-full justify-start gap-2 h-10 text-white"
+              style={{ background: `linear-gradient(135deg, #10b981, #059669)` }}
+            >
+              <ImagePlus className="h-4 w-4" />
+              توليد صور المنتجات بالذكاء الاصطناعي
+            </Button>
+          )}
+
           {/* الوضع الداكن */}
           <div className="flex items-center justify-between p-3 rounded-lg bg-background/50 backdrop-blur-sm">
             <div className="flex items-center gap-2">
@@ -467,6 +487,15 @@ const StoreOwnerActionsMenu = ({
       categoryImages={categoryImages}
       storeOwnerId={storeOwnerId}
       storeName={storeName}
+      colorTheme={colorTheme}
+      onGenerated={onUpdate}
+    />
+
+    {/* مولد صور المنتجات بالذكاء الاصطناعي */}
+    <ProductImageGenerator
+      isOpen={showProductImageGenerator}
+      onClose={() => setShowProductImageGenerator(false)}
+      products={products}
       colorTheme={colorTheme}
       onGenerated={onUpdate}
     />
