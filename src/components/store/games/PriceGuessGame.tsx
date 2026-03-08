@@ -91,6 +91,7 @@ const PriceGuessGame: React.FC<PriceGuessGameProps> = ({
   onClose,
   products,
   colorTheme,
+  storeOwnerId,
 }) => {
   const [gameState, setGameState] = useState<"menu" | "playing" | "result" | "final">("menu");
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
