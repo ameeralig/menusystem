@@ -106,7 +106,9 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    const fileName = `${userId}/ai-icons/${Date.now()}-${categoryName.replace(/\s+/g, "-")}.${imageType}`;
+    // استخدام معرف عشوائي بدل الاسم العربي لتجنب خطأ Invalid key
+    const randomId = crypto.randomUUID().slice(0, 8);
+    const fileName = `${userId}/ai-icons/${Date.now()}-${randomId}.${imageType}`;
 
     const { error: uploadError } = await supabaseAdmin.storage
       .from("product-images")
