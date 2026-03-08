@@ -60,6 +60,7 @@ const StoreOwnerActionsMenu = ({
   const [employeeSystemEnabled, setEmployeeSystemEnabled] = useState(false);
   const [currentTemplate, setCurrentTemplate] = useState("fast-response");
   const [showImageGenerator, setShowImageGenerator] = useState(false);
+  const [showProductImageGenerator, setShowProductImageGenerator] = useState(false);
 
   useEffect(() => {
     const fetchSettings = async () => {
