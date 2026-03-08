@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Product } from "@/types/product";
 import { useGameLeaderboard } from "@/hooks/store/useGameLeaderboard";
 import GameLeaderboard from "./GameLeaderboard";
+import { UnlockedBadgesDisplay } from "./GameBadges";
 
 interface PriceGuessGameProps {
   isOpen: boolean;
