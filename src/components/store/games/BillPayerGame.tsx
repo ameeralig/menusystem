@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Plus, Trash2, Users, CreditCard, Sparkles, Crown } from "lucide-react";
+import { X, Plus, Trash2, Users, CreditCard, Sparkles, Crown, Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -83,6 +83,74 @@ const useGameSounds = () => {
   return { playTick, playDrumroll, playWinner };
 };
 
+// Voice recognition hook
+const useVoiceInput = (onNamesDetected: (names: string[]) => void) => {
+  const [isListening, setIsListening] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState<string>("");
+  const recognitionRef = useRef<any>(null);
+
+  const startListening = useCallback(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setVoiceStatus("المتصفح لا يدعم التعرف الصوتي");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "ar-SA";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      setVoiceStatus("🎙️ تكلّم الآن... قل الأسماء");
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript as string;
+      // Parse names from speech - split by common Arabic conjunctions
+      const rawNames = transcript
+        .replace(/\bو\b/g, ",")
+        .replace(/\bمع\b/g, ",")
+        .replace(/\bثم\b/g, ",")
+        .split(/[,،\s]+/)
+        .map((n: string) => n.trim())
+        .filter((n: string) => n.length >= 2);
+
+      if (rawNames.length > 0) {
+        setVoiceStatus(`✅ تم التعرف على: ${rawNames.join("، ")}`);
+        onNamesDetected(rawNames);
+      } else {
+        setVoiceStatus("❌ لم أتمكن من التعرف على أسماء، حاول مرة أخرى");
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      setIsListening(false);
+      if (event.error === "not-allowed") {
+        setVoiceStatus("❌ يرجى السماح بالوصول للميكروفون");
+      } else {
+        setVoiceStatus("❌ حدث خطأ، حاول مرة أخرى");
+      }
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+  }, [onNamesDetected]);
+
+  const stopListening = useCallback(() => {
+    recognitionRef.current?.stop();
+    setIsListening(false);
+  }, []);
+
+  return { isListening, voiceStatus, startListening, stopListening };
+};
+
 const BillPayerGame: React.FC<BillPayerGameProps> = ({
   isOpen,
   onClose,
@@ -96,6 +164,15 @@ const BillPayerGame: React.FC<BillPayerGameProps> = ({
   const [winners, setWinners] = useState<number[]>([]);
   const spinIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { playTick, playDrumroll, playWinner } = useGameSounds();
+
+  const handleVoiceNames = useCallback((names: string[]) => {
+    setPlayers((prev) => {
+      const combined = [...prev, ...names];
+      return combined.slice(0, 12); // max 12
+    });
+  }, []);
+
+  const { isListening, voiceStatus, startListening, stopListening } = useVoiceInput(handleVoiceNames);
 
   const getThemeColor = () => {
     if (colorTheme?.startsWith("#")) return colorTheme;
@@ -232,7 +309,27 @@ const BillPayerGame: React.FC<BillPayerGameProps> = ({
                   >
                     <Plus className="h-5 w-5" />
                   </Button>
+                  <Button
+                    onClick={isListening ? stopListening : startListening}
+                    disabled={players.length >= 12}
+                    variant={isListening ? "destructive" : "outline"}
+                    className={`rounded-xl px-3 ${isListening ? "animate-pulse" : ""}`}
+                    style={!isListening ? { borderColor: themeColor, color: themeColor } : {}}
+                  >
+                    {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                  </Button>
                 </div>
+
+                {/* Voice Status */}
+                {voiceStatus && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-xs text-center px-3 py-2 rounded-lg bg-muted text-muted-foreground"
+                  >
+                    {voiceStatus}
+                  </motion.p>
+                )}
 
                 {/* Players List */}
                 <div className="space-y-2">
