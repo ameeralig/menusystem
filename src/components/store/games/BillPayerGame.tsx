@@ -165,6 +165,15 @@ const BillPayerGame: React.FC<BillPayerGameProps> = ({
   const spinIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { playTick, playDrumroll, playWinner } = useGameSounds();
 
+  const handleVoiceNames = useCallback((names: string[]) => {
+    setPlayers((prev) => {
+      const combined = [...prev, ...names];
+      return combined.slice(0, 12); // max 12
+    });
+  }, []);
+
+  const { isListening, voiceStatus, startListening, stopListening } = useVoiceInput(handleVoiceNames);
+
   const getThemeColor = () => {
     if (colorTheme?.startsWith("#")) return colorTheme;
     const colors: Record<string, string> = {
