@@ -151,6 +151,24 @@ const StoreOwnerActionsMenu = ({
     }
   };
 
+  const handleTemplateChange = async (template: string) => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase
+        .from("store_settings")
+        .update({ template })
+        .eq("user_id", storeOwnerId);
+      if (error) throw error;
+      setCurrentTemplate(template);
+      toast.success(template === "text-only" ? "تم التبديل للقالب النصي" : "تم التبديل للقالب المصور");
+      onUpdate?.();
+    } catch {
+      toast.error("حدث خطأ أثناء التبديل");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const themeColor = getThemeColor();
 
   return (
