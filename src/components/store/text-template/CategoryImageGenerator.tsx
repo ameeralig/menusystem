@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Wand2, Loader2, Check, X, ImagePlus, Sparkles } from "lucide-react";
+import { Wand2, Loader2, Check, X, ImagePlus, Sparkles, Image, Palette, Pencil, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import {
   Sheet,
   SheetContent,
@@ -12,6 +13,15 @@ import {
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { CategoryImage } from "@/types/categoryImage";
+
+type ImageStyle = 'icon' | 'realistic' | 'cartoon' | 'custom';
+
+interface StyleOption {
+  id: ImageStyle;
+  label: string;
+  icon: React.ReactNode;
+  description: string;
+}
 
 interface CategoryImageGeneratorProps {
   isOpen: boolean;
@@ -41,6 +51,8 @@ const CategoryImageGenerator: React.FC<CategoryImageGeneratorProps> = ({
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [generationStatus, setGenerationStatus] = useState<GenerationStatus>({});
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedStyle, setSelectedStyle] = useState<ImageStyle>('icon');
+  const [customPrompt, setCustomPrompt] = useState('');
 
   const themeColor = useMemo(() => {
     if (colorTheme?.startsWith("#")) return colorTheme;
@@ -51,6 +63,13 @@ const CategoryImageGenerator: React.FC<CategoryImageGeneratorProps> = ({
     };
     return colors[colorTheme || ""] || "#3b82f6";
   }, [colorTheme]);
+
+  const styleOptions: StyleOption[] = [
+    { id: 'icon', label: 'أيقونة', icon: <Sparkles className="h-5 w-5" />, description: 'أيقونة بسيطة وأنيقة' },
+    { id: 'realistic', label: 'صورة حقيقية', icon: <Image className="h-5 w-5" />, description: 'صورة واقعية عالية الجودة' },
+    { id: 'cartoon', label: 'رسم كرتوني', icon: <Palette className="h-5 w-5" />, description: 'رسم كرتوني ملون وجذاب' },
+    { id: 'custom', label: 'مخصص', icon: <MessageSquare className="h-5 w-5" />, description: 'أدخل وصفك الخاص' },
+  ];
 
   const toggleCategory = (category: string) => {
     setSelectedCategories(prev =>
@@ -77,7 +96,12 @@ const CategoryImageGenerator: React.FC<CategoryImageGeneratorProps> = ({
       setGenerationStatus(prev => ({ ...prev, [category]: 'generating' }));
 
       const { data, error } = await supabase.functions.invoke('generate-category-image', {
-        body: { categoryName: category, storeName },
+        body: {
+          categoryName: category,
+          storeName,
+          style: selectedStyle,
+          customPrompt: selectedStyle === 'custom' ? customPrompt : undefined,
+        },
       });
 
       if (error) throw error;
@@ -85,7 +109,6 @@ const CategoryImageGenerator: React.FC<CategoryImageGeneratorProps> = ({
         throw new Error(data?.error || 'فشل التوليد');
       }
 
-      // Save or update in category_images table
       const existingImage = getCategoryImage(category);
 
       if (existingImage?.id) {
@@ -119,6 +142,10 @@ const CategoryImageGenerator: React.FC<CategoryImageGeneratorProps> = ({
       toast.error("اختر تصنيفاً واحداً على الأقل");
       return;
     }
+    if (selectedStyle === 'custom' && !customPrompt.trim()) {
+      toast.error("أدخل وصفاً مخصصاً للتوليد");
+      return;
+    }
 
     setIsGenerating(true);
     let successCount = 0;
@@ -144,6 +171,8 @@ const CategoryImageGenerator: React.FC<CategoryImageGeneratorProps> = ({
     if (!isGenerating) {
       setSelectedCategories([]);
       setGenerationStatus({});
+      setSelectedStyle('icon');
+      setCustomPrompt('');
       onClose();
     }
   };
@@ -157,11 +186,65 @@ const CategoryImageGenerator: React.FC<CategoryImageGeneratorProps> = ({
             توليد صور التصنيفات بالذكاء الاصطناعي
           </SheetTitle>
           <p className="text-sm text-muted-foreground">
-            اختر التصنيفات التي تريد توليد صور لها تلقائياً
+            اختر نمط الصورة والتصنيفات المطلوبة
           </p>
         </SheetHeader>
 
         <div className="space-y-4 py-4">
+          {/* اختيار نمط الصورة */}
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-foreground">نمط الصورة</p>
+            <div className="grid grid-cols-2 gap-2">
+              {styleOptions.map((style) => {
+                const isActive = selectedStyle === style.id;
+                return (
+                  <motion.button
+                    key={style.id}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => !isGenerating && setSelectedStyle(style.id)}
+                    className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all text-right ${
+                      isActive ? 'shadow-md' : 'border-border'
+                    }`}
+                    style={isActive ? { borderColor: themeColor, backgroundColor: `${themeColor}10` } : {}}
+                    disabled={isGenerating}
+                  >
+                    <div
+                      className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: isActive ? `${themeColor}20` : undefined, color: isActive ? themeColor : undefined }}
+                    >
+                      {style.icon}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold truncate">{style.label}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{style.description}</p>
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* حقل الوصف المخصص */}
+          <AnimatePresence>
+            {selectedStyle === 'custom' && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <Input
+                  placeholder="مثال: صورة بتصميم ياباني تقليدي مع ألوان هادئة..."
+                  value={customPrompt}
+                  onChange={(e) => setCustomPrompt(e.target.value)}
+                  disabled={isGenerating}
+                  className="text-right"
+                  dir="rtl"
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* زر تحديد الكل */}
           <Button
             variant="outline"
@@ -207,7 +290,6 @@ const CategoryImageGenerator: React.FC<CategoryImageGeneratorProps> = ({
                     style={isSelected ? { borderColor: themeColor, backgroundColor: themeColor } : {}}
                   />
 
-                  {/* صورة حالية إن وجدت */}
                   {existingImage?.image_url ? (
                     <img
                       src={existingImage.image_url}
@@ -225,7 +307,6 @@ const CategoryImageGenerator: React.FC<CategoryImageGeneratorProps> = ({
 
                   <span className="flex-1 font-medium text-sm">{category}</span>
 
-                  {/* حالة التوليد */}
                   <AnimatePresence mode="wait">
                     {status === 'generating' && (
                       <motion.div
