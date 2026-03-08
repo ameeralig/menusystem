@@ -216,7 +216,15 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   const handleProductClick = useCallback((product: Product) => {
     setSelectedProduct(product);
     setIsModalOpen(true);
-  }, []);
+    // تسجيل نشاط عرض تفاصيل المنتج
+    if (storeOwnerId && !isStoreOwner) {
+      logVisitorActivity(storeOwnerId, 'product_view', { 
+        product_id: product.id, 
+        product_name: product.name,
+        category: product.category 
+      });
+    }
+  }, [storeOwnerId, isStoreOwner]);
 
   // معالجة إغلاق النافذة
   const handleCloseModal = useCallback(() => {
