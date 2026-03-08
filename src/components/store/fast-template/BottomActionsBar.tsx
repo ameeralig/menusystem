@@ -4,6 +4,7 @@ import { Gamepad2, MessageSquare, Search, X, Share2, Download, Heart, Info, More
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
+import { CategoryImage } from "@/types/categoryImage";
 import StoreInfoSheet from "./StoreInfoSheet";
 import AddProductModal from "./AddProductModal";
 import CustomerAIAssistant from "./CustomerAIAssistant";
@@ -42,6 +43,7 @@ interface BottomActionsBarProps {
   logoUrl?: string | null;
   favoritesCount?: number;
   onOpenFavorites?: () => void;
+  categoryImages?: CategoryImage[];
 }
 
 const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
@@ -62,6 +64,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   logoUrl,
   favoritesCount = 0,
   onOpenFavorites,
+  categoryImages,
 }) => {
   const [isInfoSheetOpen, setIsInfoSheetOpen] = useState(false);
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
@@ -296,6 +299,9 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                 onOpenInfo={() => setIsInfoSheetOpen(true)}
                 onOpenFeedback={() => setIsOwnerFeedbackOpen(true)}
                 hasContactInfo={!!contactInfo}
+                categories={[...new Set(products.map(p => p.category).filter(Boolean) as string[])]}
+                categoryImages={categoryImages}
+                storeName={storeName}
               />
             )}
 

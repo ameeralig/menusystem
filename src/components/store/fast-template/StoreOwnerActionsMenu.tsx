@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Settings, Plus, Moon, Sun, ShoppingBag, DollarSign, Info, Eye, BarChart3, LogOut, Users, Cloud, Layout } from "lucide-react";
+import { Settings, Plus, Moon, Sun, ShoppingBag, DollarSign, Info, Eye, BarChart3, LogOut, Users, Cloud, Layout, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,8 @@ import ProfileSheet from "./ProfileSheet";
 import StoreStatsCard from "../stats/StoreStatsCard";
 import EmployeeManagementCard from "../employees/EmployeeManagementCard";
 import ProductImageMigrationCard from "./ProductImageMigrationCard";
+import CategoryImageGenerator from "../text-template/CategoryImageGenerator";
+import { CategoryImage } from "@/types/categoryImage";
 
 interface StoreOwnerActionsMenuProps {
   storeOwnerId: string;
@@ -25,6 +27,9 @@ interface StoreOwnerActionsMenuProps {
   onOpenInfo?: () => void;
   onOpenFeedback?: () => void;
   hasContactInfo?: boolean;
+  categories?: string[];
+  categoryImages?: CategoryImage[];
+  storeName?: string | null;
 }
 
 const StoreOwnerActionsMenu = ({
@@ -35,6 +40,9 @@ const StoreOwnerActionsMenu = ({
   onOpenInfo,
   onOpenFeedback,
   hasContactInfo = false,
+  categories = [],
+  categoryImages,
+  storeName,
 }: StoreOwnerActionsMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -47,6 +55,7 @@ const StoreOwnerActionsMenu = ({
   const [showMigrationCard, setShowMigrationCard] = useState(false);
   const [employeeSystemEnabled, setEmployeeSystemEnabled] = useState(false);
   const [currentTemplate, setCurrentTemplate] = useState("fast-response");
+  const [showImageGenerator, setShowImageGenerator] = useState(false);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -326,6 +335,21 @@ const StoreOwnerActionsMenu = ({
             </div>
           </div>
 
+          {/* زر توليد صور التصنيفات - فقط للقالب النصي */}
+          {currentTemplate === "text-only" && categories.length > 0 && (
+            <Button
+              onClick={() => {
+                setShowImageGenerator(true);
+                setIsOpen(false);
+              }}
+              className="w-full justify-start gap-2 h-10 text-white"
+              style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}cc)` }}
+            >
+              <Wand2 className="h-4 w-4" />
+              توليد صور التصنيفات بالذكاء الاصطناعي
+            </Button>
+          )}
+
           {/* الوضع الداكن */}
           <div className="flex items-center justify-between p-3 rounded-lg bg-background/50 backdrop-blur-sm">
             <div className="flex items-center gap-2">
@@ -433,6 +457,18 @@ const StoreOwnerActionsMenu = ({
       storeOwnerId={storeOwnerId}
       colorTheme={colorTheme}
       onMigrationComplete={onUpdate}
+    />
+
+    {/* مولد صور التصنيفات بالذكاء الاصطناعي */}
+    <CategoryImageGenerator
+      isOpen={showImageGenerator}
+      onClose={() => setShowImageGenerator(false)}
+      categories={categories}
+      categoryImages={categoryImages}
+      storeOwnerId={storeOwnerId}
+      storeName={storeName}
+      colorTheme={colorTheme}
+      onGenerated={onUpdate}
     />
   </>
   );
