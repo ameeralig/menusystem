@@ -458,6 +458,18 @@ const StoreOwnerActionsMenu = ({
       colorTheme={colorTheme}
       onMigrationComplete={onUpdate}
     />
+
+    {/* مولد صور التصنيفات بالذكاء الاصطناعي */}
+    <CategoryImageGenerator
+      isOpen={showImageGenerator}
+      onClose={() => setShowImageGenerator(false)}
+      categories={categories}
+      categoryImages={categoryImages}
+      storeOwnerId={storeOwnerId}
+      storeName={storeName}
+      colorTheme={colorTheme}
+      onGenerated={onUpdate}
+    />
   </>
   );
 };
