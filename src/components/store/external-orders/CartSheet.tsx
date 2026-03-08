@@ -23,7 +23,7 @@ const formatPrice = (price: number): string => {
   return new Intl.NumberFormat('ar-IQ').format(price);
 };
 
-const CartSheet = ({ isOpen, onClose, deliveryFee, storePhone, storeName }: CartSheetProps) => {
+const CartSheet = ({ isOpen, onClose, deliveryFee, storePhone, storeName, storeOwnerId }: CartSheetProps) => {
   const { items, updateQuantity, removeItem, clearCart, getTotal } = useCart();
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
