@@ -71,6 +71,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   const [isMemoryGameOpen, setIsMemoryGameOpen] = useState(false);
   const [isPriceGameOpen, setIsPriceGameOpen] = useState(false);
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
+  const [isBillPayerOpen, setIsBillPayerOpen] = useState(false);
   const [isOwnerFeedbackOpen, setIsOwnerFeedbackOpen] = useState(false);
   const [isShareCardOpen, setIsShareCardOpen] = useState(false);
   const [isMenuDownloadOpen, setIsMenuDownloadOpen] = useState(false);
