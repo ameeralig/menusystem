@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Crown, X, Save, Star, Sparkles } from "lucide-react";
+import { Trophy, X, Sparkles, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GameScore } from "@/hooks/store/useGameLeaderboard";
@@ -9,7 +9,7 @@ interface GameLeaderboardProps {
   scores: GameScore[];
   loading: boolean;
   currentScore?: number;
-  onSaveScore?: (name: string) => void;
+  onSaveScore?: (name: string, phone: string) => void;
   themeColor: string;
   gameTitle: string;
   onClose?: () => void;
@@ -33,13 +33,14 @@ const GameLeaderboard: React.FC<GameLeaderboardProps> = ({
   showSaveForm = false,
 }) => {
   const [playerName, setPlayerName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
-    if (playerName.trim() && onSaveScore) {
+    if (playerName.trim() && phoneNumber.trim() && onSaveScore) {
       setSaving(true);
-      onSaveScore(playerName.trim());
+      onSaveScore(playerName.trim(), phoneNumber.trim());
       setTimeout(() => {
         setSaved(true);
         setSaving(false);
@@ -62,7 +63,6 @@ const GameLeaderboard: React.FC<GameLeaderboardProps> = ({
           className="relative p-4 rounded-2xl border-2 space-y-3 overflow-hidden"
           style={{ borderColor: `${themeColor}50`, background: `linear-gradient(135deg, ${themeColor}12, ${themeColor}05)` }}
         >
-          {/* Sparkle effect */}
           {isNewHighScore && (
             <motion.div
               animate={{ rotate: 360 }}
@@ -80,7 +80,7 @@ const GameLeaderboard: React.FC<GameLeaderboardProps> = ({
               <Sparkles className="h-5 w-5" style={{ color: themeColor }} />
             </motion.div>
             <div>
-              <span className="text-sm font-bold text-foreground block">سجّل اسمك! 🏆</span>
+              <span className="text-sm font-bold text-foreground block">سجّل نتيجتك! 🏆</span>
               {isNewHighScore && (
                 <span className="text-[10px] font-bold" style={{ color: themeColor }}>
                   🎉 رقم قياسي جديد!
@@ -88,23 +88,40 @@ const GameLeaderboard: React.FC<GameLeaderboardProps> = ({
               )}
             </div>
           </div>
-          <div className="relative flex gap-2">
+
+          <div className="relative space-y-2">
             <Input
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSave()}
               placeholder="اكتب اسمك..."
-              className="flex-1 rounded-xl text-sm h-11 border-2 focus-visible:ring-0"
+              className="rounded-xl text-sm h-11 border-2 focus-visible:ring-0"
               style={{ borderColor: `${themeColor}30` }}
               maxLength={20}
             />
+            <div className="relative">
+              <Input
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSave()}
+                placeholder="رقم الموبايل..."
+                type="tel"
+                dir="ltr"
+                className="rounded-xl text-sm h-11 border-2 focus-visible:ring-0 pl-10"
+                style={{ borderColor: `${themeColor}30` }}
+                maxLength={15}
+              />
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            </div>
+            <p className="text-[10px] text-muted-foreground">
+              📱 رقمك يُستخدم لتحديث نتيجتك تلقائياً إذا حققت رقم أعلى
+            </p>
             <Button
               onClick={handleSave}
-              disabled={!playerName.trim() || saving}
-              className="rounded-xl text-white px-5 h-11 font-bold shadow-lg"
+              disabled={!playerName.trim() || !phoneNumber.trim() || saving}
+              className="w-full rounded-xl text-white h-11 font-bold shadow-lg"
               style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}cc)`, boxShadow: `0 4px 15px ${themeColor}40` }}
             >
-              {saving ? "..." : "حفظ"}
+              {saving ? "..." : "حفظ النتيجة"}
             </Button>
           </div>
         </motion.div>
@@ -123,14 +140,10 @@ const GameLeaderboard: React.FC<GameLeaderboardProps> = ({
 
       {/* Leaderboard */}
       <div className="rounded-2xl border border-border/40 overflow-hidden bg-card/50">
-        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border/30"
           style={{ background: `linear-gradient(135deg, ${themeColor}10, ${themeColor}05)` }}>
           <div className="flex items-center gap-2">
-            <motion.div
-              animate={{ y: [0, -2, 0] }}
-              transition={{ repeat: Infinity, duration: 2 }}
-            >
+            <motion.div animate={{ y: [0, -2, 0] }} transition={{ repeat: Infinity, duration: 2 }}>
               <Trophy className="h-4 w-4" style={{ color: themeColor }} />
             </motion.div>
             <span className="text-sm font-black text-foreground">لوحة المتصدرين</span>
@@ -142,7 +155,6 @@ const GameLeaderboard: React.FC<GameLeaderboardProps> = ({
           )}
         </div>
 
-        {/* Scores */}
         <div className="p-3">
           {loading ? (
             <div className="text-center py-8 space-y-2">
@@ -155,11 +167,7 @@ const GameLeaderboard: React.FC<GameLeaderboardProps> = ({
             </div>
           ) : scores.length === 0 ? (
             <div className="text-center py-8 space-y-2">
-              <motion.span
-                animate={{ y: [0, -5, 0] }}
-                transition={{ repeat: Infinity, duration: 2 }}
-                className="text-4xl block"
-              >🏆</motion.span>
+              <motion.span animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="text-4xl block">🏆</motion.span>
               <p className="text-sm text-muted-foreground font-medium">لا توجد نتائج بعد</p>
               <p className="text-xs text-muted-foreground">كن أول من يسجل نتيجة! 🚀</p>
             </div>
@@ -179,15 +187,9 @@ const GameLeaderboard: React.FC<GameLeaderboardProps> = ({
                         : "bg-muted/30 hover:bg-muted/50"
                     }`}
                   >
-                    {/* Rank */}
                     <div className="w-7 flex justify-center shrink-0">
                       {rankStyle ? (
-                        <motion.span
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ delay: 0.2 + idx * 0.1, type: "spring" }}
-                          className="text-lg"
-                        >
+                        <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2 + idx * 0.1, type: "spring" }} className="text-lg">
                           {rankStyle.icon}
                         </motion.span>
                       ) : (
@@ -197,7 +199,6 @@ const GameLeaderboard: React.FC<GameLeaderboardProps> = ({
                       )}
                     </div>
 
-                    {/* Name */}
                     <div className="flex-1 min-w-0">
                       <p className={`text-sm font-bold truncate ${idx === 0 ? "" : "text-foreground"}`}
                         style={idx === 0 ? { color: themeColor } : {}}>
@@ -208,7 +209,6 @@ const GameLeaderboard: React.FC<GameLeaderboardProps> = ({
                       </p>
                     </div>
 
-                    {/* Score */}
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
