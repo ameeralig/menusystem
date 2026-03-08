@@ -32,20 +32,22 @@ serve(async (req) => {
     }
 
     const stylePrompts: Record<string, string> = {
-      flat: "a simple flat design icon with bold solid colors, clean shapes, no gradients, minimal style",
-      "3d": "a glossy 3D rendered icon with realistic lighting, soft shadows, depth and dimension",
-      cartoon: "a fun cartoon-style icon with thick black outlines, bright vibrant colors, cute and playful design",
+      flat: "flat design icon, bold solid colors, clean geometric shapes, no gradients, minimal modern style, vibrant colors",
+      "3d": "glossy 3D rendered icon, realistic lighting, soft shadows, depth and dimension, shiny surface",
+      cartoon: "fun cartoon-style icon, thick black outlines, bright vibrant saturated colors, cute and playful design, expressive",
     };
 
     const styleDesc = stylePrompts[iconStyle || "flat"] || stylePrompts.flat;
 
-    const prompt = `Create ${styleDesc} representing the food/drink category "${categoryName}". 
-The icon must be a single object or food item centered on a pure white background (#FFFFFF). 
-It should look like a high-quality app icon or emoji. 
-IMPORTANT: No text, no words, no letters - only the visual icon illustration. 
-The icon should be colorful and clearly represent "${categoryName}".`;
+    const prompt = `Generate a single colorful ${styleDesc} icon representing the food/drink category "${categoryName}". 
+The icon should be a clear, recognizable food or drink illustration. 
+Draw it on a clean light gray (#F0F0F0) background. 
+Make the icon large, centered, and filling most of the image. 
+Use rich, saturated colors to make the icon stand out. 
+NO text, NO words, NO letters, NO numbers - ONLY the visual food/drink illustration.
+The result must be a colorful, detailed icon - NOT a blank or empty image.`;
 
-    console.log("Sending prompt to AI...");
+    console.log("Sending prompt to AI with model gemini-2.5-flash-image...");
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -55,7 +57,12 @@ The icon should be colorful and clearly represent "${categoryName}".`;
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-image",
-        messages: [{ role: "user", content: prompt }],
+        messages: [
+          { 
+            role: "user", 
+            content: prompt 
+          }
+        ],
         modalities: ["image", "text"],
       }),
     });
@@ -113,6 +120,29 @@ The icon should be colorful and clearly represent "${categoryName}".`;
     
     const binaryData = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
     console.log(`Binary data size: ${binaryData.length} bytes`);
+
+    // التحقق من أن الصورة ليست فارغة (أقل من 5KB تعني صورة فارغة على الأرجح)
+    if (binaryData.length < 5000) {
+      console.error(`Image too small (${binaryData.length} bytes), likely blank/empty`);
+      return new Response(
+        JSON.stringify({ error: "Generated image appears to be blank, please try again" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // فحص إضافي: التحقق من تنوع البيانات (صورة بيضاء بالكامل ستكون متشابهة)
+    const sampleSize = Math.min(1000, binaryData.length);
+    const sample = binaryData.slice(binaryData.length - sampleSize);
+    const uniqueValues = new Set(sample);
+    console.log(`Image diversity check: ${uniqueValues.size} unique byte values in last ${sampleSize} bytes`);
+    
+    if (uniqueValues.size < 5) {
+      console.error(`Image has very low diversity (${uniqueValues.size} unique values), likely a solid color`);
+      return new Response(
+        JSON.stringify({ error: "Generated image appears to be a solid color, please try again" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
