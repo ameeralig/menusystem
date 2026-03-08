@@ -4,6 +4,8 @@ import { Timer, RotateCcw, Trophy, X, Smartphone, ArrowRight, Star, Zap } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Product } from "@/types/product";
+import { useGameLeaderboard } from "@/hooks/store/useGameLeaderboard";
+import GameLeaderboard from "./GameLeaderboard";
 
 interface MemoryCard {
   id: number;
