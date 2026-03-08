@@ -290,6 +290,9 @@ const GamesMenuModal: React.FC<GamesMenuModalProps> = ({
                       onClick={() => {
                         onClose();
                         onSelectGame(game.id);
+                        if (storeOwnerId) {
+                          logVisitorActivity(storeOwnerId, 'game_play', { game_id: game.id, game_name: game.name });
+                        }
                       }}
                       className="relative flex flex-col items-center gap-2 p-4 rounded-2xl border border-border/30 bg-card hover:shadow-xl transition-all duration-300 group overflow-hidden"
                     >
