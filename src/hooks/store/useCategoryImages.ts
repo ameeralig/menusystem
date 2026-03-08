@@ -42,13 +42,28 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
               // استخراج الرابط الأساسي (إزالة أي query parameters قديمة)
               const baseUrl = img.image_url.split('?')[0];
               
-              // إضافة timestamp فقط عند forceRefresh لكسر الكاش
+              // التحقق من نوع الرابط (Supabase أو غيره)
+              const isSupabaseUrl = baseUrl.includes('supabase.co') || 
+                                    baseUrl.includes('supabase.in') || 
+                                    baseUrl.includes('zqlckixwpyrwdwrsuhsg') ||
+                                    baseUrl.includes('lovable-app');
+              
+              // إضافة timestamp فقط عند forceRefresh (تحديث يدوي)
+              // في الحالات العادية نستخدم رابط ثابت للاستفادة من الكاش
               let updatedUrl: string;
               
               if (forceRefresh && forceRefresh > 0) {
-                updatedUrl = `${baseUrl}?t=${forceRefresh}`;
+                // عند التحديث اليدوي فقط نضيف timestamp جديد
+                updatedUrl = isSupabaseUrl 
+                  ? `${baseUrl}?format=webp&quality=85&width=600&t=${forceRefresh}`
+                  : `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}t=${forceRefresh}`;
+                console.log(`🔄 تحديث يدوي: إضافة timestamp جديد للصورة ${img.category}`);
               } else {
-                updatedUrl = baseUrl;
+                // في الحالات العادية نستخدم رابط ثابت مع معاملات التحسين فقط
+                updatedUrl = isSupabaseUrl 
+                  ? `${baseUrl}?format=webp&quality=85&width=600`
+                  : baseUrl;
+                console.log(`💾 استخدام الكاش: رابط ثابت للصورة ${img.category}`);
               }
                 
               return {
@@ -59,13 +74,15 @@ export const useCategoryImages = (userId: string | null, forceRefresh: number) =
             return img;
           });
           
-          console.log(`✅ تم معالجة ${updatedImages.length} صورة تصنيف`);
+          console.log(`✅ تم معالجة ${updatedImages.length} صورة تصنيف (forceRefresh: ${forceRefresh})`);
 
-          // تحميل مسبق للصور
+          // تحميل مسبق للصور مع الاستفادة من الكاش
           updatedImages.forEach(img => {
             if (img.image_url) {
               const preloadImage = new Image();
               preloadImage.src = img.image_url;
+              // السماح بالتحميل البطيء للاستفادة من الكاش
+              preloadImage.loading = "lazy";
             }
           });
           

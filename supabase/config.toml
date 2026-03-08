@@ -53,6 +53,3 @@ verify_jwt = false
 
 [functions."migrate-shared-images-to-r2"]
 verify_jwt = false
-
-[functions."generate-category-icon"]
-verify_jwt = false
