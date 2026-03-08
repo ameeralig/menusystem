@@ -355,6 +355,21 @@ const StoreOwnerActionsMenu = ({
             </Button>
           )}
 
+          {/* زر توليد صور المنتجات */}
+          {products.length > 0 && (
+            <Button
+              onClick={() => {
+                setShowProductImageGenerator(true);
+                setIsOpen(false);
+              }}
+              className="w-full justify-start gap-2 h-10 text-white"
+              style={{ background: `linear-gradient(135deg, #10b981, #059669)` }}
+            >
+              <ImagePlus className="h-4 w-4" />
+              توليد صور المنتجات بالذكاء الاصطناعي
+            </Button>
+          )}
+
           {/* الوضع الداكن */}
           <div className="flex items-center justify-between p-3 rounded-lg bg-background/50 backdrop-blur-sm">
             <div className="flex items-center gap-2">
