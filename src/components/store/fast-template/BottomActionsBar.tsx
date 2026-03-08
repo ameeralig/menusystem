@@ -143,17 +143,21 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
 
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
 
+  const trackAction = (actionType: any, data: Record<string, any> = {}) => {
+    if (storeOwnerId && !isStoreOwner) {
+      logVisitorActivity(storeOwnerId, actionType, data);
+    }
+  };
+
   // عناصر قائمة المزيد (المعلومات، المشاركة، التحميل)
   const moreMenuItems = [
-    // زر المعلومات - يظهر للزوار فقط إذا كانت هناك معلومات
     !isStoreOwner && contactInfo && {
       id: 'info',
-      onClick: () => { setIsInfoSheetOpen(true); setIsMoreMenuOpen(false); },
+      onClick: () => { setIsInfoSheetOpen(true); setIsMoreMenuOpen(false); trackAction('store_info_view'); },
       icon: Info,
       label: 'معلومات المتجر',
       color: '#3b82f6',
     },
-    // زر شارك المنيو
     slug && {
       id: 'share',
       onClick: () => { setIsShareCardOpen(true); setIsMoreMenuOpen(false); },
@@ -161,41 +165,37 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       label: 'مشاركة المنيو',
       color: '#f59e0b',
     },
-    // زر تحميل المنيو
     storeName && products.length > 0 && {
       id: 'download',
-      onClick: () => { setIsMenuDownloadOpen(true); setIsMoreMenuOpen(false); },
+      onClick: () => { setIsMenuDownloadOpen(true); setIsMoreMenuOpen(false); trackAction('menu_download', { store_name: storeName }); },
       icon: Download,
       label: 'تحميل المنيو',
       color: '#10b981',
     },
   ].filter(Boolean);
 
-  // الأزرار الرئيسية (تظهر دائماً)
+  // الأزرار الرئيسية
   const primaryButtons = [
-    // زر المفضلة - للزوار فقط
     !isStoreOwner && onOpenFavorites && {
       id: 'favorites',
-      onClick: onOpenFavorites,
+      onClick: () => { onOpenFavorites(); trackAction('favorites_open'); },
       icon: Heart,
       label: 'مفضلة',
       gradient: `linear-gradient(135deg, #ef4444, #dc2626)`,
       showLabel: false,
       badge: favoritesCount > 0 ? favoritesCount : undefined,
     },
-    // زر الألعاب (يجمع عجلة الحظ + طابق واربح)
     storeOwnerId && products.length > 0 && {
       id: 'games',
-      onClick: () => setIsGamesMenuOpen(true),
+      onClick: () => { setIsGamesMenuOpen(true); trackAction('game_open'); },
       icon: Gamepad2,
       label: 'ألعاب',
       gradient: `linear-gradient(135deg, #f59e0b, #d97706)`,
       showLabel: false,
     },
-    // زر AI
     storeOwnerId && {
       id: 'ai',
-      onClick: () => setIsAIAssistantOpen(true),
+      onClick: () => { setIsAIAssistantOpen(true); trackAction('ai_chat', { action: 'open' }); },
       icon: () => (
         <span className="text-xs font-bold text-white">AI</span>
       ),
@@ -203,10 +203,9 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       gradient: `linear-gradient(135deg, #8b5cf6, #7c3aed)`,
       showLabel: false,
     },
-    // تقييم للزوار فقط
     storeOwnerId && !isStoreOwner && {
       id: 'feedback',
-      onClick: () => setIsFeedbackDialogOpen(true),
+      onClick: () => { setIsFeedbackDialogOpen(true); trackAction('feedback_open'); },
       icon: MessageSquare,
       label: 'رأيك',
       gradient: `linear-gradient(135deg, #ec4899, #db2777)`,
