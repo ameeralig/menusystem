@@ -4,7 +4,6 @@ import { X, Trophy, Gamepad2, ChevronLeft } from "lucide-react";
 import { useGameLeaderboard } from "@/hooks/store/useGameLeaderboard";
 import { getHighestBadge } from "./GameBadges";
 import { logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
-import { getHighestBadge } from "./GameBadges";
 
 interface GameOption {
   id: string;
