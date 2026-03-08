@@ -116,7 +116,7 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
     if (timeLeft <= 0) { setGameState("lost"); return; }
     const timer = setInterval(() => setTimeLeft(t => t - 1), 1000);
     return () => clearInterval(timer);
-  }, [gameState, timeLeft]);
+  }, [gameState, timeLeft, isPreviewPhase]);
 
   useEffect(() => {
     if (gameState === "playing" && matchedPairs === DIFFICULTIES[difficulty].pairs) {
