@@ -299,6 +299,9 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                 onOpenInfo={() => setIsInfoSheetOpen(true)}
                 onOpenFeedback={() => setIsOwnerFeedbackOpen(true)}
                 hasContactInfo={!!contactInfo}
+                categories={[...new Set(products.map(p => p.category).filter(Boolean) as string[])]}
+                categoryImages={categoryImages}
+                storeName={storeName}
               />
             )}
 
