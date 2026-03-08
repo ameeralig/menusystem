@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Disc3, Grid3X3, Tag, CreditCard } from "lucide-react";
+import { X, Disc3, Grid3X3, Tag, CreditCard, Trophy, ArrowRight } from "lucide-react";
+import { useGameLeaderboard } from "@/hooks/store/useGameLeaderboard";
 
 interface GameOption {
   id: string;
@@ -8,6 +9,7 @@ interface GameOption {
   description: string;
   icon: React.ReactNode;
   emoji: string;
+  scoreType: string;
 }
 
 interface GamesMenuModalProps {
@@ -15,14 +17,48 @@ interface GamesMenuModalProps {
   onClose: () => void;
   onSelectGame: (gameId: string) => void;
   colorTheme?: string;
+  storeOwnerId?: string;
 }
+
+const GAME_TYPES = [
+  { id: "memory", label: "طابق واربح", scoreType: "memory_match" },
+  { id: "price", label: "خمّن السعر", scoreType: "price_guess" },
+];
+
+const MiniLeaderboard: React.FC<{ storeOwnerId: string; gameType: string; themeColor: string; label: string }> = ({
+  storeOwnerId, gameType, themeColor, label,
+}) => {
+  const { scores, loading } = useGameLeaderboard(storeOwnerId, gameType);
+  const top3 = scores.slice(0, 3);
+  const medals = ["🥇", "🥈", "🥉"];
+
+  if (loading) return <div className="text-xs text-muted-foreground text-center py-2">جاري التحميل...</div>;
+  if (top3.length === 0) return null;
+
+  return (
+    <div className="space-y-1.5">
+      <p className="text-xs font-bold text-muted-foreground">{label}</p>
+      {top3.map((s, i) => (
+        <div key={s.id} className="flex items-center gap-2 text-xs px-2 py-1.5 rounded-lg bg-muted/50">
+          <span>{medals[i]}</span>
+          <span className="flex-1 truncate font-medium">{s.player_name}</span>
+          <span className="font-black px-1.5 py-0.5 rounded text-[10px]" style={{ background: `${themeColor}20`, color: themeColor }}>
+            {s.score}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const GamesMenuModal: React.FC<GamesMenuModalProps> = ({
   isOpen,
   onClose,
   onSelectGame,
   colorTheme,
+  storeOwnerId,
 }) => {
+  const [activeTab, setActiveTab] = useState<"games" | "leaderboard">("games");
   const getThemeColor = () => {
     if (colorTheme?.startsWith("#")) return colorTheme;
     const colors: Record<string, string> = {
