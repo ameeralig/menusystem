@@ -474,6 +474,18 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
                 <div className="text-2xl font-bold" style={{ color: themeColor }}>
                   {score} نقطة
                 </div>
+
+                {/* Leaderboard */}
+                <GameLeaderboard
+                  scores={lbScores}
+                  loading={lbLoading}
+                  currentScore={score}
+                  onSaveScore={(name) => saveScore(name, score, { difficulty, moves, timeLeft })}
+                  themeColor={themeColor}
+                  gameTitle="طابق واربح"
+                  showSaveForm={score > 0}
+                />
+
                 <div className="flex gap-2">
                   <Button onClick={() => initializeGame(difficulty)} className="flex-1 text-white" style={{ background: themeColor }}>
                     العب مرة أخرى
@@ -482,11 +494,6 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
                     القائمة
                   </Button>
                 </div>
-                {isGuest && (
-                  <Button variant="ghost" size="sm" className="text-xs" onClick={() => { saveProgress(); setGameState("login"); }}>
-                    💾 حفظ النتيجة
-                  </Button>
-                )}
               </div>
             )}
 
