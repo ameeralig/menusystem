@@ -141,6 +141,10 @@ export const useVisitorAnalytics = (options: UseVisitorAnalyticsOptions = {}) =>
         searches,
         aiChats,
         cartAdds,
+        feedbacks,
+        gamesPlayed,
+        menuDownloads,
+        storeInfoViews,
         topProducts,
         topCategories,
         actionsByType
