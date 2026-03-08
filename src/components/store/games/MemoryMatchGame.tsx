@@ -156,7 +156,7 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
         }, 700);
       }
     }
-  }, [cards, flippedCards, lastMatchTime]);
+  }, [cards, flippedCards, lastMatchTime, isPreviewPhase]);
 
   const loadProgress = () => {
     if (phoneNumber.length >= 10) {
