@@ -3,12 +3,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowUp, ArrowDown, Check, Trophy, RotateCcw, Target, Flame, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Product } from "@/types/product";
+import { useGameLeaderboard } from "@/hooks/store/useGameLeaderboard";
+import GameLeaderboard from "./GameLeaderboard";
 
 interface PriceGuessGameProps {
   isOpen: boolean;
   onClose: () => void;
   products: Product[];
   colorTheme?: string;
+  storeOwnerId?: string;
 }
 
 // Sound effects
