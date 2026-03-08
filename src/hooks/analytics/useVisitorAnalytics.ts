@@ -20,6 +20,10 @@ interface AnalyticsSummary {
   searches: number;
   aiChats: number;
   cartAdds: number;
+  feedbacks: number;
+  gamesPlayed: number;
+  menuDownloads: number;
+  storeInfoViews: number;
   topProducts: { name: string; views: number }[];
   topCategories: { name: string; clicks: number }[];
   actionsByType: { type: string; count: number }[];
