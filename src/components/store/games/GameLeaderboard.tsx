@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GameScore } from "@/hooks/store/useGameLeaderboard";
 import { supabase } from "@/integrations/supabase/client";
+import { getHighestBadge, BadgeIcon } from "./GameBadges";
 
 interface GameLeaderboardProps {
   scores: GameScore[];
