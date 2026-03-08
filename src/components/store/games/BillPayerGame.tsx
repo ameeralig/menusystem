@@ -309,7 +309,27 @@ const BillPayerGame: React.FC<BillPayerGameProps> = ({
                   >
                     <Plus className="h-5 w-5" />
                   </Button>
+                  <Button
+                    onClick={isListening ? stopListening : startListening}
+                    disabled={players.length >= 12}
+                    variant={isListening ? "destructive" : "outline"}
+                    className={`rounded-xl px-3 ${isListening ? "animate-pulse" : ""}`}
+                    style={!isListening ? { borderColor: themeColor, color: themeColor } : {}}
+                  >
+                    {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                  </Button>
                 </div>
+
+                {/* Voice Status */}
+                {voiceStatus && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-xs text-center px-3 py-2 rounded-lg bg-muted text-muted-foreground"
+                  >
+                    {voiceStatus}
+                  </motion.p>
+                )}
 
                 {/* Players List */}
                 <div className="space-y-2">
