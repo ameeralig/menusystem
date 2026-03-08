@@ -264,6 +264,7 @@ const TextOnlyTemplate: React.FC<TextOnlyTemplateProps> = ({
                 ) : (
                   sortedCategories.map((category, index) => {
                     const catImage = categoryImages?.find(ci => ci.category === category);
+                    const hasImage = !!catImage?.image_url;
                     return (
                       <motion.button
                         key={category}
@@ -275,30 +276,34 @@ const TextOnlyTemplate: React.FC<TextOnlyTemplateProps> = ({
                         onClick={() => handleCategorySelect(category)}
                         className="w-full rounded-2xl overflow-hidden transition-all relative group"
                         style={{
-                          background: `linear-gradient(135deg, ${themeColor}88, ${themeColor}44)`,
+                          background: hasImage ? 'transparent' : `linear-gradient(135deg, ${themeColor}88, ${themeColor}44)`,
                           border: `2px solid ${themeColor}55`,
                           backdropFilter: "blur(10px)",
                         }}
                       >
-                        <div className={`flex flex-col items-center justify-center gap-2 ${sortedCategories.length <= 4 ? 'py-6' : 'py-5'}`}>
-                          {/* أيقونة التصنيف - من صورة التصنيف إن وُجدت */}
-                          {catImage?.image_url && (
-                            <img
-                              src={catImage.image_url}
-                              alt={category}
-                              className="w-12 h-12 object-contain brightness-0 invert opacity-90"
-                              loading="lazy"
-                            />
-                          )}
-                          <span className={`font-black text-white drop-shadow-sm ${sortedCategories.length <= 4 ? 'text-xl' : 'text-base'}`}>
+                        {/* صورة التصنيف كخلفية */}
+                        {hasImage && (
+                          <img
+                            src={catImage!.image_url}
+                            alt={category}
+                            className="absolute inset-0 w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        )}
+                        {/* طبقة تعتيم فوق الصورة */}
+                        {hasImage && (
+                          <div className="absolute inset-0 bg-black/40" />
+                        )}
+                        <div className={`relative z-10 flex flex-col items-center justify-center gap-1 ${sortedCategories.length <= 4 ? 'py-8' : 'py-6'}`}>
+                          <span className={`font-black text-white drop-shadow-lg ${sortedCategories.length <= 4 ? 'text-xl' : 'text-base'}`}>
                             {category}
                           </span>
                         </div>
                         {/* Hover glow */}
-                        <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-all duration-300 rounded-2xl" />
+                        <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-all duration-300 rounded-2xl z-20" />
                       </motion.button>
                     );
-                  })
+                  }))
                 )}
               </div>
             </motion.div>
