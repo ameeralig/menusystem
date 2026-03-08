@@ -407,6 +407,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         deliveryFee={deliveryFee}
         storePhone={contactInfo?.phone}
         storeName={storeName || undefined}
+        storeOwnerId={storeOwnerId}
       />
 
       {/* عداد الزيارات الحية */}

@@ -209,6 +209,11 @@ const CartSheet = ({ isOpen, onClose, deliveryFee, storePhone, storeName, storeO
     // فتح الواتساب
     window.open(whatsappUrl, '_blank');
     
+    // تسجيل نشاط إتمام الطلب
+    if (storeOwnerId) {
+      logVisitorActivity(storeOwnerId, 'checkout', { items_count: items.length, total });
+    }
+    
     // مسح السلة وإغلاق النافذة
     clearCart();
     setCustomerName("");
