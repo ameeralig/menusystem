@@ -21,7 +21,7 @@ interface GamesMenuModalProps {
 }
 
 const LEADERBOARD_GAMES = [
-  { id: "memory_match", label: "🧠 طابق واربح", icon: "🧠" },
+  { id: "memory", label: "🧠 طابق واربح", icon: "🧠" },
   { id: "price_guess", label: "🏷️ خمّن السعر", icon: "🏷️" },
 ];
 
