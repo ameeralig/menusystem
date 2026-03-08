@@ -156,6 +156,41 @@ const SpinWheel: React.FC<SpinWheelProps> = React.memo(({ products, onResult, co
     }[colorTheme || ''] || '#3B82F6');
   }, [colorTheme]);
 
+  const handleSpin = () => {
+    if (isSpinning || !products.length) return;
+    setIsSpinning(true);
+    setResult(null);
+    setShowWinEffect(false);
+    if (soundEnabled) playSpinSound();
+
+    const spins = Math.floor(Math.random() * 6) + 10;
+    const finalAngle = Math.random() * 360;
+    const totalRotation = rotation + (spins * 360) + finalAngle;
+    setRotation(totalRotation);
+
+    setTimeout(() => {
+      const adjustedRotation = (360 - (totalRotation % 360)) % 360;
+      const pointerOffsetDeg = 270;
+      const adjustedWithOffset = (adjustedRotation + pointerOffsetDeg) % 360;
+      const winnerIndex = Math.floor(adjustedWithOffset / sectorAngle) % products.length;
+      const winner = products[winnerIndex];
+
+      setResult(winner);
+      setIsSpinning(false);
+      setShowWinEffect(true);
+      if (soundEnabled) playWinSound();
+      onResult?.(winner);
+      toast.success(`🎉 النتيجة: ${winner.name}!`);
+      setTimeout(() => setShowWinEffect(false), 3000);
+    }, 4500);
+  };
+
+  const resetWheel = () => {
+    setRotation(0);
+    setResult(null);
+    setShowWinEffect(false);
+  };
+
   if (!products || products.length === 0) {
     return (
       <div className="text-center py-12 space-y-3">
