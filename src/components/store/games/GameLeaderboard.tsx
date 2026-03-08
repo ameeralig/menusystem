@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, X, Sparkles, Phone } from "lucide-react";
+import { Trophy, X, Sparkles, Phone, User, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GameScore } from "@/hooks/store/useGameLeaderboard";
+import { supabase } from "@/integrations/supabase/client";
 
 interface GameLeaderboardProps {
   scores: GameScore[];
@@ -14,6 +15,7 @@ interface GameLeaderboardProps {
   gameTitle: string;
   onClose?: () => void;
   showSaveForm?: boolean;
+  storeOwnerId?: string;
 }
 
 const RANK_STYLES = [
@@ -31,11 +33,61 @@ const GameLeaderboard: React.FC<GameLeaderboardProps> = ({
   gameTitle,
   onClose,
   showSaveForm = false,
+  storeOwnerId,
 }) => {
-  const [playerName, setPlayerName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [playerName, setPlayerName] = useState("");
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [lookupState, setLookupState] = useState<"idle" | "loading" | "found" | "not_found">("idle");
+  const [phoneLocked, setPhoneLocked] = useState(false);
+
+  // البحث عن الاسم بناءً على رقم الهاتف
+  const lookupPhone = useCallback(async (phone: string) => {
+    const trimmed = phone.trim();
+    if (trimmed.length < 7) {
+      setLookupState("idle");
+      setPlayerName("");
+      setPhoneLocked(false);
+      return;
+    }
+
+    setLookupState("loading");
+    try {
+      const { data } = await supabase
+        .from("game_scores")
+        .select("player_name")
+        .eq("phone_number", trimmed)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      const found = (data as any[])?.[0];
+      if (found?.player_name) {
+        setPlayerName(found.player_name);
+        setLookupState("found");
+        setPhoneLocked(true);
+      } else {
+        setPlayerName("");
+        setLookupState("not_found");
+        setPhoneLocked(false);
+      }
+    } catch {
+      setLookupState("not_found");
+      setPhoneLocked(false);
+    }
+  }, []);
+
+  // debounce للبحث عند تغيير الرقم
+  useEffect(() => {
+    if (!phoneNumber.trim() || phoneNumber.trim().length < 7) {
+      setLookupState("idle");
+      setPlayerName("");
+      setPhoneLocked(false);
+      return;
+    }
+    const timer = setTimeout(() => lookupPhone(phoneNumber), 400);
+    return () => clearTimeout(timer);
+  }, [phoneNumber, lookupPhone]);
 
   const handleSave = async () => {
     if (playerName.trim() && phoneNumber.trim() && onSaveScore) {
@@ -90,38 +142,81 @@ const GameLeaderboard: React.FC<GameLeaderboardProps> = ({
           </div>
 
           <div className="relative space-y-2">
-            <Input
-              value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
-              placeholder="اكتب اسمك..."
-              className="rounded-xl text-sm h-11 border-2 focus-visible:ring-0"
-              style={{ borderColor: `${themeColor}30` }}
-              maxLength={20}
-            />
+            {/* رقم الهاتف أولاً */}
             <div className="relative">
               <Input
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSave()}
-                placeholder="رقم الموبايل..."
+                placeholder="أدخل رقم الموبايل أولاً..."
                 type="tel"
                 dir="ltr"
-                className="rounded-xl text-sm h-11 border-2 focus-visible:ring-0 pl-10"
-                style={{ borderColor: `${themeColor}30` }}
+                className="rounded-xl text-sm h-11 border-2 focus-visible:ring-0 pl-10 pr-10"
+                style={{ borderColor: lookupState === "found" ? "#22c55e80" : `${themeColor}30` }}
                 maxLength={15}
               />
               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              {lookupState === "loading" && (
+                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+              )}
+              {lookupState === "found" && (
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <Check className="h-4 w-4 text-green-500" />
+                </motion.div>
+              )}
             </div>
+
+            {/* حالة العثور على الاسم */}
+            <AnimatePresence mode="wait">
+              {lookupState === "found" && (
+                <motion.div
+                  key="found"
+                  initial={{ opacity: 0, y: -8, height: 0 }}
+                  animate={{ opacity: 1, y: 0, height: "auto" }}
+                  exit={{ opacity: 0, y: -8, height: 0 }}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800"
+                >
+                  <User className="h-4 w-4 text-green-500 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-green-600 dark:text-green-400">مرحباً بعودتك! 👋</p>
+                    <p className="text-sm font-bold text-green-700 dark:text-green-300 truncate">{playerName}</p>
+                  </div>
+                </motion.div>
+              )}
+
+              {lookupState === "not_found" && (
+                <motion.div
+                  key="not_found"
+                  initial={{ opacity: 0, y: -8, height: 0 }}
+                  animate={{ opacity: 1, y: 0, height: "auto" }}
+                  exit={{ opacity: 0, y: -8, height: 0 }}
+                  className="space-y-1"
+                >
+                  <p className="text-[10px] text-muted-foreground">🆕 لاعب جديد! اختر اسماً لك:</p>
+                  <Input
+                    value={playerName}
+                    onChange={(e) => setPlayerName(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSave()}
+                    placeholder="اكتب اسمك..."
+                    className="rounded-xl text-sm h-11 border-2 focus-visible:ring-0"
+                    style={{ borderColor: `${themeColor}30` }}
+                    maxLength={20}
+                    autoFocus
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <p className="text-[10px] text-muted-foreground">
               📱 رقمك يُستخدم لتحديث نتيجتك تلقائياً إذا حققت رقم أعلى
             </p>
+
             <Button
               onClick={handleSave}
-              disabled={!playerName.trim() || !phoneNumber.trim() || saving}
+              disabled={!playerName.trim() || !phoneNumber.trim() || saving || lookupState === "loading" || lookupState === "idle"}
               className="w-full rounded-xl text-white h-11 font-bold shadow-lg"
               style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}cc)`, boxShadow: `0 4px 15px ${themeColor}40` }}
             >
-              {saving ? "..." : "حفظ النتيجة"}
+              {saving ? "..." : lookupState === "found" ? "تحديث النتيجة" : "حفظ النتيجة"}
             </Button>
           </div>
         </motion.div>
