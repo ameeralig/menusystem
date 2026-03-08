@@ -8,6 +8,7 @@ import { Minus, Plus, Trash2, MapPin, Loader2, Map } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import LocationPickerMap from "./LocationPickerMap";
+import { logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
 
 interface CartSheetProps {
   isOpen: boolean;
