@@ -4,6 +4,7 @@ import { Gamepad2, MessageSquare, Search, X, Share2, Download, Heart, Info, More
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
+import { CategoryImage } from "@/types/categoryImage";
 import StoreInfoSheet from "./StoreInfoSheet";
 import AddProductModal from "./AddProductModal";
 import CustomerAIAssistant from "./CustomerAIAssistant";
