@@ -95,12 +95,16 @@ const CategoryImageGenerator: React.FC<CategoryImageGeneratorProps> = ({
     try {
       setGenerationStatus(prev => ({ ...prev, [category]: 'generating' }));
 
+      const existingImage = getCategoryImage(category);
+      const oldImageUrl = existingImage?.image_url || undefined;
+
       const { data, error } = await supabase.functions.invoke('generate-category-image', {
         body: {
           categoryName: category,
           storeName,
           style: selectedStyle,
           customPrompt: selectedStyle === 'custom' ? customPrompt : undefined,
+          oldImageUrl,
         },
       });
 
