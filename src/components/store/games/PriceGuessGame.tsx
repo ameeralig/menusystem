@@ -715,6 +715,17 @@ const PriceGuessGame: React.FC<PriceGuessGameProps> = ({
                   ))}
                 </div>
 
+                {/* Leaderboard */}
+                <GameLeaderboard
+                  scores={scores}
+                  loading={lbLoading}
+                  currentScore={score}
+                  onSaveScore={(name) => saveScore(name, score, { rounds: totalRounds, correct: roundScores.filter(s => s > 0).length })}
+                  themeColor={themeColor}
+                  gameTitle="خمّن السعر"
+                  showSaveForm={score > 0}
+                />
+
                 <div className="flex gap-3 pt-2">
                   <motion.div className="flex-1" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                     <Button onClick={startGame} className="w-full text-white font-bold py-5 rounded-2xl" style={{ background: themeColor }}>
