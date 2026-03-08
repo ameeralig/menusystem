@@ -151,7 +151,7 @@ const ProgressiveCategoryGrid = ({
                   
                   {/* صورة التصنيف */}
                   {imageUrl ? (
-                    <div className="aspect-square overflow-hidden">
+                    <div className="aspect-square overflow-hidden bg-muted">
                       <motion.img
                         initial={{ scale: 1.2, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
