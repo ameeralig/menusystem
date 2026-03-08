@@ -49,6 +49,7 @@ const StoreOwnerActionsMenu = ({
   const [currentTemplate, setCurrentTemplate] = useState("fast-response");
   const [isGeneratingIcons, setIsGeneratingIcons] = useState(false);
   const [iconGenProgress, setIconGenProgress] = useState("");
+  const [iconStyle, setIconStyle] = useState<"flat" | "3d" | "cartoon">("flat");
 
   const handleGenerateAllIcons = async () => {
     setIsGeneratingIcons(true);
