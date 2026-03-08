@@ -335,8 +335,8 @@ const StoreOwnerActionsMenu = ({
             </div>
           </div>
 
-          {/* زر توليد صور التصنيفات - فقط للقالب النصي */}
-          {currentTemplate === "text-only" && categories.length > 0 && (
+          {/* زر توليد صور التصنيفات */}
+          {categories.length > 0 && (
             <Button
               onClick={() => {
                 setShowImageGenerator(true);

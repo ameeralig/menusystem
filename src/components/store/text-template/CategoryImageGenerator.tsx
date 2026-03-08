@@ -113,8 +113,6 @@ const CategoryImageGenerator: React.FC<CategoryImageGeneratorProps> = ({
         throw new Error(data?.error || 'فشل التوليد');
       }
 
-      const existingImage = getCategoryImage(category);
-
       if (existingImage?.id) {
         const { error: updateError } = await supabase
           .from('category_images')
