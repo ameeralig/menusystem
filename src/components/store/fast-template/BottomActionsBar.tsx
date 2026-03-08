@@ -422,6 +422,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
           if (gameId === "billpayer") setIsBillPayerOpen(true);
         }}
         colorTheme={colorTheme}
+        storeOwnerId={storeOwnerId}
       />
 
       {/* MemoryMatchGame */}
