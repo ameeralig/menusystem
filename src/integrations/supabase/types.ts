@@ -306,6 +306,36 @@ export type Database = {
         }
         Relationships: []
       }
+      game_scores: {
+        Row: {
+          created_at: string
+          details: Json | null
+          game_type: string
+          id: string
+          player_name: string
+          score: number
+          store_owner_id: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          game_type: string
+          id?: string
+          player_name: string
+          score?: number
+          store_owner_id: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          game_type?: string
+          id?: string
+          player_name?: string
+          score?: number
+          store_owner_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string

@@ -430,6 +430,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
         onClose={() => setIsMemoryGameOpen(false)}
         products={products}
         colorTheme={colorTheme || undefined}
+        storeOwnerId={storeOwnerId}
       />
 
       {/* PriceGuessGame */}
@@ -438,6 +439,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
         onClose={() => setIsPriceGameOpen(false)}
         products={products}
         colorTheme={colorTheme || undefined}
+        storeOwnerId={storeOwnerId}
       />
 
       {/* BillPayerGame */}

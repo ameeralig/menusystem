@@ -3,12 +3,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowUp, ArrowDown, Check, Trophy, RotateCcw, Target, Flame, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Product } from "@/types/product";
+import { useGameLeaderboard } from "@/hooks/store/useGameLeaderboard";
+import GameLeaderboard from "./GameLeaderboard";
 
 interface PriceGuessGameProps {
   isOpen: boolean;
   onClose: () => void;
   products: Product[];
   colorTheme?: string;
+  storeOwnerId?: string;
 }
 
 // Sound effects
@@ -88,6 +91,7 @@ const PriceGuessGame: React.FC<PriceGuessGameProps> = ({
   onClose,
   products,
   colorTheme,
+  storeOwnerId,
 }) => {
   const [gameState, setGameState] = useState<"menu" | "playing" | "result" | "final">("menu");
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
@@ -105,7 +109,9 @@ const PriceGuessGame: React.FC<PriceGuessGameProps> = ({
   const [pulseCorrect, setPulseCorrect] = useState(false);
   const [showParticles, setShowParticles] = useState(false);
   const [proximityPercent, setProximityPercent] = useState(0);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const { playClick, playCorrect, playWrong, playTick } = useGameSounds();
+  const { scores, loading: lbLoading, saveScore } = useGameLeaderboard(storeOwnerId, "price_guess");
 
   const themeColor = useMemo(() => {
     if (colorTheme?.startsWith("#")) return colorTheme;
@@ -708,6 +714,17 @@ const PriceGuessGame: React.FC<PriceGuessGameProps> = ({
                     </motion.span>
                   ))}
                 </div>
+
+                {/* Leaderboard */}
+                <GameLeaderboard
+                  scores={scores}
+                  loading={lbLoading}
+                  currentScore={score}
+                  onSaveScore={(name) => saveScore(name, score, { rounds: totalRounds, correct: roundScores.filter(s => s > 0).length })}
+                  themeColor={themeColor}
+                  gameTitle="خمّن السعر"
+                  showSaveForm={score > 0}
+                />
 
                 <div className="flex gap-3 pt-2">
                   <motion.div className="flex-1" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>

@@ -4,6 +4,8 @@ import { Timer, RotateCcw, Trophy, X, Smartphone, ArrowRight, Star, Zap } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Product } from "@/types/product";
+import { useGameLeaderboard } from "@/hooks/store/useGameLeaderboard";
+import GameLeaderboard from "./GameLeaderboard";
 
 interface MemoryCard {
   id: number;
@@ -37,6 +39,7 @@ interface MemoryMatchGameProps {
   onClose: () => void;
   products: Product[];
   colorTheme?: string;
+  storeOwnerId?: string;
 }
 
 const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
@@ -44,6 +47,7 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
   onClose,
   products,
   colorTheme,
+  storeOwnerId,
 }) => {
   const [gameState, setGameState] = useState<"menu" | "playing" | "won" | "lost" | "login">("menu");
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
@@ -59,6 +63,7 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
   const [comboCount, setComboCount] = useState(0);
   const [showCombo, setShowCombo] = useState(false);
   const [lastMatchTime, setLastMatchTime] = useState(0);
+  const { scores: lbScores, loading: lbLoading, saveScore } = useGameLeaderboard(storeOwnerId, "memory");
 
   const themeColor = useMemo(() => {
     if (colorTheme?.startsWith("#")) return colorTheme;
@@ -469,6 +474,18 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
                 <div className="text-2xl font-bold" style={{ color: themeColor }}>
                   {score} نقطة
                 </div>
+
+                {/* Leaderboard */}
+                <GameLeaderboard
+                  scores={lbScores}
+                  loading={lbLoading}
+                  currentScore={score}
+                  onSaveScore={(name) => saveScore(name, score, { difficulty, moves, timeLeft })}
+                  themeColor={themeColor}
+                  gameTitle="طابق واربح"
+                  showSaveForm={score > 0}
+                />
+
                 <div className="flex gap-2">
                   <Button onClick={() => initializeGame(difficulty)} className="flex-1 text-white" style={{ background: themeColor }}>
                     العب مرة أخرى
@@ -477,11 +494,6 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
                     القائمة
                   </Button>
                 </div>
-                {isGuest && (
-                  <Button variant="ghost" size="sm" className="text-xs" onClick={() => { saveProgress(); setGameState("login"); }}>
-                    💾 حفظ النتيجة
-                  </Button>
-                )}
               </div>
             )}
 
