@@ -32,6 +32,7 @@ interface StoreOwnerActionsMenuProps {
   categories?: string[];
   categoryImages?: CategoryImage[];
   storeName?: string | null;
+  products?: Product[];
 }
 
 const StoreOwnerActionsMenu = ({
