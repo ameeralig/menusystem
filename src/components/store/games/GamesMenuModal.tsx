@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Trophy, Gamepad2, ChevronLeft } from "lucide-react";
 import { useGameLeaderboard } from "@/hooks/store/useGameLeaderboard";
+import { getHighestBadge } from "./GameBadges";
 
 interface GameOption {
   id: string;
