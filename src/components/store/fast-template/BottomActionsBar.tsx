@@ -64,6 +64,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   logoUrl,
   favoritesCount = 0,
   onOpenFavorites,
+  categoryImages,
 }) => {
   const [isInfoSheetOpen, setIsInfoSheetOpen] = useState(false);
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
