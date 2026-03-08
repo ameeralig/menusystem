@@ -83,6 +83,74 @@ const useGameSounds = () => {
   return { playTick, playDrumroll, playWinner };
 };
 
+// Voice recognition hook
+const useVoiceInput = (onNamesDetected: (names: string[]) => void) => {
+  const [isListening, setIsListening] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState<string>("");
+  const recognitionRef = useRef<any>(null);
+
+  const startListening = useCallback(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setVoiceStatus("المتصفح لا يدعم التعرف الصوتي");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "ar-SA";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      setVoiceStatus("🎙️ تكلّم الآن... قل الأسماء");
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript as string;
+      // Parse names from speech - split by common Arabic conjunctions
+      const rawNames = transcript
+        .replace(/\bو\b/g, ",")
+        .replace(/\bمع\b/g, ",")
+        .replace(/\bثم\b/g, ",")
+        .split(/[,،\s]+/)
+        .map((n: string) => n.trim())
+        .filter((n: string) => n.length >= 2);
+
+      if (rawNames.length > 0) {
+        setVoiceStatus(`✅ تم التعرف على: ${rawNames.join("، ")}`);
+        onNamesDetected(rawNames);
+      } else {
+        setVoiceStatus("❌ لم أتمكن من التعرف على أسماء، حاول مرة أخرى");
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      setIsListening(false);
+      if (event.error === "not-allowed") {
+        setVoiceStatus("❌ يرجى السماح بالوصول للميكروفون");
+      } else {
+        setVoiceStatus("❌ حدث خطأ، حاول مرة أخرى");
+      }
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+  }, [onNamesDetected]);
+
+  const stopListening = useCallback(() => {
+    recognitionRef.current?.stop();
+    setIsListening(false);
+  }, []);
+
+  return { isListening, voiceStatus, startListening, stopListening };
+};
+
 const BillPayerGame: React.FC<BillPayerGameProps> = ({
   isOpen,
   onClose,
