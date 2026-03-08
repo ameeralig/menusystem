@@ -461,7 +461,7 @@ const PriceGuessGame: React.FC<PriceGuessGameProps> = ({
                 </div>
 
                 <GameLeaderboard scores={scores} loading={lbLoading} currentScore={score}
-                  onSaveScore={(name) => saveScore(name, score, { rounds: totalRounds, correct: roundScores.filter(s => s > 0).length })}
+                  onSaveScore={(name, phone) => saveScore(name, score, phone, { rounds: totalRounds, correct: roundScores.filter(s => s > 0).length })}
                   themeColor={themeColor} gameTitle="خمّن السعر" showSaveForm={score > 0} />
 
                 <div className="flex gap-3 pt-2">

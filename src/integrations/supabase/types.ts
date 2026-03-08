@@ -312,6 +312,7 @@ export type Database = {
           details: Json | null
           game_type: string
           id: string
+          phone_number: string | null
           player_name: string
           score: number
           store_owner_id: string
@@ -321,6 +322,7 @@ export type Database = {
           details?: Json | null
           game_type: string
           id?: string
+          phone_number?: string | null
           player_name: string
           score?: number
           store_owner_id: string
@@ -330,6 +332,7 @@ export type Database = {
           details?: Json | null
           game_type?: string
           id?: string
+          phone_number?: string | null
           player_name?: string
           score?: number
           store_owner_id?: string
