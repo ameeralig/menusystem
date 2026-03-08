@@ -202,7 +202,11 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
     if (onSearchChange) {
       onSearchChange(query);
     }
-  }, [onSearchChange]);
+    // تسجيل نشاط البحث عند كتابة 3 أحرف أو أكثر
+    if (query.trim().length === 3 && storeOwnerId && !isStoreOwner) {
+      logVisitorActivity(storeOwnerId, 'search', { query: query.trim() });
+    }
+  }, [onSearchChange, storeOwnerId, isStoreOwner]);
 
   // مسح البحث
   const clearSearch = useCallback(() => {
