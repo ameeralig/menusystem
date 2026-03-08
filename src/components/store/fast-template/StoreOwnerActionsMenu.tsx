@@ -27,6 +27,9 @@ interface StoreOwnerActionsMenuProps {
   onOpenInfo?: () => void;
   onOpenFeedback?: () => void;
   hasContactInfo?: boolean;
+  categories?: string[];
+  categoryImages?: CategoryImage[];
+  storeName?: string | null;
 }
 
 const StoreOwnerActionsMenu = ({
