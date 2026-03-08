@@ -1,0 +1,1 @@
+ALTER TABLE public.game_scores ADD COLUMN phone_number text;
