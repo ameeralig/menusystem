@@ -127,7 +127,7 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
   }, [matchedPairs, difficulty, gameState, timeLeft, moves, highScore, comboCount]);
 
   const handleCardClick = useCallback((cardId: number) => {
-    if (flippedCards.length >= 2) return;
+    if (isPreviewPhase || flippedCards.length >= 2) return;
     const card = cards.find(c => c.id === cardId);
     if (!card || card.isFlipped || card.isMatched) return;
     const newCards = cards.map(c => c.id === cardId ? { ...c, isFlipped: true } : c);
