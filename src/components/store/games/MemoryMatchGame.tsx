@@ -112,7 +112,7 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
   }, [buildCardPairs]);
 
   useEffect(() => {
-    if (gameState !== "playing") return;
+    if (gameState !== "playing" || isPreviewPhase) return;
     if (timeLeft <= 0) { setGameState("lost"); return; }
     const timer = setInterval(() => setTimeLeft(t => t - 1), 1000);
     return () => clearInterval(timer);
