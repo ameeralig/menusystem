@@ -90,37 +90,23 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
                 <X className="w-5 h-5 text-gray-700 dark:text-gray-300" />
               </button>
 
-              {/* صورة المنتج مع Progressive Loading */}
-              <div className="relative w-full h-64 sm:h-80 bg-gray-100 dark:bg-gray-700 overflow-hidden">
-                <img
-                  src={displayedImageSrc || optimizeImageUrl(product.image_url, 'thumbnail')}
-                  alt={product.name}
-                  className={`w-full h-full object-cover transition-all duration-500 ${
-                    isImageLoaded ? 'blur-0 scale-100' : 'blur-sm scale-105'
-                  }`}
-                  onError={(e) => {
-                    e.currentTarget.src = optimizeImageUrl(null, 'medium');
-                  }}
-                />
-
-                {/* شارات */}
-                <div className="absolute top-4 left-4 flex flex-col gap-2">
-                  {product.is_new && (
-                    <span className="bg-green-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
-                      جديد
-                    </span>
-                  )}
-                  {product.is_popular && (
-                    <span className="bg-yellow-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
-                      مميز
-                    </span>
-                  )}
-                  {product.is_available === false && (
-                    <span className="bg-red-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
-                      غير متوفر
-                    </span>
-                  )}
-                </div>
+              {/* شارات المنتج */}
+              <div className="flex gap-2 px-6 pt-6">
+                {product.is_new && (
+                  <span className="bg-green-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
+                    جديد
+                  </span>
+                )}
+                {product.is_popular && (
+                  <span className="bg-yellow-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
+                    مميز
+                  </span>
+                )}
+                {product.is_available === false && (
+                  <span className="bg-red-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
+                    غير متوفر
+                  </span>
+                )}
               </div>
 
               {/* تفاصيل المنتج */}
