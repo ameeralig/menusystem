@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Trophy, Gamepad2, ChevronLeft } from "lucide-react";
 import { useGameLeaderboard } from "@/hooks/store/useGameLeaderboard";
+import { getHighestBadge } from "./GameBadges";
 
 interface GameOption {
   id: string;
@@ -88,8 +89,12 @@ const MiniLeaderboard: React.FC<{
                     }}
                   />
                   <div className="absolute inset-0 flex items-center justify-between px-3">
-                    <span className={`text-xs font-bold truncate ${i === 0 ? "text-white" : "text-foreground"}`}>
+                    <span className={`text-xs font-bold truncate flex items-center gap-1 ${i === 0 ? "text-white" : "text-foreground"}`}>
                       {s.player_name}
+                      {(() => {
+                        const badge = getHighestBadge(s.score);
+                        return badge ? <span className="text-[10px]">{badge.emoji}</span> : null;
+                      })()}
                     </span>
                     <span className={`text-xs font-black ${i === 0 ? "text-white" : "text-foreground"}`}>
                       {s.score}

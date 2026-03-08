@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Product } from "@/types/product";
 import { useGameLeaderboard } from "@/hooks/store/useGameLeaderboard";
 import GameLeaderboard from "./GameLeaderboard";
+import { UnlockedBadgesDisplay } from "./GameBadges";
 
 interface PriceGuessGameProps {
   isOpen: boolean;
@@ -459,6 +460,8 @@ const PriceGuessGame: React.FC<PriceGuessGameProps> = ({
                     </motion.span>
                   ))}
                 </div>
+
+                <UnlockedBadgesDisplay score={score} themeColor={themeColor} />
 
                 <GameLeaderboard scores={scores} loading={lbLoading} currentScore={score}
                   onSaveScore={(name, phone) => saveScore(name, score, phone, { rounds: totalRounds, correct: roundScores.filter(s => s > 0).length })}

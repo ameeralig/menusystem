@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GameScore } from "@/hooks/store/useGameLeaderboard";
 import { supabase } from "@/integrations/supabase/client";
+import { getHighestBadge, BadgeIcon } from "./GameBadges";
 
 interface GameLeaderboardProps {
   scores: GameScore[];
@@ -295,10 +296,16 @@ const GameLeaderboard: React.FC<GameLeaderboardProps> = ({
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-bold truncate ${idx === 0 ? "" : "text-foreground"}`}
-                        style={idx === 0 ? { color: themeColor } : {}}>
-                        {entry.player_name}
-                      </p>
+                      <div className="flex items-center gap-1">
+                        <p className={`text-sm font-bold truncate ${idx === 0 ? "" : "text-foreground"}`}
+                          style={idx === 0 ? { color: themeColor } : {}}>
+                          {entry.player_name}
+                        </p>
+                        {(() => {
+                          const badge = getHighestBadge(entry.score);
+                          return badge ? <BadgeIcon badge={badge} size="sm" /> : null;
+                        })()}
+                      </div>
                       <p className="text-[9px] text-muted-foreground">
                         {new Date(entry.created_at).toLocaleDateString("ar-SA")}
                       </p>

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Product } from "@/types/product";
 import { useGameLeaderboard } from "@/hooks/store/useGameLeaderboard";
 import GameLeaderboard from "./GameLeaderboard";
+import { UnlockedBadgesDisplay } from "./GameBadges";
 
 interface MemoryCard {
   id: number;
@@ -457,6 +458,8 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
 
                 <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", delay: 0.5 }}
                   className="text-3xl font-black" style={{ color: themeColor }}>{score} نقطة</motion.div>
+
+                <UnlockedBadgesDisplay score={score} themeColor={themeColor} />
 
                 <GameLeaderboard scores={lbScores} loading={lbLoading} currentScore={score}
                   onSaveScore={(name, phone) => saveScore(name, score, phone, { difficulty, moves, timeLeft })}
