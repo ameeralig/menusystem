@@ -390,7 +390,7 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
       />
 
       {/* عداد الزيارات الحية */}
-      <LiveVisitCounter />
+      <LiveVisitCounter storeOwnerId={storeOwnerId} colorTheme={colorTheme} variant="default" />
 
       {/* الشريط الأفقي السفلي مع البحث المدمج */}
       <BottomActionsBar
