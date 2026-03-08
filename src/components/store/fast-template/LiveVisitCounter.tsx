@@ -47,7 +47,7 @@ const LiveVisitCounter: React.FC<LiveVisitCounterProps> = ({
     return () => unsub();
   }, [displayValue]);
 
-  if (!storeOwnerId || totalViews === 0) return null;
+  if (!storeOwnerId) return null;
 
   const formattedCount = displayCount.toLocaleString("ar-EG");
 
