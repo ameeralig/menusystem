@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS unique_user_category ON public.category_images (user_id, category);
