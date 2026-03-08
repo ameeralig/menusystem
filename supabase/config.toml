@@ -56,3 +56,6 @@ verify_jwt = false
 
 [functions."generate-category-image"]
 verify_jwt = true
+
+[functions."generate-product-image"]
+verify_jwt = true
