@@ -118,6 +118,14 @@ const CustomerAIAssistant = ({
     setInput("");
     setIsLoading(true);
 
+    // تسجيل نشاط استخدام المساعد الذكي
+    if (!isStoreOwner) {
+      logVisitorActivity(storeOwnerId, 'ai_chat', { 
+        action: 'message_sent',
+        message_preview: userMessage.substring(0, 50)
+      });
+    }
+
     const tempUserMsg: Message = {
       id: crypto.randomUUID(),
       role: 'user',
