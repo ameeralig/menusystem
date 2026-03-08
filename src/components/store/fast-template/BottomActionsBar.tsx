@@ -419,6 +419,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
           if (gameId === "wheel") setIsWheelModalOpen(true);
           if (gameId === "memory") setIsMemoryGameOpen(true);
           if (gameId === "price") setIsPriceGameOpen(true);
+          if (gameId === "billpayer") setIsBillPayerOpen(true);
         }}
         colorTheme={colorTheme}
       />
