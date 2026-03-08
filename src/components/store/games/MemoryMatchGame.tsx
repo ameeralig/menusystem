@@ -61,6 +61,7 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
   const [showCombo, setShowCombo] = useState(false);
   const [lastMatchTime, setLastMatchTime] = useState(0);
   const [recentMatch, setRecentMatch] = useState<number | null>(null);
+  const [isPreviewPhase, setIsPreviewPhase] = useState(false);
   const { scores: lbScores, loading: lbLoading, saveScore } = useGameLeaderboard(storeOwnerId, "memory");
 
   const themeColor = useMemo(() => {
@@ -72,10 +73,12 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
   const buildCardPairs = useCallback((diff: Difficulty) => {
     const config = DIFFICULTIES[diff];
     const productsWithImages = products.filter(p => p.image_url && p.image_url.trim() !== "");
+    // اختيار عشوائي من جميع التصنيفات
+    const shuffled = [...productsWithImages].sort(() => Math.random() - 0.5);
     const pairs: { imageUrl: string; name: string }[] = [];
     for (let i = 0; i < config.pairs; i++) {
-      if (i < productsWithImages.length) {
-        pairs.push({ imageUrl: productsWithImages[i].image_url!, name: productsWithImages[i].name });
+      if (i < shuffled.length) {
+        pairs.push({ imageUrl: shuffled[i].image_url!, name: shuffled[i].name });
       } else {
         pairs.push({ imageUrl: "", name: PLACEHOLDER_EMOJIS[i % PLACEHOLDER_EMOJIS.length] });
       }
@@ -89,8 +92,8 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
     const allCards: MemoryCard[] = [];
     cardPairs.forEach((pair, index) => {
       allCards.push(
-        { id: index * 2, ...pair, pairId: index, isFlipped: false, isMatched: false },
-        { id: index * 2 + 1, ...pair, pairId: index, isFlipped: false, isMatched: false }
+        { id: index * 2, ...pair, pairId: index, isFlipped: true, isMatched: false },
+        { id: index * 2 + 1, ...pair, pairId: index, isFlipped: true, isMatched: false }
       );
     });
     for (let i = allCards.length - 1; i > 0; i--) {
@@ -100,14 +103,20 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
     setCards(allCards); setFlippedCards([]); setMoves(0); setTimeLeft(config.time);
     setMatchedPairs(0); setShakeCards([]); setComboCount(0); setShowCombo(false);
     setGameState("playing"); setDifficulty(diff); setRecentMatch(null);
+    // إظهار جميع البطاقات لمدة ثانيتين ثم إخفاؤها
+    setIsPreviewPhase(true);
+    setTimeout(() => {
+      setCards(prev => prev.map(c => ({ ...c, isFlipped: false })));
+      setIsPreviewPhase(false);
+    }, 2000);
   }, [buildCardPairs]);
 
   useEffect(() => {
-    if (gameState !== "playing") return;
+    if (gameState !== "playing" || isPreviewPhase) return;
     if (timeLeft <= 0) { setGameState("lost"); return; }
     const timer = setInterval(() => setTimeLeft(t => t - 1), 1000);
     return () => clearInterval(timer);
-  }, [gameState, timeLeft]);
+  }, [gameState, timeLeft, isPreviewPhase]);
 
   useEffect(() => {
     if (gameState === "playing" && matchedPairs === DIFFICULTIES[difficulty].pairs) {
@@ -118,7 +127,7 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
   }, [matchedPairs, difficulty, gameState, timeLeft, moves, highScore, comboCount]);
 
   const handleCardClick = useCallback((cardId: number) => {
-    if (flippedCards.length >= 2) return;
+    if (isPreviewPhase || flippedCards.length >= 2) return;
     const card = cards.find(c => c.id === cardId);
     if (!card || card.isFlipped || card.isMatched) return;
     const newCards = cards.map(c => c.id === cardId ? { ...c, isFlipped: true } : c);
@@ -147,7 +156,7 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
         }, 700);
       }
     }
-  }, [cards, flippedCards, lastMatchTime]);
+  }, [cards, flippedCards, lastMatchTime, isPreviewPhase]);
 
   const loadProgress = () => {
     if (phoneNumber.length >= 10) {
@@ -319,6 +328,20 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
                         className="inline-flex items-center gap-1 px-4 py-1.5 rounded-full text-xs font-black text-white shadow-lg"
                         style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}cc)`, boxShadow: `0 4px 20px ${themeColor}50` }}>
                         <Zap className="h-3.5 w-3.5" /> كومبو x{comboCount + 1}! 🔥
+                      </motion.span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Preview Phase Banner */}
+                <AnimatePresence>
+                  {isPreviewPhase && (
+                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }} className="text-center">
+                      <motion.span animate={{ scale: [1, 1.1, 1] }} transition={{ repeat: Infinity, duration: 0.8 }}
+                        className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-black text-white shadow-lg"
+                        style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}cc)`, boxShadow: `0 4px 20px ${themeColor}50` }}>
+                        <Sparkles className="h-4 w-4" /> احفظ المواقع! 👀
                       </motion.span>
                     </motion.div>
                   )}
