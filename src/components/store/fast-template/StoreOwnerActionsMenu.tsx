@@ -490,6 +490,15 @@ const StoreOwnerActionsMenu = ({
       colorTheme={colorTheme}
       onGenerated={onUpdate}
     />
+
+    {/* مولد صور المنتجات بالذكاء الاصطناعي */}
+    <ProductImageGenerator
+      isOpen={showProductImageGenerator}
+      onClose={() => setShowProductImageGenerator(false)}
+      products={products}
+      colorTheme={colorTheme}
+      onGenerated={onUpdate}
+    />
   </>
   );
 };
