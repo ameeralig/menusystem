@@ -95,6 +95,7 @@ export const CategorySelectionStep = ({
       }
 
       if (finalImageUrl) {
+        // المستخدم رفع صورة يدوياً - نحفظها
         const { error: categoryImageError } = await supabase
           .from('category_images')
           .insert({
@@ -108,6 +109,25 @@ export const CategorySelectionStep = ({
           toast.error("فشل في حفظ صورة التصنيف في قاعدة البيانات");
           setIsUploading(false);
           return;
+        }
+      } else {
+        // لا توجد صورة يدوية - نولّد أيقونة بالذكاء الاصطناعي
+        toast.info("جاري توليد أيقونة ذكية للتصنيف...");
+        try {
+          const { data: aiData, error: aiError } = await supabase.functions.invoke('generate-category-icon', {
+            body: { categoryName: newCategoryName.trim(), userId: user.id }
+          });
+
+          if (aiError) {
+            console.error('خطأ في توليد الأيقونة:', aiError);
+            // لا نوقف العملية - نكمل بدون أيقونة
+          } else if (aiData?.iconUrl) {
+            console.log('تم توليد أيقونة التصنيف:', aiData.iconUrl);
+            toast.success("تم توليد أيقونة التصنيف بالذكاء الاصطناعي ✨");
+          }
+        } catch (aiErr) {
+          console.error('خطأ في استدعاء توليد الأيقونة:', aiErr);
+          // نكمل بدون أيقونة
         }
       }
 
