@@ -78,7 +78,7 @@ const StoreOwnerActionsMenu = ({
         
         try {
           const { data, error } = await supabase.functions.invoke('generate-category-icon', {
-            body: { categoryName: cat, userId: storeOwnerId }
+            body: { categoryName: cat, userId: storeOwnerId, iconStyle }
           });
 
           if (!error && data?.iconUrl) {
