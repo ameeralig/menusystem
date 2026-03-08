@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Disc3, Grid3X3, Tag } from "lucide-react";
+import { X, Disc3, Grid3X3, Tag, CreditCard } from "lucide-react";
 
 interface GameOption {
   id: string;
@@ -55,6 +55,13 @@ const GamesMenuModal: React.FC<GamesMenuModalProps> = ({
       description: "هل تعرف أسعار المنتجات؟ اختبر نفسك!",
       icon: <Tag className="h-8 w-8" />,
       emoji: "🏷️",
+    },
+    {
+      id: "billpayer",
+      name: "من سيدفع الحساب؟",
+      description: "أضف أسماء أصدقائك وخلّ الحظ يختار مين يدفع!",
+      icon: <CreditCard className="h-8 w-8" />,
+      emoji: "💸",
     },
   ];
 

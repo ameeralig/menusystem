@@ -11,6 +11,7 @@ import WheelModal from "../WheelModal";
 import GamesMenuModal from "../games/GamesMenuModal";
 import MemoryMatchGame from "../games/MemoryMatchGame";
 import PriceGuessGame from "../games/PriceGuessGame";
+import BillPayerGame from "../games/BillPayerGame";
 import FeedbackDialog from "../feedback/FeedbackDialog";
 import OwnerFeedbackSheet from "../feedback/OwnerFeedbackSheet";
 import StoreOwnerActionsMenu from "./StoreOwnerActionsMenu";
@@ -70,6 +71,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   const [isMemoryGameOpen, setIsMemoryGameOpen] = useState(false);
   const [isPriceGameOpen, setIsPriceGameOpen] = useState(false);
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
+  const [isBillPayerOpen, setIsBillPayerOpen] = useState(false);
   const [isOwnerFeedbackOpen, setIsOwnerFeedbackOpen] = useState(false);
   const [isShareCardOpen, setIsShareCardOpen] = useState(false);
   const [isMenuDownloadOpen, setIsMenuDownloadOpen] = useState(false);
@@ -417,6 +419,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
           if (gameId === "wheel") setIsWheelModalOpen(true);
           if (gameId === "memory") setIsMemoryGameOpen(true);
           if (gameId === "price") setIsPriceGameOpen(true);
+          if (gameId === "billpayer") setIsBillPayerOpen(true);
         }}
         colorTheme={colorTheme}
       />
@@ -436,6 +439,14 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
         products={products}
         colorTheme={colorTheme || undefined}
       />
+
+      {/* BillPayerGame */}
+      <BillPayerGame
+        isOpen={isBillPayerOpen}
+        onClose={() => setIsBillPayerOpen(false)}
+        colorTheme={colorTheme || undefined}
+      />
+
       {storeOwnerId && !isStoreOwner && (
         <FeedbackDialog
           isOpen={isFeedbackDialogOpen}
