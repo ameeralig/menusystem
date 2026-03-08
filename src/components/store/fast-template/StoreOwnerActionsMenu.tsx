@@ -49,6 +49,7 @@ const StoreOwnerActionsMenu = ({
   const [currentTemplate, setCurrentTemplate] = useState("fast-response");
   const [isGeneratingIcons, setIsGeneratingIcons] = useState(false);
   const [iconGenProgress, setIconGenProgress] = useState("");
+  const [iconStyle, setIconStyle] = useState<"flat" | "3d" | "cartoon">("flat");
 
   const handleGenerateAllIcons = async () => {
     setIsGeneratingIcons(true);
@@ -77,7 +78,7 @@ const StoreOwnerActionsMenu = ({
         
         try {
           const { data, error } = await supabase.functions.invoke('generate-category-icon', {
-            body: { categoryName: cat, userId: storeOwnerId }
+            body: { categoryName: cat, userId: storeOwnerId, iconStyle }
           });
 
           if (!error && data?.iconUrl) {
@@ -383,24 +384,51 @@ const StoreOwnerActionsMenu = ({
           </div>
 
           {/* توليد أيقونات AI */}
-          <Button
-            onClick={handleGenerateAllIcons}
-            disabled={isGeneratingIcons}
-            className="w-full justify-center gap-2 h-10"
-            style={{ background: 'linear-gradient(135deg, #8b5cf6, #ec4899)' }}
-          >
-            {isGeneratingIcons ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin text-white" />
-                <span className="text-white text-xs">{iconGenProgress || "جاري التوليد..."}</span>
-              </>
-            ) : (
-              <>
-                <Wand2 className="h-4 w-4 text-white" />
-                <span className="text-white text-xs">توليد أيقونات ذكية للتصنيفات ✨</span>
-              </>
-            )}
-          </Button>
+          <div className="p-3 rounded-lg bg-background/50 backdrop-blur-sm space-y-2">
+            <div className="flex items-center gap-2 mb-1">
+              <Wand2 className="h-4 w-4" />
+              <span className="text-sm font-medium">أيقونات ذكية للتصنيفات</span>
+            </div>
+            
+            {/* اختيار النمط */}
+            <div className="grid grid-cols-3 gap-1.5">
+              {[
+                { value: "flat" as const, label: "🎨 فلات", desc: "بسيط ونظيف" },
+                { value: "3d" as const, label: "💎 ثلاثي الأبعاد", desc: "لامع وواقعي" },
+                { value: "cartoon" as const, label: "🎪 كرتوني", desc: "مرح وملون" },
+              ].map((style) => (
+                <button
+                  key={style.value}
+                  onClick={() => setIconStyle(style.value)}
+                  className={`p-2 rounded-lg border-2 text-center transition-all ${
+                    iconStyle === style.value
+                      ? "border-current shadow-sm scale-105"
+                      : "border-border opacity-60 hover:opacity-100"
+                  }`}
+                  style={iconStyle === style.value ? { borderColor: themeColor, color: themeColor } : {}}
+                >
+                  <div className="text-sm font-bold">{style.label}</div>
+                  <div className="text-[10px] opacity-70">{style.desc}</div>
+                </button>
+              ))}
+            </div>
+
+            <Button
+              onClick={handleGenerateAllIcons}
+              disabled={isGeneratingIcons}
+              className="w-full justify-center gap-2 h-9"
+              style={{ background: 'linear-gradient(135deg, #8b5cf6, #ec4899)' }}
+            >
+              {isGeneratingIcons ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin text-white" />
+                  <span className="text-white text-xs">{iconGenProgress || "جاري التوليد..."}</span>
+                </>
+              ) : (
+                <span className="text-white text-xs">توليد الأيقونات ✨</span>
+              )}
+            </Button>
+          </div>
 
           {/* الوضع الداكن */}
           <div className="flex items-center justify-between p-3 rounded-lg bg-background/50 backdrop-blur-sm">

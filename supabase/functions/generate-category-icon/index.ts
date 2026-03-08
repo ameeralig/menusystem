@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { categoryName, userId } = await req.json();
+    const { categoryName, userId, iconStyle } = await req.json();
 
     if (!categoryName || !userId) {
       return new Response(
@@ -30,6 +30,15 @@ serve(async (req) => {
       );
     }
 
+    // بناء وصف النمط حسب الاختيار
+    const stylePrompts: Record<string, string> = {
+      flat: "simple, clean, modern flat design icon with solid colors, minimal shadows, on a clean solid white background",
+      "3d": "3D rendered glossy icon with realistic lighting, subtle shadows and depth, on a clean solid white background",
+      cartoon: "fun cartoon-style icon with bold outlines, vibrant colors, playful and cute design, on a clean solid white background",
+    };
+
+    const styleDesc = stylePrompts[iconStyle || "flat"] || stylePrompts.flat;
+
     // Generate icon using AI
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -42,7 +51,7 @@ serve(async (req) => {
         messages: [
           {
             role: "user",
-            content: `Generate a simple, clean, modern flat icon for a food/restaurant menu category called "${categoryName}". The icon should be minimal, use a single color style, and be on a clean solid white background. Make it look like a professional app icon or emoji. No text, just the icon illustration.`,
+            content: `Generate a ${styleDesc} for a food/restaurant menu category called "${categoryName}". Make it look like a professional app icon or emoji. No text, just the icon illustration.`,
           },
         ],
         modalities: ["image", "text"],
