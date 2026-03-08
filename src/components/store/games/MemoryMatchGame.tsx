@@ -73,10 +73,12 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({
   const buildCardPairs = useCallback((diff: Difficulty) => {
     const config = DIFFICULTIES[diff];
     const productsWithImages = products.filter(p => p.image_url && p.image_url.trim() !== "");
+    // اختيار عشوائي من جميع التصنيفات
+    const shuffled = [...productsWithImages].sort(() => Math.random() - 0.5);
     const pairs: { imageUrl: string; name: string }[] = [];
     for (let i = 0; i < config.pairs; i++) {
-      if (i < productsWithImages.length) {
-        pairs.push({ imageUrl: productsWithImages[i].image_url!, name: productsWithImages[i].name });
+      if (i < shuffled.length) {
+        pairs.push({ imageUrl: shuffled[i].image_url!, name: shuffled[i].name });
       } else {
         pairs.push({ imageUrl: "", name: PLACEHOLDER_EMOJIS[i % PLACEHOLDER_EMOJIS.length] });
       }
