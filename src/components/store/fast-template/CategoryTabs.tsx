@@ -216,7 +216,7 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
                       : undefined
                   }
                   >
-                    <div className="w-full h-full rounded-full overflow-hidden">
+                    <div className="w-full h-full rounded-full overflow-hidden bg-muted">
                       {categoryImage?.image_url ? (
                         <img
                           src={categoryImage.image_url}
