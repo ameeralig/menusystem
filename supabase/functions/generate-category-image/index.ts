@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -37,12 +38,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-image",
-        messages: [
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
+        messages: [{ role: "user", content: prompt }],
         modalities: ["image", "text"]
       })
     });
@@ -60,84 +56,57 @@ serve(async (req) => {
       throw new Error('No image generated');
     }
 
-    // Now upload the base64 image to R2
+    console.log(`✅ AI image generated for "${categoryName}", uploading to R2...`);
+
+    // Convert base64 to binary
     const base64Data = imageUrl.replace(/^data:image\/\w+;base64,/, '');
-    const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-
-    const R2_ACCESS_KEY_ID = Deno.env.get('CLOUDFLARE_R2_ACCESS_KEY_ID')!;
-    const R2_SECRET_ACCESS_KEY = Deno.env.get('CLOUDFLARE_R2_SECRET_ACCESS_KEY')!;
-    const R2_ACCOUNT_ID = Deno.env.get('CLOUDFLARE_R2_ACCOUNT_ID')!;
-    const R2_BUCKET_NAME = Deno.env.get('CLOUDFLARE_R2_BUCKET_NAME')!;
-
-    const key = `category-images/ai-generated/${Date.now()}-${categoryName.replace(/\s+/g, '-')}.png`;
-    const r2Url = `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${R2_BUCKET_NAME}/${key}`;
-
-    // Sign and upload to R2 using simple PUT
-    const date = new Date();
-    const dateStr = date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-    const dateShort = dateStr.substring(0, 8);
-    const region = 'auto';
-    const service = 's3';
-
-    const encoder = new TextEncoder();
-
-    async function hmacSHA256(key: ArrayBuffer, data: string): Promise<ArrayBuffer> {
-      const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-      return await crypto.subtle.sign('HMAC', cryptoKey, encoder.encode(data));
+    const binaryStr = atob(base64Data);
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
     }
 
-    async function sha256(data: Uint8Array): Promise<string> {
-      const hash = await crypto.subtle.digest('SHA-256', data);
-      return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
-    }
+    // Create a safe filename (no Arabic characters)
+    const safeFileName = `ai-cat-${Date.now()}.png`;
 
-    const payloadHash = await sha256(binaryData);
-    const url = new URL(r2Url);
+    // Build FormData to call the existing cloudflare-r2-upload function
+    const blob = new Blob([bytes], { type: 'image/png' });
+    const formData = new FormData();
+    formData.append('file', blob, safeFileName);
+    formData.append('folder', 'category-images');
+    formData.append('userId', 'ai-generated');
 
-    const canonicalHeaders = `content-type:image/png\nhost:${url.hostname}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${dateStr}\n`;
-    const signedHeaders = 'content-type;host;x-amz-content-sha256;x-amz-date';
-    const canonicalRequest = `PUT\n/${key}\n\n${canonicalHeaders}\n${signedHeaders}\n${payloadHash}`;
-    const canonicalRequestHash = await sha256(encoder.encode(canonicalRequest));
+    // Call the existing R2 upload function
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-    const scope = `${dateShort}/${region}/${service}/aws4_request`;
-    const stringToSign = `AWS4-HMAC-SHA256\n${dateStr}\n${scope}\n${canonicalRequestHash}`;
-
-    let signingKey = await hmacSHA256(encoder.encode(`AWS4${R2_SECRET_ACCESS_KEY}`), dateShort);
-    signingKey = await hmacSHA256(signingKey, region);
-    signingKey = await hmacSHA256(signingKey, service);
-    signingKey = await hmacSHA256(signingKey, 'aws4_request');
-    const signature = Array.from(new Uint8Array(await hmacSHA256(signingKey, stringToSign)))
-      .map(b => b.toString(16).padStart(2, '0')).join('');
-
-    const authorization = `AWS4-HMAC-SHA256 Credential=${R2_ACCESS_KEY_ID}/${scope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
-
-    const r2Response = await fetch(r2Url, {
-      method: 'PUT',
+    const uploadResponse = await fetch(`${supabaseUrl}/functions/v1/cloudflare-r2-upload`, {
+      method: 'POST',
       headers: {
-        'Content-Type': 'image/png',
-        'x-amz-content-sha256': payloadHash,
-        'x-amz-date': dateStr,
-        'Authorization': authorization,
+        'Authorization': `Bearer ${serviceRoleKey}`,
       },
-      body: binaryData,
+      body: formData,
     });
 
-    if (!r2Response.ok) {
-      const errText = await r2Response.text();
+    if (!uploadResponse.ok) {
+      const errText = await uploadResponse.text();
       console.error('R2 upload error:', errText);
-      throw new Error(`R2 upload failed: ${r2Response.status}`);
+      throw new Error(`R2 upload failed: ${uploadResponse.status}`);
     }
 
-    // Construct public URL using the same pattern as other R2 uploads
-    const finalUrl = `https://pub-f762a7c5308344b585c3cfbe0057fae2.r2.dev/${key}`;
+    const uploadResult = await uploadResponse.json();
+    
+    if (!uploadResult.success || !uploadResult.url) {
+      throw new Error('R2 upload returned no URL');
+    }
 
-    console.log(`✅ Generated and uploaded image for "${categoryName}": ${finalUrl}`);
+    console.log(`✅ Uploaded to R2: ${uploadResult.url}`);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        imageUrl: finalUrl,
-        key 
+        imageUrl: uploadResult.url,
+        key: uploadResult.key 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
