@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Gamepad2, MessageSquare, Search, X, Share2, Download, Heart, Info, MoreHorizontal } from "lucide-react";
+import { logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SocialLinks, ContactInfo, FontSettings } from "@/types/store";
