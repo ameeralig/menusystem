@@ -52,9 +52,9 @@ const StoreOwnerActionsMenu = ({
     const fetchSettings = async () => {
       const { data } = await supabase
         .from("store_settings")
-        .select("dark_mode, external_orders_enabled, delivery_fee, employee_system_enabled")
+        .select("dark_mode, external_orders_enabled, delivery_fee, employee_system_enabled, template")
         .eq("user_id", storeOwnerId)
-        .single();
+        .maybeSingle();
 
       if (data) {
         setDarkMode(data.dark_mode || false);
