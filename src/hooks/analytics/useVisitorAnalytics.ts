@@ -85,6 +85,10 @@ export const useVisitorAnalytics = (options: UseVisitorAnalyticsOptions = {}) =>
       const searches = analyticsData.filter(a => a.action_type === 'search').length;
       const aiChats = analyticsData.filter(a => a.action_type === 'ai_chat').length;
       const cartAdds = analyticsData.filter(a => a.action_type === 'add_to_cart').length;
+      const feedbacks = analyticsData.filter(a => a.action_type === 'feedback_submit' || a.action_type === 'feedback_open').length;
+      const gamesPlayed = analyticsData.filter(a => a.action_type === 'game_play' || a.action_type === 'game_open').length;
+      const menuDownloads = analyticsData.filter(a => a.action_type === 'menu_download').length;
+      const storeInfoViews = analyticsData.filter(a => a.action_type === 'store_info_view').length;
 
       // أكثر المنتجات مشاهدة
       const productViewsMap = new Map<string, number>();
