@@ -121,6 +121,29 @@ The result must be a colorful, detailed icon - NOT a blank or empty image.`;
     const binaryData = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
     console.log(`Binary data size: ${binaryData.length} bytes`);
 
+    // التحقق من أن الصورة ليست فارغة (أقل من 5KB تعني صورة فارغة على الأرجح)
+    if (binaryData.length < 5000) {
+      console.error(`Image too small (${binaryData.length} bytes), likely blank/empty`);
+      return new Response(
+        JSON.stringify({ error: "Generated image appears to be blank, please try again" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // فحص إضافي: التحقق من تنوع البيانات (صورة بيضاء بالكامل ستكون متشابهة)
+    const sampleSize = Math.min(1000, binaryData.length);
+    const sample = binaryData.slice(binaryData.length - sampleSize);
+    const uniqueValues = new Set(sample);
+    console.log(`Image diversity check: ${uniqueValues.size} unique byte values in last ${sampleSize} bytes`);
+    
+    if (uniqueValues.size < 5) {
+      console.error(`Image has very low diversity (${uniqueValues.size} unique values), likely a solid color`);
+      return new Response(
+        JSON.stringify({ error: "Generated image appears to be a solid color, please try again" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
