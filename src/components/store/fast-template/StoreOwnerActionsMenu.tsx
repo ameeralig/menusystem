@@ -335,6 +335,21 @@ const StoreOwnerActionsMenu = ({
             </div>
           </div>
 
+          {/* زر توليد صور التصنيفات - فقط للقالب النصي */}
+          {currentTemplate === "text-only" && categories.length > 0 && (
+            <Button
+              onClick={() => {
+                setShowImageGenerator(true);
+                setIsOpen(false);
+              }}
+              className="w-full justify-start gap-2 h-10 text-white"
+              style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}cc)` }}
+            >
+              <Wand2 className="h-4 w-4" />
+              توليد صور التصنيفات بالذكاء الاصطناعي
+            </Button>
+          )}
+
           {/* الوضع الداكن */}
           <div className="flex items-center justify-between p-3 rounded-lg bg-background/50 backdrop-blur-sm">
             <div className="flex items-center gap-2">
