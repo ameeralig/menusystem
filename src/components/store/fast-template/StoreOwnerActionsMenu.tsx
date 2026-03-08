@@ -46,6 +46,7 @@ const StoreOwnerActionsMenu = ({
   const [showEmployeeCard, setShowEmployeeCard] = useState(false);
   const [showMigrationCard, setShowMigrationCard] = useState(false);
   const [employeeSystemEnabled, setEmployeeSystemEnabled] = useState(false);
+  const [currentTemplate, setCurrentTemplate] = useState("fast-response");
 
   useEffect(() => {
     const fetchSettings = async () => {
