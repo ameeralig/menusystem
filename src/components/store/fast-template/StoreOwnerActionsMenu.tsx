@@ -46,6 +46,7 @@ const StoreOwnerActionsMenu = ({
   categories = [],
   categoryImages,
   storeName,
+  products = [],
 }: StoreOwnerActionsMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
