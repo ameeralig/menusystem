@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Disc3, Grid3X3, Tag } from "lucide-react";
+import { X, Disc3, Grid3X3, Tag, CreditCard } from "lucide-react";
 
 interface GameOption {
   id: string;
