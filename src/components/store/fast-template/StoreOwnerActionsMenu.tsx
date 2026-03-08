@@ -292,6 +292,40 @@ const StoreOwnerActionsMenu = ({
             )}
           </div>
 
+          {/* اختيار القالب */}
+          <div className="p-3 rounded-lg bg-background/50 backdrop-blur-sm space-y-2">
+            <div className="flex items-center gap-2 mb-2">
+              <Layout className="h-4 w-4" />
+              <span className="text-sm font-medium">تصميم المتجر</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => handleTemplateChange("fast-response")}
+                disabled={isLoading}
+                className={`p-2.5 rounded-xl border-2 text-xs font-bold transition-all ${
+                  currentTemplate === "fast-response" || currentTemplate === "default"
+                    ? "border-current shadow-sm"
+                    : "border-border opacity-60 hover:opacity-100"
+                }`}
+                style={currentTemplate === "fast-response" || currentTemplate === "default" ? { borderColor: themeColor, color: themeColor } : {}}
+              >
+                🖼️ مع الصور
+              </button>
+              <button
+                onClick={() => handleTemplateChange("text-only")}
+                disabled={isLoading}
+                className={`p-2.5 rounded-xl border-2 text-xs font-bold transition-all ${
+                  currentTemplate === "text-only"
+                    ? "border-current shadow-sm"
+                    : "border-border opacity-60 hover:opacity-100"
+                }`}
+                style={currentTemplate === "text-only" ? { borderColor: themeColor, color: themeColor } : {}}
+              >
+                📝 نصي فقط
+              </button>
+            </div>
+          </div>
+
           {/* الوضع الداكن */}
           <div className="flex items-center justify-between p-3 rounded-lg bg-background/50 backdrop-blur-sm">
             <div className="flex items-center gap-2">
