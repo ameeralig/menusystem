@@ -382,6 +382,26 @@ const StoreOwnerActionsMenu = ({
             </div>
           </div>
 
+          {/* توليد أيقونات AI */}
+          <Button
+            onClick={handleGenerateAllIcons}
+            disabled={isGeneratingIcons}
+            className="w-full justify-center gap-2 h-10"
+            style={{ background: 'linear-gradient(135deg, #8b5cf6, #ec4899)' }}
+          >
+            {isGeneratingIcons ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin text-white" />
+                <span className="text-white text-xs">{iconGenProgress || "جاري التوليد..."}</span>
+              </>
+            ) : (
+              <>
+                <Wand2 className="h-4 w-4 text-white" />
+                <span className="text-white text-xs">توليد أيقونات ذكية للتصنيفات ✨</span>
+              </>
+            )}
+          </Button>
+
           {/* الوضع الداكن */}
           <div className="flex items-center justify-between p-3 rounded-lg bg-background/50 backdrop-blur-sm">
             <div className="flex items-center gap-2">
