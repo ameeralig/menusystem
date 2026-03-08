@@ -432,7 +432,7 @@ const TextOnlyTemplate: React.FC<TextOnlyTemplateProps> = ({
       )}
 
       <CartSheet isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} deliveryFee={deliveryFee} storePhone={contactInfo?.phone} storeName={storeName || undefined} />
-      <LiveVisitCounter />
+      <LiveVisitCounter storeOwnerId={storeOwnerId} colorTheme={colorTheme} variant="editorial" />
 
       <BottomActionsBar
         slug={slug} storeOwnerId={storeOwnerId} colorTheme={colorTheme} socialLinks={socialLinks} contactInfo={contactInfo}
