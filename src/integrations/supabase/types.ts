@@ -914,6 +914,42 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_sessions: {
+        Row: {
+          auth_attempts: number | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          is_authenticated: boolean | null
+          last_activity_at: string | null
+          phone_number: string
+          session_token: string | null
+          user_id: string
+        }
+        Insert: {
+          auth_attempts?: number | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_authenticated?: boolean | null
+          last_activity_at?: string | null
+          phone_number: string
+          session_token?: string | null
+          user_id: string
+        }
+        Update: {
+          auth_attempts?: number | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_authenticated?: boolean | null
+          last_activity_at?: string | null
+          phone_number?: string
+          session_token?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -930,6 +966,7 @@ export type Database = {
         }[]
       }
       cleanup_expired_otps: { Args: never; Returns: undefined }
+      cleanup_expired_whatsapp_sessions: { Args: never; Returns: number }
       cleanup_old_employee_sales: { Args: never; Returns: number }
       cleanup_old_resolved_feedback: { Args: never; Returns: number }
       create_notifications_table_if_not_exists: { Args: never; Returns: string }
