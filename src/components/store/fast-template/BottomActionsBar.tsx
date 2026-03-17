@@ -14,6 +14,7 @@ import GamesMenuModal from "../games/GamesMenuModal";
 import MemoryMatchGame from "../games/MemoryMatchGame";
 import PriceGuessGame from "../games/PriceGuessGame";
 import BillPayerGame from "../games/BillPayerGame";
+import DetectiveGame from "../games/DetectiveGame";
 import FeedbackDialog from "../feedback/FeedbackDialog";
 import OwnerFeedbackSheet from "../feedback/OwnerFeedbackSheet";
 import StoreOwnerActionsMenu from "./StoreOwnerActionsMenu";
@@ -76,6 +77,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   const [isPriceGameOpen, setIsPriceGameOpen] = useState(false);
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
   const [isBillPayerOpen, setIsBillPayerOpen] = useState(false);
+  const [isDetectiveOpen, setIsDetectiveOpen] = useState(false);
   const [isOwnerFeedbackOpen, setIsOwnerFeedbackOpen] = useState(false);
   const [isShareCardOpen, setIsShareCardOpen] = useState(false);
   const [isMenuDownloadOpen, setIsMenuDownloadOpen] = useState(false);
@@ -427,6 +429,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
           if (gameId === "memory") setIsMemoryGameOpen(true);
           if (gameId === "price") setIsPriceGameOpen(true);
           if (gameId === "billpayer") setIsBillPayerOpen(true);
+          if (gameId === "detective") setIsDetectiveOpen(true);
         }}
         colorTheme={colorTheme}
         storeOwnerId={storeOwnerId}
@@ -455,6 +458,14 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
         isOpen={isBillPayerOpen}
         onClose={() => setIsBillPayerOpen(false)}
         colorTheme={colorTheme || undefined}
+      />
+
+      {/* DetectiveGame */}
+      <DetectiveGame
+        isOpen={isDetectiveOpen}
+        onClose={() => setIsDetectiveOpen(false)}
+        colorTheme={colorTheme || undefined}
+        storeOwnerId={storeOwnerId}
       />
 
       {storeOwnerId && !isStoreOwner && (
