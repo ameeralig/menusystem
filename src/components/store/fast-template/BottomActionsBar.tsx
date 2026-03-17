@@ -429,6 +429,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
           if (gameId === "memory") setIsMemoryGameOpen(true);
           if (gameId === "price") setIsPriceGameOpen(true);
           if (gameId === "billpayer") setIsBillPayerOpen(true);
+          if (gameId === "detective") setIsDetectiveOpen(true);
         }}
         colorTheme={colorTheme}
         storeOwnerId={storeOwnerId}
