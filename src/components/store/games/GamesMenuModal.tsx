@@ -164,6 +164,14 @@ const GamesMenuModal: React.FC<GamesMenuModalProps> = ({
       gradient: "from-pink-500 to-rose-600",
       iconBg: "#ec4899",
     },
+    {
+      id: "detective",
+      name: "من هو المجرم؟",
+      description: "لعبة تحقيق جماعية بالذكاء الاصطناعي!",
+      emoji: "🕵️",
+      gradient: "from-slate-700 to-gray-900",
+      iconBg: "#475569",
+    },
   ];
 
   if (!isOpen) return null;

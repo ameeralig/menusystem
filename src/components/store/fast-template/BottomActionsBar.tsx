@@ -460,6 +460,14 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
         colorTheme={colorTheme || undefined}
       />
 
+      {/* DetectiveGame */}
+      <DetectiveGame
+        isOpen={isDetectiveOpen}
+        onClose={() => setIsDetectiveOpen(false)}
+        colorTheme={colorTheme || undefined}
+        storeOwnerId={storeOwnerId}
+      />
+
       {storeOwnerId && !isStoreOwner && (
         <FeedbackDialog
           isOpen={isFeedbackDialogOpen}
