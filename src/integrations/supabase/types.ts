@@ -184,6 +184,86 @@ export type Database = {
         }
         Relationships: []
       }
+      detective_players: {
+        Row: {
+          device_id: string
+          has_voted: boolean | null
+          id: string
+          joined_at: string | null
+          player_index: number | null
+          player_name: string
+          room_id: string
+          vote_target: string | null
+        }
+        Insert: {
+          device_id: string
+          has_voted?: boolean | null
+          id?: string
+          joined_at?: string | null
+          player_index?: number | null
+          player_name: string
+          room_id: string
+          vote_target?: string | null
+        }
+        Update: {
+          device_id?: string
+          has_voted?: boolean | null
+          id?: string
+          joined_at?: string | null
+          player_index?: number | null
+          player_name?: string
+          room_id?: string
+          vote_target?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "detective_players_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "detective_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      detective_rooms: {
+        Row: {
+          created_at: string | null
+          difficulty: string | null
+          expires_at: string | null
+          game_data: Json | null
+          host_device_id: string
+          id: string
+          phase: string | null
+          room_code: string
+          store_owner_id: string | null
+          theme: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          difficulty?: string | null
+          expires_at?: string | null
+          game_data?: Json | null
+          host_device_id: string
+          id?: string
+          phase?: string | null
+          room_code: string
+          store_owner_id?: string | null
+          theme?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          difficulty?: string | null
+          expires_at?: string | null
+          game_data?: Json | null
+          host_device_id?: string
+          id?: string
+          phase?: string | null
+          room_code?: string
+          store_owner_id?: string | null
+          theme?: string | null
+        }
+        Relationships: []
+      }
       employee_daily_sales: {
         Row: {
           created_at: string
