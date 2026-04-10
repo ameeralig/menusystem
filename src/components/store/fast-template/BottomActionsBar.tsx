@@ -79,6 +79,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
   const [isBillPayerOpen, setIsBillPayerOpen] = useState(false);
   const [isDetectiveOpen, setIsDetectiveOpen] = useState(false);
+  const [isImpostorOpen, setIsImpostorOpen] = useState(false);
   const [isOwnerFeedbackOpen, setIsOwnerFeedbackOpen] = useState(false);
   const [isShareCardOpen, setIsShareCardOpen] = useState(false);
   const [isMenuDownloadOpen, setIsMenuDownloadOpen] = useState(false);
@@ -431,6 +432,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
           if (gameId === "price") setIsPriceGameOpen(true);
           if (gameId === "billpayer") setIsBillPayerOpen(true);
           if (gameId === "detective") setIsDetectiveOpen(true);
+          if (gameId === "impostor") setIsImpostorOpen(true);
         }}
         colorTheme={colorTheme}
         storeOwnerId={storeOwnerId}
