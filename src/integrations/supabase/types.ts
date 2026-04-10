@@ -419,6 +419,92 @@ export type Database = {
         }
         Relationships: []
       }
+      impostor_players: {
+        Row: {
+          device_id: string
+          has_voted: boolean | null
+          id: string
+          joined_at: string | null
+          player_index: number | null
+          player_name: string
+          room_id: string
+          vote_target: string | null
+        }
+        Insert: {
+          device_id: string
+          has_voted?: boolean | null
+          id?: string
+          joined_at?: string | null
+          player_index?: number | null
+          player_name: string
+          room_id: string
+          vote_target?: string | null
+        }
+        Update: {
+          device_id?: string
+          has_voted?: boolean | null
+          id?: string
+          joined_at?: string | null
+          player_index?: number | null
+          player_name?: string
+          room_id?: string
+          vote_target?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "impostor_players_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "impostor_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      impostor_rooms: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          expires_at: string | null
+          game_mode: string | null
+          host_device_id: string
+          id: string
+          impostor_index: number | null
+          phase: string | null
+          room_code: string
+          round_duration: number | null
+          secret_word: string | null
+          store_owner_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          game_mode?: string | null
+          host_device_id: string
+          id?: string
+          impostor_index?: number | null
+          phase?: string | null
+          room_code: string
+          round_duration?: number | null
+          secret_word?: string | null
+          store_owner_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          game_mode?: string | null
+          host_device_id?: string
+          id?: string
+          impostor_index?: number | null
+          phase?: string | null
+          room_code?: string
+          round_duration?: number | null
+          secret_word?: string | null
+          store_owner_id?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string

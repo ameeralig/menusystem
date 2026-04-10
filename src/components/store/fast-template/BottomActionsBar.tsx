@@ -15,6 +15,7 @@ import MemoryMatchGame from "../games/MemoryMatchGame";
 import PriceGuessGame from "../games/PriceGuessGame";
 import BillPayerGame from "../games/BillPayerGame";
 import DetectiveGame from "../games/DetectiveGame";
+import ImpostorGame from "../games/impostor/ImpostorGame";
 import FeedbackDialog from "../feedback/FeedbackDialog";
 import OwnerFeedbackSheet from "../feedback/OwnerFeedbackSheet";
 import StoreOwnerActionsMenu from "./StoreOwnerActionsMenu";
@@ -78,6 +79,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
   const [isBillPayerOpen, setIsBillPayerOpen] = useState(false);
   const [isDetectiveOpen, setIsDetectiveOpen] = useState(false);
+  const [isImpostorOpen, setIsImpostorOpen] = useState(false);
   const [isOwnerFeedbackOpen, setIsOwnerFeedbackOpen] = useState(false);
   const [isShareCardOpen, setIsShareCardOpen] = useState(false);
   const [isMenuDownloadOpen, setIsMenuDownloadOpen] = useState(false);
@@ -430,6 +432,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
           if (gameId === "price") setIsPriceGameOpen(true);
           if (gameId === "billpayer") setIsBillPayerOpen(true);
           if (gameId === "detective") setIsDetectiveOpen(true);
+          if (gameId === "impostor") setIsImpostorOpen(true);
         }}
         colorTheme={colorTheme}
         storeOwnerId={storeOwnerId}
@@ -464,6 +467,14 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
       <DetectiveGame
         isOpen={isDetectiveOpen}
         onClose={() => setIsDetectiveOpen(false)}
+        colorTheme={colorTheme || undefined}
+        storeOwnerId={storeOwnerId}
+      />
+
+      {/* ImpostorGame */}
+      <ImpostorGame
+        isOpen={isImpostorOpen}
+        onClose={() => setIsImpostorOpen(false)}
         colorTheme={colorTheme || undefined}
         storeOwnerId={storeOwnerId}
       />
