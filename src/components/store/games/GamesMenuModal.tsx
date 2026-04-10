@@ -133,6 +133,22 @@ const GamesMenuModal: React.FC<GamesMenuModalProps> = ({
 
   const games: GameOption[] = [
     {
+      id: "detective",
+      name: "من هو المجرم؟",
+      description: "لعبة تحقيق جماعية بالذكاء الاصطناعي!",
+      emoji: "🕵️",
+      gradient: "from-slate-700 to-gray-900",
+      iconBg: "#475569",
+    },
+    {
+      id: "impostor",
+      name: "الامبوستر",
+      description: "اكتشف الدخيل الذي لا يعرف الكلمة!",
+      emoji: "🕵️‍♂️",
+      gradient: "from-red-500 to-orange-600",
+      iconBg: "#ef4444",
+    },
+    {
       id: "wheel",
       name: "عجلة الحظ",
       description: "أدر العجلة واربح منتج عشوائي!",
@@ -163,14 +179,6 @@ const GamesMenuModal: React.FC<GamesMenuModalProps> = ({
       emoji: "💸",
       gradient: "from-pink-500 to-rose-600",
       iconBg: "#ec4899",
-    },
-    {
-      id: "detective",
-      name: "من هو المجرم؟",
-      description: "لعبة تحقيق جماعية بالذكاء الاصطناعي!",
-      emoji: "🕵️",
-      gradient: "from-slate-700 to-gray-900",
-      iconBg: "#475569",
     },
   ];
 

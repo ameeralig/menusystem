@@ -15,6 +15,7 @@ import MemoryMatchGame from "../games/MemoryMatchGame";
 import PriceGuessGame from "../games/PriceGuessGame";
 import BillPayerGame from "../games/BillPayerGame";
 import DetectiveGame from "../games/DetectiveGame";
+import ImpostorGame from "../games/impostor/ImpostorGame";
 import FeedbackDialog from "../feedback/FeedbackDialog";
 import OwnerFeedbackSheet from "../feedback/OwnerFeedbackSheet";
 import StoreOwnerActionsMenu from "./StoreOwnerActionsMenu";
