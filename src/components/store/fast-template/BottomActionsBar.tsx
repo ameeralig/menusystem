@@ -471,6 +471,14 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
         storeOwnerId={storeOwnerId}
       />
 
+      {/* ImpostorGame */}
+      <ImpostorGame
+        isOpen={isImpostorOpen}
+        onClose={() => setIsImpostorOpen(false)}
+        colorTheme={colorTheme || undefined}
+        storeOwnerId={storeOwnerId}
+      />
+
       {storeOwnerId && !isStoreOwner && (
         <FeedbackDialog
           isOpen={isFeedbackDialogOpen}
