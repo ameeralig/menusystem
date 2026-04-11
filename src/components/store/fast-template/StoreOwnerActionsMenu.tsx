@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Settings, Plus, Moon, Sun, ShoppingBag, DollarSign, Info, Eye,
   BarChart3, LogOut, Users, Cloud, Layout, Wand2, ImagePlus,
-  ChevronLeft, Sparkles, X
+  ChevronLeft, Sparkles, X, ScanLine
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -17,6 +17,7 @@ import EmployeeManagementCard from "../employees/EmployeeManagementCard";
 import ProductImageMigrationCard from "./ProductImageMigrationCard";
 import CategoryImageGenerator from "../text-template/CategoryImageGenerator";
 import ProductImageGenerator from "./ProductImageGenerator";
+import MenuScanModal from "./MenuScanModal";
 import { CategoryImage } from "@/types/categoryImage";
 import { Product } from "@/types/product";
 import { createPortal } from "react-dom";
@@ -95,6 +96,7 @@ const StoreOwnerActionsMenu = ({
   const [currentTemplate, setCurrentTemplate] = useState("fast-response");
   const [showImageGenerator, setShowImageGenerator] = useState(false);
   const [showProductImageGenerator, setShowProductImageGenerator] = useState(false);
+  const [showMenuScan, setShowMenuScan] = useState(false);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -231,6 +233,13 @@ const StoreOwnerActionsMenu = ({
                     subtitle="أضف منتجاً إلى قائمتك"
                     onClick={() => { onAddProduct(); setIsOpen(false); }}
                     color="#10b981"
+                  />
+                  <MenuItem
+                    icon={<ScanLine className="h-5 w-5" />}
+                    label="استخراج من صورة المنيو"
+                    subtitle="رفع صورة واستخراج المنتجات بالذكاء الاصطناعي"
+                    onClick={() => { setShowMenuScan(true); setIsOpen(false); }}
+                    color="#f59e0b"
                   />
                   <MenuItem
                     icon={<BarChart3 className="h-5 w-5" />}
@@ -461,6 +470,7 @@ const StoreOwnerActionsMenu = ({
       <ProductImageMigrationCard isOpen={showMigrationCard} onClose={() => setShowMigrationCard(false)} storeOwnerId={storeOwnerId} colorTheme={colorTheme} onMigrationComplete={onUpdate} />
       <CategoryImageGenerator isOpen={showImageGenerator} onClose={() => setShowImageGenerator(false)} categories={categories} categoryImages={categoryImages} storeOwnerId={storeOwnerId} storeName={storeName} colorTheme={colorTheme} onGenerated={onUpdate} />
       <ProductImageGenerator isOpen={showProductImageGenerator} onClose={() => setShowProductImageGenerator(false)} products={products} colorTheme={colorTheme} onGenerated={onUpdate} />
+      <MenuScanModal isOpen={showMenuScan} onOpenChange={setShowMenuScan} onProductsAdded={onUpdate} colorTheme={colorTheme} />
     </>
   );
 };
