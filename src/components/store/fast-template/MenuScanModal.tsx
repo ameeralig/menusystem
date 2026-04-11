@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { X, Camera, Upload, Loader2, Check, Trash2, Edit3, Sparkles, ChevronDown, ChevronUp, ImagePlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
 interface ExtractedProduct {
@@ -23,6 +24,7 @@ interface MenuScanModalProps {
 }
 
 const MenuScanModal = ({ isOpen, onOpenChange, onProductsAdded, colorTheme }: MenuScanModalProps) => {
+  const queryClient = useQueryClient();
   const [step, setStep] = useState<'upload' | 'extracting' | 'review' | 'saving'>('upload');
   const [products, setProducts] = useState<ExtractedProduct[]>([]);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -117,6 +119,11 @@ const MenuScanModal = ({ isOpen, onOpenChange, onProductsAdded, colorTheme }: Me
 
       const { error } = await supabase.from('products').insert(rows);
       if (error) throw error;
+
+      // تحديث الكاش لعرض المنتجات الجديدة
+      await queryClient.invalidateQueries({ queryKey: ['products'] });
+      await queryClient.invalidateQueries({ queryKey: ['store'] });
+      await queryClient.invalidateQueries({ queryKey: ['optimized-products'] });
 
       toast.success(`تم إضافة ${selectedProducts.length} منتج بنجاح! 🎉`);
       onProductsAdded?.();
