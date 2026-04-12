@@ -2,6 +2,10 @@ import { createRoot } from 'react-dom/client'
 import { lazy, Suspense } from 'react'
 import App from './App.tsx'
 import './index.css'
+import { initCapacitorPlugins } from './utils/capacitor'
+
+// تهيئة Capacitor عند تشغيل التطبيق الأصلي
+initCapacitorPlugins();
 
 // تحميل SpeedInsights بشكل متأخر (غير ضروري للـ LCP)
 const SpeedInsights = lazy(() => 
