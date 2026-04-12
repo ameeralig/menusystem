@@ -3,9 +3,12 @@ import { lazy, Suspense } from 'react'
 import App from './App.tsx'
 import './index.css'
 import { initCapacitorPlugins } from './utils/capacitor'
+import { initPushNotifications } from './utils/pushNotifications'
 
-// تهيئة Capacitor عند تشغيل التطبيق الأصلي
-initCapacitorPlugins();
+// تهيئة Capacitor و Push Notifications
+initCapacitorPlugins().then(() => {
+  initPushNotifications();
+});
 
 // تحميل SpeedInsights بشكل متأخر (غير ضروري للـ LCP)
 const SpeedInsights = lazy(() => 
