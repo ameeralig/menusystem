@@ -249,9 +249,20 @@ const ProductPreview = () => {
     return <StoreSkeleton />;
   }
 
+  // حقن manifest ديناميكي لكل متجر (للتثبيت كـ PWA)
+  useEffect(() => {
+    if (slug && storeData?.storeName) {
+      injectDynamicManifest({
+        storeName: storeData.storeName,
+        slug,
+        iconUrl: storeData.logoUrl || undefined,
+      });
+    }
+  }, [slug, storeData?.storeName, storeData?.logoUrl]);
+
   return (
     <>
-      <Helmet>
+      <PWAInstallBanner storeName={storeData.storeName} />
         {/* Preload Banner Image */}
         {storeData.bannerUrl && (
           <link 
