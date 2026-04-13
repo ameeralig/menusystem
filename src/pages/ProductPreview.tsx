@@ -207,6 +207,17 @@ const ProductPreview = () => {
     };
   }, [storeOwnerId, refreshData, isAutoRefresh]);
 
+  // حقن manifest ديناميكي لكل متجر (للتثبيت كـ PWA)
+  useEffect(() => {
+    if (slug && storeData?.storeName) {
+      injectDynamicManifest({
+        storeName: storeData.storeName,
+        slug,
+        iconUrl: storeData.logoUrl || undefined,
+      });
+    }
+  }, [slug, storeData?.storeName, storeData?.logoUrl]);
+
   // عرض رسالة إيقاف الخدمة إذا كان المتجر موقوفاً
   if (storeData?.isSuspended && !isStoreOwner) {
     return (
