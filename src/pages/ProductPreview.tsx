@@ -263,7 +263,7 @@ const ProductPreview = () => {
   return (
     <>
       <PWAInstallBanner storeName={storeData.storeName} />
-        {/* Preload Banner Image */}
+      <Helmet>
         {storeData.bannerUrl && (
           <link 
             rel="preload" 
