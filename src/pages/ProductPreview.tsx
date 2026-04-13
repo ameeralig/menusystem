@@ -13,6 +13,8 @@ import EmployeePanel from "@/components/employees/EmployeePanel";
 import { CartProvider } from "@/contexts/CartContext";
 import StoreProductsDisplay from "@/components/store/StoreProductsDisplay";
 import { logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
+import PWAInstallBanner from "@/components/store/pwa/PWAInstallBanner";
+import { injectDynamicManifest } from "@/utils/pwaManifest";
 
 const ProductPreview = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -247,10 +249,21 @@ const ProductPreview = () => {
     return <StoreSkeleton />;
   }
 
+  // حقن manifest ديناميكي لكل متجر (للتثبيت كـ PWA)
+  useEffect(() => {
+    if (slug && storeData?.storeName) {
+      injectDynamicManifest({
+        storeName: storeData.storeName,
+        slug,
+        iconUrl: storeData.logoUrl || undefined,
+      });
+    }
+  }, [slug, storeData?.storeName, storeData?.logoUrl]);
+
   return (
     <>
+      <PWAInstallBanner storeName={storeData.storeName} />
       <Helmet>
-        {/* Preload Banner Image */}
         {storeData.bannerUrl && (
           <link 
             rel="preload" 
