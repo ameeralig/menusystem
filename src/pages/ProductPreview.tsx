@@ -14,7 +14,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import StoreProductsDisplay from "@/components/store/StoreProductsDisplay";
 import { logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
 import PWAInstallBanner from "@/components/store/pwa/PWAInstallBanner";
-import { injectDynamicManifest } from "@/utils/pwaManifest";
+import { injectDynamicManifest, registerServiceWorker } from "@/utils/pwaManifest";
 
 const ProductPreview = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -215,6 +215,8 @@ const ProductPreview = () => {
         slug,
         iconUrl: storeData.logoUrl || undefined,
       });
+      // تسجيل Service Worker لتفعيل التثبيت كتطبيق حقيقي
+      registerServiceWorker();
     }
   }, [slug, storeData?.storeName, storeData?.logoUrl]);
 
