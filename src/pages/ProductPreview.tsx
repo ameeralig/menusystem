@@ -207,18 +207,34 @@ const ProductPreview = () => {
     };
   }, [storeOwnerId, refreshData, isAutoRefresh]);
 
-  // حقن manifest ديناميكي لكل متجر (للتثبيت كـ PWA)
+  // حقن manifest ديناميكي لكل متجر (للتثبيت كـ PWA) مع صورة البروفايل
   useEffect(() => {
-    if (slug && storeData?.storeName) {
+    if (!slug || !storeData?.storeName || !storeOwnerId) return;
+
+    const setupPWA = async () => {
+      // جلب صورة البروفايل لاستخدامها كأيقونة التطبيق
+      let avatarUrl: string | undefined;
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('avatar_url')
+          .eq('id', storeOwnerId)
+          .maybeSingle();
+        avatarUrl = profile?.avatar_url || undefined;
+      } catch (e) {
+        console.log('Could not fetch profile avatar for PWA icon');
+      }
+
       injectDynamicManifest({
-        storeName: storeData.storeName,
+        storeName: storeData.storeName!,
         slug,
-        iconUrl: storeData.logoUrl || undefined,
+        iconUrl: avatarUrl || storeData.logoUrl || undefined,
       });
-      // تسجيل Service Worker لتفعيل التثبيت كتطبيق حقيقي
       registerServiceWorker();
-    }
-  }, [slug, storeData?.storeName, storeData?.logoUrl]);
+    };
+
+    setupPWA();
+  }, [slug, storeData?.storeName, storeData?.logoUrl, storeOwnerId]);
 
   // عرض رسالة إيقاف الخدمة إذا كان المتجر موقوفاً
   if (storeData?.isSuspended && !isStoreOwner) {
