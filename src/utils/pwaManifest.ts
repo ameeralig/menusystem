@@ -1,6 +1,7 @@
 /**
  * إنشاء manifest ديناميكي لكل متجر
  * يضمن أن التطبيق المثبت يفتح صفحة المتجر مباشرة
+ * ويستخدم صورة البروفايل كأيقونة للتطبيق
  */
 
 interface ManifestOptions {
@@ -13,6 +14,10 @@ export const injectDynamicManifest = ({ storeName, slug, iconUrl }: ManifestOpti
   // إزالة manifest سابق إن وجد
   const existing = document.querySelector('link[rel="manifest"]');
   if (existing) existing.remove();
+
+  // استخدام صورة البروفايل أو الأيقونة الافتراضية
+  const icon192 = iconUrl || '/app-icon-192.png';
+  const icon512 = iconUrl || '/app-icon-512.png';
 
   const manifest = {
     name: storeName || 'QR Menu',
@@ -27,16 +32,22 @@ export const injectDynamicManifest = ({ storeName, slug, iconUrl }: ManifestOpti
     lang: 'ar',
     icons: [
       {
-        src: iconUrl || '/app-icon-192.png',
+        src: icon192,
         sizes: '192x192',
         type: 'image/png',
-        purpose: 'any maskable'
+        purpose: 'any'
       },
       {
-        src: iconUrl || '/app-icon-512.png',
+        src: icon512,
         sizes: '512x512',
         type: 'image/png',
-        purpose: 'any maskable'
+        purpose: 'any'
+      },
+      {
+        src: icon192,
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'maskable'
       }
     ]
   };
@@ -48,6 +59,17 @@ export const injectDynamicManifest = ({ storeName, slug, iconUrl }: ManifestOpti
   link.rel = 'manifest';
   link.href = url;
   document.head.appendChild(link);
+
+  // تحديث apple-touch-icon أيضاً لأجهزة iOS
+  if (iconUrl) {
+    let appleIcon = document.querySelector('link[rel="apple-touch-icon"]') as HTMLLinkElement;
+    if (!appleIcon) {
+      appleIcon = document.createElement('link');
+      appleIcon.rel = 'apple-touch-icon';
+      document.head.appendChild(appleIcon);
+    }
+    appleIcon.href = iconUrl;
+  }
 };
 
 /**
@@ -67,13 +89,17 @@ export const registerServiceWorker = async () => {
     window.location.hostname.includes('lovableproject.com');
 
   if (isPreviewHost || isInIframe) {
-    // إلغاء تسجيل أي service worker موجود في بيئة المعاينة
     const registrations = await navigator.serviceWorker.getRegistrations();
     registrations.forEach(r => r.unregister());
     return;
   }
 
   try {
+    // إلغاء تسجيل SW قديم وتسجيل الجديد
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (const reg of registrations) {
+      await reg.unregister();
+    }
     await navigator.serviceWorker.register('/sw.js', { scope: '/' });
     console.log('Service Worker registered for PWA');
   } catch (error) {

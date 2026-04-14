@@ -1,14 +1,10 @@
-// Service Worker بسيط - مطلوب لتفعيل تثبيت PWA على Android
-// لا يقوم بتخزين مؤقت لتجنب مشاكل المحتوى القديم
+// Service Worker - مطلوب لتفعيل تثبيت PWA كتطبيق حقيقي على Android
+const CACHE_NAME = 'qrmenu-pwa-v2';
 
-const CACHE_NAME = 'qrmenu-pwa-v1';
-
-// عند التثبيت - تخطي الانتظار
-self.addEventListener('install', (event) => {
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
-// عند التفعيل - مسح الكاش القديم
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((names) => 
@@ -17,8 +13,17 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// عند طلب الشبكة - تمرير مباشر بدون تخزين
 self.addEventListener('fetch', (event) => {
-  // لا نتدخل - فقط نمرر الطلب للشبكة
-  return;
+  // Network-first strategy - لا نخزن شيء لكن نرد بشكل صحيح
+  event.respondWith(
+    fetch(event.request).catch(() => {
+      // في حال عدم وجود إنترنت، نرد بصفحة فارغة للتنقل
+      if (event.request.mode === 'navigate') {
+        return new Response('<html><body><h1>لا يوجد اتصال بالإنترنت</h1></body></html>', {
+          headers: { 'Content-Type': 'text/html; charset=utf-8' }
+        });
+      }
+      return new Response('', { status: 408 });
+    })
+  );
 });
