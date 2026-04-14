@@ -215,6 +215,8 @@ const ProductPreview = () => {
         slug,
         iconUrl: storeData.logoUrl || undefined,
       });
+      // تسجيل Service Worker لتفعيل التثبيت كتطبيق حقيقي
+      registerServiceWorker();
     }
   }, [slug, storeData?.storeName, storeData?.logoUrl]);
 
