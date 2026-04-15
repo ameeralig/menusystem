@@ -1,7 +1,6 @@
 /**
  * إنشاء manifest ديناميكي لكل متجر
- * يضمن أن التطبيق المثبت يفتح صفحة المتجر مباشرة
- * ويستخدم صورة البروفايل كأيقونة للتطبيق
+ * كل متجر يحصل على id فريد حتى يمكن تثبيت عدة متاجر كتطبيقات منفصلة
  */
 
 interface ManifestOptions {
@@ -15,52 +14,38 @@ export const injectDynamicManifest = ({ storeName, slug, iconUrl }: ManifestOpti
   const existing = document.querySelector('link[rel="manifest"]');
   if (existing) existing.remove();
 
-  // استخدام صورة البروفايل أو الأيقونة الافتراضية
   const icon192 = iconUrl || '/app-icon-192.png';
   const icon512 = iconUrl || '/app-icon-512.png';
 
   const manifest = {
+    // id فريد لكل متجر - هذا ما يجعل Chrome يعتبرها تطبيقات منفصلة
+    id: `/${slug}`,
     name: storeName || 'QR Menu',
-    short_name: storeName || 'QR Menu',
+    short_name: (storeName || 'QR Menu').slice(0, 12),
     description: `منيو ${storeName} الرقمي`,
     start_url: `/${slug}`,
     scope: '/',
-    display: 'standalone',
+    display: 'standalone' as const,
     background_color: '#0a0a0a',
     theme_color: '#0a0a0a',
-    dir: 'rtl',
+    dir: 'rtl' as const,
     lang: 'ar',
     icons: [
-      {
-        src: icon192,
-        sizes: '192x192',
-        type: 'image/png',
-        purpose: 'any'
-      },
-      {
-        src: icon512,
-        sizes: '512x512',
-        type: 'image/png',
-        purpose: 'any'
-      },
-      {
-        src: icon192,
-        sizes: '192x192',
-        type: 'image/png',
-        purpose: 'maskable'
-      }
-    ]
+      { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+    ],
   };
 
   const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
-  
+
   const link = document.createElement('link');
   link.rel = 'manifest';
   link.href = url;
   document.head.appendChild(link);
 
-  // تحديث apple-touch-icon أيضاً لأجهزة iOS
+  // تحديث apple-touch-icon لأجهزة iOS
   if (iconUrl) {
     let appleIcon = document.querySelector('link[rel="apple-touch-icon"]') as HTMLLinkElement;
     if (!appleIcon) {
@@ -73,13 +58,11 @@ export const injectDynamicManifest = ({ storeName, slug, iconUrl }: ManifestOpti
 };
 
 /**
- * تسجيل Service Worker للـ PWA
- * مطلوب حتى يظهر خيار "تثبيت التطبيق" على Android بدلاً من "إنشاء اختصار"
+ * تسجيل Service Worker
  */
 export const registerServiceWorker = async () => {
   if (!('serviceWorker' in navigator)) return;
 
-  // لا تسجل في بيئة المعاينة أو داخل iframe
   const isInIframe = (() => {
     try { return window.self !== window.top; } catch { return true; }
   })();
@@ -95,14 +78,15 @@ export const registerServiceWorker = async () => {
   }
 
   try {
-    // إلغاء تسجيل SW قديم وتسجيل الجديد
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    for (const reg of registrations) {
-      await reg.unregister();
+    const existing = await navigator.serviceWorker.getRegistration('/');
+    if (existing) {
+      // تحديث SW الموجود بدل إعادة التسجيل
+      existing.update();
+    } else {
+      await navigator.serviceWorker.register('/sw.js', { scope: '/' });
     }
-    await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-    console.log('Service Worker registered for PWA');
+    console.log('Service Worker ready for PWA');
   } catch (error) {
-    console.log('Service Worker registration failed:', error);
+    console.log('SW registration failed:', error);
   }
 };
