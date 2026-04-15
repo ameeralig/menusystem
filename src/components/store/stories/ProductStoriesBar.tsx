@@ -61,9 +61,6 @@ const ProductStoriesBar: React.FC<ProductStoriesBarProps> = ({
     });
   }, [storeOwnerId]);
 
-  // لا نعرض الشريط إذا لم يكن هناك منتجات مميزة
-  if (storyProducts.length === 0) return null;
-
   // ترتيب: غير المشاهدة أولاً
   const sortedProducts = useMemo(() => {
     return [...storyProducts].sort((a, b) => {
@@ -72,6 +69,9 @@ const ProductStoriesBar: React.FC<ProductStoriesBarProps> = ({
       return aViewed - bViewed;
     });
   }, [storyProducts, viewedIds]);
+
+  // لا نعرض الشريط إذا لم يكن هناك منتجات مميزة
+  if (storyProducts.length === 0) return null;
 
   return (
     <>
