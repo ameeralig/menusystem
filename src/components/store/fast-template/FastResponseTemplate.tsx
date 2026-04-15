@@ -329,6 +329,18 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
       )}
 
 
+      {/* 🔥 شريط ستوريز المنتجات المميزة */}
+      <ProductStoriesBar
+        products={products}
+        colorTheme={colorTheme}
+        onAddToCart={handleAddToCart}
+        onToggleFavorite={toggleFavorite}
+        onShare={(product) => setShareProduct(product)}
+        isFavorite={isFavorite}
+        showAddButton={(externalOrdersEnabled && !isStoreOwner) || isEmployeeView}
+        storeOwnerId={storeOwnerId}
+      />
+
       {/* شريط التصنيفات */}
       <CategoryTabs
         categories={categories}
