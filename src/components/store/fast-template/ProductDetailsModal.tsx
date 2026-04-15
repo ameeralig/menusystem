@@ -90,24 +90,58 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
                 <X className="w-5 h-5 text-gray-700 dark:text-gray-300" />
               </button>
 
-              {/* شارات المنتج */}
-              <div className="flex gap-2 px-6 pt-6">
-                {product.is_new && (
-                  <span className="bg-green-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
-                    جديد
-                  </span>
-                )}
-                {product.is_popular && (
-                  <span className="bg-yellow-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
-                    مميز
-                  </span>
-                )}
-                {product.is_available === false && (
-                  <span className="bg-red-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
-                    غير متوفر
-                  </span>
-                )}
-              </div>
+              {/* صورة المنتج */}
+              {product.image_url && (
+                <div className="relative w-full aspect-[16/10] overflow-hidden bg-gray-100 dark:bg-gray-700">
+                  {!isImageLoaded && (
+                    <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 animate-pulse" />
+                  )}
+                  <img
+                    src={displayedImageSrc}
+                    alt={product.name}
+                    className={`w-full h-full object-cover transition-all duration-500 ${isImageLoaded ? 'opacity-100 scale-100' : 'opacity-70 scale-105 blur-sm'}`}
+                  />
+                  {/* شارات المنتج فوق الصورة */}
+                  <div className="absolute top-3 right-3 flex gap-2">
+                    {product.is_new && (
+                      <span className="bg-green-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
+                        جديد
+                      </span>
+                    )}
+                    {product.is_popular && (
+                      <span className="bg-yellow-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
+                        مميز
+                      </span>
+                    )}
+                    {product.is_available === false && (
+                      <span className="bg-red-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
+                        غير متوفر
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* شارات بدون صورة */}
+              {!product.image_url && (
+                <div className="flex gap-2 px-6 pt-6">
+                  {product.is_new && (
+                    <span className="bg-green-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
+                      جديد
+                    </span>
+                  )}
+                  {product.is_popular && (
+                    <span className="bg-yellow-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
+                      مميز
+                    </span>
+                  )}
+                  {product.is_available === false && (
+                    <span className="bg-red-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
+                      غير متوفر
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* تفاصيل المنتج */}
               <div className="p-6">
