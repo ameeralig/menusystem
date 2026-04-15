@@ -21,6 +21,7 @@ import CartSheet from "../external-orders/CartSheet";
 import { logUserActivity, logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
 import FavoritesSheet from "../favorites/FavoritesSheet";
 import ShareProductCard from "../share/ShareProductCard";
+import ProductStoriesBar from "../stories/ProductStoriesBar";
 import {
   AlertDialog,
   AlertDialogAction,
