@@ -13,51 +13,54 @@ export const usePWAInstall = () => {
   const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
-    // كشف iOS
     const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     setIsIOS(ios);
 
-    // كشف إذا التطبيق مثبت مسبقاً
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
       (window.navigator as any).standalone === true;
     setIsInstalled(isStandalone);
 
     if (isStandalone) return;
 
-    // الاستماع لحدث beforeinstallprompt (Android/Chrome)
+    const dismissed = sessionStorage.getItem('pwa-banner-dismissed');
+
+    // للأندرويد: إظهار البانر فوراً عند استلام حدث beforeinstallprompt
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setCanInstall(true);
+      // إظهار البانر فوراً بدون تأخير
+      if (!dismissed) {
+        setShowBanner(true);
+      }
     };
 
     window.addEventListener('beforeinstallprompt', handler);
 
-    // إظهار البانر بعد 3 ثوانٍ
-    const dismissed = sessionStorage.getItem('pwa-banner-dismissed');
-    if (!dismissed) {
-      const timer = setTimeout(() => setShowBanner(true), 3000);
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener('beforeinstallprompt', handler);
-      };
+    // لـ iOS: إظهار البانر بعد ثانية واحدة فقط
+    let iosTimer: ReturnType<typeof setTimeout>;
+    if (ios && !dismissed) {
+      iosTimer = setTimeout(() => setShowBanner(true), 1000);
     }
 
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+      if (iosTimer) clearTimeout(iosTimer);
+    };
   }, []);
 
   const installApp = useCallback(async () => {
     if (!deferredPrompt) return false;
-    
+
     await deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    
+
     if (outcome === 'accepted') {
       setIsInstalled(true);
       setShowBanner(false);
     }
-    
+
     setDeferredPrompt(null);
     setCanInstall(false);
     return outcome === 'accepted';
