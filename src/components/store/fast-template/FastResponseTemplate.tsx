@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Product } from "@/types/product";
 import { CategoryImage } from "@/types/categoryImage";
-import CategoryTabs from "./CategoryTabs";
+import UnifiedStoriesCategoriesBar from "./UnifiedStoriesCategoriesBar";
 import CompactProductCard from "./CompactProductCard";
 import ProductDetailsModal from "./ProductDetailsModal";
 import EditProductModal from "./EditProductModal";
@@ -21,7 +21,7 @@ import CartSheet from "../external-orders/CartSheet";
 import { logUserActivity, logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
 import FavoritesSheet from "../favorites/FavoritesSheet";
 import ShareProductCard from "../share/ShareProductCard";
-import ProductStoriesBar from "../stories/ProductStoriesBar";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -79,6 +79,8 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [externalOrdersEnabled, setExternalOrdersEnabled] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState(0);
+  const [storiesEnabled, setStoriesEnabled] = useState(true);
+  const [storiesAutoGenerate, setStoriesAutoGenerate] = useState(true);
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const [shareProduct, setShareProduct] = useState<Product | null>(null);
   const { addItem } = useCart();
@@ -107,13 +109,15 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
     const fetchExternalOrdersSettings = async () => {
       const { data } = await supabase
         .from('store_settings')
-        .select('external_orders_enabled, delivery_fee')
+        .select('external_orders_enabled, delivery_fee, stories_enabled, stories_auto_generate')
         .eq('user_id', storeOwnerId)
         .single();
 
       if (data) {
         setExternalOrdersEnabled(data.external_orders_enabled || false);
         setDeliveryFee(data.delivery_fee || 0);
+        setStoriesEnabled((data as any).stories_enabled !== false);
+        setStoriesAutoGenerate((data as any).stories_auto_generate !== false);
       }
     };
 
@@ -134,6 +138,8 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
           if (payload.new) {
             setExternalOrdersEnabled(payload.new.external_orders_enabled || false);
             setDeliveryFee(payload.new.delivery_fee || 0);
+            setStoriesEnabled(payload.new.stories_enabled !== false);
+            setStoriesAutoGenerate(payload.new.stories_auto_generate !== false);
           }
         }
       )
@@ -329,20 +335,8 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
       )}
 
 
-      {/* 🔥 شريط ستوريز المنتجات المميزة */}
-      <ProductStoriesBar
-        products={products}
-        colorTheme={colorTheme}
-        onAddToCart={handleAddToCart}
-        onToggleFavorite={toggleFavorite}
-        onShare={(product) => setShareProduct(product)}
-        isFavorite={isFavorite}
-        showAddButton={(externalOrdersEnabled && !isStoreOwner) || isEmployeeView}
-        storeOwnerId={storeOwnerId}
-      />
-
-      {/* شريط التصنيفات */}
-      <CategoryTabs
+      {/* 🔥 الوحدة الموحدة: ستوريز + تصنيفات */}
+      <UnifiedStoriesCategoriesBar
         categories={categories}
         selectedCategory={selectedCategory}
         onCategorySelect={handleCategorySelect}
@@ -351,6 +345,14 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         isStoreOwner={isStoreOwner}
         storeOwnerId={storeOwnerId}
         refreshData={refreshData}
+        products={products}
+        storiesEnabled={storiesEnabled}
+        storiesAutoGenerate={storiesAutoGenerate}
+        onAddToCart={handleAddToCart}
+        onToggleFavorite={toggleFavorite}
+        onShare={(product) => setShareProduct(product)}
+        isFavorite={isFavorite}
+        showAddButton={(externalOrdersEnabled && !isStoreOwner) || isEmployeeView}
       />
 
       {/* منطقة المحتوى */}
