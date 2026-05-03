@@ -21,6 +21,7 @@ import CartSheet from "../external-orders/CartSheet";
 import { logUserActivity, logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
 import FavoritesSheet from "../favorites/FavoritesSheet";
 import ShareProductCard from "../share/ShareProductCard";
+import ProductStoriesBar from "../stories/ProductStoriesBar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -327,6 +328,18 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         </div>
       )}
 
+
+      {/* 🔥 شريط ستوريز المنتجات المميزة */}
+      <ProductStoriesBar
+        products={products}
+        colorTheme={colorTheme}
+        onAddToCart={handleAddToCart}
+        onToggleFavorite={toggleFavorite}
+        onShare={(product) => setShareProduct(product)}
+        isFavorite={isFavorite}
+        showAddButton={(externalOrdersEnabled && !isStoreOwner) || isEmployeeView}
+        storeOwnerId={storeOwnerId}
+      />
 
       {/* شريط التصنيفات */}
       <CategoryTabs
