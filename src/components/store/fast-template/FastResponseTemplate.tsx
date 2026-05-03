@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Product } from "@/types/product";
 import { CategoryImage } from "@/types/categoryImage";
-import CategoryTabs from "./CategoryTabs";
+import UnifiedStoriesCategoriesBar from "./UnifiedStoriesCategoriesBar";
 import CompactProductCard from "./CompactProductCard";
 import ProductDetailsModal from "./ProductDetailsModal";
 import EditProductModal from "./EditProductModal";
