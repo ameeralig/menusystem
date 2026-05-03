@@ -19,6 +19,8 @@ interface UnifiedStoreData {
   adsEnabled: boolean;
   adsType: string | null;
   customAds: string[];
+  storiesEnabled: boolean;
+  storiesAutoGenerate: boolean;
 }
 
 const defaultFontSettings: FontSettings = {
