@@ -132,6 +132,8 @@ export const useUnifiedStoreData = (slug: string | undefined) => {
         adsEnabled: (data as any).ads_enabled || false,
         adsType: (data as any).ads_type || null,
         customAds: Array.isArray((data as any).custom_ads) ? (data as any).custom_ads : [],
+        storiesEnabled: (data as any).stories_enabled !== false,
+        storiesAutoGenerate: (data as any).stories_auto_generate !== false,
       };
 
       setStoreData(unifiedData);
