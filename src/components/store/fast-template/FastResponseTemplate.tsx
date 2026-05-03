@@ -109,13 +109,15 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
     const fetchExternalOrdersSettings = async () => {
       const { data } = await supabase
         .from('store_settings')
-        .select('external_orders_enabled, delivery_fee')
+        .select('external_orders_enabled, delivery_fee, stories_enabled, stories_auto_generate')
         .eq('user_id', storeOwnerId)
         .single();
 
       if (data) {
         setExternalOrdersEnabled(data.external_orders_enabled || false);
         setDeliveryFee(data.delivery_fee || 0);
+        setStoriesEnabled((data as any).stories_enabled !== false);
+        setStoriesAutoGenerate((data as any).stories_auto_generate !== false);
       }
     };
 
@@ -136,6 +138,8 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
           if (payload.new) {
             setExternalOrdersEnabled(payload.new.external_orders_enabled || false);
             setDeliveryFee(payload.new.delivery_fee || 0);
+            setStoriesEnabled(payload.new.stories_enabled !== false);
+            setStoriesAutoGenerate(payload.new.stories_auto_generate !== false);
           }
         }
       )
