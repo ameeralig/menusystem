@@ -709,6 +709,51 @@ export type Database = {
         }
         Relationships: []
       }
+      product_stories: {
+        Row: {
+          caption: string | null
+          created_at: string
+          display_order: number | null
+          expires_at: string
+          id: string
+          image_url: string
+          link_url: string | null
+          product_id: string | null
+          store_owner_id: string
+          title: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          display_order?: number | null
+          expires_at?: string
+          id?: string
+          image_url: string
+          link_url?: string | null
+          product_id?: string | null
+          store_owner_id: string
+          title?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          display_order?: number | null
+          expires_at?: string
+          id?: string
+          image_url?: string
+          link_url?: string | null
+          product_id?: string | null
+          store_owner_id?: string
+          title?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category: string | null
@@ -890,6 +935,8 @@ export type Database = {
           slug: string | null
           social_links: Json | null
           store_name: string | null
+          stories_auto_generate: boolean | null
+          stories_enabled: boolean | null
           template: string | null
           theme_mode: string | null
           updated_at: string
@@ -917,6 +964,8 @@ export type Database = {
           slug?: string | null
           social_links?: Json | null
           store_name?: string | null
+          stories_auto_generate?: boolean | null
+          stories_enabled?: boolean | null
           template?: string | null
           theme_mode?: string | null
           updated_at?: string
@@ -944,6 +993,8 @@ export type Database = {
           slug?: string | null
           social_links?: Json | null
           store_name?: string | null
+          stories_auto_generate?: boolean | null
+          stories_enabled?: boolean | null
           template?: string | null
           theme_mode?: string | null
           updated_at?: string
@@ -1132,6 +1183,7 @@ export type Database = {
         }[]
       }
       cleanup_expired_otps: { Args: never; Returns: undefined }
+      cleanup_expired_stories: { Args: never; Returns: number }
       cleanup_expired_whatsapp_sessions: { Args: never; Returns: number }
       cleanup_old_employee_sales: { Args: never; Returns: number }
       cleanup_old_resolved_feedback: { Args: never; Returns: number }
