@@ -106,13 +106,13 @@ const UnifiedStoriesCategoriesBar: React.FC<Props> = ({
     <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-100 dark:border-gray-700/50 sticky top-0 z-30">
       {/* Segmented Control */}
       {showStoriesTab && (
-        <div className="flex items-center justify-between px-3 pt-2.5 pb-1 gap-2">
-          <div className="relative flex bg-gray-100 dark:bg-gray-900/60 rounded-full p-0.5 flex-1 max-w-[260px]">
+        <div className="relative flex items-center justify-center px-3 pt-2.5 pb-1">
+          <div className="relative flex bg-gray-100 dark:bg-gray-900/60 rounded-full p-0.5 w-full max-w-[260px]">
             <motion.div
               layout
               transition={{ type: "spring", stiffness: 400, damping: 32 }}
               className="absolute inset-y-0.5 w-[calc(50%-2px)] rounded-full bg-white dark:bg-gray-700 shadow-sm"
-              style={{ left: activeTab === "categories" ? 2 : "calc(50% + 0px)" }}
+              style={{ right: activeTab === "categories" ? 2 : "calc(50% + 0px)" }}
             />
             <button
               onClick={() => handleTabChange("categories")}
@@ -137,7 +137,7 @@ const UnifiedStoriesCategoriesBar: React.FC<Props> = ({
           {isStoreOwner && (
             <button
               onClick={() => setManagerOpen(true)}
-              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+              className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition"
               title="إدارة الستوريز"
             >
               <Settings2 className="w-4 h-4 text-gray-600 dark:text-gray-300" />
@@ -151,9 +151,9 @@ const UnifiedStoriesCategoriesBar: React.FC<Props> = ({
           {activeTab === "stories" && showStoriesTab ? (
             <motion.div
               key="stories"
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.2 }}
             >
               {stories.length === 0 ? (
@@ -185,9 +185,9 @@ const UnifiedStoriesCategoriesBar: React.FC<Props> = ({
           ) : (
             <motion.div
               key="categories"
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
+              exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
             >
               <div className="flex items-center gap-2 px-3 py-2.5 overflow-x-auto scrollbar-hide">
