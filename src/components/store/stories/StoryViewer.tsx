@@ -113,9 +113,9 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
     const third = rect.width / 3;
 
     if (x < third) {
-      goPrev();
-    } else if (x > third * 2) {
       goNext();
+    } else if (x > third * 2) {
+      goPrev();
     }
   }, [goPrev, goNext]);
 

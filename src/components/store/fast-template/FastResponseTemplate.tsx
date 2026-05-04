@@ -7,7 +7,7 @@ import ProductDetailsModal from "./ProductDetailsModal";
 import EditProductModal from "./EditProductModal";
 import EmptyCategoryMessage from "../EmptyCategoryMessage";
 import BottomActionsBar from "./BottomActionsBar";
-import LiveVisitCounter from "./LiveVisitCounter";
+
 import StoreHeader from "../StoreHeader";
 import InlineStoreNameEditor from "../inline-edit/InlineStoreNameEditor";
 import { ContactInfo, FontSettings, SocialLinks } from "@/types/store";
@@ -424,9 +424,6 @@ const FastResponseTemplate: React.FC<FastResponseTemplateProps> = ({
         storeName={storeName || undefined}
         storeOwnerId={storeOwnerId}
       />
-
-      {/* عداد الزيارات الحية */}
-      <LiveVisitCounter storeOwnerId={storeOwnerId} colorTheme={colorTheme} variant="default" />
 
       {/* الشريط الأفقي السفلي مع البحث المدمج */}
       <BottomActionsBar
