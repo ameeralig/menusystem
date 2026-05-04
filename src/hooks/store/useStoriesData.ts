@@ -41,6 +41,8 @@ export const useStoriesData = ({
       return;
     }
     setLoading(true);
+    // حذف تلقائي للستوريز المنتهية (best-effort)
+    supabase.rpc("cleanup_expired_stories" as any).then(() => {}, () => {});
     const { data } = await supabase
       .from("product_stories" as any)
       .select("*")
