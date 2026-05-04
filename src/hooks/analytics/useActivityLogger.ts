@@ -25,7 +25,8 @@ export type VisitorActionType =
   | 'menu_download' | 'store_info_view'
   | 'banner_click' | 'logo_click'
   | 'search_open' | 'search_query'
-  | 'favorites_open' | 'cart_open';
+  | 'favorites_open' | 'cart_open'
+  | 'story_view' | 'story_complete';
 
 // تسجيل نشاط المستخدم (صاحب المتجر)
 export const logUserActivity = async (
