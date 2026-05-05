@@ -1,8 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { LoginForm } from "@/components/auth/LoginForm";
+import { PhoneAuthForm } from "@/components/auth/PhoneAuthForm";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import SimpleBackground from "@/components/background/SimpleBackground";
+import { Phone, Mail } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
