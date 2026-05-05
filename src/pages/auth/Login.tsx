@@ -1,8 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { LoginForm } from "@/components/auth/LoginForm";
+import { PhoneAuthForm } from "@/components/auth/PhoneAuthForm";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import SimpleBackground from "@/components/background/SimpleBackground";
+import { Phone, Mail } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -36,7 +39,14 @@ const Login = () => {
             </span>
           </motion.h2>
 
-          <LoginForm />
+          <Tabs defaultValue="phone" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="phone"><Phone className="h-4 w-4 ml-1" /> الهاتف</TabsTrigger>
+              <TabsTrigger value="email"><Mail className="h-4 w-4 ml-1" /> البريد</TabsTrigger>
+            </TabsList>
+            <TabsContent value="phone"><PhoneAuthForm mode="login" /></TabsContent>
+            <TabsContent value="email"><LoginForm /></TabsContent>
+          </Tabs>
 
           <motion.div 
             className="mt-6 flex items-center justify-between"

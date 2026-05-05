@@ -13,6 +13,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { motion, AnimatePresence } from "framer-motion";
 import SimpleBackground from "@/components/background/SimpleBackground";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PhoneAuthForm } from "@/components/auth/PhoneAuthForm";
 
 // تعريف مخطط التحقق من البيانات باستخدام Zod
 const signupSchema = z.object({
@@ -267,6 +269,17 @@ const Signup = () => {
             </p>
           </motion.div>
 
+          <Tabs defaultValue="phone" className="w-full mt-6">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="phone"><Phone className="h-4 w-4 ml-1" /> بالهاتف (واتساب)</TabsTrigger>
+              <TabsTrigger value="email"><Mail className="h-4 w-4 ml-1" /> بالبريد</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="phone">
+              <PhoneAuthForm mode="signup" />
+            </TabsContent>
+
+            <TabsContent value="email">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSignup)} className="mt-6 space-y-4">
               {/* حقل النطاق الفرعي - أولاً وبشكل بارز */}
@@ -455,6 +468,8 @@ const Signup = () => {
               </motion.div>
             </form>
           </Form>
+            </TabsContent>
+          </Tabs>
         </motion.div>
       </motion.div>
     </div>

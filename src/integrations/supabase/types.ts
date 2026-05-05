@@ -709,6 +709,39 @@ export type Database = {
         }
         Relationships: []
       }
+      phone_otps: {
+        Row: {
+          attempts: number
+          created_at: string
+          expires_at: string
+          id: string
+          is_used: boolean
+          otp_code: string
+          phone: string
+          purpose: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_used?: boolean
+          otp_code: string
+          phone: string
+          purpose?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_used?: boolean
+          otp_code?: string
+          phone?: string
+          purpose?: string
+        }
+        Relationships: []
+      }
       product_stories: {
         Row: {
           caption: string | null
@@ -1183,6 +1216,7 @@ export type Database = {
         }[]
       }
       cleanup_expired_otps: { Args: never; Returns: undefined }
+      cleanup_expired_phone_otps: { Args: never; Returns: number }
       cleanup_expired_stories: { Args: never; Returns: number }
       cleanup_expired_whatsapp_sessions: { Args: never; Returns: number }
       cleanup_old_employee_sales: { Args: never; Returns: number }
