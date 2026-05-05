@@ -13,6 +13,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { motion, AnimatePresence } from "framer-motion";
 import SimpleBackground from "@/components/background/SimpleBackground";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PhoneAuthForm } from "@/components/auth/PhoneAuthForm";
 
 // تعريف مخطط التحقق من البيانات باستخدام Zod
 const signupSchema = z.object({
