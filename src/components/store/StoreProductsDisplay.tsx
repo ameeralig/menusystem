@@ -265,6 +265,29 @@ const StoreProductsDisplay = ({
   // ترتيب التصنيفات باستخدام الدالة الموحدة
   const sortedCategories = sortCategoriesByOrder(categories, categoryImages);
 
+  // قالب A2004 — Game Club داكن نيون
+  if (template === "a2004") {
+    return (
+      <A2004Template
+        products={allProducts}
+        colorTheme={colorTheme}
+        storeName={storeName}
+        onSearchChange={handleSearchChange}
+        contactInfo={contactInfo}
+        slug={slug}
+        storeOwnerId={storeOwnerId}
+        fontSettings={fontSettings}
+        socialLinks={socialLinks}
+        categoryImages={categoryImages}
+        isStoreOwner={isStoreOwner}
+        refreshData={refreshData}
+        isLoading={isLoading && allProducts.length === 0}
+        logoUrl={logoUrl}
+        isEmployeeView={isEmployeeView}
+      />
+    );
+  }
+
   // القالب النصي (بدون صور)
   if (template === "text-only") {
     return (
