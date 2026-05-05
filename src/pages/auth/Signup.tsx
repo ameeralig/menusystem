@@ -468,6 +468,8 @@ const Signup = () => {
               </motion.div>
             </form>
           </Form>
+            </TabsContent>
+          </Tabs>
         </motion.div>
       </motion.div>
     </div>
