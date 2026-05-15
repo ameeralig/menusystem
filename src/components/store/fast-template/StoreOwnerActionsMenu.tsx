@@ -167,7 +167,12 @@ const StoreOwnerActionsMenu = ({
       const { error } = await supabase.from("store_settings").update({ template }).eq("user_id", storeOwnerId);
       if (error) throw error;
       setCurrentTemplate(template);
-      toast.success(template === "text-only" ? "تم التبديل للقالب النصي" : template === "a2004" ? "تم تفعيل قالب A2004 🎮" : "تم التبديل للقالب المصور");
+      toast.success(
+        template === "text-only" ? "تم التبديل للقالب النصي"
+          : template === "a2004" ? "تم تفعيل قالب A2004 🎮"
+          : template === "modern-glass" ? "تم تفعيل قالب Modern Glass ✨"
+          : "تم التبديل للقالب المصور"
+      );
       onUpdate?.();
     } catch { toast.error("حدث خطأ أثناء التبديل"); }
     finally { setIsLoading(false); }
