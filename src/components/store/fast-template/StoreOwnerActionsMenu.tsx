@@ -310,7 +310,7 @@ const StoreOwnerActionsMenu = ({
                     <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
                       <Layout className="h-3.5 w-3.5" /> تصميم القائمة
                     </p>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                       <button
                         onClick={() => handleTemplateChange("fast-response")}
                         disabled={isLoading}
@@ -338,6 +338,20 @@ const StoreOwnerActionsMenu = ({
                           : { borderColor: 'transparent' }}
                       >
                         📝 نصي فقط
+                      </button>
+                      <button
+                        onClick={() => handleTemplateChange("modern-glass")}
+                        disabled={isLoading}
+                        className={`p-3 rounded-xl border-2 text-xs font-bold transition-all ${
+                          currentTemplate === "modern-glass"
+                            ? "shadow-sm bg-background"
+                            : "border-transparent bg-background/50 opacity-60 hover:opacity-100"
+                        }`}
+                        style={currentTemplate === "modern-glass"
+                          ? { borderColor: "#ff7e5f", color: "#ff7e5f" }
+                          : { borderColor: 'transparent' }}
+                      >
+                        ✨ Modern Glass
                       </button>
                       <button
                         onClick={() => handleTemplateChange("a2004")}
