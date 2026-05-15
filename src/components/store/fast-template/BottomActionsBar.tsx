@@ -125,7 +125,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
     >
       <div
         onClick={onClick}
-        className="relative flex items-center justify-center w-10 h-10 rounded-xl shadow-md cursor-pointer transition-all"
+        className="relative flex items-center justify-center w-10 h-10 rounded-2xl shadow-md cursor-pointer transition-all"
         style={{
           background: gradient,
           border: '1px solid rgba(255,255,255,0.2)',
