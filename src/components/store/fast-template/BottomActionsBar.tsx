@@ -125,7 +125,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
     >
       <div
         onClick={onClick}
-        className="relative flex items-center justify-center w-10 h-10 rounded-xl shadow-md cursor-pointer transition-all"
+        className="relative flex items-center justify-center w-10 h-10 rounded-2xl shadow-md cursor-pointer transition-all"
         style={{
           background: gradient,
           border: '1px solid rgba(255,255,255,0.2)',
@@ -227,19 +227,21 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
         damping: 20,
         delay: 0.2 
       }}
-      className="fixed bottom-0 left-0 right-0 z-40 pb-safe"
-      style={{ direction: 'ltr' }}
+      className="fixed bottom-0 left-0 right-0 z-40 pointer-events-none"
+      style={{ direction: 'ltr', paddingBottom: 'max(env(safe-area-inset-bottom), 12px)' }}
     >
-      {/* الشريط الزجاجي */}
-      <div
-        className="backdrop-blur-xl border-t shadow-2xl"
-        style={{
-          background: `linear-gradient(180deg, ${themeColor}08, ${themeColor}12)`,
-          borderColor: `${themeColor}25`,
-        }}
-      >
-        <div className="container mx-auto px-4 sm:px-6 py-2.5">
-          <div className="flex items-center justify-center gap-3 sm:gap-4 max-w-lg mx-auto">
+      {/* الحاوية العائمة — Pill منفصل عن الحواف */}
+      <div className="px-3 sm:px-4 pointer-events-none">
+        <div
+          className="pointer-events-auto mx-auto max-w-md rounded-[28px] backdrop-blur-2xl shadow-[0_18px_48px_-12px_rgba(0,0,0,0.45)]"
+          style={{
+            background: `linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04))`,
+            border: `1px solid rgba(255,255,255,0.12)`,
+            boxShadow: `0 18px 48px -12px ${themeColor}40, inset 0 1px 0 rgba(255,255,255,0.08)`,
+          }}
+        >
+          <div className="px-3 sm:px-4 py-2.5">
+            <div className="flex items-center justify-center gap-3 sm:gap-3.5">
             
             {/* زر/حقل البحث */}
             {isSearchExpanded ? (
@@ -281,10 +283,10 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
               >
                 <div
                   onClick={() => { setIsSearchExpanded(true); trackAction('search_open'); }}
-                  className="flex items-center justify-center w-10 h-10 rounded-xl shadow-md cursor-pointer transition-all"
+                  className="flex items-center justify-center w-10 h-10 rounded-2xl shadow-md cursor-pointer transition-all"
                   style={{
-                    background: `${themeColor}20`,
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    background: `${themeColor}25`,
+                    border: '1px solid rgba(255,255,255,0.12)',
                   }}
                   title="بحث"
                 >
@@ -310,7 +312,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
               />
             )}
 
-            {/* زر المزيد - أول زر على اليمين */}
+            {/* زر المزيد */}
             {moreMenuItems.length > 0 && (
               <Popover open={isMoreMenuOpen} onOpenChange={setIsMoreMenuOpen}>
                 <PopoverTrigger asChild>
@@ -319,7 +321,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                     whileTap={{ scale: 0.92 }}
                   >
                     <div
-                      className="flex items-center justify-center w-10 h-10 rounded-xl shadow-md cursor-pointer transition-all"
+                      className="flex items-center justify-center w-10 h-10 rounded-2xl shadow-md cursor-pointer transition-all"
                       style={{
                         background: `linear-gradient(135deg, ${themeColor}, ${themeColor}cc)`,
                         border: '1px solid rgba(255,255,255,0.2)',
@@ -337,7 +339,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                   }}
                   align="end"
                   side="top"
-                  sideOffset={8}
+                  sideOffset={12}
                 >
                   <div className="flex flex-col gap-1">
                     {moreMenuItems.map((item: any) => (
@@ -356,7 +358,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
             )}
 
             {/* الأزرار الرئيسية */}
-            <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-3 sm:gap-3.5">
               {primaryButtons.map((btn: any) => (
                 <ActionButton
                   key={btn.id}
@@ -368,6 +370,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
                   badge={btn.badge}
                 />
               ))}
+            </div>
             </div>
           </div>
         </div>
