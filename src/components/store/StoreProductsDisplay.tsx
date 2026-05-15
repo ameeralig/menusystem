@@ -17,6 +17,7 @@ import { FontSettings, ContactInfo } from "@/types/store";
 import FastResponseTemplate from "./fast-template/FastResponseTemplate";
 import TextOnlyTemplate from "./text-template/TextOnlyTemplate";
 import A2004Template from "./a2004-template/A2004Template";
+import ModernGlassTemplate from "./modern-glass-template/ModernGlassTemplate";
 import BottomActionsBar from "./fast-template/BottomActionsBar";
 
 interface StoreProductsDisplayProps {
