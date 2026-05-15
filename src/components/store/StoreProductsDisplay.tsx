@@ -266,6 +266,29 @@ const StoreProductsDisplay = ({
   // ترتيب التصنيفات باستخدام الدالة الموحدة
   const sortedCategories = sortCategoriesByOrder(categories, categoryImages);
 
+  // قالب Modern Glass — Awwwards-level glassmorphism
+  if (template === "modern-glass") {
+    return (
+      <ModernGlassTemplate
+        products={allProducts}
+        colorTheme={colorTheme}
+        storeName={storeName}
+        onSearchChange={handleSearchChange}
+        contactInfo={contactInfo}
+        slug={slug}
+        storeOwnerId={storeOwnerId}
+        fontSettings={fontSettings}
+        socialLinks={socialLinks}
+        categoryImages={categoryImages}
+        isStoreOwner={isStoreOwner}
+        refreshData={refreshData}
+        isLoading={isLoading && allProducts.length === 0}
+        logoUrl={logoUrl}
+        isEmployeeView={isEmployeeView}
+      />
+    );
+  }
+
   // قالب A2004 — Game Club داكن نيون
   if (template === "a2004") {
     return (
