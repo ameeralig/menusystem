@@ -87,7 +87,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
     >
       {/* أزرار التعديل والحذف للمالك */}
       {isStoreOwner && (
-        <div className="absolute top-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -113,7 +113,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
 
       {/* أزرار المفضلة والمشاركة والإضافة - للزوار */}
       {!isStoreOwner && !isEmployeeView && (
-        <div className="absolute top-2 left-2 flex gap-1 z-10">
+        <div className="absolute top-2 right-2 flex gap-1 z-10">
           {/* زر الإضافة للسلة */}
           {showAddButton && product.is_available !== false && (
             <button
@@ -159,7 +159,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
 
       {/* زر الإضافة للسلة - للموظفين */}
       {isEmployeeView && showAddButton && product.is_available !== false && (
-        <div className="absolute top-2 left-2 z-10">
+        <div className="absolute top-2 right-2 z-10">
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -188,7 +188,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
             });
           }
         }}
-        className="flex items-center gap-3 flex-1 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform"
+        className="flex flex-row-reverse items-center gap-3 flex-1 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform"
       >
       {/* صورة المنتج - مربع صغير */}
       <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 relative overflow-hidden rounded-md bg-gray-100 dark:bg-gray-700">
