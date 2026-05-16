@@ -5,13 +5,21 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
-import { Phone, KeyRound, User, Store, Loader2, MessageCircle } from "lucide-react";
+import { Phone, KeyRound, User, Store, Loader2, MessageCircle, MessageSquare } from "lucide-react";
 
 type Mode = "login" | "signup";
 type Step = "phone" | "details" | "otp";
 
 interface PhoneAuthFormProps {
   mode: Mode;
+}
+
+// تطبيع الرقم إلى الصيغة الدولية E.164 (افتراض العراق إذا لم يبدأ بكود)
+function normalizePhone(raw: string): string {
+  let p = (raw || "").replace(/\D/g, "");
+  if (p.startsWith("00")) p = p.slice(2);
+  if (p.startsWith("0")) p = "964" + p.slice(1);
+  return p;
 }
 
 export function PhoneAuthForm({ mode }: PhoneAuthFormProps) {
@@ -25,6 +33,8 @@ export function PhoneAuthForm({ mode }: PhoneAuthFormProps) {
   const [slug, setSlug] = useState("");
   const [resendIn, setResendIn] = useState(0);
 
+  const isSignup = mode === "signup";
+
   const startResendTimer = () => {
     setResendIn(45);
     const t = setInterval(() => {
@@ -35,7 +45,8 @@ export function PhoneAuthForm({ mode }: PhoneAuthFormProps) {
     }, 1000);
   };
 
-  const handleSendOtp = async () => {
+  // ====== LOGIN: WhatsApp عبر edge function ======
+  const handleSendLoginOtp = async () => {
     if (!phone || phone.replace(/\D/g, "").length < 8) {
       toast({ variant: "destructive", title: "رقم غير صالح", description: "أدخل رقم هاتف صحيح" });
       return;
@@ -43,7 +54,7 @@ export function PhoneAuthForm({ mode }: PhoneAuthFormProps) {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("phone-auth", {
-        body: { action: "send_otp", phone, purpose: mode },
+        body: { action: "send_otp", phone, purpose: "login" },
       });
       if (error || data?.error) throw new Error(data?.error || error?.message);
       toast({ title: "تم إرسال الرمز", description: "افتح واتساب لمشاهدة رمز التحقق" });
@@ -56,6 +67,7 @@ export function PhoneAuthForm({ mode }: PhoneAuthFormProps) {
     }
   };
 
+  // ====== SIGNUP: SMS عبر Supabase Auth ======
   const handleStartSignup = () => {
     if (!phone || phone.replace(/\D/g, "").length < 8) {
       toast({ variant: "destructive", title: "رقم غير صالح" }); return;
@@ -73,7 +85,36 @@ export function PhoneAuthForm({ mode }: PhoneAuthFormProps) {
       return;
     }
     setSlug(cleanSlug);
-    await handleSendOtp();
+
+    setLoading(true);
+    try {
+      const e164 = "+" + normalizePhone(phone);
+      // فحص توفر المعرّف قبل الإرسال
+      const { data: taken } = await supabase
+        .from("store_settings")
+        .select("user_id")
+        .eq("slug", cleanSlug)
+        .maybeSingle();
+      if (taken) throw new Error("معرف المتجر مأخوذ، اختر آخر");
+
+      // إرسال OTP عبر SMS من Supabase Auth (يتطلب تفعيل مزوّد SMS في إعدادات Supabase)
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: e164,
+        options: {
+          channel: "sms",
+          data: { full_name: fullName, phone_number: e164, auth_method: "phone" },
+        },
+      });
+      if (error) throw error;
+
+      toast({ title: "تم إرسال الرمز", description: "تحقق من رسائل SMS على هاتفك" });
+      setStep("otp");
+      startResendTimer();
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "فشل الإرسال", description: e.message });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleVerify = async () => {
@@ -83,13 +124,36 @@ export function PhoneAuthForm({ mode }: PhoneAuthFormProps) {
     }
     setLoading(true);
     try {
-      const payload: any = { action: "verify_otp", phone, otp, purpose: mode };
-      if (mode === "signup") { payload.full_name = fullName; payload.slug = slug; }
+      if (isSignup) {
+        // التحقق عبر Supabase Auth SMS
+        const e164 = "+" + normalizePhone(phone);
+        const { data: vData, error: vErr } = await supabase.auth.verifyOtp({
+          phone: e164,
+          token: otp,
+          type: "sms",
+        });
+        if (vErr) throw vErr;
+        const uid = vData.user?.id;
+        if (!uid) throw new Error("فشل إنشاء الجلسة");
 
-      const { data, error } = await supabase.functions.invoke("phone-auth", { body: payload });
+        // إنشاء الملف الشخصي والمتجر
+        await supabase.from("profiles").upsert({ id: uid, full_name: fullName, phone_number: normalizePhone(phone) });
+        const { error: storeErr } = await supabase
+          .from("store_settings")
+          .insert({ user_id: uid, slug, store_name: fullName });
+        if (storeErr) throw storeErr;
+
+        toast({ title: "أهلاً بك!", description: "تم إنشاء حسابك بنجاح" });
+        navigate(`/${slug}`);
+        return;
+      }
+
+      // LOGIN: مسار WhatsApp القديم
+      const { data, error } = await supabase.functions.invoke("phone-auth", {
+        body: { action: "verify_otp", phone, otp, purpose: "login" },
+      });
       if (error || data?.error) throw new Error(data?.error || error?.message);
 
-      // إنشاء جلسة باستخدام hashed_token (verifyOtp)
       const { error: vErr } = await supabase.auth.verifyOtp({
         email: data.email,
         token_hash: data.hashed_token,
@@ -99,21 +163,16 @@ export function PhoneAuthForm({ mode }: PhoneAuthFormProps) {
 
       toast({ title: "أهلاً بك!", description: "تم تسجيل الدخول بنجاح" });
 
-      if (mode === "signup") {
-        navigate(`/${slug}`);
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData.user) {
+        const { data: store } = await supabase
+          .from("store_settings")
+          .select("slug")
+          .eq("user_id", userData.user.id)
+          .maybeSingle();
+        navigate(store?.slug ? `/${store.slug}` : "/");
       } else {
-        // البحث عن متجر المستخدم
-        const { data: userData } = await supabase.auth.getUser();
-        if (userData.user) {
-          const { data: store } = await supabase
-            .from("store_settings")
-            .select("slug")
-            .eq("user_id", userData.user.id)
-            .maybeSingle();
-          navigate(store?.slug ? `/${store.slug}` : "/");
-        } else {
-          navigate("/");
-        }
+        navigate("/");
       }
     } catch (e: any) {
       toast({ variant: "destructive", title: "فشل التحقق", description: e.message });
@@ -122,12 +181,14 @@ export function PhoneAuthForm({ mode }: PhoneAuthFormProps) {
     }
   };
 
+  const handleResend = isSignup ? handleSendSignupOtp : handleSendLoginOtp;
+
   // ====================== UI ======================
   if (step === "phone") {
     return (
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label className="text-foreground">رقم الهاتف (واتساب)</Label>
+          <Label className="text-foreground">رقم الهاتف</Label>
           <div className="relative">
             <Phone className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -140,12 +201,16 @@ export function PhoneAuthForm({ mode }: PhoneAuthFormProps) {
             />
           </div>
           <p className="text-xs text-muted-foreground flex items-center gap-1">
-            <MessageCircle className="h-3 w-3" /> سيتم إرسال رمز التحقق عبر واتساب
+            {isSignup ? (
+              <><MessageSquare className="h-3 w-3" /> سيتم إرسال رمز التحقق عبر رسالة SMS</>
+            ) : (
+              <><MessageCircle className="h-3 w-3" /> سيتم إرسال رمز التحقق عبر واتساب</>
+            )}
           </p>
         </div>
         <Button
           className="w-full"
-          onClick={mode === "signup" ? handleStartSignup : handleSendOtp}
+          onClick={isSignup ? handleStartSignup : handleSendLoginOtp}
           disabled={loading}
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "متابعة"}
@@ -206,7 +271,9 @@ export function PhoneAuthForm({ mode }: PhoneAuthFormProps) {
           />
         </div>
         <p className="text-xs text-muted-foreground">
-          تم إرسال الرمز إلى واتساب على الرقم {phone}
+          {isSignup
+            ? `تم إرسال الرمز عبر SMS إلى الرقم ${phone}`
+            : `تم إرسال الرمز إلى واتساب على الرقم ${phone}`}
         </p>
       </div>
       <Button className="w-full" onClick={handleVerify} disabled={loading || otp.length !== 6}>
@@ -216,7 +283,7 @@ export function PhoneAuthForm({ mode }: PhoneAuthFormProps) {
         <button
           type="button"
           className="text-muted-foreground hover:text-primary"
-          onClick={() => { setStep(mode === "signup" ? "details" : "phone"); setOtp(""); }}
+          onClick={() => { setStep(isSignup ? "details" : "phone"); setOtp(""); }}
         >
           تعديل البيانات
         </button>
@@ -224,7 +291,7 @@ export function PhoneAuthForm({ mode }: PhoneAuthFormProps) {
           type="button"
           className="text-primary disabled:text-muted-foreground"
           disabled={resendIn > 0 || loading}
-          onClick={handleSendOtp}
+          onClick={handleResend}
         >
           {resendIn > 0 ? `إعادة الإرسال (${resendIn})` : "إعادة إرسال الرمز"}
         </button>
