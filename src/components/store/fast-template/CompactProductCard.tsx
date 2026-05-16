@@ -113,7 +113,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
 
       {/* أزرار المفضلة والمشاركة والإضافة - للزوار */}
       {!isStoreOwner && !isEmployeeView && (
-        <div className="absolute top-2 left-2 flex gap-1 z-10">
+        <div className="absolute top-2 right-2 flex gap-1 z-10">
           {/* زر الإضافة للسلة */}
           {showAddButton && product.is_available !== false && (
             <button
