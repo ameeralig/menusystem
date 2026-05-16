@@ -159,7 +159,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
 
       {/* زر الإضافة للسلة - للموظفين */}
       {isEmployeeView && showAddButton && product.is_available !== false && (
-        <div className="absolute top-2 left-2 z-10">
+        <div className="absolute top-2 right-2 z-10">
           <button
             onClick={(e) => {
               e.stopPropagation();
