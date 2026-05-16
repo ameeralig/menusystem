@@ -188,7 +188,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
             });
           }
         }}
-        className="flex items-center gap-3 flex-1 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform"
+        className="flex flex-row-reverse items-center gap-3 flex-1 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform"
       >
       {/* صورة المنتج - مربع صغير */}
       <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 relative overflow-hidden rounded-md bg-gray-100 dark:bg-gray-700">
