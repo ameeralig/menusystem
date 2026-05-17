@@ -87,7 +87,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
     >
       {/* أزرار التعديل والحذف للمالك */}
       {isStoreOwner && (
-        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+        <div className="absolute top-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -113,7 +113,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
 
       {/* أزرار المفضلة والمشاركة والإضافة - للزوار */}
       {!isStoreOwner && !isEmployeeView && (
-        <div className="absolute top-2 right-2 flex gap-1 z-10">
+        <div className="absolute top-2 left-2 flex gap-1 z-10">
           {/* زر الإضافة للسلة */}
           {showAddButton && product.is_available !== false && (
             <button
@@ -159,7 +159,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({
 
       {/* زر الإضافة للسلة - للموظفين */}
       {isEmployeeView && showAddButton && product.is_available !== false && (
-        <div className="absolute top-2 right-2 z-10">
+        <div className="absolute top-2 left-2 z-10">
           <button
             onClick={(e) => {
               e.stopPropagation();
