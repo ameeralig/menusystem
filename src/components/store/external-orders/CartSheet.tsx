@@ -1,14 +1,19 @@
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useCart } from "@/contexts/CartContext";
-import { Minus, Plus, Trash2, MapPin, Loader2, Map } from "lucide-react";
-import { useState, useEffect } from "react";
+import {
+  Minus, Plus, Trash2, MapPin, Loader2, Map, ShoppingBag,
+  ChevronRight, ChevronLeft, Check, User as UserIcon, LogOut,
+} from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 import LocationPickerMap from "./LocationPickerMap";
 import { logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
+import { useCustomerProfile } from "@/hooks/store/useCustomerProfile";
 
 interface CartSheetProps {
   isOpen: boolean;
@@ -19,498 +24,318 @@ interface CartSheetProps {
   storeOwnerId?: string;
 }
 
-const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat('ar-IQ').format(price);
-};
+const formatPrice = (price: number) => new Intl.NumberFormat("ar-IQ").format(price);
+
+type Step = 0 | 1 | 2;
+const STEP_LABELS = ["السلة", "بياناتك", "تأكيد"];
 
 const CartSheet = ({ isOpen, onClose, deliveryFee, storePhone, storeName, storeOwnerId }: CartSheetProps) => {
   const { items, updateQuantity, removeItem, clearCart, getTotal } = useCart();
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [customerAddress, setCustomerAddress] = useState("");
-  const [customerNotes, setCustomerNotes] = useState("");
-  const [showCheckoutForm, setShowCheckoutForm] = useState(false);
-  
-  // حالات الموقع الجغرافي
-  const [locationCoords, setLocationCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const { user, profile, setProfile, signInWith, signOut, saveProfile } = useCustomerProfile();
+
+  const [step, setStep] = useState<Step>(0);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
-  const [locationPermissionDenied, setLocationPermissionDenied] = useState(false);
   const [isMapPickerOpen, setIsMapPickerOpen] = useState(false);
 
   const subtotal = getTotal();
   const total = subtotal + deliveryFee;
 
-  // طلب الموقع تلقائياً عند عرض نموذج الدفع
   useEffect(() => {
-    if (showCheckoutForm && !locationCoords && !locationPermissionDenied) {
-      requestLocation();
-    }
-  }, [showCheckoutForm]);
+    if (!isOpen) setStep(0);
+  }, [isOpen]);
 
-  const requestLocation = async () => {
-    // التحقق من دعم المتصفح
-    if (!navigator.geolocation) {
-      toast.error("المتصفح لا يدعم تحديد الموقع");
-      setLocationPermissionDenied(true);
-      return;
-    }
-
-    // التحقق من HTTPS (مطلوب لـ Safari)
-    const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost';
-    if (!isSecure) {
-      toast.error("تحديد الموقع يتطلب اتصال آمن (HTTPS)");
-      setLocationPermissionDenied(true);
-      return;
-    }
-
+  const requestLocation = () => {
+    if (!navigator.geolocation) return toast.error("المتصفح لا يدعم تحديد الموقع");
     setIsGettingLocation(true);
-    setLocationPermissionDenied(false);
-
-    // التحقق أولاً من حالة الصلاحيات (للمتصفحات التي تدعم ذلك)
-    try {
-      if (navigator.permissions && navigator.permissions.query) {
-        const permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
-        
-        if (permissionStatus.state === 'denied') {
-          setIsGettingLocation(false);
-          setLocationPermissionDenied(true);
-          toast.error("صلاحية الموقع مرفوضة. يرجى تفعيلها من إعدادات المتصفح", {
-            duration: 5000,
-            description: "اذهب إلى إعدادات المتصفح > الخصوصية > الموقع"
-          });
-          return;
-        }
-      }
-    } catch (e) {
-      // Safari لا يدعم permissions API - نتابع مباشرة
-      console.log("Permissions API not supported, proceeding with geolocation request");
-    }
-
-    // طلب الموقع مع خيارات محسنة لـ Safari
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setLocationCoords({ lat: latitude, lng: longitude });
+      (pos) => {
+        setProfile((p) => ({ ...p, lat: pos.coords.latitude, lng: pos.coords.longitude }));
         setIsGettingLocation(false);
-        toast.success("تم تحديد موقعك بنجاح");
+        toast.success("تم تحديد موقعك");
       },
-      (error) => {
+      () => {
         setIsGettingLocation(false);
-        console.log("Geolocation error:", error.code, error.message);
-        
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            setLocationPermissionDenied(true);
-            toast.error("تم رفض صلاحية الموقع", {
-              duration: 5000,
-              description: "يرجى السماح بالوصول للموقع من إعدادات المتصفح أو إدخال العنوان يدوياً"
-            });
-            break;
-          case error.POSITION_UNAVAILABLE:
-            toast.error("الموقع غير متاح حالياً", {
-              description: "يمكنك إدخال العنوان يدوياً"
-            });
-            break;
-          case error.TIMEOUT:
-            toast.error("انتهت مهلة تحديد الموقع", {
-              description: "حاول مرة أخرى أو أدخل العنوان يدوياً"
-            });
-            break;
-          default:
-            toast.error("حدث خطأ في تحديد الموقع", {
-              description: "يمكنك إدخال العنوان يدوياً"
-            });
-        }
+        toast.error("تعذّر تحديد الموقع، جرّب الخريطة");
       },
-      {
-        // خيارات محسنة لـ Safari و iOS
-        enableHighAccuracy: false, // Safari يعمل أفضل مع false
-        timeout: 15000, // زيادة المهلة لـ Safari
-        maximumAge: 60000, // السماح بموقع محفوظ لدقيقة واحدة
-      }
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
     );
   };
 
-  // إنشاء رابط خرائط جوجل
-  const getGoogleMapsLink = () => {
-    if (!locationCoords) return null;
-    return `https://www.google.com/maps?q=${locationCoords.lat},${locationCoords.lng}`;
+  const canProceed = useMemo(() => {
+    if (step === 0) return items.length > 0;
+    if (step === 1) return profile.full_name.trim() && profile.phone.trim() && (profile.address.trim() || profile.lat);
+    return true;
+  }, [step, items.length, profile]);
+
+  const goNext = async () => {
+    if (!canProceed) {
+      if (step === 0) toast.error("السلة فارغة");
+      else toast.error("أكمل الاسم والهاتف والعنوان");
+      return;
+    }
+    if (step === 1 && user) await saveProfile({});
+    setStep((s) => (s + 1) as Step);
   };
 
-  const handleCheckout = () => {
-    if (items.length === 0) {
-      toast.error("السلة فارغة");
-      return;
-    }
-    setShowCheckoutForm(true);
-    // تسجيل نشاط فتح صفحة الدفع
-    if (storeOwnerId) {
-      logVisitorActivity(storeOwnerId, 'cart_open', { items_count: items.length, total: subtotal });
-    }
-  };
+  const goBack = () => setStep((s) => Math.max(0, s - 1) as Step);
 
-  const handleCompleteOrder = () => {
-    if (!customerName.trim() || !customerPhone.trim()) {
-      toast.error("الرجاء إدخال الاسم ورقم الهاتف");
-      return;
-    }
+  const handleSubmit = async () => {
+    if (!storePhone) return toast.error("رقم واتساب المتجر غير متوفر");
 
-    if (!customerAddress.trim() && !locationCoords) {
-      toast.error("الرجاء إدخال العنوان أو السماح بتحديد موقعك");
-      return;
-    }
+    if (user) await saveProfile({});
 
-    if (!storePhone) {
-      toast.error("رقم الواتساب غير متوفر");
-      return;
-    }
-
-    // تكوين رسالة الواتساب
-    let message = `*طلب جديد من ${storeName || 'المتجر'}*\n\n`;
-    message += `*المنتجات:*\n`;
-    
-    items.forEach((item, index) => {
-      message += `${index + 1}. ${item.product.name}\n`;
-      message += `   الكمية: ${item.quantity}\n`;
-      message += `   السعر: ${formatPrice(item.product.price)} د.ع\n`;
-      message += `   المجموع: ${formatPrice(item.product.price * item.quantity)} د.ع\n`;
-      if (item.notes) {
-        message += `   ملاحظات: ${item.notes}\n`;
-      }
-      message += `\n`;
+    let msg = `*طلب جديد من ${storeName || "المتجر"}*\n\n*المنتجات:*\n`;
+    items.forEach((it, i) => {
+      msg += `${i + 1}. ${it.product.name}\n   الكمية: ${it.quantity}\n   المجموع: ${formatPrice(it.product.price * it.quantity)} د.ع\n`;
+      if (it.notes) msg += `   ملاحظات: ${it.notes}\n`;
+      msg += `\n`;
     });
+    msg += `*مجموع المنتجات:* ${formatPrice(subtotal)} د.ع\n`;
+    msg += `*التوصيل:* ${formatPrice(deliveryFee)} د.ع\n`;
+    msg += `*الإجمالي:* ${formatPrice(total)} د.ع\n\n*الزبون:*\n`;
+    msg += `الاسم: ${profile.full_name}\nالهاتف: ${profile.phone}\n`;
+    if (profile.address) msg += `العنوان: ${profile.address}\n`;
+    if (profile.lat && profile.lng) msg += `📍 https://www.google.com/maps?q=${profile.lat},${profile.lng}\n`;
+    if (profile.notes) msg += `ملاحظات: ${profile.notes}\n`;
 
-    message += `*مجموع المنتجات:* ${formatPrice(subtotal)} د.ع\n`;
-    message += `*مبلغ التوصيل:* ${formatPrice(deliveryFee)} د.ع\n`;
-    message += `*المجموع النهائي:* ${formatPrice(total)} د.ع\n\n`;
-    
-    message += `*بيانات الزبون:*\n`;
-    message += `الاسم: ${customerName}\n`;
-    message += `الهاتف: ${customerPhone}\n`;
-    
-    if (customerAddress.trim()) {
-      message += `العنوان: ${customerAddress}\n`;
-    }
-    
-    // إضافة رابط الموقع إذا كان متوفراً
-    if (locationCoords) {
-      const mapsLink = getGoogleMapsLink();
-      message += `📍 الموقع على الخريطة: ${mapsLink}\n`;
-    }
-    
-    if (customerNotes.trim()) {
-      message += `ملاحظات: ${customerNotes}\n`;
-    }
+    const cleanPhone = storePhone.replace(/[^0-9]/g, "");
+    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, "_blank");
 
-    // تنظيف رقم الواتساب وإنشاء الرابط
-    const cleanPhone = storePhone.replace(/[^0-9]/g, '');
-    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
-    
-    // فتح الواتساب
-    window.open(whatsappUrl, '_blank');
-    
-    // تسجيل نشاط إتمام الطلب
-    if (storeOwnerId) {
-      logVisitorActivity(storeOwnerId, 'checkout', { items_count: items.length, total });
-    }
-    
-    // مسح السلة وإغلاق النافذة
+    if (storeOwnerId) logVisitorActivity(storeOwnerId, "checkout", { items_count: items.length, total });
+
     clearCart();
-    setCustomerName("");
-    setCustomerPhone("");
-    setCustomerAddress("");
-    setCustomerNotes("");
-    setLocationCoords(null);
-    setLocationPermissionDenied(false);
-    setShowCheckoutForm(false);
+    setStep(0);
     onClose();
-    toast.success("تم إرسال الطلب إلى الواتساب");
+    toast.success("تم إرسال طلبك");
   };
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>سلة المشتريات</SheetTitle>
-        </SheetHeader>
-
-        {!showCheckoutForm ? (
-          <div className="mt-4 space-y-4">
-            {items.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                السلة فارغة
+      <SheetContent side="bottom" className="h-[92vh] p-0 flex flex-col rounded-t-3xl overflow-hidden">
+        {/* Header */}
+        <div className="px-5 pt-4 pb-3 border-b bg-gradient-to-b from-background to-muted/30">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+                <ShoppingBag className="w-4 h-4 text-primary" />
               </div>
-            ) : (
-              <>
-                <div className="space-y-3">
-                  {items.map((item) => (
-                    <div key={item.product.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                      {item.product.image_url && (
-                        <img 
-                          src={item.product.image_url} 
-                          alt={item.product.name}
-                          className="w-16 h-16 object-cover rounded"
-                        />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-sm truncate">{item.product.name}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {formatPrice(item.product.price)} د.ع
-                        </p>
-                        {item.notes && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            ملاحظات: {item.notes}
-                          </p>
+              <div>
+                <h2 className="font-bold text-base">إتمام الطلب</h2>
+                <p className="text-[11px] text-muted-foreground">{STEP_LABELS[step]}</p>
+              </div>
+            </div>
+            <div className="text-left">
+              <p className="text-[11px] text-muted-foreground">الإجمالي</p>
+              <p className="font-bold text-primary">{formatPrice(total)} د.ع</p>
+            </div>
+          </div>
+
+          {/* Stepper */}
+          <div className="flex items-center gap-2">
+            {STEP_LABELS.map((label, i) => (
+              <div key={i} className="flex items-center flex-1">
+                <div
+                  className={`flex-1 h-1.5 rounded-full transition-all ${
+                    i <= step ? "bg-primary" : "bg-muted"
+                  }`}
+                />
+                {i < STEP_LABELS.length - 1 && <div className="w-1" />}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          <AnimatePresence mode="wait">
+            {step === 0 && (
+              <motion.div key="s0" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.2 }}>
+                {items.length === 0 ? (
+                  <div className="text-center py-16">
+                    <ShoppingBag className="w-14 h-14 mx-auto text-muted-foreground/40 mb-3" />
+                    <p className="text-muted-foreground">سلتك فارغة</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {items.map((item) => (
+                      <div key={item.product.id} className="flex gap-3 p-3 bg-muted/40 rounded-2xl">
+                        {item.product.image_url && (
+                          <img src={item.product.image_url} alt={item.product.name} className="w-16 h-16 object-cover rounded-xl" />
                         )}
-                        <div className="flex items-center gap-2 mt-2">
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            className="h-7 w-7"
-                            onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                          >
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="text-sm font-medium w-8 text-center">
-                            {item.quantity}
-                          </span>
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            className="h-7 w-7"
-                            onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="destructive"
-                            className="h-7 w-7 mr-auto"
-                            onClick={() => removeItem(item.product.id)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <h4 className="font-semibold text-sm line-clamp-1">{item.product.name}</h4>
+                            <button onClick={() => removeItem(item.product.id)} className="text-muted-foreground hover:text-destructive shrink-0">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                          <p className="text-xs text-muted-foreground">{formatPrice(item.product.price)} د.ع</p>
+                          <div className="flex items-center justify-between mt-2">
+                            <div className="flex items-center gap-1 bg-background rounded-full p-1">
+                              <button onClick={() => updateQuantity(item.product.id, item.quantity - 1)} className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-muted">
+                                <Minus className="w-3 h-3" />
+                              </button>
+                              <span className="w-6 text-center text-sm font-semibold">{item.quantity}</span>
+                              <button onClick={() => updateQuantity(item.product.id, item.quantity + 1)} className="w-6 h-6 rounded-full flex items-center justify-center bg-primary text-primary-foreground">
+                                <Plus className="w-3 h-3" />
+                              </button>
+                            </div>
+                            <p className="font-bold text-sm text-primary">{formatPrice(item.product.price * item.quantity)} د.ع</p>
+                          </div>
                         </div>
                       </div>
-                      <div className="text-left">
-                        <p className="font-bold text-sm">
-                          {formatPrice(item.product.price * item.quantity)} د.ع
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="border-t pt-4 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>مجموع المنتجات:</span>
-                    <span className="font-semibold">{formatPrice(subtotal)} د.ع</span>
+                    ))}
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span>مبلغ التوصيل:</span>
-                    <span className="font-semibold">{formatPrice(deliveryFee)} د.ع</span>
-                  </div>
-                  <div className="flex justify-between text-lg font-bold border-t pt-2">
-                    <span>المجموع النهائي:</span>
-                    <span>{formatPrice(total)} د.ع</span>
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => {
-                      clearCart();
-                      onClose();
-                    }}
-                  >
-                    مسح السلة
-                  </Button>
-                  <Button
-                    className="flex-1"
-                    onClick={handleCheckout}
-                  >
-                    إكمال الطلب
-                  </Button>
-                </div>
-              </>
+                )}
+              </motion.div>
             )}
-          </div>
-        ) : (
-          <div className="mt-4 space-y-4">
-            <Button
-              variant="ghost"
-              onClick={() => setShowCheckoutForm(false)}
-              className="mb-4"
-            >
-              ← العودة للسلة
-            </Button>
 
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="customer-name">الاسم *</Label>
-                <Input
-                  id="customer-name"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="أدخل اسمك"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="customer-phone">رقم الهاتف *</Label>
-                <Input
-                  id="customer-phone"
-                  type="tel"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  placeholder="أدخل رقم هاتفك"
-                />
-              </div>
-
-              {/* قسم الموقع الجغرافي */}
-              <div className="space-y-2">
-                <Label>الموقع الجغرافي</Label>
-                
-                {isGettingLocation ? (
-                  <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
-                    <span className="text-sm text-blue-700 dark:text-blue-300">
-                      جاري تحديد موقعك...
-                    </span>
-                  </div>
-                ) : locationCoords ? (
-                  <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-5 w-5 text-green-500" />
-                      <span className="text-sm text-green-700 dark:text-green-300 font-medium">
-                        تم تحديد موقعك بنجاح
-                      </span>
-                    </div>
-                    <a
-                      href={getGoogleMapsLink() || '#'}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 dark:text-blue-400 underline mt-1 block"
-                    >
-                      عرض الموقع على الخريطة
-                    </a>
-                    <div className="flex gap-2 mt-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-xs h-7"
-                        onClick={() => setIsMapPickerOpen(true)}
-                      >
-                        <Map className="h-3 w-3 ml-1" />
-                        تعديل على الخريطة
+            {step === 1 && (
+              <motion.div key="s1" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.2 }} className="space-y-4">
+                {/* Auth banner */}
+                {!user ? (
+                  <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/10">
+                    <p className="text-sm font-semibold mb-1">وفّر وقتك في الطلبات القادمة</p>
+                    <p className="text-xs text-muted-foreground mb-3">سجّل الدخول ليتم حفظ بياناتك تلقائياً</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button variant="outline" className="bg-background" onClick={() => signInWith("google")}>
+                        <svg className="w-4 h-4 ml-2" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                        Google
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-xs h-7"
-                        onClick={() => {
-                          setLocationCoords(null);
-                          setLocationPermissionDenied(false);
-                        }}
-                      >
-                        مسح الموقع
+                      <Button variant="outline" className="bg-background" onClick={() => signInWith("apple")}>
+                        <svg className="w-4 h-4 ml-2" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+                        Apple
                       </Button>
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-2">
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="flex-1"
-                        onClick={requestLocation}
-                        disabled={isGettingLocation}
-                      >
-                        <MapPin className="h-4 w-4 ml-2" />
-                        تحديد تلقائي
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="flex-1"
-                        onClick={() => setIsMapPickerOpen(true)}
-                      >
-                        <Map className="h-4 w-4 ml-2" />
-                        اختر من الخريطة
-                      </Button>
-                    </div>
-                    {locationPermissionDenied && (
-                      <p className="text-xs text-amber-600 dark:text-amber-400">
-                        تم رفض صلاحية الموقع. يمكنك اختيار موقعك من الخريطة أو إدخال العنوان يدوياً
-                      </p>
+                  <div className="flex items-center gap-3 p-3 rounded-2xl bg-primary/5 border border-primary/10">
+                    {profile.avatar_url ? (
+                      <img src={profile.avatar_url} alt="" className="w-10 h-10 rounded-full" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                        <UserIcon className="w-5 h-5 text-primary" />
+                      </div>
                     )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">{profile.full_name || "زبون"}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{profile.email}</p>
+                    </div>
+                    <button onClick={signOut} className="p-2 rounded-lg hover:bg-muted">
+                      <LogOut className="w-4 h-4 text-muted-foreground" />
+                    </button>
                   </div>
                 )}
-              </div>
 
-              <div>
-                <Label htmlFor="customer-address">
-                  العنوان {!locationCoords && '*'}
-                </Label>
-                <Textarea
-                  id="customer-address"
-                  value={customerAddress}
-                  onChange={(e) => setCustomerAddress(e.target.value)}
-                  placeholder={locationCoords ? "أضف تفاصيل إضافية للعنوان (اختياري)" : "أدخل عنوانك بالتفصيل"}
-                  rows={3}
-                />
-              </div>
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-xs">الاسم *</Label>
+                    <Input value={profile.full_name} onChange={(e) => setProfile({ ...profile, full_name: e.target.value })} placeholder="اسمك الكامل" className="mt-1" />
+                  </div>
+                  <div>
+                    <Label className="text-xs">رقم الهاتف *</Label>
+                    <Input type="tel" value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} placeholder="07XXXXXXXXX" className="mt-1" />
+                  </div>
 
-              <div>
-                <Label htmlFor="customer-notes">ملاحظات إضافية (اختياري)</Label>
-                <Textarea
-                  id="customer-notes"
-                  value={customerNotes}
-                  onChange={(e) => setCustomerNotes(e.target.value)}
-                  placeholder="أي ملاحظات إضافية"
-                  rows={2}
-                />
-              </div>
+                  {/* Location */}
+                  <div>
+                    <Label className="text-xs">الموقع الجغرافي</Label>
+                    {profile.lat && profile.lng ? (
+                      <div className="mt-1 p-3 rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-green-600" />
+                        <span className="text-xs flex-1">تم تحديد الموقع</span>
+                        <button onClick={() => setIsMapPickerOpen(true)} className="text-xs text-primary underline">تعديل</button>
+                        <button onClick={() => setProfile({ ...profile, lat: null, lng: null })} className="text-xs text-muted-foreground">مسح</button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2 mt-1">
+                        <Button type="button" variant="outline" onClick={requestLocation} disabled={isGettingLocation}>
+                          {isGettingLocation ? <Loader2 className="w-4 h-4 animate-spin" /> : <><MapPin className="w-4 h-4 ml-1" />تلقائي</>}
+                        </Button>
+                        <Button type="button" variant="outline" onClick={() => setIsMapPickerOpen(true)}>
+                          <Map className="w-4 h-4 ml-1" />الخريطة
+                        </Button>
+                      </div>
+                    )}
+                  </div>
 
-              <div className="border-t pt-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>مجموع المنتجات:</span>
-                  <span className="font-semibold">{formatPrice(subtotal)} د.ع</span>
+                  <div>
+                    <Label className="text-xs">العنوان {!profile.lat && "*"}</Label>
+                    <Textarea value={profile.address} onChange={(e) => setProfile({ ...profile, address: e.target.value })} placeholder={profile.lat ? "تفاصيل إضافية (اختياري)" : "أدخل عنوانك"} rows={2} className="mt-1" />
+                  </div>
+                  <div>
+                    <Label className="text-xs">ملاحظات (اختياري)</Label>
+                    <Textarea value={profile.notes} onChange={(e) => setProfile({ ...profile, notes: e.target.value })} rows={2} className="mt-1" />
+                  </div>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span>مبلغ التوصيل:</span>
-                  <span className="font-semibold">{formatPrice(deliveryFee)} د.ع</span>
-                </div>
-                <div className="flex justify-between text-lg font-bold border-t pt-2">
-                  <span>المجموع النهائي:</span>
-                  <span>{formatPrice(total)} د.ع</span>
-                </div>
-              </div>
+              </motion.div>
+            )}
 
-              <Button
-                className="w-full"
-                onClick={handleCompleteOrder}
-                size="lg"
-              >
-                إكمال إجراءات الطلب
-              </Button>
-            </div>
-          </div>
-        )}
+            {step === 2 && (
+              <motion.div key="s2" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.2 }} className="space-y-4">
+                <div className="text-center py-2">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                    <Check className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="font-bold">مراجعة أخيرة</h3>
+                  <p className="text-xs text-muted-foreground">سيُرسل الطلب عبر واتساب للمتجر</p>
+                </div>
 
-        {/* خريطة اختيار الموقع */}
+                <div className="rounded-2xl border p-4 space-y-3">
+                  <div>
+                    <p className="text-[11px] text-muted-foreground mb-1">الزبون</p>
+                    <p className="text-sm font-semibold">{profile.full_name}</p>
+                    <p className="text-xs text-muted-foreground">{profile.phone}</p>
+                    {profile.address && <p className="text-xs mt-1">{profile.address}</p>}
+                  </div>
+                  <div className="border-t pt-3">
+                    <p className="text-[11px] text-muted-foreground mb-2">المنتجات ({items.length})</p>
+                    <div className="space-y-1 text-xs">
+                      {items.map((it) => (
+                        <div key={it.product.id} className="flex justify-between">
+                          <span className="truncate">{it.quantity}× {it.product.name}</span>
+                          <span className="font-semibold shrink-0 mr-2">{formatPrice(it.product.price * it.quantity)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="border-t pt-3 space-y-1 text-xs">
+                    <div className="flex justify-between"><span>المنتجات</span><span>{formatPrice(subtotal)} د.ع</span></div>
+                    <div className="flex justify-between"><span>التوصيل</span><span>{formatPrice(deliveryFee)} د.ع</span></div>
+                    <div className="flex justify-between text-base font-bold text-primary pt-1 border-t"><span>الإجمالي</span><span>{formatPrice(total)} د.ع</span></div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Footer */}
+        <div className="border-t p-4 flex gap-2 bg-background">
+          {step > 0 && (
+            <Button variant="outline" onClick={goBack} className="flex-1">
+              <ChevronRight className="w-4 h-4 ml-1" /> السابق
+            </Button>
+          )}
+          {step < 2 ? (
+            <Button onClick={goNext} className="flex-[2]" disabled={!canProceed}>
+              التالي <ChevronLeft className="w-4 h-4 mr-1" />
+            </Button>
+          ) : (
+            <Button onClick={handleSubmit} className="flex-[2] bg-green-600 hover:bg-green-700">
+              <Check className="w-4 h-4 ml-1" /> إرسال الطلب
+            </Button>
+          )}
+        </div>
+
         <LocationPickerMap
           isOpen={isMapPickerOpen}
           onClose={() => setIsMapPickerOpen(false)}
           onLocationSelect={(coords) => {
-            setLocationCoords(coords);
-            setLocationPermissionDenied(false);
-            toast.success("تم تحديد الموقع من الخريطة");
+            setProfile({ ...profile, lat: coords.lat, lng: coords.lng });
+            toast.success("تم تحديد الموقع");
           }}
-          initialLocation={locationCoords}
+          initialLocation={profile.lat && profile.lng ? { lat: profile.lat, lng: profile.lng } : null}
         />
       </SheetContent>
     </Sheet>
