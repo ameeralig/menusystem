@@ -6,7 +6,7 @@ import { CategoryImage } from "@/types/categoryImage";
 import ProductDetailsModal from "../fast-template/ProductDetailsModal";
 import EditProductModal from "../fast-template/EditProductModal";
 import BottomActionsBar from "../fast-template/BottomActionsBar";
-import LiveVisitCounter from "../fast-template/LiveVisitCounter";
+
 import InlineStoreNameEditor from "../inline-edit/InlineStoreNameEditor";
 import { ContactInfo, FontSettings, SocialLinks } from "@/types/store";
 import { sortCategoriesByOrder } from "@/utils/categorySort";
@@ -432,7 +432,6 @@ const TextOnlyTemplate: React.FC<TextOnlyTemplateProps> = ({
       )}
 
       <CartSheet isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} deliveryFee={deliveryFee} storePhone={contactInfo?.phone} storeName={storeName || undefined} />
-      <LiveVisitCounter storeOwnerId={storeOwnerId} colorTheme={colorTheme} variant="editorial" />
 
       <BottomActionsBar
         slug={slug} storeOwnerId={storeOwnerId} colorTheme={colorTheme} socialLinks={socialLinks} contactInfo={contactInfo}
