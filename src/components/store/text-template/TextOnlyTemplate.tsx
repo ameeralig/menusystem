@@ -122,6 +122,18 @@ const TextOnlyTemplate: React.FC<TextOnlyTemplateProps> = ({
     fetchSettings();
   }, [storeOwnerId]);
 
+  // تخزين مسبق لجميع صور التصنيفات والمنتجات لمنع إعادة التحميل عند التنقل
+  useEffect(() => {
+    const urls = new Set<string>();
+    categoryImages?.forEach(ci => { if (ci.image_url) urls.add(ci.image_url); });
+    products.forEach(p => { if (p.image_url) urls.add(p.image_url); });
+    urls.forEach(url => {
+      const img = new Image();
+      img.decoding = "async";
+      img.src = url;
+    });
+  }, [categoryImages, products]);
+
   const categories = useMemo(() => {
     const unique = new Set<string>();
     products.forEach(p => { if (p.category) unique.add(p.category); });
