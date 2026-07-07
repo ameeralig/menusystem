@@ -6,7 +6,7 @@ import { CategoryImage } from "@/types/categoryImage";
 import ProductDetailsModal from "../fast-template/ProductDetailsModal";
 import EditProductModal from "../fast-template/EditProductModal";
 import BottomActionsBar from "../fast-template/BottomActionsBar";
-import LiveVisitCounter from "../fast-template/LiveVisitCounter";
+
 import InlineStoreNameEditor from "../inline-edit/InlineStoreNameEditor";
 import { ContactInfo, FontSettings, SocialLinks } from "@/types/store";
 import { sortCategoriesByOrder } from "@/utils/categorySort";
@@ -121,6 +121,18 @@ const TextOnlyTemplate: React.FC<TextOnlyTemplateProps> = ({
     };
     fetchSettings();
   }, [storeOwnerId]);
+
+  // تخزين مسبق لجميع صور التصنيفات والمنتجات لمنع إعادة التحميل عند التنقل
+  useEffect(() => {
+    const urls = new Set<string>();
+    categoryImages?.forEach(ci => { if (ci.image_url) urls.add(ci.image_url); });
+    products.forEach(p => { if (p.image_url) urls.add(p.image_url); });
+    urls.forEach(url => {
+      const img = new Image();
+      img.decoding = "async";
+      img.src = url;
+    });
+  }, [categoryImages, products]);
 
   const categories = useMemo(() => {
     const unique = new Set<string>();
@@ -432,7 +444,6 @@ const TextOnlyTemplate: React.FC<TextOnlyTemplateProps> = ({
       )}
 
       <CartSheet isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} deliveryFee={deliveryFee} storePhone={contactInfo?.phone} storeName={storeName || undefined} />
-      <LiveVisitCounter storeOwnerId={storeOwnerId} colorTheme={colorTheme} variant="editorial" />
 
       <BottomActionsBar
         slug={slug} storeOwnerId={storeOwnerId} colorTheme={colorTheme} socialLinks={socialLinks} contactInfo={contactInfo}
