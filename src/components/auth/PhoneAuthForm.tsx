@@ -195,7 +195,7 @@ export function PhoneAuthForm({ mode }: PhoneAuthFormProps) {
             </div>
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
               <MessageCircle className="h-3 w-3 text-emerald-500" />
-              سيتم إرسال رمز التحقق عبر واتساب
+              سيتم إرسال رمز التحقق عبر SMS
             </p>
           </div>
           <Button
