@@ -131,12 +131,17 @@ serve(async (req) => {
       const code = genOtp();
       await admin.from('phone_otps').insert({ phone, otp_code: code, purpose });
 
-      const msg = `🔐 رمز التحقق الخاص بك في QRMenuc هو:\n\n*${code}*\n\nصالح لمدة 10 دقائق. لا تشاركه مع أحد.`;
-      const sent = await sendWhatsApp(phone, msg);
+      const smsMsg = `QRMenuc: رمز التحقق ${code} - صالح 10 دقائق`;
+      let sent = await sendSMS(phone, smsMsg);
       if (!sent) {
-        return json({ error: 'تعذر إرسال الرمز عبر واتساب' }, 500);
+        // fallback إلى واتساب في حال فشل SMS
+        const waMsg = `🔐 رمز التحقق الخاص بك في QRMenuc هو:\n\n*${code}*\n\nصالح لمدة 10 دقائق. لا تشاركه مع أحد.`;
+        sent = await sendWhatsApp(phone, waMsg);
       }
-      return json({ success: true, message: 'تم إرسال الرمز عبر واتساب' });
+      if (!sent) {
+        return json({ error: 'تعذر إرسال الرمز' }, 500);
+      }
+      return json({ success: true, message: 'تم إرسال الرمز عبر SMS' });
     }
 
     // ---------- التحقق من OTP ----------
