@@ -98,21 +98,21 @@ serve(async (req) => {
 
     // ---------- إرسال OTP ----------
     if (action === 'send_otp') {
-      const purpose = body.purpose === 'signup' ? 'signup' : 'login';
+      const rawPurpose = body.purpose;
+      const purpose = rawPurpose === 'signup' ? 'signup' : rawPurpose === 'visitor' ? 'visitor' : 'login';
 
-      // التحقق من توفر الحساب حسب الغرض
       const email = phoneToEmail(phone);
-      const { data: existing } = await admin.auth.admin.listUsers();
-      const found = existing?.users?.find((u: any) => u.email === email);
-
-      if (purpose === 'login' && !found) {
-        return json({ error: 'لا يوجد حساب مرتبط بهذا الرقم' }, 404);
+      if (purpose !== 'visitor') {
+        const { data: existing } = await admin.auth.admin.listUsers();
+        const found = existing?.users?.find((u: any) => u.email === email);
+        if (purpose === 'login' && !found) {
+          return json({ error: 'لا يوجد حساب مرتبط بهذا الرقم' }, 404);
+        }
+        if (purpose === 'signup' && found) {
+          return json({ error: 'هذا الرقم مسجل بالفعل، استخدم تسجيل الدخول' }, 409);
+        }
       }
-      if (purpose === 'signup' && found) {
-        return json({ error: 'هذا الرقم مسجل بالفعل، استخدم تسجيل الدخول' }, 409);
-      }
 
-      // منع الإفراط: حذف القديمة + التحقق من آخر إرسال
       const { data: recent } = await admin
         .from('phone_otps')
         .select('created_at')
@@ -131,23 +131,26 @@ serve(async (req) => {
       const code = genOtp();
       await admin.from('phone_otps').insert({ phone, otp_code: code, purpose });
 
+      // إرسال عبر واتساب أولاً (الأكثر موثوقية للعراق) ثم SMS كاحتياط
+      const waMsg = `🔐 رمز التحقق الخاص بك في QRMenuc هو:\n\n*${code}*\n\nصالح لمدة 10 دقائق. لا تشاركه مع أحد.`;
       const smsMsg = `QRMenuc: رمز التحقق ${code} - صالح 10 دقائق`;
-      let sent = await sendSMS(phone, smsMsg);
+      let via = 'whatsapp';
+      let sent = await sendWhatsApp(phone, waMsg);
       if (!sent) {
-        // fallback إلى واتساب في حال فشل SMS
-        const waMsg = `🔐 رمز التحقق الخاص بك في QRMenuc هو:\n\n*${code}*\n\nصالح لمدة 10 دقائق. لا تشاركه مع أحد.`;
-        sent = await sendWhatsApp(phone, waMsg);
+        via = 'sms';
+        sent = await sendSMS(phone, smsMsg);
       }
       if (!sent) {
-        return json({ error: 'تعذر إرسال الرمز' }, 500);
+        return json({ error: 'تعذر إرسال الرمز، تأكد من صحة الرقم' }, 500);
       }
-      return json({ success: true, message: 'تم إرسال الرمز عبر SMS' });
+      return json({ success: true, via, message: via === 'whatsapp' ? 'تم إرسال الرمز عبر واتساب' : 'تم إرسال الرمز عبر SMS' });
     }
 
     // ---------- التحقق من OTP ----------
     if (action === 'verify_otp') {
       const otp = String(body.otp || '').trim();
-      const purpose = body.purpose === 'signup' ? 'signup' : 'login';
+      const rawPurpose = body.purpose;
+      const purpose = rawPurpose === 'signup' ? 'signup' : rawPurpose === 'visitor' ? 'visitor' : 'login';
 
       const { data: otpRow } = await admin
         .from('phone_otps')
@@ -181,7 +184,6 @@ serve(async (req) => {
         if (!fullName) return json({ error: 'الاسم مطلوب' }, 400);
         if (!slug || slug.length < 3) return json({ error: 'اختر معرف متجر صالح (3 أحرف فأكثر)' }, 400);
 
-        // التحقق من توفر slug
         const { data: slugTaken } = await admin
           .from('store_settings')
           .select('user_id')
@@ -189,7 +191,6 @@ serve(async (req) => {
           .maybeSingle();
         if (slugTaken) return json({ error: 'معرف المتجر مأخوذ، اختر آخر' }, 409);
 
-        // إنشاء المستخدم
         const { data: created, error: createErr } = await admin.auth.admin.createUser({
           email,
           email_confirm: true,
@@ -199,9 +200,30 @@ serve(async (req) => {
         if (createErr) return json({ error: createErr.message }, 400);
         const uid = created.user!.id;
 
-        // تحديث الملف الشخصي وإنشاء المتجر
         await admin.from('profiles').upsert({ id: uid, full_name: fullName, phone_number: phone });
         await admin.from('store_settings').insert({ user_id: uid, slug, store_name: fullName });
+      }
+
+      if (purpose === 'visitor') {
+        const { data: existing } = await admin.auth.admin.listUsers();
+        const found = existing?.users?.find((u: any) => u.email === email);
+        if (!found) {
+          const fullName = String(body.full_name || '').trim();
+          const { data: created, error: createErr } = await admin.auth.admin.createUser({
+            email,
+            email_confirm: true,
+            phone: `+${phone}`,
+            user_metadata: { full_name: fullName, phone_number: phone, auth_method: 'phone', is_visitor: true },
+          });
+          if (createErr) return json({ error: createErr.message }, 400);
+          const uid = created.user!.id;
+          await admin.from('customer_profiles').upsert({
+            id: uid,
+            full_name: fullName || null,
+            phone,
+            email,
+          });
+        }
       }
 
       const session = await issueSession(email);
