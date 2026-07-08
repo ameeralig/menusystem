@@ -280,7 +280,7 @@ export function PhoneAuthForm({ mode }: PhoneAuthFormProps) {
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              تم إرسال الرمز إلى واتساب على الرقم {phone}
+              تم إرسال الرمز إلى SMS على الرقم {phone}
             </p>
           </div>
           <Button className="w-full h-12 font-semibold" onClick={handleVerify} disabled={loading || otp.length !== 6}>
