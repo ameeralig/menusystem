@@ -58,7 +58,7 @@ export function PhoneAuthForm({ mode }: PhoneAuthFormProps) {
         body: { action: "send_otp", phone, purpose: isSignup ? "signup" : "login" },
       });
       if (error || data?.error) throw new Error(data?.error || error?.message);
-      toast({ title: "تم إرسال الرمز", description: "تحقق من رسائل واتساب على هاتفك" });
+      toast({ title: "تم إرسال الرمز", description: "تحقق من رسائل SMS على هاتفك" });
       setStep("otp");
       startResendTimer();
       return true;
@@ -195,7 +195,7 @@ export function PhoneAuthForm({ mode }: PhoneAuthFormProps) {
             </div>
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
               <MessageCircle className="h-3 w-3 text-emerald-500" />
-              سيتم إرسال رمز التحقق عبر واتساب
+              سيتم إرسال رمز التحقق عبر SMS
             </p>
           </div>
           <Button
@@ -280,7 +280,7 @@ export function PhoneAuthForm({ mode }: PhoneAuthFormProps) {
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              تم إرسال الرمز إلى واتساب على الرقم {phone}
+              تم إرسال الرمز إلى SMS على الرقم {phone}
             </p>
           </div>
           <Button className="w-full h-12 font-semibold" onClick={handleVerify} disabled={loading || otp.length !== 6}>
