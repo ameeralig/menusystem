@@ -40,6 +40,31 @@ async function sendWhatsApp(phone: string, message: string) {
   return res.ok;
 }
 
+async function sendSMS(phone: string, message: string) {
+  try {
+    const recipient = Number(phone.replace(/\D/g, ''));
+    const res = await fetch('https://connector-gateway.lovable.dev/gatewayapi/mobile/single', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'X-Connection-Api-Key': GATEWAYAPI_API_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        sender: 'QRMenuc',
+        recipient,
+        message,
+      }),
+    });
+    const txt = await res.text();
+    console.log('GatewayAPI SMS response:', res.status, txt);
+    return res.ok;
+  } catch (e) {
+    console.error('SMS send error:', e);
+    return false;
+  }
+}
+
 function genOtp() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
