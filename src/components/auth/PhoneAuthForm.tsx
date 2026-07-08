@@ -58,7 +58,7 @@ export function PhoneAuthForm({ mode }: PhoneAuthFormProps) {
         body: { action: "send_otp", phone, purpose: isSignup ? "signup" : "login" },
       });
       if (error || data?.error) throw new Error(data?.error || error?.message);
-      toast({ title: "تم إرسال الرمز", description: "تحقق من رسائل واتساب على هاتفك" });
+      toast({ title: "تم إرسال الرمز", description: "تحقق من رسائل SMS على هاتفك" });
       setStep("otp");
       startResendTimer();
       return true;
