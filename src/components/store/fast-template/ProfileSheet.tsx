@@ -25,6 +25,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import AvatarUpload from "@/components/profile/AvatarUpload";
+import TelegramLinkSection from "@/components/profile/TelegramLinkSection";
 
 interface ProfileSheetProps {
   colorTheme?: string | null;
@@ -265,6 +266,11 @@ const ProfileSheet = ({ colorTheme }: ProfileSheetProps) => {
               {isLoading ? "جاري الحفظ..." : "حفظ التغييرات"}
             </Button>
           </form>
+
+          {/* Telegram Integration */}
+          <TelegramLinkSection themeColor={themeColor} />
+
+
 
           {/* Danger Zone */}
           <div className="pt-6 border-t border-destructive/20">
