@@ -899,6 +899,14 @@ export type Database = {
           full_name: string | null
           id: string
           phone_number: string | null
+          telegram_chat_id: number | null
+          telegram_connected: boolean
+          telegram_first_name: string | null
+          telegram_last_login: string | null
+          telegram_link_code: string | null
+          telegram_link_password_hash: string | null
+          telegram_username: string | null
+          telegram_verified_at: string | null
           whatsapp_bot_enabled: boolean | null
           whatsapp_verified: boolean | null
         }
@@ -909,6 +917,14 @@ export type Database = {
           full_name?: string | null
           id: string
           phone_number?: string | null
+          telegram_chat_id?: number | null
+          telegram_connected?: boolean
+          telegram_first_name?: string | null
+          telegram_last_login?: string | null
+          telegram_link_code?: string | null
+          telegram_link_password_hash?: string | null
+          telegram_username?: string | null
+          telegram_verified_at?: string | null
           whatsapp_bot_enabled?: boolean | null
           whatsapp_verified?: boolean | null
         }
@@ -919,6 +935,14 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone_number?: string | null
+          telegram_chat_id?: number | null
+          telegram_connected?: boolean
+          telegram_first_name?: string | null
+          telegram_last_login?: string | null
+          telegram_link_code?: string | null
+          telegram_link_password_hash?: string | null
+          telegram_username?: string | null
+          telegram_verified_at?: string | null
           whatsapp_bot_enabled?: boolean | null
           whatsapp_verified?: boolean | null
         }
@@ -1128,6 +1152,48 @@ export type Database = {
           is_occupied?: boolean | null
           store_owner_id?: string
           table_number?: string
+        }
+        Relationships: []
+      }
+      telegram_bot_sessions: {
+        Row: {
+          chat_id: number
+          link_code: string | null
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          chat_id: number
+          link_code?: string | null
+          state: string
+          updated_at?: string
+        }
+        Update: {
+          chat_id?: number
+          link_code?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      telegram_link_attempts: {
+        Row: {
+          attempts: number
+          chat_id: number
+          locked_until: string | null
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          chat_id: number
+          locked_until?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          chat_id?: number
+          locked_until?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
