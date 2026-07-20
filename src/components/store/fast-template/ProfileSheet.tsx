@@ -30,10 +30,19 @@ import TelegramLinkSection from "@/components/profile/TelegramLinkSection";
 interface ProfileSheetProps {
   colorTheme?: string | null;
   onBeforeOpen?: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
 }
 
-const ProfileSheet = ({ colorTheme, onBeforeOpen }: ProfileSheetProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+const ProfileSheet = ({ colorTheme, onBeforeOpen, open, onOpenChange, hideTrigger }: ProfileSheetProps) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open! : internalOpen;
+  const setIsOpen = (o: boolean) => {
+    if (isControlled) onOpenChange?.(o);
+    else setInternalOpen(o);
+  };
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [callmebotApiKey, setCallmebotApiKey] = useState("");
@@ -173,17 +182,19 @@ const ProfileSheet = ({ colorTheme, onBeforeOpen }: ProfileSheetProps) => {
 
   return (
     <Sheet open={isOpen} onOpenChange={(o) => { if (o) onBeforeOpen?.(); setIsOpen(o); }}>
-      <SheetTrigger asChild>
-        <div
-          className="flex items-center justify-between p-3 rounded-lg bg-background/50 backdrop-blur-sm cursor-pointer hover:bg-background/70 transition-colors"
-        >
-          <div className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            <span className="text-sm font-medium">الملف الشخصي</span>
+      {!hideTrigger && (
+        <SheetTrigger asChild>
+          <div
+            className="flex items-center justify-between p-3 rounded-lg bg-background/50 backdrop-blur-sm cursor-pointer hover:bg-background/70 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              <span className="text-sm font-medium">الملف الشخصي</span>
+            </div>
+            <span className="text-xs text-muted-foreground">←</span>
           </div>
-          <span className="text-xs text-muted-foreground">←</span>
-        </div>
-      </SheetTrigger>
+        </SheetTrigger>
+      )}
       <SheetContent 
         side="bottom" 
         className="h-[90vh] overflow-y-auto rounded-t-3xl"

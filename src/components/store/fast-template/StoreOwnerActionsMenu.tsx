@@ -97,6 +97,7 @@ const StoreOwnerActionsMenu = ({
   const [showImageGenerator, setShowImageGenerator] = useState(false);
   const [showProductImageGenerator, setShowProductImageGenerator] = useState(false);
   const [showMenuScan, setShowMenuScan] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -451,7 +452,13 @@ const StoreOwnerActionsMenu = ({
               <div className="space-y-1">
                 <SectionTitle>الحساب</SectionTitle>
                 <div className="bg-muted/30 rounded-2xl p-1.5 space-y-0.5">
-                  <ProfileSheet colorTheme={colorTheme} onBeforeOpen={() => setIsOpen(false)} />
+                  <MenuItem
+                    icon={<Settings className="h-5 w-5" />}
+                    label="الملف الشخصي"
+                    subtitle="إدارة بياناتك وحسابك"
+                    onClick={() => { setIsOpen(false); setTimeout(() => setShowProfile(true), 250); }}
+                    color={themeColor}
+                  />
                   <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={async () => {
@@ -504,6 +511,7 @@ const StoreOwnerActionsMenu = ({
       <CategoryImageGenerator isOpen={showImageGenerator} onClose={() => setShowImageGenerator(false)} categories={categories} categoryImages={categoryImages} storeOwnerId={storeOwnerId} storeName={storeName} colorTheme={colorTheme} onGenerated={onUpdate} />
       <ProductImageGenerator isOpen={showProductImageGenerator} onClose={() => setShowProductImageGenerator(false)} products={products} colorTheme={colorTheme} onGenerated={onUpdate} />
       <MenuScanModal isOpen={showMenuScan} onOpenChange={setShowMenuScan} onProductsAdded={onUpdate} colorTheme={colorTheme} />
+      <ProfileSheet colorTheme={colorTheme} open={showProfile} onOpenChange={setShowProfile} hideTrigger />
     </>
   );
 };
