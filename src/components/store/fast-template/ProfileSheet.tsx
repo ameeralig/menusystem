@@ -29,9 +29,10 @@ import TelegramLinkSection from "@/components/profile/TelegramLinkSection";
 
 interface ProfileSheetProps {
   colorTheme?: string | null;
+  onBeforeOpen?: () => void;
 }
 
-const ProfileSheet = ({ colorTheme }: ProfileSheetProps) => {
+const ProfileSheet = ({ colorTheme, onBeforeOpen }: ProfileSheetProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -171,7 +172,7 @@ const ProfileSheet = ({ colorTheme }: ProfileSheetProps) => {
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+    <Sheet open={isOpen} onOpenChange={(o) => { if (o) onBeforeOpen?.(); setIsOpen(o); }}>
       <SheetTrigger asChild>
         <div
           className="flex items-center justify-between p-3 rounded-lg bg-background/50 backdrop-blur-sm cursor-pointer hover:bg-background/70 transition-colors"
