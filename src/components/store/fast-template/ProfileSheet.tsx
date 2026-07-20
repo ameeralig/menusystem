@@ -30,10 +30,19 @@ import TelegramLinkSection from "@/components/profile/TelegramLinkSection";
 interface ProfileSheetProps {
   colorTheme?: string | null;
   onBeforeOpen?: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
 }
 
-const ProfileSheet = ({ colorTheme, onBeforeOpen }: ProfileSheetProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+const ProfileSheet = ({ colorTheme, onBeforeOpen, open, onOpenChange, hideTrigger }: ProfileSheetProps) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open! : internalOpen;
+  const setIsOpen = (o: boolean) => {
+    if (isControlled) onOpenChange?.(o);
+    else setInternalOpen(o);
+  };
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [callmebotApiKey, setCallmebotApiKey] = useState("");
