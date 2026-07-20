@@ -511,6 +511,7 @@ const StoreOwnerActionsMenu = ({
       <CategoryImageGenerator isOpen={showImageGenerator} onClose={() => setShowImageGenerator(false)} categories={categories} categoryImages={categoryImages} storeOwnerId={storeOwnerId} storeName={storeName} colorTheme={colorTheme} onGenerated={onUpdate} />
       <ProductImageGenerator isOpen={showProductImageGenerator} onClose={() => setShowProductImageGenerator(false)} products={products} colorTheme={colorTheme} onGenerated={onUpdate} />
       <MenuScanModal isOpen={showMenuScan} onOpenChange={setShowMenuScan} onProductsAdded={onUpdate} colorTheme={colorTheme} />
+      <ProfileSheet colorTheme={colorTheme} open={showProfile} onOpenChange={setShowProfile} hideTrigger />
     </>
   );
 };
