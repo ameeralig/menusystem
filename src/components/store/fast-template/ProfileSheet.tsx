@@ -29,9 +29,10 @@ import TelegramLinkSection from "@/components/profile/TelegramLinkSection";
 
 interface ProfileSheetProps {
   colorTheme?: string | null;
+  onBeforeOpen?: () => void;
 }
 
-const ProfileSheet = ({ colorTheme }: ProfileSheetProps) => {
+const ProfileSheet = ({ colorTheme, onBeforeOpen }: ProfileSheetProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
