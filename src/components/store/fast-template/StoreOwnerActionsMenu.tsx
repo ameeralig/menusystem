@@ -451,7 +451,7 @@ const StoreOwnerActionsMenu = ({
               <div className="space-y-1">
                 <SectionTitle>الحساب</SectionTitle>
                 <div className="bg-muted/30 rounded-2xl p-1.5 space-y-0.5">
-                  <ProfileSheet colorTheme={colorTheme} />
+                  <ProfileSheet colorTheme={colorTheme} onBeforeOpen={() => setIsOpen(false)} />
                   <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={async () => {
