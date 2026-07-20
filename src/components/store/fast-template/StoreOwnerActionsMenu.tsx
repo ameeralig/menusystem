@@ -97,6 +97,7 @@ const StoreOwnerActionsMenu = ({
   const [showImageGenerator, setShowImageGenerator] = useState(false);
   const [showProductImageGenerator, setShowProductImageGenerator] = useState(false);
   const [showMenuScan, setShowMenuScan] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
   useEffect(() => {
     const fetchSettings = async () => {
