@@ -172,7 +172,7 @@ const ProfileSheet = ({ colorTheme, onBeforeOpen }: ProfileSheetProps) => {
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+    <Sheet open={isOpen} onOpenChange={(o) => { if (o) onBeforeOpen?.(); setIsOpen(o); }}>
       <SheetTrigger asChild>
         <div
           className="flex items-center justify-between p-3 rounded-lg bg-background/50 backdrop-blur-sm cursor-pointer hover:bg-background/70 transition-colors"
