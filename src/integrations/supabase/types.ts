@@ -902,6 +902,7 @@ export type Database = {
           telegram_chat_id: number | null
           telegram_connected: boolean
           telegram_first_name: string | null
+          telegram_last_activity: string | null
           telegram_last_login: string | null
           telegram_link_code: string | null
           telegram_link_password_hash: string | null
@@ -920,6 +921,7 @@ export type Database = {
           telegram_chat_id?: number | null
           telegram_connected?: boolean
           telegram_first_name?: string | null
+          telegram_last_activity?: string | null
           telegram_last_login?: string | null
           telegram_link_code?: string | null
           telegram_link_password_hash?: string | null
@@ -938,6 +940,7 @@ export type Database = {
           telegram_chat_id?: number | null
           telegram_connected?: boolean
           telegram_first_name?: string | null
+          telegram_last_activity?: string | null
           telegram_last_login?: string | null
           telegram_link_code?: string | null
           telegram_link_password_hash?: string | null
@@ -1158,18 +1161,21 @@ export type Database = {
       telegram_bot_sessions: {
         Row: {
           chat_id: number
+          data: Json
           link_code: string | null
           state: string
           updated_at: string
         }
         Insert: {
           chat_id: number
+          data?: Json
           link_code?: string | null
           state: string
           updated_at?: string
         }
         Update: {
           chat_id?: number
+          data?: Json
           link_code?: string | null
           state?: string
           updated_at?: string
