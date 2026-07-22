@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Send, Copy, RefreshCw, Unlink, CheckCircle2, Loader2 } from "lucide-react";
+import { Send, Copy, RefreshCw, Unlink, CheckCircle2, Loader2, ExternalLink, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -99,25 +99,63 @@ export const TelegramLinkSection = ({ themeColor }: { themeColor: string }) => {
 
   const connected = status?.telegram_connected;
 
+  const BOT_USERNAME = "qrmenuc_bot";
+  const BOT_URL = `https://t.me/${BOT_USERNAME}`;
+
   return (
     <div className="pt-6 border-t border-border/40">
-      <div className="flex items-center gap-2 mb-3">
-        <Send className="h-5 w-5" style={{ color: themeColor }} />
-        <h3 className="text-lg font-bold text-right">ربط Telegram</h3>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Send className="h-5 w-5" style={{ color: themeColor }} />
+          <h3 className="text-lg font-bold">ربط Telegram</h3>
+        </div>
+        <span
+          className={`text-xs px-2 py-1 rounded-full font-medium ${
+            connected
+              ? "bg-emerald-500/15 text-emerald-600 border border-emerald-500/30"
+              : "bg-amber-500/15 text-amber-600 border border-amber-500/30"
+          }`}
+        >
+          {connected ? "● متصل" : "● غير متصل"}
+        </span>
       </div>
+
+      {/* Bot info card — always visible */}
+      <a
+        href={BOT_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-between p-3 mb-3 rounded-xl bg-background/70 border border-border/40 hover:bg-background transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: `${themeColor}20` }}>
+            <Send className="h-5 w-5" style={{ color: themeColor }} />
+          </div>
+          <div className="text-right">
+            <div className="text-sm font-bold">QRM AI 🤖</div>
+            <div className="text-xs text-muted-foreground" dir="ltr">@{BOT_USERNAME}</div>
+          </div>
+        </div>
+        <ExternalLink className="h-4 w-4 text-muted-foreground" />
+      </a>
 
       {connected ? (
         <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 space-y-3">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-            <span className="font-medium">مربوط</span>
+            <span className="font-medium">تم الربط بنجاح</span>
           </div>
           <div className="text-sm space-y-1 text-right">
             {status?.telegram_first_name && <div>الاسم: {status.telegram_first_name}</div>}
-            {status?.telegram_username && <div>@{status.telegram_username}</div>}
+            {status?.telegram_username && <div dir="ltr" className="text-left">@{status.telegram_username}</div>}
             {status?.telegram_verified_at && (
               <div className="text-xs text-muted-foreground">
-                منذ: {new Date(status.telegram_verified_at).toLocaleDateString("ar")}
+                تاريخ الربط: {new Date(status.telegram_verified_at).toLocaleDateString("ar")}
+              </div>
+            )}
+            {status?.telegram_last_login && (
+              <div className="text-xs text-muted-foreground">
+                آخر دخول: {new Date(status.telegram_last_login).toLocaleString("ar")}
               </div>
             )}
           </div>
@@ -127,9 +165,15 @@ export const TelegramLinkSection = ({ themeColor }: { themeColor: string }) => {
         </div>
       ) : (
         <div className="p-4 rounded-xl bg-background/50 border border-border/40 space-y-3">
-          <p className="text-sm text-muted-foreground text-right">
-            اربط حسابك بـ Telegram Bot لإدارة متجرك من التطبيق.
-          </p>
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+            <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
+            <div className="text-xs text-right leading-relaxed">
+              <div className="font-medium mb-1">خطوات الربط:</div>
+              <div>1️⃣ ولّد <b>رمز الربط</b> و<b>كلمة السر</b> من الزر بالأسفل.</div>
+              <div>2️⃣ افتح البوت <b>@{BOT_USERNAME}</b> وأرسل <span className="font-mono">/start</span>.</div>
+              <div>3️⃣ أرسل الرمز، ثم كلمة السر عند طلبها.</div>
+            </div>
+          </div>
 
           {creds ? (
             <div className="space-y-3">
@@ -141,9 +185,13 @@ export const TelegramLinkSection = ({ themeColor }: { themeColor: string }) => {
               <Button variant="outline" className="w-full gap-2" onClick={copyBoth}>
                 <Copy className="h-4 w-4" /> نسخ الاثنين
               </Button>
-              <div className="text-xs text-muted-foreground text-right leading-relaxed">
-                افتح البوت على Telegram، أرسل <span className="font-mono">/start</span>، ثم أرسل الرمز وكلمة المرور.
-              </div>
+              <Button
+                variant="outline"
+                className="w-full gap-2"
+                onClick={() => window.open(BOT_URL, "_blank")}
+              >
+                <ExternalLink className="h-4 w-4" /> فتح البوت الآن
+              </Button>
             </div>
           ) : status?.telegram_link_code ? (
             <div className="space-y-2">
