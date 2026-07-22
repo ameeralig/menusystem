@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Send, Copy, RefreshCw, Unlink, CheckCircle2, Loader2 } from "lucide-react";
+import { Send, Copy, RefreshCw, Unlink, CheckCircle2, Loader2, ExternalLink, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
