@@ -1160,23 +1160,29 @@ export type Database = {
       }
       telegram_bot_sessions: {
         Row: {
+          ai_history: Json
           chat_id: number
           data: Json
           link_code: string | null
+          pending_action: Json | null
           state: string
           updated_at: string
         }
         Insert: {
+          ai_history?: Json
           chat_id: number
           data?: Json
           link_code?: string | null
+          pending_action?: Json | null
           state: string
           updated_at?: string
         }
         Update: {
+          ai_history?: Json
           chat_id?: number
           data?: Json
           link_code?: string | null
+          pending_action?: Json | null
           state?: string
           updated_at?: string
         }
