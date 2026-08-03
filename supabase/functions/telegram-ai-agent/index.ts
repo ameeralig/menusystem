@@ -118,12 +118,14 @@ Deno.serve(async (req) => {
       { role: "assistant", content: reply },
     ].slice(-MAX_HISTORY);
 
-    await db.from("telegram_bot_sessions").upsert({
+    const { error: saveError } = await db.from("telegram_bot_sessions").upsert({
       chat_id: chatId,
+      state: (session as any)?.state ?? "ai",
       ai_history: newHistory,
       pending_action: awaitingImageFor ? { type: "product_image", product_id: awaitingImageFor } : null,
       updated_at: new Date().toISOString(),
-    });
+    }, { onConflict: "chat_id" });
+    if (saveError) console.error("save session failed", saveError);
 
     return Response.json({ reply, awaitingImageFor }, { headers: corsHeaders });
   } catch (e: any) {
