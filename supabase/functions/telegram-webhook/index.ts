@@ -541,7 +541,6 @@ async function askAiAgent(chatId: number, userId: string, text: string): Promise
     return "⚠️ المساعد الذكي مو متوفر حالياً. استخدم الأزرار بالأسفل.";
   }
 }
-}
 
 // ========================== FSM text steps ==========================
 async function handleFsmText(chatId: number, userId: string, session: Session, text: string): Promise<boolean> {
