@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
     // ذاكرة المحادثة
     const { data: session } = await db
       .from("telegram_bot_sessions")
-      .select("ai_history, pending_action")
+      .select("state, ai_history, pending_action")
       .eq("chat_id", chatId)
       .maybeSingle();
 
