@@ -437,7 +437,7 @@ export async function runTool(name: string, args: any, ctx: Ctx): Promise<ToolRe
         if (exists.some((c: any) => c.name.trim().toLowerCase() === String(args.name).trim().toLowerCase()))
           return fail("DuplicateCategory", "التصنيف موجود مسبقاً");
         const { data, error } = await db.from("categories")
-          .insert({ user_id: uid, name: args.name }).select("id,name").single();
+          .insert({ user_id: uid, name: args.name, image_url: args.image_url ?? "" }).select("id,name").single();
         if (error) return fail(error.message);
         return ok({ category: data, message: "تم إنشاء التصنيف" });
       }
