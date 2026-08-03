@@ -497,9 +497,31 @@ async function handleMessage(chatId: number, msg: any) {
     }
   }
 
-  // Fallback
-  await send(chatId, "🤔 لم أفهم الطلب. استخدم الأزرار بالأسفل أو أرسل /help.", MAIN_KB);
+  // 🤖 المساعد الذكي — أي كلام حر يُفهم وينفّذ باللغة الطبيعية
+  await tg("sendChatAction", { chat_id: chatId, action: "typing" });
+  const aiReply = await askAiAgent(chatId, linked.id, text);
+  await send(chatId, aiReply, MAIN_KB);
   return new Response(JSON.stringify({ ok: true }));
+}
+
+// استدعاء المساعد الذكي
+async function askAiAgent(chatId: number, userId: string, text: string): Promise<string> {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/functions/v1/telegram-ai-agent`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+      },
+      body: JSON.stringify({ chatId, userId, text }),
+    });
+    const data = await r.json().catch(() => null);
+    return data?.reply || "🤔 ما فهمت الطلب. جرّب توضّح أكثر أو استخدم الأزرار.";
+  } catch (e) {
+    console.error("askAiAgent", e);
+    return "⚠️ المساعد الذكي مو متوفر حالياً. استخدم الأزرار بالأسفل.";
+  }
+}
 }
 
 // ========================== FSM text steps ==========================
