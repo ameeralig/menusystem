@@ -413,6 +413,25 @@ async function handleMessage(chatId: number, msg: any) {
   await touch(linked.id);
   const session = await getSession(chatId);
 
+  // 🤖 صورة مطلوبة من المساعد الذكي
+  const pending = (session as any)?.pending_action;
+  if (photo && pending?.type === "product_image" && pending?.product_id) {
+    await send(chatId, "⏳ جاري رفع الصوره...");
+    const dl = await downloadTelegramPhoto(photo.file_id);
+    const url = dl ? await uploadPhotoToR2(linked.id, dl.bytes, dl.name) : null;
+    if (!url) {
+      await send(chatId, "❌ فشل رفع الصوره. جرّب مرة ثانية.");
+      return new Response(JSON.stringify({ ok: true }));
+    }
+    await supabase.from("products").update({ image_url: url })
+      .eq("id", pending.product_id).eq("user_id", linked.id);
+    await supabase.from("telegram_bot_sessions")
+      .update({ pending_action: null }).eq("chat_id", chatId);
+    await send(chatId, "✅ تم ربط الصوره بالمنتج!", MAIN_KB);
+    await showProduct(chatId, linked.id, pending.product_id);
+    return new Response(JSON.stringify({ ok: true }));
+  }
+
   // Photo handler (for image edits/adds)
   if (photo && session?.state) {
     if (session.state === "add_product:image" || session.state?.startsWith("edit_image:")) {
