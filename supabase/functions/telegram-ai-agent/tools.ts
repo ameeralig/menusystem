@@ -535,13 +535,16 @@ export async function runTool(name: string, args: any, ctx: Ctx): Promise<ToolRe
         const [prodRes, catRes, ordRes, viewRes] = await Promise.all([
           db.from("products").select("id", { count: "exact", head: true }).eq("user_id", uid),
           db.from("categories").select("id", { count: "exact", head: true }).eq("user_id", uid),
-          db.from("orders").select("final_amount,created_at").eq("store_owner_id", uid).gte("created_at", since),
+          db.from("orders").select("id,final_amount,created_at").eq("store_owner_id", uid).gte("created_at", since),
           db.from("page_views").select("view_count").eq("user_id", uid).maybeSingle(),
         ]);
         const orders = ordRes.data ?? [];
         const sales = orders.reduce((s: number, o: any) => s + Number(o.final_amount ?? 0), 0);
-        const { data: items } = await db.from("order_items")
-          .select("product_name,quantity").limit(500);
+        // أفضل المنتجات — مقيّدة بطلبات هذا المتجر فقط
+        const orderIds = orders.map((o: any) => o.id).slice(0, 300);
+        const { data: items } = orderIds.length
+          ? await db.from("order_items").select("product_name,quantity").in("order_id", orderIds).limit(1000)
+          : { data: [] as any[] };
         const tally: Record<string, number> = {};
         for (const it of items ?? []) {
           if (!it?.product_name) continue;
