@@ -462,7 +462,7 @@ async function handleMessage(chatId: number, msg: any) {
   }
 
   // Text commands
-  if (text === "/start" || text === "/menu") {
+  if (text === "/start" || text === "/menu" || text === "القائمة" || text === "الأزرار" || text === "الازرار") {
     await send(chatId, `👋 مرحباً ${escape(linked.full_name ?? "")}\nاختر من القائمة:`, MAIN_KB);
     return new Response(JSON.stringify({ ok: true }));
   }
