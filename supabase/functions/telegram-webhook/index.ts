@@ -58,6 +58,7 @@ const MAIN_KB = {
   },
 };
 
+const NO_KB = {};
 const REMOVE_KB = { reply_markup: { remove_keyboard: true } };
 
 // ========================== R2 upload (for photos) ==========================
@@ -427,7 +428,7 @@ async function handleMessage(chatId: number, msg: any) {
       .eq("id", pending.product_id).eq("user_id", linked.id);
     await supabase.from("telegram_bot_sessions")
       .update({ pending_action: null }).eq("chat_id", chatId);
-    await send(chatId, "✅ تم ربط الصوره بالمنتج!", MAIN_KB);
+    await send(chatId, "✅ تم ربط الصوره بالمنتج!", NO_KB);
     await showProduct(chatId, linked.id, pending.product_id);
     return new Response(JSON.stringify({ ok: true }));
   }
@@ -453,7 +454,7 @@ async function handleMessage(chatId: number, msg: any) {
         const productId = session.state.split(":")[1];
         await supabase.from("products").update({ image_url: url }).eq("id", productId).eq("user_id", linked.id);
         await clearSession(chatId);
-        await send(chatId, "✅ تم تحديث الصوره.", MAIN_KB);
+        await send(chatId, "✅ تم تحديث الصوره.", NO_KB);
         await showProduct(chatId, linked.id, productId);
       }
       return new Response(JSON.stringify({ ok: true }));
@@ -461,7 +462,7 @@ async function handleMessage(chatId: number, msg: any) {
   }
 
   // Text commands
-  if (text === "/start" || text === "/menu") {
+  if (text === "/start" || text === "/menu" || text === "القائمة" || text === "الأزرار" || text === "الازرار") {
     await send(chatId, `👋 مرحباً ${escape(linked.full_name ?? "")}\nاختر من القائمة:`, MAIN_KB);
     return new Response(JSON.stringify({ ok: true }));
   }
@@ -471,7 +472,7 @@ async function handleMessage(chatId: number, msg: any) {
   }
   if (text === "/cancel") {
     await clearSession(chatId);
-    await send(chatId, "✅ تم إلغاء العملية.", MAIN_KB);
+    await send(chatId, "✅ تم إلغاء العملية.", NO_KB);
     return new Response(JSON.stringify({ ok: true }));
   }
   if (text === "/unlink" || text === "❌ تسجيل الخروج") {
@@ -506,12 +507,12 @@ async function handleMessage(chatId: number, msg: any) {
       return new Response(JSON.stringify({ ok: true }));
     case "⚙️ الإعدادات": {
       const { data: s } = await supabase.from("store_settings").select("store_name").eq("user_id", linked.id).maybeSingle();
-      await send(chatId, `⚙️ <b>الإعدادات</b>\n\n🏪 المتجر: ${escape(s?.store_name ?? "غير محدد")}\n\nإدارة الإعدادات المتقدمة تتم من الموقع.`, MAIN_KB);
+      await send(chatId, `⚙️ <b>الإعدادات</b>\n\n🏪 المتجر: ${escape(s?.store_name ?? "غير محدد")}\n\nإدارة الإعدادات المتقدمة تتم من الموقع.`, NO_KB);
       return new Response(JSON.stringify({ ok: true }));
     }
     case "👤 الحساب": {
       const { data: p } = await supabase.from("profiles").select("full_name, telegram_username, telegram_verified_at").eq("id", linked.id).maybeSingle();
-      await send(chatId, `👤 <b>حسابك</b>\n\nالاسم: ${escape(p?.full_name ?? "-")}\n@${escape(p?.telegram_username ?? "-")}\nتاريخ الربط: ${p?.telegram_verified_at ? new Date(p.telegram_verified_at).toLocaleDateString("ar") : "-"}`, MAIN_KB);
+      await send(chatId, `👤 <b>حسابك</b>\n\nالاسم: ${escape(p?.full_name ?? "-")}\n@${escape(p?.telegram_username ?? "-")}\nتاريخ الربط: ${p?.telegram_verified_at ? new Date(p.telegram_verified_at).toLocaleDateString("ar") : "-"}`, NO_KB);
       return new Response(JSON.stringify({ ok: true }));
     }
   }
@@ -519,7 +520,7 @@ async function handleMessage(chatId: number, msg: any) {
   // 🤖 المساعد الذكي — أي كلام حر يُفهم وينفّذ باللغة الطبيعية
   await tg("sendChatAction", { chat_id: chatId, action: "typing" });
   const aiReply = await askAiAgent(chatId, linked.id, text);
-  await send(chatId, aiReply, MAIN_KB);
+  await send(chatId, aiReply, NO_KB);
   return new Response(JSON.stringify({ ok: true }));
 }
 
@@ -585,7 +586,7 @@ async function handleFsmText(chatId: number, userId: string, session: Session, t
     const pid = s.split(":")[1];
     await supabase.from("products").update({ name: text }).eq("id", pid).eq("user_id", userId);
     await clearSession(chatId);
-    await send(chatId, "✅ تم تحديث الاسم.", MAIN_KB);
+    await send(chatId, "✅ تم تحديث الاسم.", NO_KB);
     await showProduct(chatId, userId, pid);
     return true;
   }
@@ -595,7 +596,7 @@ async function handleFsmText(chatId: number, userId: string, session: Session, t
     if (isNaN(price)) { await send(chatId, "❌ سعر غير صحيح."); return true; }
     await supabase.from("products").update({ price }).eq("id", pid).eq("user_id", userId);
     await clearSession(chatId);
-    await send(chatId, "✅ تم تحديث السعر.", MAIN_KB);
+    await send(chatId, "✅ تم تحديث السعر.", NO_KB);
     await showProduct(chatId, userId, pid);
     return true;
   }
@@ -603,7 +604,7 @@ async function handleFsmText(chatId: number, userId: string, session: Session, t
     const pid = s.split(":")[1];
     await supabase.from("products").update({ description: text === "-" ? null : text }).eq("id", pid).eq("user_id", userId);
     await clearSession(chatId);
-    await send(chatId, "✅ تم تحديث الوصف.", MAIN_KB);
+    await send(chatId, "✅ تم تحديث الوصف.", NO_KB);
     await showProduct(chatId, userId, pid);
     return true;
   }
@@ -614,15 +615,15 @@ async function handleFsmText(chatId: number, userId: string, session: Session, t
       user_id: userId, name: text, image_url: "",
     });
     await clearSession(chatId);
-    if (error) await send(chatId, `❌ فشل: ${error.message}`, MAIN_KB);
-    else { await send(chatId, `✅ تم إضافة التصنيف "${escape(text)}"`, MAIN_KB); await listCategories(chatId, userId); }
+    if (error) await send(chatId, `❌ فشل: ${error.message}`, NO_KB);
+    else { await send(chatId, `✅ تم إضافة التصنيف "${escape(text)}"`, NO_KB); await listCategories(chatId, userId); }
     return true;
   }
   if (s.startsWith("cat_rename:")) {
     const cid = s.split(":")[1];
     await supabase.from("categories").update({ name: text }).eq("id", cid).eq("user_id", userId);
     await clearSession(chatId);
-    await send(chatId, "✅ تم تحديث اسم التصنيف.", MAIN_KB);
+    await send(chatId, "✅ تم تحديث اسم التصنيف.", NO_KB);
     await listCategories(chatId, userId);
     return true;
   }
@@ -633,7 +634,7 @@ async function handleFsmText(chatId: number, userId: string, session: Session, t
       .from("products").select("id,name,price")
       .eq("user_id", userId).ilike("name", `%${text}%`).limit(15);
     await clearSession(chatId);
-    if (!data?.length) { await send(chatId, "لا توجد نتائج.", MAIN_KB); return true; }
+    if (!data?.length) { await send(chatId, "لا توجد نتائج.", NO_KB); return true; }
     const rows = data.map((p: any) => [{ text: `${p.name} — ${p.price}`, callback_data: `p:view:${p.id}` }]);
     await send(chatId, `🔍 نتائج البحث (${data.length}):`, { reply_markup: { inline_keyboard: rows } });
     return true;
@@ -645,7 +646,7 @@ async function handleFsmText(chatId: number, userId: string, session: Session, t
 async function finalizeAddProduct(chatId: number, userId: string, np: any) {
   if (!np?.name || np?.price == null) {
     await clearSession(chatId);
-    await send(chatId, "❌ بيانات غير مكتمله. أعد المحاولة.", MAIN_KB);
+    await send(chatId, "❌ بيانات غير مكتمله. أعد المحاولة.", NO_KB);
     return;
   }
   // resolve category name
@@ -666,9 +667,9 @@ async function finalizeAddProduct(chatId: number, userId: string, np: any) {
   }).select("id").single();
   await clearSession(chatId);
   if (error) {
-    await send(chatId, `❌ فشل الحفظ: ${error.message}`, MAIN_KB);
+    await send(chatId, `❌ فشل الحفظ: ${error.message}`, NO_KB);
   } else {
-    await send(chatId, "✅ تم إضافة المنتج بنجاح!", MAIN_KB);
+    await send(chatId, "✅ تم إضافة المنتج بنجاح!", NO_KB);
     if (data?.id) await showProduct(chatId, userId, data.id);
   }
 }
@@ -767,7 +768,7 @@ async function handleCallback(cq: any) {
   if (data.startsWith("p:delok:")) {
     const pid = data.split(":")[2];
     await supabase.from("products").delete().eq("id", pid).eq("user_id", uid);
-    await send(chatId, "✅ تم حذف المنتج.", MAIN_KB);
+    await send(chatId, "✅ تم حذف المنتج.", NO_KB);
     return new Response(JSON.stringify({ ok: true }));
   }
 
@@ -808,7 +809,7 @@ async function handleCallback(cq: any) {
     const cid = data.split(":")[2];
     await supabase.from("products").update({ category_id: null }).eq("category_id", cid).eq("user_id", uid);
     await supabase.from("categories").delete().eq("id", cid).eq("user_id", uid);
-    await send(chatId, "✅ تم حذف التصنيف.", MAIN_KB);
+    await send(chatId, "✅ تم حذف التصنيف.", NO_KB);
     await listCategories(chatId, uid);
     return new Response(JSON.stringify({ ok: true }));
   }
