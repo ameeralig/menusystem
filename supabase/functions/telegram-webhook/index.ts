@@ -517,6 +517,18 @@ async function handleMessage(chatId: number, msg: any) {
     }
   }
 
+  // 💳 رصيد المساعد الذكي
+  const t = text.trim();
+  if (["رصيدي", "الرصيد", "رصيد", "/balance"].includes(t)) {
+    await showAiBalance(chatId, linked.id);
+    return new Response(JSON.stringify({ ok: true }));
+  }
+  if (["شراء رصيد", "شحن رصيد", "/topup"].includes(t)) {
+    await requestAiTopup(chatId, linked.id);
+    return new Response(JSON.stringify({ ok: true }));
+  }
+
+
   // 🤖 المساعد الذكي — أي كلام حر يُفهم وينفّذ باللغة الطبيعية
   await tg("sendChatAction", { chat_id: chatId, action: "typing" });
   const aiReply = await askAiAgent(chatId, linked.id, text);
