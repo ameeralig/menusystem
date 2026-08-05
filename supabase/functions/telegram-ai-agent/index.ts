@@ -64,6 +64,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: "chatId, userId, text مطلوبة" }, { status: 400, headers: corsHeaders });
     }
 
+    // خصم رسالة واحدة من رصيد المستخدم قبل الاستدعاء
+    const { data: remaining, error: creditError } = await db.rpc("consume_ai_credit", { _user_id: userId });
+    if (creditError) console.error("consume_ai_credit", creditError);
+    if (remaining === -1) {
+      return Response.json({
+        reply:
+          "🪫 <b>خلص رصيد المساعد الذكي</b>\n\nتقدر تشتري رصيد إضافي بإرسال كلمة <b>شراء رصيد</b>، أو تشوف رصيدك بكلمة <b>رصيدي</b>.",
+        outOfCredit: true,
+      }, { headers: corsHeaders });
+    }
+
+
     // ذاكرة المحادثة
     const { data: session } = await db
       .from("telegram_bot_sessions")
@@ -127,13 +139,20 @@ Deno.serve(async (req) => {
     }, { onConflict: "chat_id" });
     if (saveError) console.error("save session failed", saveError);
 
-    return Response.json({ reply, awaitingImageFor }, { headers: corsHeaders });
+    // تنبيه عند اقتراب نفاد الرصيد
+    const left = typeof remaining === "number" ? remaining : null;
+    if (left !== null && left <= 10) {
+      reply += `\n\n⚠️ باقي عندك <b>${left}</b> رسالة. أرسل <b>شراء رصيد</b> للشحن.`;
+    }
+
+    return Response.json({ reply, awaitingImageFor, remaining: left }, { headers: corsHeaders });
   } catch (e: any) {
     const status = e?.status;
     const msg =
       status === 429 ? "⏳ ضغط عالي على المساعد الذكي، جرّب بعد شوية."
-      : status === 402 ? "💳 انتهى رصيد الذكاء الاصطناعي. أضف رصيد للاستمرار."
+      : status === 402 ? "🪫 خدمة الذكاء الاصطناعي متوقفة مؤقتاً من طرف المنصة. راجع الإدارة."
       : "⚠️ صار خطأ بالمساعد الذكي. جرّب مرة ثانية.";
+
     console.error("telegram-ai-agent", e);
     return Response.json({ reply: msg, error: String(e?.message ?? e) }, { status: 200, headers: corsHeaders });
   }

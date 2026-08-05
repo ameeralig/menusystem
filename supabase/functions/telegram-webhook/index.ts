@@ -517,12 +517,71 @@ async function handleMessage(chatId: number, msg: any) {
     }
   }
 
+  // 💳 رصيد المساعد الذكي
+  const t = text.trim();
+  if (["رصيدي", "الرصيد", "رصيد", "/balance"].includes(t)) {
+    await showAiBalance(chatId, linked.id);
+    return new Response(JSON.stringify({ ok: true }));
+  }
+  if (["شراء رصيد", "شحن رصيد", "/topup"].includes(t)) {
+    await requestAiTopup(chatId, linked.id);
+    return new Response(JSON.stringify({ ok: true }));
+  }
+
+
   // 🤖 المساعد الذكي — أي كلام حر يُفهم وينفّذ باللغة الطبيعية
   await tg("sendChatAction", { chat_id: chatId, action: "typing" });
   const aiReply = await askAiAgent(chatId, linked.id, text);
   await send(chatId, aiReply, NO_KB);
   return new Response(JSON.stringify({ ok: true }));
 }
+
+// ==================== رصيد المساعد الذكي ====================
+async function getAiCredits(userId: string) {
+  const { data } = await supabase
+    .from("ai_user_credits")
+    .select("balance, total_used")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (data) return data;
+  const { data: created } = await supabase
+    .from("ai_user_credits")
+    .insert({ user_id: userId })
+    .select("balance, total_used")
+    .maybeSingle();
+  return created ?? { balance: 100, total_used: 0 };
+}
+
+async function showAiBalance(chatId: number, userId: string) {
+  const c = await getAiCredits(userId);
+  const bar = "▰".repeat(Math.max(0, Math.round((c.balance / 100) * 10))) +
+              "▱".repeat(Math.max(0, 10 - Math.round((c.balance / 100) * 10)));
+  await send(
+    chatId,
+    `💳 <b>رصيد المساعد الذكي</b>\n\n${bar}\n\n🔋 المتبقي: <b>${c.balance}</b> رسالة\n📊 المستهلك: ${c.total_used} رسالة\n\nلشحن رصيد أرسل: <b>شراء رصيد</b>`,
+    NO_KB,
+  );
+}
+
+async function requestAiTopup(chatId: number, userId: string) {
+  const { error } = await supabase.from("ai_credit_purchases").insert({
+    user_id: userId,
+    amount: 500,
+    status: "pending",
+    note: `طلب من تلكرام - chat ${chatId}`,
+  });
+  if (error) {
+    console.error("topup insert", error);
+    await send(chatId, "⚠️ ما كدرنا نسجّل الطلب. جرّب مرة ثانية.", NO_KB);
+    return;
+  }
+  await send(
+    chatId,
+    "🧾 <b>تم تسجيل طلب شحن ٥٠٠ رسالة</b>\n\nراح تتواصل وياك الإدارة لإكمال الدفع وتفعيل الرصيد.\nتقدر تتابع رصيدك بكلمة <b>رصيدي</b>.",
+    NO_KB,
+  );
+}
+
 
 // استدعاء المساعد الذكي
 async function askAiAgent(chatId: number, userId: string, text: string): Promise<string> {

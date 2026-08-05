@@ -38,6 +38,33 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_credit_purchases: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          note: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          note?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          note?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_messages: {
         Row: {
           content: string
@@ -72,6 +99,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ai_user_credits: {
+        Row: {
+          balance: number
+          total_used: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          total_used?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          total_used?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       api_keys: {
         Row: {
@@ -1341,6 +1389,7 @@ export type Database = {
       cleanup_expired_whatsapp_sessions: { Args: never; Returns: number }
       cleanup_old_employee_sales: { Args: never; Returns: number }
       cleanup_old_resolved_feedback: { Args: never; Returns: number }
+      consume_ai_credit: { Args: { _user_id: string }; Returns: number }
       create_notifications_table_if_not_exists: { Args: never; Returns: string }
       delete_resolved_feedback: { Args: { owner_id: string }; Returns: number }
       get_employee_store_owner: { Args: { user_uuid: string }; Returns: string }
