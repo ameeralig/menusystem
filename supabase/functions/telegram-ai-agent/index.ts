@@ -64,6 +64,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: "chatId, userId, text مطلوبة" }, { status: 400, headers: corsHeaders });
     }
 
+    // خصم رسالة واحدة من رصيد المستخدم قبل الاستدعاء
+    const { data: remaining, error: creditError } = await db.rpc("consume_ai_credit", { _user_id: userId });
+    if (creditError) console.error("consume_ai_credit", creditError);
+    if (remaining === -1) {
+      return Response.json({
+        reply:
+          "🪫 <b>خلص رصيد المساعد الذكي</b>\n\nتقدر تشتري رصيد إضافي بإرسال كلمة <b>شراء رصيد</b>، أو تشوف رصيدك بكلمة <b>رصيدي</b>.",
+        outOfCredit: true,
+      }, { headers: corsHeaders });
+    }
+
+
     // ذاكرة المحادثة
     const { data: session } = await db
       .from("telegram_bot_sessions")
