@@ -139,13 +139,20 @@ Deno.serve(async (req) => {
     }, { onConflict: "chat_id" });
     if (saveError) console.error("save session failed", saveError);
 
-    return Response.json({ reply, awaitingImageFor }, { headers: corsHeaders });
+    // تنبيه عند اقتراب نفاد الرصيد
+    const left = typeof remaining === "number" ? remaining : null;
+    if (left !== null && left <= 10) {
+      reply += `\n\n⚠️ باقي عندك <b>${left}</b> رسالة. أرسل <b>شراء رصيد</b> للشحن.`;
+    }
+
+    return Response.json({ reply, awaitingImageFor, remaining: left }, { headers: corsHeaders });
   } catch (e: any) {
     const status = e?.status;
     const msg =
       status === 429 ? "⏳ ضغط عالي على المساعد الذكي، جرّب بعد شوية."
-      : status === 402 ? "💳 انتهى رصيد الذكاء الاصطناعي. أضف رصيد للاستمرار."
+      : status === 402 ? "🪫 خدمة الذكاء الاصطناعي متوقفة مؤقتاً من طرف المنصة. راجع الإدارة."
       : "⚠️ صار خطأ بالمساعد الذكي. جرّب مرة ثانية.";
+
     console.error("telegram-ai-agent", e);
     return Response.json({ reply: msg, error: String(e?.message ?? e) }, { status: 200, headers: corsHeaders });
   }
