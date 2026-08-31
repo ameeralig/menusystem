@@ -59,6 +59,9 @@ const AdminDashboardTabs = () => {
         return <SharedImagesTab />;
       case 'ads':
         return <AdsManagementTab />;
+      case 'aicredits':
+        return <AiCreditsTab />;
+
       default:
         return <AdminStatsTab />;
     }
