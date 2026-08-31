@@ -419,9 +419,16 @@ async function handleMessage(chatId: number, msg: any) {
   await touch(linked.id);
   const session = await getSession(chatId);
 
-  // 🤖 صورة مطلوبة من المساعد الذكي
+  // 🧾 صورة وصل شحن الرصيد
   const pending = (session as any)?.pending_action;
+  if (photo && pending?.type === "topup_receipt" && pending?.purchase_id) {
+    await handleTopupReceipt(chatId, linked.id, pending.purchase_id, photo.file_id);
+    return new Response(JSON.stringify({ ok: true }));
+  }
+
+  // 🤖 صورة مطلوبة من المساعد الذكي
   if (photo && pending?.type === "product_image" && pending?.product_id) {
+
     await send(chatId, "⏳ جاري رفع الصوره...");
     const dl = await downloadTelegramPhoto(photo.file_id);
     const url = dl ? await uploadPhotoToR2(linked.id, dl.bytes, dl.name) : null;
