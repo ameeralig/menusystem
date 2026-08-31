@@ -945,6 +945,18 @@ async function handleCallback(cq: any) {
   await touch(linked.id);
   const uid = linked.id;
 
+  // 💳 شحن الرصيد
+  if (data.startsWith("topup:")) {
+    await startTopupOrder(chatId, uid, data.split(":")[1]);
+    return new Response(JSON.stringify({ ok: true }));
+  }
+  if (data.startsWith("appr:") || data.startsWith("rejp:")) {
+    await reviewPurchase(chatId, uid, data.split(":")[1], data.startsWith("appr:"));
+    return new Response(JSON.stringify({ ok: true }));
+  }
+
+
+
   // Products
   if (data.startsWith("p:list:")) {
     const [, , pageStr, cat] = data.split(":");
