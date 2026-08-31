@@ -38,32 +38,91 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_credit_packages: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          messages: number
+          name: string
+          price_iqd: number
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          messages: number
+          name: string
+          price_iqd: number
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          messages?: number
+          name?: string
+          price_iqd?: number
+        }
+        Relationships: []
+      }
       ai_credit_purchases: {
         Row: {
           amount: number
+          approved_at: string | null
+          approved_by: string | null
           created_at: string
           id: string
           note: string | null
+          package_id: string | null
+          payment_method: string
+          price_iqd: number | null
+          receipt_url: string | null
           status: string
+          stripe_session_id: string | null
           user_id: string
         }
         Insert: {
           amount: number
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           id?: string
           note?: string | null
+          package_id?: string | null
+          payment_method?: string
+          price_iqd?: number | null
+          receipt_url?: string | null
           status?: string
+          stripe_session_id?: string | null
           user_id: string
         }
         Update: {
           amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           id?: string
           note?: string | null
+          package_id?: string | null
+          payment_method?: string
+          price_iqd?: number | null
+          receipt_url?: string | null
           status?: string
+          stripe_session_id?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ai_credit_purchases_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "ai_credit_packages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ai_messages: {
         Row: {
@@ -1373,6 +1432,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_ai_credit_purchase: {
+        Args: { _purchase_id: string }
+        Returns: number
+      }
       calculate_employee_daily_sales: {
         Args: { target_date?: string }
         Returns: {
