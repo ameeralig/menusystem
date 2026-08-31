@@ -9,6 +9,7 @@ import {
   LineChart, 
   Image,
   Megaphone,
+  Coins,
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
@@ -19,6 +20,7 @@ import UserAnalyticsTab from "@/components/admin/analytics/UserAnalyticsTab";
 import StorageManagementTab from "@/components/admin/storage/StorageManagementTab";
 import SharedImagesTab from "@/components/admin/images/SharedImagesTab";
 import AdsManagementTab from "@/components/admin/ads/AdsManagementTab";
+import AiCreditsTab from "@/components/admin/ai-credits/AiCreditsTab";
 import FloatingAIChat from "@/components/dashboard/FloatingAIChat";
 import { APIKeysManager } from "@/components/dashboard/APIKeysManager";
 
@@ -31,7 +33,9 @@ const tabs = [
   { id: 'analytics', label: 'التحليلات', icon: LineChart, color: 'from-indigo-400 to-blue-500' },
   { id: 'images', label: 'مستودع الصور', icon: Image, color: 'from-teal-400 to-cyan-500' },
   { id: 'ads', label: 'الإعلانات', icon: Megaphone, color: 'from-amber-400 to-orange-500' },
+  { id: 'aicredits', label: 'رصيد الذكاء الاصطناعي', icon: Coins, color: 'from-lime-400 to-green-500' },
 ];
+
 
 const AdminDashboardTabs = () => {
   const [activeTab, setActiveTab] = useState('stats');
@@ -55,6 +59,9 @@ const AdminDashboardTabs = () => {
         return <SharedImagesTab />;
       case 'ads':
         return <AdsManagementTab />;
+      case 'aicredits':
+        return <AiCreditsTab />;
+
       default:
         return <AdminStatsTab />;
     }

@@ -61,6 +61,11 @@ const MAIN_KB = {
 const NO_KB = {};
 const REMOVE_KB = { reply_markup: { remove_keyboard: true } };
 
+// معلومات الدفع المحلي (تُضبط كسر TOPUP_WALLET_INFO)
+const WALLET_INFO = Deno.env.get("TOPUP_WALLET_INFO") ??
+  "💳 <b>طريقة الدفع:</b> زين كاش / آسيا حوالة\nراسل الإدارة للحصول على رقم المحفظة.";
+
+
 // ========================== R2 upload (for photos) ==========================
 async function uploadPhotoToR2(userId: string, fileBytes: Uint8Array, filename: string): Promise<string | null> {
   try {
@@ -414,9 +419,16 @@ async function handleMessage(chatId: number, msg: any) {
   await touch(linked.id);
   const session = await getSession(chatId);
 
-  // 🤖 صورة مطلوبة من المساعد الذكي
+  // 🧾 صورة وصل شحن الرصيد
   const pending = (session as any)?.pending_action;
+  if (photo && pending?.type === "topup_receipt" && pending?.purchase_id) {
+    await handleTopupReceipt(chatId, linked.id, pending.purchase_id, photo.file_id);
+    return new Response(JSON.stringify({ ok: true }));
+  }
+
+  // 🤖 صورة مطلوبة من المساعد الذكي
   if (photo && pending?.type === "product_image" && pending?.product_id) {
+
     await send(chatId, "⏳ جاري رفع الصوره...");
     const dl = await downloadTelegramPhoto(photo.file_id);
     const url = dl ? await uploadPhotoToR2(linked.id, dl.bytes, dl.name) : null;
@@ -563,24 +575,196 @@ async function showAiBalance(chatId: number, userId: string) {
   );
 }
 
-async function requestAiTopup(chatId: number, userId: string) {
-  const { error } = await supabase.from("ai_credit_purchases").insert({
-    user_id: userId,
-    amount: 500,
-    status: "pending",
-    note: `طلب من تلكرام - chat ${chatId}`,
-  });
-  if (error) {
+// عرض باقات الشراء
+async function requestAiTopup(chatId: number, _userId: string) {
+  const { data: packages } = await supabase
+    .from("ai_credit_packages")
+    .select("id, name, messages, price_iqd")
+    .eq("is_active", true)
+    .order("display_order");
+
+  if (!packages?.length) {
+    await send(chatId, "⚠️ ما توجد باقات متاحة حالياً. راجع الإدارة.", NO_KB);
+    return;
+  }
+
+  await send(
+    chatId,
+    "🛒 <b>باقات رصيد المساعد الذكي</b>\n\nاختر الباقة اللي تناسبك:",
+    {
+      reply_markup: {
+        inline_keyboard: packages.map((p) => [{
+          text: `${p.name} — ${p.messages} رسالة — ${p.price_iqd.toLocaleString("en")} د.ع`,
+          callback_data: `topup:${p.id}`,
+        }]),
+      },
+    },
+  );
+}
+
+// إنشاء طلب شراء بعد اختيار الباقة
+async function startTopupOrder(chatId: number, userId: string, packageId: string) {
+  const { data: pkg } = await supabase
+    .from("ai_credit_packages")
+    .select("id, name, messages, price_iqd")
+    .eq("id", packageId)
+    .maybeSingle();
+  if (!pkg) {
+    await send(chatId, "❌ الباقة غير متاحة.", NO_KB);
+    return;
+  }
+
+  const { data: purchase, error } = await supabase
+    .from("ai_credit_purchases")
+    .insert({
+      user_id: userId,
+      package_id: pkg.id,
+      amount: pkg.messages,
+      price_iqd: pkg.price_iqd,
+      payment_method: "manual",
+      status: "pending",
+      note: `باقة ${pkg.name} عبر تلكرام`,
+    })
+    .select("id")
+    .maybeSingle();
+
+  if (error || !purchase) {
     console.error("topup insert", error);
     await send(chatId, "⚠️ ما كدرنا نسجّل الطلب. جرّب مرة ثانية.", NO_KB);
     return;
   }
+
+  await supabase.from("telegram_bot_sessions").upsert({
+    chat_id: chatId,
+    state: "topup_receipt",
+    pending_action: { type: "topup_receipt", purchase_id: purchase.id },
+    updated_at: new Date().toISOString(),
+  }, { onConflict: "chat_id" });
+
   await send(
     chatId,
-    "🧾 <b>تم تسجيل طلب شحن ٥٠٠ رسالة</b>\n\nراح تتواصل وياك الإدارة لإكمال الدفع وتفعيل الرصيد.\nتقدر تتابع رصيدك بكلمة <b>رصيدي</b>.",
+    `🧾 <b>طلب: ${escape(pkg.name)}</b>\n` +
+    `📩 عدد الرسائل: <b>${pkg.messages}</b>\n` +
+    `💵 المبلغ: <b>${pkg.price_iqd.toLocaleString("en")} د.ع</b>\n\n` +
+    `${WALLET_INFO}\n\n` +
+    `بعد التحويل أرسل <b>صورة الوصل</b> هنا، وراح يتفعّل رصيدك بعد التأكيد.\n` +
+    `للإلغاء أرسل /cancel`,
     NO_KB,
   );
 }
+
+// استلام صورة وصل الدفع
+async function handleTopupReceipt(chatId: number, userId: string, purchaseId: string, fileId: string) {
+  await send(chatId, "⏳ جاري رفع الوصل...");
+  const dl = await downloadTelegramPhoto(fileId);
+  const url = dl ? await uploadPhotoToR2(userId, dl.bytes, dl.name) : null;
+  if (!url) {
+    await send(chatId, "❌ فشل رفع الوصل. جرّب مرة ثانية.", NO_KB);
+    return;
+  }
+
+  await supabase.from("ai_credit_purchases").update({ receipt_url: url }).eq("id", purchaseId);
+  await supabase.from("telegram_bot_sessions")
+    .update({ state: "ai", pending_action: null }).eq("chat_id", chatId);
+
+  await send(
+    chatId,
+    "✅ <b>وصلنا الوصل!</b>\n\nراح تراجعه الإدارة ويتفعّل رصيدك خلال وقت قصير. تابع بكلمة <b>رصيدي</b>.",
+    NO_KB,
+  );
+  await notifyAdminsAboutPurchase(purchaseId, userId, url);
+}
+
+// إشعار الأدمن بطلب جديد
+async function notifyAdminsAboutPurchase(purchaseId: string, userId: string, receiptUrl: string) {
+  const { data: admins } = await supabase
+    .from("user_roles").select("user_id").eq("role", "admin");
+  if (!admins?.length) return;
+
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, telegram_chat_id, full_name")
+    .in("id", admins.map((a) => a.user_id))
+    .not("telegram_chat_id", "is", null);
+
+  const { data: buyer } = await supabase
+    .from("profiles").select("full_name, phone_number").eq("id", userId).maybeSingle();
+  const { data: purchase } = await supabase
+    .from("ai_credit_purchases").select("amount, price_iqd").eq("id", purchaseId).maybeSingle();
+
+  const caption =
+    `🧾 <b>طلب شحن رصيد جديد</b>\n\n` +
+    `👤 ${escape(buyer?.full_name ?? "-")} (${escape(buyer?.phone_number ?? "-")})\n` +
+    `📩 ${purchase?.amount ?? "-"} رسالة\n` +
+    `💵 ${(purchase?.price_iqd ?? 0).toLocaleString("en")} د.ع`;
+
+  for (const p of profiles ?? []) {
+    await tg("sendPhoto", {
+      chat_id: p.telegram_chat_id,
+      photo: receiptUrl,
+      caption,
+      parse_mode: "HTML",
+      reply_markup: {
+        inline_keyboard: [[
+          { text: "✅ قبول", callback_data: `appr:${purchaseId}` },
+          { text: "❌ رفض", callback_data: `rejp:${purchaseId}` },
+        ]],
+      },
+    });
+  }
+}
+
+// اعتماد/رفض الطلب من الأدمن عبر البوت
+async function reviewPurchase(chatId: number, adminId: string, purchaseId: string, accept: boolean) {
+  const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: adminId, _role: "admin" });
+  if (!isAdmin) {
+    await send(chatId, "⛔ هذا الإجراء للإدارة فقط.", NO_KB);
+    return;
+  }
+
+  const { data: purchase } = await supabase
+    .from("ai_credit_purchases")
+    .select("id, user_id, amount, status")
+    .eq("id", purchaseId).maybeSingle();
+  if (!purchase || purchase.status !== "pending") {
+    await send(chatId, "ℹ️ الطلب معالج مسبقاً.", NO_KB);
+    return;
+  }
+
+  if (!accept) {
+    await supabase.from("ai_credit_purchases")
+      .update({ status: "rejected", approved_by: adminId, approved_at: new Date().toISOString() })
+      .eq("id", purchaseId);
+    await send(chatId, "❌ تم رفض الطلب.", NO_KB);
+    await notifyBuyer(purchase.user_id, "❌ تم رفض طلب شحن الرصيد. راجع الإدارة للتفاصيل.");
+    return;
+  }
+
+  // إضافة الرصيد
+  const { data: current } = await supabase
+    .from("ai_user_credits").select("balance").eq("user_id", purchase.user_id).maybeSingle();
+  const newBalance = (current?.balance ?? 0) + purchase.amount;
+
+  await supabase.from("ai_user_credits").upsert({
+    user_id: purchase.user_id,
+    balance: newBalance,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: "user_id" });
+
+  await supabase.from("ai_credit_purchases")
+    .update({ status: "accepted", approved_by: adminId, approved_at: new Date().toISOString() })
+    .eq("id", purchaseId);
+
+  await send(chatId, `✅ تم قبول الطلب وشحن ${purchase.amount} رسالة.`, NO_KB);
+  await notifyBuyer(purchase.user_id, `🎉 تم شحن <b>${purchase.amount}</b> رسالة لحسابك!\nرصيدك الحالي: <b>${newBalance}</b>`);
+}
+
+async function notifyBuyer(userId: string, text: string) {
+  const { data: p } = await supabase
+    .from("profiles").select("telegram_chat_id").eq("id", userId).maybeSingle();
+  if (p?.telegram_chat_id) await send(Number(p.telegram_chat_id), text, NO_KB);
+}
+
 
 
 // استدعاء المساعد الذكي
@@ -760,6 +944,18 @@ async function handleCallback(cq: any) {
   }
   await touch(linked.id);
   const uid = linked.id;
+
+  // 💳 شحن الرصيد
+  if (data.startsWith("topup:")) {
+    await startTopupOrder(chatId, uid, data.split(":")[1]);
+    return new Response(JSON.stringify({ ok: true }));
+  }
+  if (data.startsWith("appr:") || data.startsWith("rejp:")) {
+    await reviewPurchase(chatId, uid, data.split(":")[1], data.startsWith("appr:"));
+    return new Response(JSON.stringify({ ok: true }));
+  }
+
+
 
   // Products
   if (data.startsWith("p:list:")) {
