@@ -61,6 +61,11 @@ const MAIN_KB = {
 const NO_KB = {};
 const REMOVE_KB = { reply_markup: { remove_keyboard: true } };
 
+// معلومات الدفع المحلي (تُضبط كسر TOPUP_WALLET_INFO)
+const WALLET_INFO = Deno.env.get("TOPUP_WALLET_INFO") ??
+  "💳 <b>طريقة الدفع:</b> زين كاش / آسيا حوالة\nراسل الإدارة للحصول على رقم المحفظة.";
+
+
 // ========================== R2 upload (for photos) ==========================
 async function uploadPhotoToR2(userId: string, fileBytes: Uint8Array, filename: string): Promise<string | null> {
   try {
