@@ -85,6 +85,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   const [isShareCardOpen, setIsShareCardOpen] = useState(false);
   const [isMenuDownloadOpen, setIsMenuDownloadOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const navigate = useNavigate();
 
   const getThemeColor = () => {
     if (colorTheme?.startsWith('#')) {
