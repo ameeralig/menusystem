@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Gamepad2, MessageSquare, Search, X, Share2, Download, Heart, Info, MoreHorizontal } from "lucide-react";
 import { logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
 import { Button } from "@/components/ui/button";
@@ -84,6 +85,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
   const [isShareCardOpen, setIsShareCardOpen] = useState(false);
   const [isMenuDownloadOpen, setIsMenuDownloadOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const navigate = useNavigate();
 
   const getThemeColor = () => {
     if (colorTheme?.startsWith('#')) {
@@ -191,7 +193,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
     },
     storeOwnerId && products.length > 0 && {
       id: 'games',
-      onClick: () => { setIsGamesMenuOpen(true); trackAction('game_open'); },
+      onClick: () => { trackAction('game_open'); navigate(`/${slug}/games`); },
       icon: Gamepad2,
       label: 'ألعاب',
       gradient: `linear-gradient(135deg, #f59e0b, #d97706)`,
