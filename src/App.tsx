@@ -55,6 +55,7 @@ const App = () => (
               <Route path="/qr-generator" element={<QRGenerator />} />
               <Route path="/:slug" element={<ProductPreview />} />
               <Route path="/:slug/games" element={<GamesPage />} />
+              <Route path="/games" element={<GamesPage />} />
               
               <Route path="/sales-management" element={<SalesManagement />} />
               <Route path="/r2-test" element={<R2UploadTest />} />
