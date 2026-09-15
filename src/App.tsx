@@ -20,6 +20,7 @@ const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 
 // صفحات أخرى
 const QRGenerator = lazy(() => import("./pages/QRGenerator"));
+const GamesPage = lazy(() => import("./pages/GamesPage"));
 const SalesManagement = lazy(() => import("./pages/SalesManagement"));
 const R2UploadTest = lazy(() => import("./components/test/R2UploadTest"));
 
