@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Gamepad2, MessageSquare, Search, X, Share2, Download, Heart, Info, MoreHorizontal } from "lucide-react";
 import { logVisitorActivity } from "@/hooks/analytics/useActivityLogger";
 import { Button } from "@/components/ui/button";
