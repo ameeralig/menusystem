@@ -193,7 +193,7 @@ const BottomActionsBar: React.FC<BottomActionsBarProps> = ({
     },
     storeOwnerId && products.length > 0 && {
       id: 'games',
-      onClick: () => { setIsGamesMenuOpen(true); trackAction('game_open'); },
+      onClick: () => { trackAction('game_open'); navigate(`/${slug}/games`); },
       icon: Gamepad2,
       label: 'ألعاب',
       gradient: `linear-gradient(135deg, #f59e0b, #d97706)`,
