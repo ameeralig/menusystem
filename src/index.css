@@ -3,6 +3,36 @@
 @tailwind components;
 @tailwind utilities;
 
+/* هوية صفحة الألعاب المستقلة — قيم معزولة حتى لا تغيّر ألوان المتاجر */
+.games-page {
+  --game-bg: 264 42% 7%;
+  --game-surface: 266 41% 14%;
+  --game-surface-soft: 264 31% 18%;
+  --game-text: 270 33% 98%;
+  --game-muted: 266 14% 67%;
+  --game-purple: 269 83% 76%;
+  --game-teal: 173 80% 44%;
+  --game-rose: 351 94% 71%;
+  --game-border: 269 39% 27%;
+  --game-shadow: 269 83% 76%;
+  --game-display: 'Space Grotesk', 'Cairo', sans-serif;
+  --game-body: 'DM Sans', 'Cairo', sans-serif;
+  background: hsl(var(--game-bg));
+  color: hsl(var(--game-text));
+  font-family: var(--game-body);
+}
+
+.games-page__title {
+  font-family: var(--game-display);
+}
+
+.games-page__grid {
+  background-image:
+    linear-gradient(hsl(var(--game-purple) / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--game-purple) / 0.035) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
 /* دعم Safe Areas للتطبيقات الأصلية (iPhone notch, Android cutout) */
 :root {
   --safe-area-top: env(safe-area-inset-top, 0px);
